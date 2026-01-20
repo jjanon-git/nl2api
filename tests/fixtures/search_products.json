@@ -1,0 +1,37 @@
+{
+  "id": "test-search-products-001",
+  "nl_query": "Find all products under $50 with free shipping",
+  "expected_tool_calls": [
+    {
+      "tool_name": "search_products",
+      "arguments": {
+        "max_price": 50,
+        "free_shipping": true
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "products": [
+      {"id": "prod-1", "name": "Widget A", "price": 29.99},
+      {"id": "prod-2", "name": "Widget B", "price": 45.00}
+    ]
+  },
+  "expected_nl_response": "I found 2 products under $50 with free shipping: Widget A ($29.99) and Widget B ($45.00).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["search", "products", "basic"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "search_products",
+        "arguments": {
+          "max_price": 50,
+          "free_shipping": true
+        }
+      }
+    ],
+    "nl_response": "I found 2 products under $50 with free shipping."
+  }
+}

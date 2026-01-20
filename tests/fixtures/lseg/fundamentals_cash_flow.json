@@ -1,0 +1,43 @@
+{
+  "id": "lseg-fund-005",
+  "nl_query": "What is Amazon's free cash flow and operating cash flow?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AMZN.O"],
+        "fields": ["TR.FreeCashFlow", "TR.OperatingCashFlow"],
+        "parameters": {
+          "Period": "FY0"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AMZN.O": {
+      "TR.FreeCashFlow": 35500000000,
+      "TR.OperatingCashFlow": 84946000000
+    }
+  },
+  "expected_nl_response": "Amazon's free cash flow is $35.5 billion and operating cash flow is $84.9 billion.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["fundamentals", "cash-flow", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AMZN.O"],
+          "fields": ["TR.FreeCashFlow", "TR.OperatingCashFlow"],
+          "parameters": {
+            "Period": "FY0"
+          }
+        }
+      }
+    ],
+    "nl_response": "Amazon's free cash flow is $35.5 billion and operating cash flow is $84.9 billion."
+  }
+}

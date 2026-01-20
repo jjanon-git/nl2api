@@ -1,0 +1,42 @@
+{
+  "id": "lseg-est-001",
+  "nl_query": "What is the consensus EPS estimate for Apple next year?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AAPL.O"],
+        "fields": ["TR.EPSMean"],
+        "parameters": {
+          "Period": "FY1"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL.O": {
+      "TR.EPSMean": 7.45
+    }
+  },
+  "expected_nl_response": "The consensus EPS estimate for Apple for next fiscal year is $7.45.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["estimates", "eps", "consensus", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AAPL.O"],
+          "fields": ["TR.EPSMean"],
+          "parameters": {
+            "Period": "FY1"
+          }
+        }
+      }
+    ],
+    "nl_response": "The consensus EPS estimate for Apple for next fiscal year is $7.45."
+  }
+}

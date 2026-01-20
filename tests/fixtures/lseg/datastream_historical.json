@@ -1,0 +1,43 @@
+{
+  "id": "lseg-ds-002",
+  "nl_query": "Get Microsoft's daily closing prices for the last 30 days",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@MSFT",
+        "fields": ["P"],
+        "start": "-30D",
+        "end": "0D",
+        "freq": "D"
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "MSFT": {
+      "prices": [410.25, 412.50, 408.75],
+      "dates": ["2025-12-18", "2025-12-19", "2025-12-20"]
+    }
+  },
+  "expected_nl_response": "Here are Microsoft's daily closing prices for the last 30 days.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["datastream", "price", "time-series", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@MSFT",
+          "fields": ["P"],
+          "start": "-30D",
+          "end": "0D",
+          "freq": "D"
+        }
+      }
+    ],
+    "nl_response": "Here are Microsoft's daily closing prices for the last 30 days."
+  }
+}

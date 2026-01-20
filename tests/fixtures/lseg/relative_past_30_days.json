@@ -1,0 +1,50 @@
+{
+  "id": "lseg-rel-005",
+  "nl_query": "How has NVIDIA's stock performed over the past 30 days?",
+  "context": {
+    "current_date": "2026-01-19",
+    "resolved_range": "2025-12-20 to 2026-01-19"
+  },
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@NVDA",
+        "fields": ["P"],
+        "start": "-30D",
+        "end": "0D",
+        "freq": "D"
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "NVDA": {
+      "start_price": 135.50,
+      "end_price": 142.80,
+      "change_pct": 5.39,
+      "high": 148.25,
+      "low": 132.10
+    }
+  },
+  "expected_nl_response": "NVIDIA is up 5.4% over the past 30 days ($135.50 → $142.80), with a high of $148.25 and low of $132.10.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["relative-date", "past-30-days", "performance", "context-dependent"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@NVDA",
+          "fields": ["P"],
+          "start": "-30D",
+          "end": "0D",
+          "freq": "D"
+        }
+      }
+    ],
+    "nl_response": "NVIDIA is up 5.4% over the past 30 days."
+  }
+}

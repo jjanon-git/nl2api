@@ -1,0 +1,41 @@
+{
+  "id": "lseg-error-005",
+  "nl_query": "What was Microsoft's stock price on December 31, 2030?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@MSFT",
+        "fields": ["P"],
+        "start": "2030-12-31",
+        "end": "2030-12-31",
+        "freq": "D"
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "error": "Requested date is in the future",
+    "error_code": "FUTURE_DATE"
+  },
+  "expected_nl_response": "I cannot retrieve stock prices for future dates. December 31, 2030 has not occurred yet.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["error", "future-date", "validation"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@MSFT",
+          "fields": ["P"],
+          "start": "2030-12-31",
+          "end": "2030-12-31",
+          "freq": "D"
+        }
+      }
+    ],
+    "nl_response": "I cannot retrieve stock prices for future dates."
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "lseg-fund-004",
+  "nl_query": "What is NVIDIA's ROE, ROA, and profit margin?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["NVDA.O"],
+        "fields": ["TR.ROE", "TR.ROA", "TR.NetProfitMargin"],
+        "parameters": {
+          "Period": "FY0"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "NVDA.O": {
+      "TR.ROE": 91.5,
+      "TR.ROA": 55.2,
+      "TR.NetProfitMargin": 55.0
+    }
+  },
+  "expected_nl_response": "NVIDIA's ROE is 91.5%, ROA is 55.2%, and net profit margin is 55.0%.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["fundamentals", "ratios", "profitability", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["NVDA.O"],
+          "fields": ["TR.ROE", "TR.ROA", "TR.NetProfitMargin"],
+          "parameters": {
+            "Period": "FY0"
+          }
+        }
+      }
+    ],
+    "nl_response": "NVIDIA's ROE is 91.5%, ROA is 55.2%, and net profit margin is 55.0%."
+  }
+}

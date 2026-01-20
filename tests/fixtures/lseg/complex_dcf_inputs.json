@@ -1,0 +1,55 @@
+{
+  "id": "lseg-complex-003",
+  "nl_query": "Get all the inputs needed for a DCF analysis of Microsoft: free cash flow, revenue growth, WACC, and shares outstanding",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["MSFT.O"],
+        "fields": [
+          "TR.FreeCashFlow",
+          "TR.RevenueGrowth",
+          "TR.WACC",
+          "TR.SharesOutstanding",
+          "TR.RevenueMean(Period=FY1)",
+          "TR.RevenueMean(Period=FY2)"
+        ]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "MSFT.O": {
+      "TR.FreeCashFlow": 59475000000,
+      "TR.RevenueGrowth": 15.8,
+      "TR.WACC": 9.2,
+      "TR.SharesOutstanding": 7430000000,
+      "TR.RevenueMean_FY1": 275000000000,
+      "TR.RevenueMean_FY2": 310000000000
+    }
+  },
+  "expected_nl_response": "Microsoft DCF inputs: FCF $59.5B, Revenue Growth 15.8%, WACC 9.2%, Shares 7.43B, FY1 Rev Est $275B, FY2 Rev Est $310B.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 5,
+    "tags": ["complex", "multi-field", "dcf", "valuation"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["MSFT.O"],
+          "fields": [
+            "TR.FreeCashFlow",
+            "TR.RevenueGrowth",
+            "TR.WACC",
+            "TR.SharesOutstanding",
+            "TR.RevenueMean(Period=FY1)",
+            "TR.RevenueMean(Period=FY2)"
+          ]
+        }
+      }
+    ],
+    "nl_response": "Microsoft DCF inputs gathered: FCF, growth rate, WACC, shares, and forward estimates."
+  }
+}

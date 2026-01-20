@@ -1,0 +1,48 @@
+{
+  "id": "lseg-rel-006",
+  "nl_query": "What is Google's year-to-date stock return?",
+  "context": {
+    "current_date": "2026-01-19",
+    "resolved_range": "2026-01-01 to 2026-01-19"
+  },
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@GOOGL",
+        "fields": ["P"],
+        "start": "-0AY",
+        "end": "0D",
+        "freq": "D"
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "GOOGL": {
+      "ytd_start_price": 188.50,
+      "current_price": 192.45,
+      "ytd_return_pct": 2.10
+    }
+  },
+  "expected_nl_response": "Google's year-to-date return is +2.1% ($188.50 at start of year → $192.45 now).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["relative-date", "ytd", "year-to-date", "performance", "context-dependent"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@GOOGL",
+          "fields": ["P"],
+          "start": "-0AY",
+          "end": "0D",
+          "freq": "D"
+        }
+      }
+    ],
+    "nl_response": "Google's year-to-date return is +2.1%."
+  }
+}

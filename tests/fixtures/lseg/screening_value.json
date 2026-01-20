@@ -1,0 +1,37 @@
+{
+  "id": "lseg-screen-004",
+  "nl_query": "Find undervalued stocks with PE ratio below 15 and ROE above 15%",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),TR.PE<15,TR.ROE>15,CURN=USD)"],
+        "fields": ["TR.CommonName", "TR.PE", "TR.ROE", "TR.CompanyMarketCap"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "results": [
+      {"name": "Berkshire Hathaway", "pe": 10.5, "roe": 18.2},
+      {"name": "JP Morgan Chase", "pe": 12.3, "roe": 16.5}
+    ]
+  },
+  "expected_nl_response": "Undervalued stocks (PE<15, ROE>15%): Berkshire Hathaway (PE 10.5, ROE 18.2%), JPMorgan (PE 12.3, ROE 16.5%)...",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["screening", "value", "pe", "roe", "multi-criteria"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),TR.PE<15,TR.ROE>15,CURN=USD)"],
+          "fields": ["TR.CommonName", "TR.PE", "TR.ROE", "TR.CompanyMarketCap"]
+        }
+      }
+    ],
+    "nl_response": "Undervalued stocks: Berkshire Hathaway, JP Morgan Chase..."
+  }
+}

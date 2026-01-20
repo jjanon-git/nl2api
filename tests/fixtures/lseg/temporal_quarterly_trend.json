@@ -1,0 +1,45 @@
+{
+  "id": "lseg-temp-005",
+  "nl_query": "Show Amazon's quarterly EPS for all four quarters of 2025",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AMZN.O"],
+        "fields": ["TR.EPSActValue"],
+        "parameters": {
+          "Period": "FQ12025,FQ22025,FQ32025,FQ42025"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AMZN.O": {
+      "FQ12025": {"TR.EPSActValue": 0.98},
+      "FQ22025": {"TR.EPSActValue": 1.26},
+      "FQ32025": {"TR.EPSActValue": 1.43},
+      "FQ42025": {"TR.EPSActValue": 1.68}
+    }
+  },
+  "expected_nl_response": "Amazon's 2025 quarterly EPS: Q1 $0.98, Q2 $1.26, Q3 $1.43, Q4 $1.68.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["temporal", "quarterly-trend", "eps", "multi-period"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AMZN.O"],
+          "fields": ["TR.EPSActValue"],
+          "parameters": {
+            "Period": "FQ12025,FQ22025,FQ32025,FQ42025"
+          }
+        }
+      }
+    ],
+    "nl_response": "Amazon's 2025 quarterly EPS: Q1 $0.98, Q2 $1.26, Q3 $1.43, Q4 $1.68."
+  }
+}

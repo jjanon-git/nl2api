@@ -1,0 +1,43 @@
+{
+  "id": "lseg-error-006",
+  "nl_query": "What is the EPS estimate for a small-cap company with no analyst coverage?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["SMALLCAP.O"],
+        "fields": ["TR.EPSMean", "TR.NumOfEst"],
+        "parameters": {
+          "Period": "FY1"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "SMALLCAP.O": {
+      "TR.EPSMean": null,
+      "TR.NumOfEst": 0
+    }
+  },
+  "expected_nl_response": "This company has no analyst coverage, so EPS estimates are not available.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["error", "no-coverage", "estimates"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["SMALLCAP.O"],
+          "fields": ["TR.EPSMean", "TR.NumOfEst"],
+          "parameters": {
+            "Period": "FY1"
+          }
+        }
+      }
+    ],
+    "nl_response": "This company has no analyst coverage, so EPS estimates are not available."
+  }
+}

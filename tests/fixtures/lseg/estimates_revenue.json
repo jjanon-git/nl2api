@@ -1,0 +1,43 @@
+{
+  "id": "lseg-est-002",
+  "nl_query": "What are the revenue estimates for Microsoft for the next two years?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["MSFT.O"],
+        "fields": ["TR.RevenueMean", "TR.RevenueHigh", "TR.RevenueLow"],
+        "parameters": {
+          "Period": "FY1,FY2"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "MSFT.O": {
+      "FY1": {"TR.RevenueMean": 275000000000, "TR.RevenueHigh": 280000000000, "TR.RevenueLow": 270000000000},
+      "FY2": {"TR.RevenueMean": 310000000000, "TR.RevenueHigh": 320000000000, "TR.RevenueLow": 300000000000}
+    }
+  },
+  "expected_nl_response": "Microsoft's revenue estimates: FY1 mean $275B (range $270-280B), FY2 mean $310B (range $300-320B).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["estimates", "revenue", "multi-period", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["MSFT.O"],
+          "fields": ["TR.RevenueMean", "TR.RevenueHigh", "TR.RevenueLow"],
+          "parameters": {
+            "Period": "FY1,FY2"
+          }
+        }
+      }
+    ],
+    "nl_response": "Microsoft's revenue estimates: FY1 mean $275B, FY2 mean $310B."
+  }
+}

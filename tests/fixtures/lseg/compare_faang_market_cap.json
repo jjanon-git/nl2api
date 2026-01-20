@@ -1,0 +1,38 @@
+{
+  "id": "lseg-compare-005",
+  "nl_query": "Rank the FAANG stocks by market cap",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["META.O", "AAPL.O", "AMZN.O", "NFLX.O", "GOOGL.O"],
+        "fields": ["TR.CommonName", "TR.CompanyMarketCap"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL.O": {"TR.CommonName": "Apple Inc", "TR.CompanyMarketCap": 3200000000000},
+    "GOOGL.O": {"TR.CommonName": "Alphabet Inc", "TR.CompanyMarketCap": 2100000000000},
+    "AMZN.O": {"TR.CommonName": "Amazon.com Inc", "TR.CompanyMarketCap": 1950000000000},
+    "META.O": {"TR.CommonName": "Meta Platforms", "TR.CompanyMarketCap": 1400000000000},
+    "NFLX.O": {"TR.CommonName": "Netflix Inc", "TR.CompanyMarketCap": 380000000000}
+  },
+  "expected_nl_response": "FAANG by market cap: 1. Apple ($3.2T), 2. Google ($2.1T), 3. Amazon ($1.95T), 4. Meta ($1.4T), 5. Netflix ($380B).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["comparison", "multi-ticker", "market-cap", "faang", "ranking"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["META.O", "AAPL.O", "AMZN.O", "NFLX.O", "GOOGL.O"],
+          "fields": ["TR.CommonName", "TR.CompanyMarketCap"]
+        }
+      }
+    ],
+    "nl_response": "FAANG by market cap: Apple, Google, Amazon, Meta, Netflix."
+  }
+}

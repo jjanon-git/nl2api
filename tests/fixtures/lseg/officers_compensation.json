@@ -1,0 +1,43 @@
+{
+  "id": "lseg-od-002",
+  "nl_query": "What is the total compensation of Tesla's CEO?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["TSLA.O"],
+        "fields": ["TR.CEOName", "TR.ODOfficerTotalComp"],
+        "parameters": {
+          "OfficerType": "CEO"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "TSLA.O": {
+      "TR.CEOName": "Elon Musk",
+      "TR.ODOfficerTotalComp": 0
+    }
+  },
+  "expected_nl_response": "Tesla's CEO Elon Musk received $0 in total compensation (he does not take a salary).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["officers-directors", "compensation", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["TSLA.O"],
+          "fields": ["TR.CEOName", "TR.ODOfficerTotalComp"],
+          "parameters": {
+            "OfficerType": "CEO"
+          }
+        }
+      }
+    ],
+    "nl_response": "Tesla's CEO Elon Musk received $0 in total compensation."
+  }
+}

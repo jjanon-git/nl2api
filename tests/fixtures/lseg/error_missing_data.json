@@ -1,0 +1,43 @@
+{
+  "id": "lseg-error-002",
+  "nl_query": "What was the revenue of a newly IPO'd company before it went public?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["NEWIPO.O"],
+        "fields": ["TR.Revenue"],
+        "parameters": {
+          "Period": "FY2020"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "NEWIPO.O": {
+      "TR.Revenue": null,
+      "error": "No data available for requested period"
+    }
+  },
+  "expected_nl_response": "Revenue data is not available for this company for the requested period (prior to IPO).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["error", "missing-data", "null-handling"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["NEWIPO.O"],
+          "fields": ["TR.Revenue"],
+          "parameters": {
+            "Period": "FY2020"
+          }
+        }
+      }
+    ],
+    "nl_response": "Revenue data is not available for this company for the requested period."
+  }
+}

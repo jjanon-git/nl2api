@@ -1,0 +1,43 @@
+{
+  "id": "lseg-fund-003",
+  "nl_query": "What are Google's total assets and total debt?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["GOOGL.O"],
+        "fields": ["TR.TotalAssets", "TR.TotalDebt"],
+        "parameters": {
+          "Period": "FY0"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "GOOGL.O": {
+      "TR.TotalAssets": 402392000000,
+      "TR.TotalDebt": 28500000000
+    }
+  },
+  "expected_nl_response": "Google's total assets are $402.4 billion and total debt is $28.5 billion.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["fundamentals", "balance-sheet", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["GOOGL.O"],
+          "fields": ["TR.TotalAssets", "TR.TotalDebt"],
+          "parameters": {
+            "Period": "FY0"
+          }
+        }
+      }
+    ],
+    "nl_response": "Google's total assets are $402.4 billion and total debt is $28.5 billion."
+  }
+}

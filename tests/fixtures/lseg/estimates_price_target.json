@@ -1,0 +1,39 @@
+{
+  "id": "lseg-est-005",
+  "nl_query": "What is the average price target for NVIDIA?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["NVDA.O"],
+        "fields": ["TR.PriceTargetMean", "TR.PriceTargetHigh", "TR.PriceTargetLow", "TR.NumOfPriceTarget"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "NVDA.O": {
+      "TR.PriceTargetMean": 175.50,
+      "TR.PriceTargetHigh": 220.00,
+      "TR.PriceTargetLow": 130.00,
+      "TR.NumOfPriceTarget": 45
+    }
+  },
+  "expected_nl_response": "NVIDIA's average price target is $175.50 (range: $130-$220) from 45 analysts.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["estimates", "price-target", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["NVDA.O"],
+          "fields": ["TR.PriceTargetMean", "TR.PriceTargetHigh", "TR.PriceTargetLow", "TR.NumOfPriceTarget"]
+        }
+      }
+    ],
+    "nl_response": "NVIDIA's average price target is $175.50 from 45 analysts."
+  }
+}

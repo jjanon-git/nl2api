@@ -1,0 +1,44 @@
+{
+  "id": "lseg-fund-001",
+  "nl_query": "What was Apple's revenue last year?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AAPL.O"],
+        "fields": ["TR.Revenue"],
+        "parameters": {
+          "Period": "FY0",
+          "Frq": "FY"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL.O": {
+      "TR.Revenue": 383285000000
+    }
+  },
+  "expected_nl_response": "Apple's revenue for the last fiscal year was $383.3 billion.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["fundamentals", "revenue", "income-statement", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AAPL.O"],
+          "fields": ["TR.Revenue"],
+          "parameters": {
+            "Period": "FY0",
+            "Frq": "FY"
+          }
+        }
+      }
+    ],
+    "nl_response": "Apple's revenue for the last fiscal year was $383.3 billion."
+  }
+}

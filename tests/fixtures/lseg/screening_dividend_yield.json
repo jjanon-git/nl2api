@@ -1,0 +1,37 @@
+{
+  "id": "lseg-screen-002",
+  "nl_query": "Find US tech stocks with dividend yield above 2%",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),TR.HQCountryCode=US,IN(TR.TRBCEconSectorCode,57),TR.DividendYield>2,CURN=USD)"],
+        "fields": ["TR.CommonName", "TR.DividendYield", "TR.CompanyMarketCap"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "results": [
+      {"name": "IBM Corp", "dividend_yield": 3.5, "market_cap": 180000000000},
+      {"name": "Cisco Systems", "dividend_yield": 2.8, "market_cap": 220000000000}
+    ]
+  },
+  "expected_nl_response": "US tech stocks with dividend yield > 2%: IBM (3.5%), Cisco (2.8%)...",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["screening", "dividend", "tech", "filter"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),TR.HQCountryCode=US,IN(TR.TRBCEconSectorCode,57),TR.DividendYield>2,CURN=USD)"],
+          "fields": ["TR.CommonName", "TR.DividendYield", "TR.CompanyMarketCap"]
+        }
+      }
+    ],
+    "nl_response": "Found US tech stocks with dividend yield above 2%: IBM (3.5%), Cisco (2.8%)."
+  }
+}

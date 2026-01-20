@@ -1,0 +1,37 @@
+{
+  "id": "lseg-screen-003",
+  "nl_query": "Find companies with revenue growth over 20% and positive free cash flow",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),TR.RevenueGrowth>20,TR.FreeCashFlow>0,CURN=USD)"],
+        "fields": ["TR.CommonName", "TR.RevenueGrowth", "TR.FreeCashFlow", "TR.CompanyMarketCap"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "results": [
+      {"name": "NVIDIA Corp", "revenue_growth": 122.5, "fcf": 27000000000},
+      {"name": "CrowdStrike", "revenue_growth": 35.2, "fcf": 850000000}
+    ]
+  },
+  "expected_nl_response": "Companies with >20% revenue growth and positive FCF: NVIDIA (122.5% growth), CrowdStrike (35.2%)...",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["screening", "growth", "cash-flow", "multi-criteria"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),TR.RevenueGrowth>20,TR.FreeCashFlow>0,CURN=USD)"],
+          "fields": ["TR.CommonName", "TR.RevenueGrowth", "TR.FreeCashFlow", "TR.CompanyMarketCap"]
+        }
+      }
+    ],
+    "nl_response": "Companies with >20% revenue growth and positive FCF: NVIDIA, CrowdStrike..."
+  }
+}

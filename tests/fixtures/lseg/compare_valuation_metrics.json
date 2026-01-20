@@ -1,0 +1,36 @@
+{
+  "id": "lseg-compare-003",
+  "nl_query": "Compare the PE ratio, PB ratio, and dividend yield of JPMorgan, Bank of America, and Wells Fargo",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["JPM.N", "BAC.N", "WFC.N"],
+        "fields": ["TR.CommonName", "TR.PE", "TR.PriceToBVPerShare", "TR.DividendYield"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "JPM.N": {"TR.CommonName": "JPMorgan Chase", "TR.PE": 12.5, "TR.PriceToBVPerShare": 1.8, "TR.DividendYield": 2.3},
+    "BAC.N": {"TR.CommonName": "Bank of America", "TR.PE": 11.2, "TR.PriceToBVPerShare": 1.1, "TR.DividendYield": 2.6},
+    "WFC.N": {"TR.CommonName": "Wells Fargo", "TR.PE": 13.1, "TR.PriceToBVPerShare": 1.3, "TR.DividendYield": 2.5}
+  },
+  "expected_nl_response": "Valuation comparison - JPM: PE 12.5, PB 1.8, Yield 2.3%; BAC: PE 11.2, PB 1.1, Yield 2.6%; WFC: PE 13.1, PB 1.3, Yield 2.5%.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["comparison", "multi-ticker", "valuation", "banks", "multi-metric"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["JPM.N", "BAC.N", "WFC.N"],
+          "fields": ["TR.CommonName", "TR.PE", "TR.PriceToBVPerShare", "TR.DividendYield"]
+        }
+      }
+    ],
+    "nl_response": "Valuation comparison for the three banks: JPM, BAC, and WFC across PE, PB, and yield."
+  }
+}

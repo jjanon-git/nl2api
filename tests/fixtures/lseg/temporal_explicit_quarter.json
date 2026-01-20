@@ -1,0 +1,43 @@
+{
+  "id": "lseg-temp-001",
+  "nl_query": "What was Apple's revenue in Q4 2025?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AAPL.O"],
+        "fields": ["TR.Revenue"],
+        "parameters": {
+          "Period": "FQ42025"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL.O": {
+      "TR.Revenue": 119580000000,
+      "Period": "FQ4 2025"
+    }
+  },
+  "expected_nl_response": "Apple's revenue in Q4 2025 was $119.6 billion.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["temporal", "explicit-quarter", "revenue", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AAPL.O"],
+          "fields": ["TR.Revenue"],
+          "parameters": {
+            "Period": "FQ42025"
+          }
+        }
+      }
+    ],
+    "nl_response": "Apple's revenue in Q4 2025 was $119.6 billion."
+  }
+}

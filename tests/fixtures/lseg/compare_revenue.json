@@ -1,0 +1,42 @@
+{
+  "id": "lseg-compare-002",
+  "nl_query": "Compare the revenue of Apple, Microsoft, and Google for FY2025",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AAPL.O", "MSFT.O", "GOOGL.O"],
+        "fields": ["TR.CommonName", "TR.Revenue"],
+        "parameters": {
+          "Period": "FY2025"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL.O": {"TR.CommonName": "Apple Inc", "TR.Revenue": 395000000000},
+    "MSFT.O": {"TR.CommonName": "Microsoft Corp", "TR.Revenue": 280000000000},
+    "GOOGL.O": {"TR.CommonName": "Alphabet Inc", "TR.Revenue": 350000000000}
+  },
+  "expected_nl_response": "FY2025 Revenue: Apple $395B, Google $350B, Microsoft $280B.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["comparison", "multi-ticker", "revenue", "three-stocks"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AAPL.O", "MSFT.O", "GOOGL.O"],
+          "fields": ["TR.CommonName", "TR.Revenue"],
+          "parameters": {
+            "Period": "FY2025"
+          }
+        }
+      }
+    ],
+    "nl_response": "FY2025 Revenue: Apple $395B, Google $350B, Microsoft $280B."
+  }
+}
