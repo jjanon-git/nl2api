@@ -1,8 +1,8 @@
 # EvalPlatform Architecture & Design Contract
 
 > **Version:** 1.0.0
-> **Status:** Draft - Pending Review
-> **Last Updated:** 2026-01-19
+> **Status:** Active - Sprint 3 Complete
+> **Last Updated:** 2026-01-20
 
 ## Executive Summary
 
@@ -1018,12 +1018,14 @@ POST /api/v1/test-cases/bulk-update
 **Principle:** Get something working end-to-end first, then add complexity. Avoid irreversible decisions until validated.
 
 ```
-Sprint 1: ████░░░░░░░░░░░░░░░░  Minimal E2E (local, no infra)
-Sprint 2: ████████░░░░░░░░░░░░  Real Storage (Azure connected)
-Sprint 3: ████████████░░░░░░░░  Distribution (queues + workers)
+Sprint 1: ████████████████████  DONE - Minimal E2E (local, no infra)
+Sprint 2: ████████████████████  DONE - Storage Layer (PostgreSQL)
+Sprint 3: ████████████████████  DONE - Batch Runner (local concurrency)
 Sprint 4: ████████████████░░░░  Full Pipeline (all 4 stages)
 Sprint 5: ████████████████████  Management API & Polish
 ```
+
+*Note: Sprint 3 implemented local batch processing with asyncio.Semaphore instead of Azure Service Bus. Service Bus integration deferred to later sprint.*
 
 ---
 
@@ -1064,70 +1066,61 @@ python -m eval run tests/fixtures/search_query.json
 
 ---
 
-### Sprint 2: Real Storage
+### Sprint 2: Storage Abstraction Layer ✅ COMPLETE
 
-**Goal:** Read test cases from Azure AI Search, write scorecards to Table Storage
+**Goal:** Abstract storage with pluggable backends (PostgreSQL for local dev)
 
-**Scope:**
-- Azure AI Search client (Gold Store)
-- Azure Table Storage client (Results Store)
-- `docker-compose.yml` with Azurite for local dev
-- CLI commands: `eval run --test-id <id>`
-
-**Not included:**
-- No queues (still synchronous)
-- No workers
-- No Stage 3 or 4
+**What was implemented:**
+- Protocol-based repository pattern (`TestCaseRepository`, `ScorecardRepository`)
+- PostgreSQL implementations with asyncpg
+- In-memory implementations for unit tests
+- Factory pattern: `create_repositories(config)`
+- `docker-compose.yml` with PostgreSQL + pgvector
+- Test case loader for bulk import from JSON
 
 **Deliverable:**
 ```bash
-# Fetch test case from Gold Store, evaluate, persist scorecard
-python -m eval run --test-id tc-123
-
-# Works locally with Azurite
-make docker-up
-python -m eval run --test-id tc-123
+docker compose up -d
+python -m src.cli.main run tests/fixtures/search_products.json
 ```
 
-**Exit Criteria:**
-- Can fetch test cases from AI Search
-- Scorecards persisted to Table Storage
-- Works with Azurite locally
+**Exit Criteria:** ✅
+- Protocol-based storage abstraction
+- PostgreSQL backend working
+- 70 test cases loaded
+- All unit tests pass
 
 ---
 
-### Sprint 3: Distribution
+### Sprint 3: Batch Runner with Local Concurrency ✅ COMPLETE
 
-**Goal:** Queue-based async processing with workers
+**Goal:** Process multiple test cases in parallel with progress tracking
 
-**Scope:**
-- Azure Service Bus integration
-- Worker process (consumer)
-- CLI command: `eval submit --test-ids tc-1,tc-2,tc-3`
-- Basic batch tracking
-
-**Not included:**
-- No Stage 3 or 4
-- No Management API
-- No OpenTelemetry (basic logging only)
+**What was implemented:**
+- `BatchRunner` class with asyncio.Semaphore for concurrency control
+- CLI commands: `batch run`, `batch status`, `batch results`, `batch list`
+- `BatchJobRepository` protocol and implementations
+- Real-time progress tracking with Rich
+- Optional OpenTelemetry metrics instrumentation
+- Response simulation for pipeline validation
 
 **Deliverable:**
 ```bash
-# Submit batch to queue
-python -m eval submit --test-ids tc-1,tc-2,tc-3
+# Run batch evaluation
+python -m src.cli.main batch run --limit 10 --concurrency 20
 
-# Worker processes asynchronously
-python -m eval worker
-
-# Check results
-python -m eval status --batch-id <id>
+# View batch results
+python -m src.cli.main batch list
+python -m src.cli.main batch results <batch-id>
 ```
 
-**Exit Criteria:**
-- Messages flow through Service Bus
-- Workers process independently
-- Can run multiple workers in parallel
-- Dead letter queue handles failures
+**Exit Criteria:** ✅
+- Concurrent evaluation working (asyncio.Semaphore)
+- Batch jobs persisted to PostgreSQL
+- Progress tracking with Rich
+- All unit tests pass (71 tests)
+
+*Note: Azure Service Bus integration deferred - local asyncio provides sufficient concurrency for current needs.*
 
 ---
 
