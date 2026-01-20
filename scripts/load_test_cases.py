@@ -23,6 +23,7 @@ from __future__ import annotations
 import asyncio
 import json
 import sys
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +35,15 @@ from CONTRACTS import TestCase, TestCaseMetadata, ToolCall
 from src.storage import StorageConfig, create_repositories, close_repositories
 
 console = Console()
+
+
+def is_valid_uuid(value: str) -> bool:
+    """Check if a string is a valid UUID."""
+    try:
+        uuid.UUID(value)
+        return True
+    except (ValueError, TypeError):
+        return False
 
 
 def parse_test_case(data: dict[str, Any], source_file: str) -> TestCase:
@@ -48,22 +58,35 @@ def parse_test_case(data: dict[str, Any], source_file: str) -> TestCase:
 
     # Handle metadata
     metadata_data = data.get("metadata", {})
+
+    # Preserve original ID in tags if it's not a valid UUID
+    original_id = data.get("id")
+    tags = list(metadata_data.get("tags", []))
+    if original_id and not is_valid_uuid(original_id):
+        tags.append(f"original_id:{original_id}")
+
     metadata = TestCaseMetadata(
         api_version=metadata_data.get("api_version", "v1.0.0"),
         complexity_level=metadata_data.get("complexity_level", 1),
-        tags=tuple(metadata_data.get("tags", [])),
+        tags=tuple(tags),
         author=metadata_data.get("author"),
         source=source_file,
     )
 
-    return TestCase(
-        id=data.get("id"),  # Will auto-generate if not provided
-        nl_query=data["nl_query"],
-        expected_tool_calls=tuple(tool_calls),
-        expected_raw_data=data.get("expected_raw_data"),
-        expected_nl_response=data.get("expected_nl_response", ""),
-        metadata=metadata,
-    )
+    # Build test case kwargs - only include id if it's a valid UUID
+    kwargs: dict[str, Any] = {
+        "nl_query": data["nl_query"],
+        "expected_tool_calls": tuple(tool_calls),
+        "expected_raw_data": data.get("expected_raw_data"),
+        "expected_nl_response": data.get("expected_nl_response", ""),
+        "metadata": metadata,
+    }
+
+    # Only include ID if it's a valid UUID, otherwise let it auto-generate
+    if original_id and is_valid_uuid(original_id):
+        kwargs["id"] = original_id
+
+    return TestCase(**kwargs)
 
 
 def find_test_files(path: Path) -> list[Path]:
