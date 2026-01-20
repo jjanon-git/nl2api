@@ -152,6 +152,15 @@ class CircuitState(str, Enum):
     HALF_OPEN = "half_open"
 
 
+class TestCaseStatus(str, Enum):
+    """Lifecycle status of a test case."""
+
+    ACTIVE = "active"  # Current, valid, running in suites
+    STALE = "stale"  # Detected drift, needs review
+    DEPRECATED = "deprecated"  # Old API version, kept for regression
+    ARCHIVED = "archived"  # No longer relevant, excluded from runs
+
+
 # =============================================================================
 # 1. The "Gold Standard" 4-ple Schema
 # =============================================================================
@@ -274,6 +283,16 @@ class TestCase(BaseModel):
 
     # Metadata
     metadata: TestCaseMetadata
+
+    # Lifecycle status
+    status: TestCaseStatus = Field(
+        default=TestCaseStatus.ACTIVE,
+        description="Lifecycle status for staleness tracking",
+    )
+    stale_reason: str | None = Field(
+        default=None,
+        description="Reason for staleness (if status=STALE)",
+    )
 
     # Vector embedding for similarity search (Azure AI Search)
     embedding: tuple[float, ...] | None = Field(
@@ -1156,6 +1175,7 @@ __all__ = [
     "TaskPriority",
     "ErrorCode",
     "CircuitState",
+    "TestCaseStatus",
     "LLMProvider",
     "RunStatus",
     # Core Models

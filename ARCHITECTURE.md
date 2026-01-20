@@ -799,7 +799,219 @@ eval-platform/
 
 ---
 
-## 13. Implementation Roadmap (Phase 2)
+## 13. Test Case Lifecycle & API Versioning
+
+Keeping the Gold Standard test cases synchronized with evolving APIs is critical. This section defines strategies for maintaining test case validity.
+
+### 13.1 The Staleness Problem
+
+When APIs change, test cases can become stale in several ways:
+- **Schema changes:** API adds/removes/renames parameters
+- **Behavior changes:** Same inputs return different outputs
+- **Deprecation:** API endpoint no longer exists
+- **New capabilities:** API can do things not covered by existing tests
+
+### 13.2 Test Case States
+
+```
+┌──────────┐     deprecate      ┌────────────┐     archive      ┌──────────┐
+│  ACTIVE  │ ─────────────────▶ │ DEPRECATED │ ───────────────▶ │ ARCHIVED │
+└──────────┘                    └────────────┘                  └──────────┘
+     │                                │
+     │ validate                       │ revalidate
+     ▼                                ▼
+┌──────────┐                    ┌────────────┐
+│  STALE   │ ◀──── detect ───── │  (alerts)  │
+└──────────┘                    └────────────┘
+```
+
+| State | Description | Action |
+|-------|-------------|--------|
+| `ACTIVE` | Current, valid, running in suites | Normal evaluation |
+| `STALE` | Detected drift, needs review | Exclude from pass/fail metrics |
+| `DEPRECATED` | Old API version, kept for regression | Run but don't alert on failures |
+| `ARCHIVED` | No longer relevant | Excluded from all runs |
+
+### 13.3 Staleness Detection
+
+**Automatic Detection via Stage 3 (Execution):**
+
+When `execution_stage_enabled: true`, the system compares `expected_raw_data` against actual API responses. Drift is detected when:
+
+```python
+# Pseudo-code for drift detection
+if actual_data != expected_data:
+    if numeric_drift(actual_data, expected_data) > tolerance:
+        mark_test_case_stale(reason="data_drift")
+    if schema_changed(actual_data, expected_data):
+        mark_test_case_stale(reason="schema_change")
+```
+
+**Batch Staleness Report:**
+```
+GET /api/v1/runs/{id}/staleness-report
+
+{
+  "stale_test_cases": [
+    {
+      "test_case_id": "tc-123",
+      "reason": "schema_change",
+      "details": "Field 'price' renamed to 'unit_price'",
+      "detected_at": "2026-01-19T10:00:00Z"
+    }
+  ],
+  "recommendation": "Review and update 15 test cases for API v2.1"
+}
+```
+
+### 13.4 API Version Strategy
+
+**Test cases are tagged with `api_version` in metadata:**
+
+```json
+{
+  "metadata": {
+    "api_version": "v2.0.0",
+    "tags": ["search", "products"]
+  }
+}
+```
+
+**When APIs update:**
+
+1. **Minor update (v2.0 → v2.1):**
+   - Run existing tests; most should pass
+   - Flag failures for review
+   - Create new tests for new capabilities
+
+2. **Major update (v2 → v3):**
+   - Create new test suite for v3
+   - Deprecate v2 tests (don't delete—useful for regression)
+   - Update `TargetSystemConfig.tool_schema_version`
+
+**Dynamic Suites for Version Management:**
+```json
+{
+  "name": "search-api-current",
+  "filter_api_version": "v2.1",
+  "filter_tags": ["search"]
+}
+```
+
+### 13.5 CI/CD Integration
+
+**Trigger eval runs on API changes:**
+
+```yaml
+# .github/workflows/api-eval.yml
+on:
+  push:
+    paths:
+      - 'api/search/**'  # API code changed
+
+jobs:
+  eval:
+    steps:
+      - name: Run evaluation
+        run: |
+          curl -X POST $EVAL_API/runs \
+            -d '{"test_suite_id": "search-regression", "triggered_by": "ci"}'
+
+      - name: Check for staleness
+        run: |
+          # Fail CI if >10% tests are stale
+          STALE_PCT=$(curl $EVAL_API/runs/$RUN_ID/staleness-report | jq '.stale_pct')
+          if [ "$STALE_PCT" -gt 10 ]; then
+            echo "::error::$STALE_PCT% of tests are stale. Update test cases."
+            exit 1
+          fi
+```
+
+### 13.6 Test Case Generation & Update Assistance
+
+**LLM-assisted test case creation:**
+
+```
+POST /api/v1/test-cases/generate
+
+{
+  "api_spec": "openapi.json",  // Or inline spec
+  "target_api": "search_products",
+  "complexity_levels": [1, 2, 3],
+  "count_per_level": 10
+}
+```
+
+**Semi-automated update suggestions:**
+
+When a test case is marked stale, the system can suggest updates:
+```
+POST /api/v1/test-cases/{id}/suggest-fix
+
+{
+  "suggestion": {
+    "field_renamed": {"old": "price", "new": "unit_price"},
+    "proposed_update": {
+      "expected_tool_calls": [...updated...]
+    }
+  },
+  "confidence": 0.85,
+  "requires_human_review": true
+}
+```
+
+### 13.7 Validation Workflows
+
+**"Dry run" mode for test data validation:**
+
+Run only Stage 3 (Execution) against live APIs to verify `expected_raw_data` is still accurate—without evaluating the LLM:
+
+```
+POST /api/v1/runs
+
+{
+  "test_suite_id": "all-active",
+  "mode": "validate_data_only",  // Skip LLM, just check API responses
+  "target_system_id": null       // Not needed for data validation
+}
+```
+
+**Scheduled validation:**
+- Weekly job to validate all active test cases
+- Alerts when >5% show data drift
+- Auto-marks stale tests for review
+
+### 13.8 Test Case Update API
+
+```
+PUT /api/v1/test-cases/{id}
+
+{
+  "expected_raw_data": {...updated...},
+  "metadata": {
+    "api_version": "v2.1.0",  // Bump version
+    "updated_at": "auto"
+  },
+  "changelog": "Updated for price→unit_price rename in API v2.1"
+}
+```
+
+**Bulk update:**
+```
+POST /api/v1/test-cases/bulk-update
+
+{
+  "filter": {"api_version": "v2.0"},
+  "update": {
+    "metadata.api_version": "v2.1.0",
+    "status": "needs_review"
+  }
+}
+```
+
+---
+
+## 14. Implementation Roadmap (Phase 2)
 
 ### Sprint 1: Foundation
 1. Scaffold directory structure
