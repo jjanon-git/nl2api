@@ -35,12 +35,12 @@ from CONTRACTS import (
     TaskStatus,
     TestCase,
 )
-from src.batch.config import BatchRunnerConfig
-from src.batch.metrics import get_metrics
-from src.core.evaluators import WaterfallEvaluator
+from src.evaluation.batch.config import BatchRunnerConfig
+from src.evaluation.batch.metrics import get_metrics
+from src.evaluation.core.evaluators import WaterfallEvaluator
 
 if TYPE_CHECKING:
-    from src.storage.protocols import (
+    from src.common.storage.protocols import (
         BatchJobRepository,
         ScorecardRepository,
         TestCaseRepository,

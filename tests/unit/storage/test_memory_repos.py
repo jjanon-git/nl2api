@@ -17,7 +17,7 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.storage.memory import InMemoryTestCaseRepository, InMemoryScorecardRepository
+from src.common.storage.memory import InMemoryTestCaseRepository, InMemoryScorecardRepository
 
 
 # =============================================================================

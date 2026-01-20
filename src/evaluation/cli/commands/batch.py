@@ -3,16 +3,16 @@ Batch command - Run batch evaluations on test cases from storage.
 
 Usage:
     # Run all test cases
-    python -m src.cli.main batch run
+    python -m src.evaluation.cli.main batch run
 
     # Run with filters
-    python -m src.cli.main batch run --tag search --limit 20
+    python -m src.evaluation.cli.main batch run --tag search --limit 20
 
     # Check batch status
-    python -m src.cli.main batch status <batch-id>
+    python -m src.evaluation.cli.main batch status <batch-id>
 
     # View results
-    python -m src.cli.main batch results <batch-id>
+    python -m src.evaluation.cli.main batch results <batch-id>
 """
 
 from __future__ import annotations
@@ -90,8 +90,8 @@ async def _batch_run_async(
     verbose: bool,
 ) -> None:
     """Async implementation of batch run command."""
-    from src.batch import BatchRunner, BatchRunnerConfig
-    from src.storage import StorageConfig, close_repositories, create_repositories
+    from src.evaluation.batch import BatchRunner, BatchRunnerConfig
+    from src.common.storage import StorageConfig, close_repositories, create_repositories
 
     try:
         config = StorageConfig()
@@ -156,7 +156,7 @@ def batch_status(
 
 async def _batch_status_async(batch_id: str) -> None:
     """Async implementation of batch status command."""
-    from src.storage import StorageConfig, close_repositories, create_repositories
+    from src.common.storage import StorageConfig, close_repositories, create_repositories
 
     try:
         config = StorageConfig()
@@ -249,7 +249,7 @@ async def _batch_results_async(
     limit: int,
 ) -> None:
     """Async implementation of batch results command."""
-    from src.storage import StorageConfig, close_repositories, create_repositories
+    from src.common.storage import StorageConfig, close_repositories, create_repositories
 
     try:
         config = StorageConfig()
@@ -377,7 +377,7 @@ def batch_list(
 
 async def _batch_list_async(limit: int) -> None:
     """Async implementation of batch list command."""
-    from src.storage import StorageConfig, close_repositories, create_repositories
+    from src.common.storage import StorageConfig, close_repositories, create_repositories
 
     try:
         config = StorageConfig()

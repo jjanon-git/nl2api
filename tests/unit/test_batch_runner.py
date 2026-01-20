@@ -15,8 +15,8 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.batch import BatchRunner, BatchRunnerConfig
-from src.storage.memory import (
+from src.evaluation.batch import BatchRunner, BatchRunnerConfig
+from src.common.storage.memory import (
     InMemoryBatchJobRepository,
     InMemoryScorecardRepository,
     InMemoryTestCaseRepository,

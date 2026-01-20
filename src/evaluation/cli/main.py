@@ -4,15 +4,15 @@ EvalPlatform CLI
 Entry point for the evaluation command-line interface.
 
 Usage:
-    python -m src.cli.main run tests/fixtures/search_products.json
-    python -m src.cli.main batch run --limit 10
-    python -m src.cli.main --help
+    python -m src.evaluation.cli.main run tests/fixtures/search_products.json
+    python -m src.evaluation.cli.main batch run --limit 10
+    python -m src.evaluation.cli.main --help
 """
 
 import typer
 
-from src.cli.commands.batch import batch_app
-from src.cli.commands.run import run_command
+from src.evaluation.cli.commands.batch import batch_app
+from src.evaluation.cli.commands.run import run_command
 
 app = typer.Typer(
     name="eval",

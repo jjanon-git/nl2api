@@ -5,7 +5,7 @@ Simple in-memory implementation for unit tests.
 No external dependencies required - perfect for fast, isolated tests.
 """
 
-from src.storage.memory.repositories import (
+from src.common.storage.memory.repositories import (
     InMemoryBatchJobRepository,
     InMemoryScorecardRepository,
     InMemoryTestCaseRepository,

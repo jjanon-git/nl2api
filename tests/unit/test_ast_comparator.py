@@ -3,7 +3,7 @@
 import pytest
 
 from CONTRACTS import ToolCall
-from src.core.ast_comparator import ASTComparator, ComparisonResult
+from src.evaluation.core.ast_comparator import ASTComparator, ComparisonResult
 
 
 class TestASTComparator:

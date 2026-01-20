@@ -13,7 +13,7 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.core.evaluators import LogicEvaluator, SyntaxEvaluator, WaterfallEvaluator
+from src.evaluation.core.evaluators import LogicEvaluator, SyntaxEvaluator, WaterfallEvaluator
 
 
 class TestSyntaxEvaluator:

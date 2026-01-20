@@ -10,8 +10,8 @@ from __future__ import annotations
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
-from src.storage.config import StorageConfig
-from src.storage.protocols import BatchJobRepository, ScorecardRepository, TestCaseRepository
+from src.common.storage.config import StorageConfig
+from src.common.storage.protocols import BatchJobRepository, ScorecardRepository, TestCaseRepository
 
 if TYPE_CHECKING:
     import asyncpg
@@ -45,7 +45,7 @@ async def create_repositories(
     config = config or StorageConfig()
 
     if config.backend == "postgres":
-        from src.storage.postgres import (
+        from src.common.storage.postgres import (
             PostgresBatchJobRepository,
             PostgresScorecardRepository,
             PostgresTestCaseRepository,
@@ -62,7 +62,7 @@ async def create_repositories(
         _batch_repo = PostgresBatchJobRepository(_pool)
 
     elif config.backend == "memory":
-        from src.storage.memory import (
+        from src.common.storage.memory import (
             InMemoryBatchJobRepository,
             InMemoryScorecardRepository,
             InMemoryTestCaseRepository,
@@ -89,7 +89,7 @@ async def close_repositories() -> None:
     global _test_case_repo, _scorecard_repo, _batch_repo, _pool
 
     if _pool is not None:
-        from src.storage.postgres import close_pool
+        from src.common.storage.postgres import close_pool
         await close_pool()
         _pool = None
 

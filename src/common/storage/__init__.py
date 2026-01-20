@@ -5,14 +5,14 @@ Provides pluggable backends for test case and scorecard persistence.
 Supports local PostgreSQL development and future Azure services migration.
 """
 
-from src.storage.config import StorageConfig
-from src.storage.factory import (
+from src.common.storage.config import StorageConfig
+from src.common.storage.factory import (
     close_repositories,
     create_repositories,
     get_repositories,
     repository_context,
 )
-from src.storage.protocols import BatchJobRepository, ScorecardRepository, TestCaseRepository
+from src.common.storage.protocols import BatchJobRepository, ScorecardRepository, TestCaseRepository
 
 __all__ = [
     "StorageConfig",
