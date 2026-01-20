@@ -11,7 +11,7 @@ from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING
 
 from src.storage.config import StorageConfig
-from src.storage.protocols import ScorecardRepository, TestCaseRepository
+from src.storage.protocols import BatchJobRepository, ScorecardRepository, TestCaseRepository
 
 if TYPE_CHECKING:
     import asyncpg
@@ -20,12 +20,13 @@ if TYPE_CHECKING:
 # Module-level state for singleton pattern
 _test_case_repo: TestCaseRepository | None = None
 _scorecard_repo: ScorecardRepository | None = None
+_batch_repo: BatchJobRepository | None = None
 _pool: "asyncpg.Pool | None" = None
 
 
 async def create_repositories(
     config: StorageConfig | None = None,
-) -> tuple[TestCaseRepository, ScorecardRepository]:
+) -> tuple[TestCaseRepository, ScorecardRepository, BatchJobRepository]:
     """
     Factory function to create repository instances based on config.
 
@@ -33,18 +34,19 @@ async def create_repositories(
         config: Storage configuration. If None, reads from environment.
 
     Returns:
-        Tuple of (TestCaseRepository, ScorecardRepository)
+        Tuple of (TestCaseRepository, ScorecardRepository, BatchJobRepository)
 
     Raises:
         NotImplementedError: If Azure backend is requested (not yet implemented)
         ValueError: If unknown backend is specified
     """
-    global _test_case_repo, _scorecard_repo, _pool
+    global _test_case_repo, _scorecard_repo, _batch_repo, _pool
 
     config = config or StorageConfig()
 
     if config.backend == "postgres":
         from src.storage.postgres import (
+            PostgresBatchJobRepository,
             PostgresScorecardRepository,
             PostgresTestCaseRepository,
             create_pool,
@@ -57,15 +59,18 @@ async def create_repositories(
         )
         _test_case_repo = PostgresTestCaseRepository(_pool)
         _scorecard_repo = PostgresScorecardRepository(_pool)
+        _batch_repo = PostgresBatchJobRepository(_pool)
 
     elif config.backend == "memory":
         from src.storage.memory import (
+            InMemoryBatchJobRepository,
             InMemoryScorecardRepository,
             InMemoryTestCaseRepository,
         )
 
         _test_case_repo = InMemoryTestCaseRepository()
         _scorecard_repo = InMemoryScorecardRepository()
+        _batch_repo = InMemoryBatchJobRepository()
 
     elif config.backend == "azure":
         raise NotImplementedError(
@@ -76,12 +81,12 @@ async def create_repositories(
     else:
         raise ValueError(f"Unknown storage backend: {config.backend}")
 
-    return _test_case_repo, _scorecard_repo
+    return _test_case_repo, _scorecard_repo, _batch_repo
 
 
 async def close_repositories() -> None:
     """Close repository connections and cleanup resources."""
-    global _test_case_repo, _scorecard_repo, _pool
+    global _test_case_repo, _scorecard_repo, _batch_repo, _pool
 
     if _pool is not None:
         from src.storage.postgres import close_pool
@@ -90,20 +95,21 @@ async def close_repositories() -> None:
 
     _test_case_repo = None
     _scorecard_repo = None
+    _batch_repo = None
 
 
-def get_repositories() -> tuple[TestCaseRepository, ScorecardRepository]:
+def get_repositories() -> tuple[TestCaseRepository, ScorecardRepository, BatchJobRepository]:
     """
     Get existing repository instances.
 
     Raises:
         RuntimeError: If repositories haven't been created yet.
     """
-    if _test_case_repo is None or _scorecard_repo is None:
+    if _test_case_repo is None or _scorecard_repo is None or _batch_repo is None:
         raise RuntimeError(
             "Repositories not initialized. Call create_repositories() first."
         )
-    return _test_case_repo, _scorecard_repo
+    return _test_case_repo, _scorecard_repo, _batch_repo
 
 
 @asynccontextmanager

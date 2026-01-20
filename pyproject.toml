@@ -16,6 +16,11 @@ postgres = [
     "pgvector>=0.2.0",
     "pydantic-settings>=2.0.0",
 ]
+metrics = [
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+    "opentelemetry-exporter-otlp>=1.20.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
