@@ -1013,33 +1013,194 @@ POST /api/v1/test-cases/bulk-update
 
 ## 14. Implementation Roadmap (Phase 2)
 
-### Sprint 1: Foundation
-1. Scaffold directory structure
-2. Implement core schemas (CONTRACTS.py)
-3. Set up pyproject.toml with dependencies
+### Design Philosophy: Vertical Slicing
 
-### Sprint 2: Evaluation Logic
-4. Implement `ASTComparator` for tool call comparison
-5. Implement `SyntaxEvaluator`
-6. Implement `LogicEvaluator`
-7. Unit tests for evaluators
+**Principle:** Get something working end-to-end first, then add complexity. Avoid irreversible decisions until validated.
 
-### Sprint 3: Infrastructure
-8. Create Bicep templates for Azure resources
-9. Set up docker-compose.yml with Azurite
-10. Implement Service Bus consumer
+```
+Sprint 1: ████░░░░░░░░░░░░░░░░  Minimal E2E (local, no infra)
+Sprint 2: ████████░░░░░░░░░░░░  Real Storage (Azure connected)
+Sprint 3: ████████████░░░░░░░░  Distribution (queues + workers)
+Sprint 4: ████████████████░░░░  Full Pipeline (all 4 stages)
+Sprint 5: ████████████████████  Management API & Polish
+```
 
-### Sprint 4: Integration
-11. Implement Gold Store client
-12. Implement Results Store client
-13. Implement LLM Judge client
-14. Integration tests
+---
 
-### Sprint 5: CLI & Polish
-15. Implement Typer CLI
-16. Add observability (logging, metrics)
-17. Documentation
-18. End-to-end tests
+### Sprint 1: Minimal End-to-End
+
+**Goal:** `python -m eval run test.json` → pass/fail in terminal
+
+**Scope:**
+- Scaffold directory structure
+- Core schemas (CONTRACTS.py) — already done
+- `ASTComparator` for tool call comparison
+- `SyntaxEvaluator` (Stage 1)
+- `LogicEvaluator` (Stage 2)
+- Simple CLI that reads local JSON, runs eval, prints result
+
+**Not included:**
+- No Azure services
+- No queues
+- No Stage 3 or 4
+- No persistence
+
+**Deliverable:**
+```bash
+# Load test case from file, mock LLM response, evaluate
+python -m eval run tests/fixtures/search_query.json
+
+# Output:
+# Test: search_query
+# Stage 1 (Syntax): PASS ✓
+# Stage 2 (Logic):  PASS ✓ (score: 1.0)
+# Overall: PASS
+```
+
+**Exit Criteria:**
+- Can evaluate a test case locally
+- AST comparison handles argument permutation
+- Unit tests pass
+
+---
+
+### Sprint 2: Real Storage
+
+**Goal:** Read test cases from Azure AI Search, write scorecards to Table Storage
+
+**Scope:**
+- Azure AI Search client (Gold Store)
+- Azure Table Storage client (Results Store)
+- `docker-compose.yml` with Azurite for local dev
+- CLI commands: `eval run --test-id <id>`
+
+**Not included:**
+- No queues (still synchronous)
+- No workers
+- No Stage 3 or 4
+
+**Deliverable:**
+```bash
+# Fetch test case from Gold Store, evaluate, persist scorecard
+python -m eval run --test-id tc-123
+
+# Works locally with Azurite
+make docker-up
+python -m eval run --test-id tc-123
+```
+
+**Exit Criteria:**
+- Can fetch test cases from AI Search
+- Scorecards persisted to Table Storage
+- Works with Azurite locally
+
+---
+
+### Sprint 3: Distribution
+
+**Goal:** Queue-based async processing with workers
+
+**Scope:**
+- Azure Service Bus integration
+- Worker process (consumer)
+- CLI command: `eval submit --test-ids tc-1,tc-2,tc-3`
+- Basic batch tracking
+
+**Not included:**
+- No Stage 3 or 4
+- No Management API
+- No OpenTelemetry (basic logging only)
+
+**Deliverable:**
+```bash
+# Submit batch to queue
+python -m eval submit --test-ids tc-1,tc-2,tc-3
+
+# Worker processes asynchronously
+python -m eval worker
+
+# Check results
+python -m eval status --batch-id <id>
+```
+
+**Exit Criteria:**
+- Messages flow through Service Bus
+- Workers process independently
+- Can run multiple workers in parallel
+- Dead letter queue handles failures
+
+---
+
+### Sprint 4: Full Evaluation Pipeline
+
+**Goal:** All 4 evaluation stages working
+
+**Scope:**
+- Stage 3: Execution Verification (live/mock API calls)
+- Stage 4: Semantic Comparison (LLM-as-Judge)
+- Azure OpenAI client integration
+- Tolerance-based numeric comparison
+- `EvaluationConfig` to enable/disable stages
+
+**Deliverable:**
+```bash
+# Full evaluation with all stages
+python -m eval run --test-id tc-123 --config full-eval.yaml
+
+# Config file:
+# execution_stage_enabled: true
+# semantics_stage_enabled: true
+```
+
+**Exit Criteria:**
+- Stage 3 executes tool calls and compares results
+- Stage 4 uses GPT-4o as judge
+- Configurable stage enable/disable
+- Numeric tolerance working
+
+---
+
+### Sprint 5: Management API & Polish
+
+**Goal:** Production-ready with full management capabilities
+
+**Scope:**
+- FastAPI Management API (all CRUD endpoints)
+- Multi-tenancy (Client, TestSuite, TargetSystemConfig)
+- OpenTelemetry instrumentation
+- Bicep/Terraform for Azure provisioning
+- Test case lifecycle management (staleness detection)
+- Authentication (Azure AD)
+
+**Deliverable:**
+```bash
+# Full API running
+uvicorn src.api.main:app
+
+# Create and run evaluation via API
+curl -X POST /api/v1/runs -d '{"client_id": "...", "test_suite_id": "..."}'
+```
+
+**Exit Criteria:**
+- All Management API endpoints working
+- Traces visible in Azure Monitor
+- Can provision infrastructure with IaC
+- E2E tests pass
+
+---
+
+### What's Intentionally Deferred
+
+| Feature | Deferred Until | Rationale |
+|---------|---------------|-----------|
+| Azure infrastructure | Sprint 2 | Validate logic first |
+| Service Bus / workers | Sprint 3 | Synchronous is simpler |
+| Stage 3 (Execution) | Sprint 4 | Core comparison more important |
+| Stage 4 (Semantics) | Sprint 4 | Nice-to-have, not critical |
+| Management API | Sprint 5 | CLI sufficient for validation |
+| OpenTelemetry | Sprint 5 | Basic logging sufficient early |
+| Multi-tenancy | Sprint 5 | Single-tenant validates design |
+| Bicep/Terraform | Sprint 5 | Manual setup acceptable initially |
 
 ---
 
