@@ -467,12 +467,13 @@ class Scorecard(BaseModel):
     @computed_field
     @property
     def overall_score(self) -> float:
-        """Weighted average of all stage scores."""
+        """Weighted average of all stage scores (reflects criticality)."""
+        # Weights: execution (critical) > logic (high) > semantics (low) > syntax (gate)
         weights = {
             EvaluationStage.SYNTAX: 0.1,
-            EvaluationStage.LOGIC: 0.4,
-            EvaluationStage.EXECUTION: 0.2,
-            EvaluationStage.SEMANTICS: 0.3,
+            EvaluationStage.LOGIC: 0.3,
+            EvaluationStage.EXECUTION: 0.5,  # CRITICAL - most important
+            EvaluationStage.SEMANTICS: 0.1,  # Optional polish
         }
         total_weight = 0.0
         weighted_score = 0.0
@@ -613,18 +614,30 @@ class EvaluationConfig(BaseModel):
     Configuration for the evaluation pipeline.
 
     Controls which stages run and their parameters.
+
+    Stage Criticality:
+    - Stage 1 (Syntax): Gate - always runs
+    - Stage 2 (Logic): High - always runs
+    - Stage 3 (Execution): CRITICAL - the ultimate correctness test
+    - Stage 4 (Semantics): Low - evaluates presentation, not correctness
     """
 
     model_config = ConfigDict(frozen=True)
 
     # Stage toggles
     execution_stage_enabled: bool = Field(
-        default=False,
-        description="Whether to run Stage 3 (live execution)",
+        default=True,
+        description=(
+            "Stage 3: CRITICAL - the most important test. "
+            "Disable only for CI/cost savings; enable for nightly/release."
+        ),
     )
     semantics_stage_enabled: bool = Field(
-        default=True,
-        description="Whether to run Stage 4 (LLM judge)",
+        default=False,
+        description=(
+            "Stage 4: OPTIONAL - evaluates NL response quality, not correctness. "
+            "Enable when assessing presentation/UX."
+        ),
     )
 
     # Tolerances
@@ -647,11 +660,11 @@ class EvaluationConfig(BaseModel):
     execution_timeout_ms: int = Field(default=30000, ge=100)
     semantics_timeout_ms: int = Field(default=60000, ge=100)
 
-    # Score weights
+    # Score weights (reflect criticality: execution > logic > semantics > syntax)
     syntax_weight: float = Field(default=0.1, ge=0.0, le=1.0)
-    logic_weight: float = Field(default=0.4, ge=0.0, le=1.0)
-    execution_weight: float = Field(default=0.2, ge=0.0, le=1.0)
-    semantics_weight: float = Field(default=0.3, ge=0.0, le=1.0)
+    logic_weight: float = Field(default=0.3, ge=0.0, le=1.0)
+    execution_weight: float = Field(default=0.5, ge=0.0, le=1.0)  # CRITICAL
+    semantics_weight: float = Field(default=0.1, ge=0.0, le=1.0)  # Optional polish
 
 
 class LLMJudgeConfig(BaseModel):

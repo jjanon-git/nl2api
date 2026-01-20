@@ -116,17 +116,36 @@ class TestCaseMetadata:
 ### 4.1 Pipeline Philosophy: "Fail Fast, Log Everything"
 
 The pipeline follows a **waterfall with soft stops**:
-- **Hard Stop:** Only Stage 1 (Syntax) failure halts the pipeline
-- **Soft Continue:** Stages 2-3 failures are logged but don't block Stage 4
+- **Hard Stop:** Stage 1 (Syntax) failure halts the pipeline
+- **Soft Continue:** Stage 2 (Logic) failures are logged but pipeline continues
 - **Rationale:** Maximize diagnostic data even on failures
 
-### 4.2 Stage Definitions
+### 4.2 Stage Criticality
 
-#### Stage 1: Syntax Validation (HARD DEPENDENCY)
+| Stage | Purpose | Criticality | Configurable? | Why |
+|-------|---------|-------------|---------------|-----|
+| 1. Syntax | Valid JSON/schema | Gate | No | Required for parsing |
+| 2. Logic | Correct tool calls | High | No | Core correctness check |
+| 3. Execution | Actually works | **CRITICAL** | Yes | Cost/rate limits/side effects |
+| 4. Semantics | Good explanation | Low | Yes | Polish, not correctness |
+
+**Key Insight:** Stage 3 (Execution) is the most important test—it answers "does this actually work?" However, it's configurable because:
+- **Cost:** 400k API calls adds up significantly
+- **Rate limits:** Live APIs will throttle at scale
+- **Side effects:** Some APIs mutate state (create orders, send emails)
+- **Flakiness:** Live APIs have downtime, latency variance, data drift
+- **Environment:** Can't always hit production APIs from local/CI
+
+**Recommendation:** Enable Stage 3 for nightly/release runs against live APIs. Disable for rapid iteration in CI where Stages 1-2 provide fast feedback.
+
+### 4.3 Stage Definitions
+
+#### Stage 1: Syntax Validation (GATE)
 - **Purpose:** Validate generated output is parseable JSON conforming to schema
 - **Input:** Raw string output from target system
 - **Output:** Parsed `List[ToolCall]` or error
 - **Failure:** Pipeline halts; Scorecard marked as syntax failure
+- **Criticality:** Required—cannot proceed without valid structure
 
 #### Stage 2: Logic Comparison (AST-Based)
 - **Purpose:** Compare actual vs expected tool calls semantically
@@ -137,14 +156,17 @@ The pipeline follows a **waterfall with soft stops**:
   - Nested object deep comparison
   - Argument permutation tolerance
 - **Output:** Match score (0.0 - 1.0) + detailed diff
+- **Criticality:** High—validates the system chose correct APIs with correct arguments
 
-#### Stage 3: Execution Verification (OPTIONAL)
+#### Stage 3: Execution Verification (CRITICAL - Configurable)
 - **Purpose:** Execute tool calls against live/mock API and verify results
 - **Tolerance:** 0.01% for numerical comparisons
-- **Configuration:** Enabled/disabled via `EvaluationConfig`
+- **Configuration:** Enabled/disabled via `EvaluationConfig.execution_stage_enabled`
 - **Timeout:** Configurable per-API (default: 30s)
+- **Criticality:** **MOST CRITICAL**—this is the ultimate test of correctness
+- **Why Configurable:** Cost, rate limits, side effects, environment constraints (see 4.2)
 
-#### Stage 4: Semantic Comparison (LLM-as-Judge)
+#### Stage 4: Semantic Comparison (OPTIONAL - LLM-as-Judge)
 - **Purpose:** Compare generated NL response vs expected using LLM
 - **Engine:** Azure OpenAI GPT-4o
 - **Method:** Pairwise comparison with structured rubric
@@ -152,8 +174,10 @@ The pipeline follows a **waterfall with soft stops**:
   - Score (0.0 - 1.0)
   - Reasoning text
   - Confidence level
+- **Criticality:** Low—evaluates presentation/UX, not correctness
+- **Why Optional:** If Stages 1-3 pass, the system works correctly; Stage 4 just assesses how well it explains results
 
-### 4.3 Scorecard Output
+### 4.4 Scorecard Output
 
 ```python
 class Scorecard:
@@ -387,9 +411,15 @@ Priority (highest to lowest):
 
 ```yaml
 evaluation:
-  execution_stage_enabled: false
-  semantic_stage_enabled: true
-  numeric_tolerance: 0.0001
+  # Stage 3: CRITICAL - enable for production/nightly runs
+  # Disable only for rapid CI iteration where cost/speed matters
+  execution_stage_enabled: true
+
+  # Stage 4: OPTIONAL - nice-to-have, not correctness
+  # Enable when you want to assess NL response quality
+  semantics_stage_enabled: false
+
+  numeric_tolerance: 0.0001  # 0.01% for execution comparison
   llm_judge_model: "gpt-4o"
   llm_judge_temperature: 0.0
 
@@ -402,6 +432,24 @@ queue:
   visibility_timeout_seconds: 300
   max_delivery_count: 10
   prefetch_count: 10
+```
+
+**Environment Profiles:**
+```yaml
+# config.ci.yaml - Fast feedback, no API costs
+evaluation:
+  execution_stage_enabled: false
+  semantics_stage_enabled: false
+
+# config.nightly.yaml - Full validation
+evaluation:
+  execution_stage_enabled: true
+  semantics_stage_enabled: true
+
+# config.release.yaml - Production gate
+evaluation:
+  execution_stage_enabled: true
+  semantics_stage_enabled: false  # Correctness only
 ```
 
 ---
