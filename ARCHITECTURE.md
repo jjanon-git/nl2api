@@ -23,11 +23,13 @@ EvalPlatform is a distributed evaluation framework for testing 40+ APIs via natu
 |-----------|------------|
 | Language | Python 3.11+ |
 | Schemas | Pydantic v2 |
+| API Framework | FastAPI |
 | Queue | Azure Service Bus |
 | Workers | Azure Container Apps (ACA) |
 | Results Store | Azure Table Storage |
 | Gold Store | Azure AI Search (Vector) |
 | LLM Judge | Azure OpenAI (GPT-4o) |
+| Observability | OpenTelemetry → Azure Monitor |
 | CLI | Typer |
 | Local Dev | Docker + Azurite |
 
@@ -36,33 +38,62 @@ EvalPlatform is a distributed evaluation framework for testing 40+ APIs via natu
 ## 2. Data Flow Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              DATA FLOW                                       │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           MANAGEMENT PLANE (REST API)                            │
+└─────────────────────────────────────────────────────────────────────────────────┘
 
-  ┌──────────┐       ┌─────────────────┐       ┌──────────────────┐
-  │  CLI     │──────▶│  Service Bus    │──────▶│  Worker (ACA)    │
-  │ (Typer)  │ push  │  Queue          │ pull  │  - Stateless     │
-  └──────────┘       │  - Main Queue   │       │  - Idempotent    │
-       │             │  - DLQ          │       └────────┬─────────┘
-       │             └─────────────────┘                │
-       │                                                │
-       ▼                                                ▼
-  ┌──────────────────┐                    ┌─────────────────────────┐
-  │  Azure AI Search │◀───── fetch ──────│  Evaluation Pipeline    │
-  │  (Gold Store)    │                    │  ┌───────────────────┐  │
-  │  - Test Cases    │                    │  │ Stage 1: Syntax   │  │
-  │  - Vector Index  │                    │  │ Stage 2: Logic    │  │
-  └──────────────────┘                    │  │ Stage 3: Exec     │  │
-                                          │  │ Stage 4: Semantic │  │
-                                          │  └───────────────────┘  │
-                                          └───────────┬─────────────┘
-                                                      │
-                                                      ▼
-                                          ┌─────────────────────────┐
-                                          │  Azure Table Storage    │
-                                          │  (Results/Scorecards)   │
-                                          └─────────────────────────┘
+  ┌─────────────┐      ┌─────────────────────────────────────────────────────────┐
+  │  Clients    │─────▶│  Management API (ACA / Azure Functions)                 │
+  │  - Web UI   │      │  ┌─────────────┬──────────────┬────────────────────┐    │
+  │  - CI/CD    │      │  │ /test-cases │ /test-suites │ /target-systems    │    │
+  │  - Scripts  │      │  │ /clients    │ /runs        │                    │    │
+  └─────────────┘      │  └─────────────┴──────────────┴────────────────────┘    │
+                       └──────────┬──────────────────────────────┬───────────────┘
+                                  │                              │
+                                  ▼                              ▼
+                       ┌──────────────────┐           ┌─────────────────┐
+                       │  Azure AI Search │           │  Service Bus    │
+                       │  (Gold Store)    │           │  Queue          │
+                       │  - Test Cases    │           └────────┬────────┘
+                       │  - Test Suites   │                    │
+                       │  - Configs       │                    │
+                       └──────────────────┘                    │
+                                                               │
+┌──────────────────────────────────────────────────────────────┼──────────────────┐
+│                           EXECUTION PLANE (Workers)          │                   │
+└──────────────────────────────────────────────────────────────┼──────────────────┘
+                                                               │
+                                                               ▼
+                       ┌──────────────────┐           ┌──────────────────┐
+                       │  Azure AI Search │◀── fetch ─│  Worker (ACA)    │
+                       │  (Gold Store)    │           │  - Stateless     │
+                       └──────────────────┘           │  - Idempotent    │
+                                                      └────────┬─────────┘
+                                                               │
+                                                               ▼
+                                                      ┌─────────────────────────┐
+                                                      │  Target System (LLM)    │
+                                                      │  - GPT-4o / Claude / etc│
+                                                      │  - Tool Calling         │
+                                                      └────────┬────────────────┘
+                                                               │
+                                                               ▼
+                                                      ┌─────────────────────────┐
+                                                      │  Evaluation Pipeline    │
+                                                      │  ┌───────────────────┐  │
+                                                      │  │ Stage 1: Syntax   │  │
+                                                      │  │ Stage 2: Logic    │  │
+                                                      │  │ Stage 3: Exec     │  │
+                                                      │  │ Stage 4: Semantic │  │
+                                                      │  └───────────────────┘  │
+                                                      └───────────┬─────────────┘
+                                                                  │
+                                                                  ▼
+                                                      ┌─────────────────────────┐
+                                                      │  Azure Table Storage    │
+                                                      │  - Scorecards           │
+                                                      │  - Run Results          │
+                                                      └─────────────────────────┘
 ```
 
 ---
@@ -292,9 +323,174 @@ RowKey: test_case_id
 
 ---
 
-## 6. Reliability & Error Handling
+## 6. Management API
 
-### 6.1 Retry Strategy
+The Management API provides CRUD operations for all platform entities. Deployed as a separate Azure Container App (or Azure Functions) with REST endpoints.
+
+### 6.1 API Overview
+
+```
+Management Plane (REST API)
+├── /api/v1/test-cases       # Gold Standard CRUD
+├── /api/v1/test-suites      # Test collections
+├── /api/v1/target-systems   # LLM orchestrator configs
+├── /api/v1/clients          # Tenant management
+└── /api/v1/runs             # Evaluation execution
+
+Execution Plane (Service Bus + Workers)
+├── Queue: eval-tasks        # Worker tasks
+└── Workers (ACA)            # Stateless processors
+```
+
+### 6.2 Test Case Management
+
+```
+POST   /api/v1/test-cases              # Create test case
+GET    /api/v1/test-cases              # List/search test cases
+GET    /api/v1/test-cases/{id}         # Get single test case
+PUT    /api/v1/test-cases/{id}         # Update test case
+DELETE /api/v1/test-cases/{id}         # Delete test case
+POST   /api/v1/test-cases/import       # Bulk import (JSON/CSV)
+GET    /api/v1/test-cases/export       # Bulk export
+POST   /api/v1/test-cases/{id}/duplicate  # Clone with new ID
+```
+
+**Query Parameters for List:**
+```
+GET /api/v1/test-cases?tags=search,checkout&complexity_min=3&api_version=v2.0&limit=100&offset=0
+```
+
+### 6.3 Test Suite Management
+
+```
+POST   /api/v1/test-suites                          # Create suite
+GET    /api/v1/test-suites                          # List suites
+GET    /api/v1/test-suites/{id}                     # Get suite
+PUT    /api/v1/test-suites/{id}                     # Update suite
+DELETE /api/v1/test-suites/{id}                     # Delete suite
+GET    /api/v1/test-suites/{id}/test-cases          # Get resolved test cases
+POST   /api/v1/test-suites/{id}/test-cases          # Add test cases to suite
+DELETE /api/v1/test-suites/{id}/test-cases/{tc_id}  # Remove test case
+```
+
+**Dynamic vs Static Suites:**
+- **Static:** Explicit `test_case_ids` list
+- **Dynamic:** Filter criteria (`filter_tags`, `filter_api_version`, etc.) resolved at runtime
+
+### 6.4 Target System Management
+
+```
+POST   /api/v1/target-systems           # Register LLM config
+GET    /api/v1/target-systems           # List configs
+GET    /api/v1/target-systems/{id}      # Get config
+PUT    /api/v1/target-systems/{id}      # Update config
+DELETE /api/v1/target-systems/{id}      # Delete config
+POST   /api/v1/target-systems/{id}/test # Test connectivity
+```
+
+**Example Target System:**
+```json
+{
+  "name": "GPT-4o Production",
+  "provider": "azure_openai",
+  "model": "gpt-4o",
+  "endpoint": "https://myorg.openai.azure.com",
+  "api_version": "2024-02-15-preview",
+  "temperature": 0.0,
+  "available_tools": ["search_products", "get_order", "create_ticket"],
+  "tool_schema_version": "v2.1"
+}
+```
+
+### 6.5 Client Management
+
+```
+POST   /api/v1/clients              # Register client/tenant
+GET    /api/v1/clients              # List clients
+GET    /api/v1/clients/{id}         # Get client
+PUT    /api/v1/clients/{id}         # Update client
+DELETE /api/v1/clients/{id}         # Delete client
+GET    /api/v1/clients/{id}/runs    # Get client's run history
+```
+
+**Example Client:**
+```json
+{
+  "name": "Search Team",
+  "test_suite_ids": ["suite-search-v2", "suite-regression"],
+  "target_system_id": "gpt4o-prod",
+  "schedule_cron": "0 2 * * *",
+  "notify_emails": ["search-team@company.com"],
+  "evaluation_config_overrides": {
+    "execution_stage_enabled": true,
+    "semantics_stage_enabled": false
+  }
+}
+```
+
+### 6.6 Evaluation Run Management
+
+```
+POST   /api/v1/runs                     # Trigger new run
+GET    /api/v1/runs                     # List runs (filterable)
+GET    /api/v1/runs/{id}                # Get run status/summary
+DELETE /api/v1/runs/{id}                # Cancel running eval
+GET    /api/v1/runs/{id}/scorecards     # Get all scorecards for run
+GET    /api/v1/runs/{id}/failures       # Get failed test details
+POST   /api/v1/runs/{id}/retry-failures # Retry only failed tests
+```
+
+**Trigger Run Request:**
+```json
+{
+  "client_id": "client-search-team",
+  "test_suite_id": "suite-search-v2",
+  "target_system_id": "gpt4o-prod",
+  "triggered_by": "api",
+  "trigger_metadata": {
+    "commit_sha": "abc123",
+    "pr_number": 456
+  }
+}
+```
+
+**Run Response:**
+```json
+{
+  "id": "run-uuid",
+  "status": "running",
+  "progress_pct": 45.2,
+  "total_tests": 1000,
+  "completed_tests": 452,
+  "passed_tests": 440,
+  "failed_tests": 12,
+  "stage_pass_rates": {
+    "syntax": 1.0,
+    "logic": 0.98,
+    "execution": 0.95
+  }
+}
+```
+
+### 6.7 Authentication & Authorization
+
+| Endpoint Pattern | Required Role |
+|-----------------|---------------|
+| `GET /api/v1/*` | `reader` |
+| `POST/PUT/DELETE /api/v1/test-cases/*` | `test-admin` |
+| `POST/PUT/DELETE /api/v1/test-suites/*` | `suite-admin` |
+| `POST/PUT/DELETE /api/v1/target-systems/*` | `platform-admin` |
+| `POST/PUT/DELETE /api/v1/clients/*` | `platform-admin` |
+| `POST /api/v1/runs` | `runner` |
+| `DELETE /api/v1/runs/{id}` | `platform-admin` |
+
+**Authentication:** Azure AD / Entra ID with OAuth 2.0 bearer tokens.
+
+---
+
+## 7. Reliability & Error Handling
+
+### 7.1 Retry Strategy
 
 | Component | Strategy | Max Attempts | Backoff |
 |-----------|----------|--------------|---------|
@@ -303,14 +499,14 @@ RowKey: test_case_id
 | Azure OpenAI | Retry with jitter | 5 | Exponential + jitter |
 | Table Storage | Retry | 3 | Linear (1s) |
 
-### 6.2 Dead Letter Queue (DLQ)
+### 7.2 Dead Letter Queue (DLQ)
 
 Messages move to DLQ after max delivery attempts. DLQ handling:
 1. Alert on DLQ depth > threshold
 2. CLI command to inspect DLQ: `eval dlq list`
 3. CLI command to replay: `eval dlq replay --all`
 
-### 6.3 Circuit Breaker
+### 7.3 Circuit Breaker
 
 Target systems are wrapped in circuit breakers:
 ```
@@ -321,7 +517,7 @@ Thresholds:
   - Half-open test: 1 request
 ```
 
-### 6.4 Idempotency
+### 7.4 Idempotency
 
 **Implementation:**
 ```python
@@ -332,26 +528,52 @@ Before processing, check if key exists in Table Storage. If exists, skip process
 
 ---
 
-## 7. Observability
+## 8. Observability (OpenTelemetry)
 
-### 7.1 Structured Logging
+All observability is built on **OpenTelemetry (OTel)**, exported to **Azure Monitor Application Insights**.
 
-All logs include:
+### 8.1 OpenTelemetry Setup
+
+```python
+# Instrumentation stack
+from opentelemetry import trace, metrics
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+from azure.monitor.opentelemetry.exporter import (
+    AzureMonitorTraceExporter,
+    AzureMonitorMetricExporter,
+    AzureMonitorLogExporter,
+)
+```
+
+**Auto-instrumented:**
+- FastAPI (API requests)
+- HTTPX (outbound HTTP to LLMs)
+- Azure SDK (Service Bus, Table Storage, AI Search)
+
+### 8.2 Structured Logging
+
+All logs include trace context for correlation:
 ```json
 {
   "timestamp": "2026-01-19T10:30:00Z",
   "level": "INFO",
   "message": "Evaluation completed",
-  "correlation_id": "uuid",
-  "batch_id": "uuid",
-  "test_case_id": "uuid",
-  "worker_id": "worker-abc123",
-  "stage": "logic",
-  "duration_ms": 150
+  "trace_id": "abc123...",
+  "span_id": "def456...",
+  "attributes": {
+    "batch_id": "uuid",
+    "test_case_id": "uuid",
+    "worker_id": "worker-abc123",
+    "stage": "logic",
+    "duration_ms": 150
+  }
 }
 ```
 
-### 7.2 Metrics (Azure Monitor)
+### 8.3 Metrics
 
 | Metric | Type | Description |
 |--------|------|-------------|
@@ -359,20 +581,48 @@ All logs include:
 | `eval.tasks.failed` | Counter | Tasks failed |
 | `eval.stage.duration_ms` | Histogram | Per-stage latency |
 | `eval.queue.depth` | Gauge | Current queue size |
-| `eval.circuit.state` | Gauge | Circuit breaker state |
+| `eval.circuit.state` | Gauge | Circuit breaker state (0=closed, 1=open, 2=half-open) |
+| `eval.llm.tokens` | Counter | Tokens consumed by target LLM |
+| `eval.llm.latency_ms` | Histogram | LLM response latency |
 
-### 7.3 Distributed Tracing
+### 8.4 Distributed Tracing
 
-Use OpenTelemetry with Azure Monitor exporter:
-- Trace ID propagated from CLI → Queue → Worker
-- Spans for each evaluation stage
-- Links to related scorecards
+Trace propagation across all components:
+```
+CLI/API → Service Bus → Worker → Target LLM → Evaluation Pipeline → Table Storage
+   │          │            │          │              │                  │
+   └──────────┴────────────┴──────────┴──────────────┴──────────────────┘
+                        Single trace_id throughout
+```
+
+**Span hierarchy:**
+```
+eval.run (root)
+├── eval.fetch_test_case
+├── eval.invoke_target_system
+│   └── llm.completion (auto-instrumented)
+├── eval.stage.syntax
+├── eval.stage.logic
+├── eval.stage.execution (if enabled)
+│   └── api.call (to actual APIs)
+├── eval.stage.semantics (if enabled)
+│   └── llm.completion (judge)
+└── eval.write_scorecard
+```
+
+**Span attributes:**
+- `eval.test_case_id`
+- `eval.batch_id`
+- `eval.run_id`
+- `eval.stage`
+- `eval.passed`
+- `eval.score`
 
 ---
 
-## 8. Security
+## 9. Security
 
-### 8.1 Authentication
+### 9.1 Authentication
 
 | Component | Method |
 |-----------|--------|
@@ -381,13 +631,13 @@ Use OpenTelemetry with Azure Monitor exporter:
 | AI Search | API Key (rotated) |
 | Azure OpenAI | Managed Identity |
 
-### 8.2 Secrets Management
+### 9.2 Secrets Management
 
 - All secrets in Azure Key Vault
 - Workers fetch secrets at startup
 - No secrets in code or config files
 
-### 8.3 Network Security
+### 9.3 Network Security
 
 - Workers in private VNet
 - Service Bus with private endpoint
@@ -395,9 +645,9 @@ Use OpenTelemetry with Azure Monitor exporter:
 
 ---
 
-## 9. Configuration Management
+## 10. Configuration Management
 
-### 9.1 Hierarchical Configuration
+### 10.1 Hierarchical Configuration
 
 ```
 Priority (highest to lowest):
@@ -407,7 +657,7 @@ Priority (highest to lowest):
 4. Defaults in code
 ```
 
-### 9.2 Key Configuration Options
+### 10.2 Key Configuration Options
 
 ```yaml
 evaluation:
@@ -454,15 +704,15 @@ evaluation:
 
 ---
 
-## 10. Local Development
+## 11. Local Development
 
-### 10.1 Prerequisites
+### 11.1 Prerequisites
 
 - Docker Desktop
 - Python 3.11+
 - Make
 
-### 10.2 Quick Start
+### 11.2 Quick Start
 
 ```bash
 # Start local Azure emulators
@@ -475,7 +725,7 @@ make test
 make run-cli -- submit --batch-file sample_tests.json
 ```
 
-### 10.3 Docker Compose Services
+### 11.3 Docker Compose Services
 
 | Service | Port | Description |
 |---------|------|-------------|
@@ -485,7 +735,7 @@ make run-cli -- submit --batch-file sample_tests.json
 
 ---
 
-## 11. Directory Structure
+## 12. Directory Structure
 
 ```
 eval-platform/
@@ -496,7 +746,17 @@ eval-platform/
 │   │   ├── evaluators.py       # Evaluator ABC + implementations
 │   │   ├── ast_comparator.py   # AST-based tool call comparison
 │   │   └── config.py           # Configuration management
-│   ├── worker/
+│   ├── api/                    # Management API (REST)
+│   │   ├── __init__.py
+│   │   ├── main.py             # FastAPI app entry
+│   │   ├── dependencies.py     # DI, auth, etc.
+│   │   └── routers/
+│   │       ├── test_cases.py   # /api/v1/test-cases
+│   │       ├── test_suites.py  # /api/v1/test-suites
+│   │       ├── target_systems.py # /api/v1/target-systems
+│   │       ├── clients.py      # /api/v1/clients
+│   │       └── runs.py         # /api/v1/runs
+│   ├── worker/                 # Execution plane
 │   │   ├── __init__.py
 │   │   ├── main.py             # Worker entry point
 │   │   ├── consumer.py         # Service Bus consumer
@@ -504,7 +764,8 @@ eval-platform/
 │   │   └── clients/
 │   │       ├── gold_store.py   # Azure AI Search client
 │   │       ├── results_store.py # Table Storage client
-│   │       └── llm_judge.py    # Azure OpenAI client
+│   │       ├── target_invoker.py # LLM orchestrator client
+│   │       └── llm_judge.py    # Azure OpenAI client (Stage 4)
 │   └── shared/
 │       ├── __init__.py
 │       ├── circuit_breaker.py
@@ -520,6 +781,11 @@ eval-platform/
 ├── infra/
 │   ├── main.bicep              # Azure infrastructure
 │   ├── modules/
+│   │   ├── api.bicep           # Management API container app
+│   │   ├── worker.bicep        # Worker container app
+│   │   ├── search.bicep        # AI Search
+│   │   ├── servicebus.bicep    # Service Bus
+│   │   └── storage.bicep       # Table Storage
 │   └── parameters/
 ├── tests/
 │   ├── unit/
@@ -533,7 +799,7 @@ eval-platform/
 
 ---
 
-## 12. Implementation Roadmap (Phase 2)
+## 13. Implementation Roadmap (Phase 2)
 
 ### Sprint 1: Foundation
 1. Scaffold directory structure
