@@ -106,7 +106,7 @@ async def _run_async(
         # Fetch test case from storage or file
         if test_id:
             config = StorageConfig()
-            test_case_repo, scorecard_repo = await create_repositories(config)
+            test_case_repo, scorecard_repo, _ = await create_repositories(config)
             test_case = await test_case_repo.get(test_id)
 
             if not test_case:
@@ -156,7 +156,7 @@ async def _run_async(
         if save:
             if scorecard_repo is None:
                 config = StorageConfig()
-                _, scorecard_repo = await create_repositories(config)
+                _, scorecard_repo, _ = await create_repositories(config)
 
             await scorecard_repo.save(scorecard)
             console.print(f"[dim]Saved scorecard to storage: {scorecard.scorecard_id}[/dim]")

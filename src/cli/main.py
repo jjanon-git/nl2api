@@ -5,11 +5,13 @@ Entry point for the evaluation command-line interface.
 
 Usage:
     python -m src.cli.main run tests/fixtures/search_products.json
+    python -m src.cli.main batch run --limit 10
     python -m src.cli.main --help
 """
 
 import typer
 
+from src.cli.commands.batch import batch_app
 from src.cli.commands.run import run_command
 
 app = typer.Typer(
@@ -20,6 +22,9 @@ app = typer.Typer(
 
 # Register commands
 app.command(name="run", help="Run evaluation on a test case file")(run_command)
+
+# Register subcommand groups
+app.add_typer(batch_app, name="batch", help="Batch evaluation commands")
 
 
 @app.command()

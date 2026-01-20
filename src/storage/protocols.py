@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    from CONTRACTS import Scorecard, TestCase
+    from CONTRACTS import BatchJob, Scorecard, TestCase
 
 
 @runtime_checkable
@@ -173,5 +173,40 @@ class ScorecardRepository(Protocol):
 
         Returns:
             Dict with keys: total, passed, failed, avg_score
+        """
+        ...
+
+
+@runtime_checkable
+class BatchJobRepository(Protocol):
+    """
+    Repository for batch job tracking.
+
+    Tracks batch submissions, progress, and completion status.
+    Local implementation uses PostgreSQL.
+    Production implementation will use Azure Table Storage.
+    """
+
+    async def create(self, batch_job: "BatchJob") -> None:
+        """Create a new batch job record."""
+        ...
+
+    async def get(self, batch_id: str) -> "BatchJob | None":
+        """Fetch a batch job by ID."""
+        ...
+
+    async def update(self, batch_job: "BatchJob") -> None:
+        """Update an existing batch job."""
+        ...
+
+    async def list_recent(self, limit: int = 10) -> list["BatchJob"]:
+        """
+        List recent batch jobs.
+
+        Args:
+            limit: Maximum results to return
+
+        Returns:
+            List of batch jobs ordered by creation time descending
         """
         ...

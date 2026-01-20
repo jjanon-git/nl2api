@@ -12,12 +12,13 @@ from src.storage.factory import (
     get_repositories,
     repository_context,
 )
-from src.storage.protocols import ScorecardRepository, TestCaseRepository
+from src.storage.protocols import BatchJobRepository, ScorecardRepository, TestCaseRepository
 
 __all__ = [
     "StorageConfig",
     "TestCaseRepository",
     "ScorecardRepository",
+    "BatchJobRepository",
     "create_repositories",
     "get_repositories",
     "close_repositories",

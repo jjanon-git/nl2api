@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from CONTRACTS import Scorecard, TestCase
+    from CONTRACTS import BatchJob, Scorecard, TestCase
 
 
 class InMemoryTestCaseRepository:
@@ -219,4 +219,38 @@ class InMemoryScorecardRepository:
 
     def clear(self) -> None:
         """Clear all scorecards (useful for test setup/teardown)."""
+        self._store.clear()
+
+
+class InMemoryBatchJobRepository:
+    """
+    In-memory implementation of BatchJobRepository.
+
+    Perfect for unit tests - no database required.
+    """
+
+    def __init__(self) -> None:
+        self._store: dict[str, BatchJob] = {}
+
+    async def create(self, batch_job: "BatchJob") -> None:
+        """Create a new batch job record."""
+        self._store[batch_job.batch_id] = batch_job
+
+    async def get(self, batch_id: str) -> "BatchJob | None":
+        """Fetch a batch job by ID."""
+        return self._store.get(batch_id)
+
+    async def update(self, batch_job: "BatchJob") -> None:
+        """Update an existing batch job."""
+        self._store[batch_job.batch_id] = batch_job
+
+    async def list_recent(self, limit: int = 10) -> list["BatchJob"]:
+        """List recent batch jobs."""
+        results = list(self._store.values())
+        # Sort by created_at descending
+        results.sort(key=lambda bj: bj.created_at, reverse=True)
+        return results[:limit]
+
+    def clear(self) -> None:
+        """Clear all batch jobs (useful for test setup/teardown)."""
         self._store.clear()
