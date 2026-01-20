@@ -1,0 +1,43 @@
+{
+  "id": "lseg-temp-002",
+  "nl_query": "What was Microsoft's net income for fiscal year 2024?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["MSFT.O"],
+        "fields": ["TR.NetIncome"],
+        "parameters": {
+          "Period": "FY2024"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "MSFT.O": {
+      "TR.NetIncome": 72361000000,
+      "Period": "FY2024"
+    }
+  },
+  "expected_nl_response": "Microsoft's net income for fiscal year 2024 was $72.4 billion.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["temporal", "explicit-fy", "net-income", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["MSFT.O"],
+          "fields": ["TR.NetIncome"],
+          "parameters": {
+            "Period": "FY2024"
+          }
+        }
+      }
+    ],
+    "nl_response": "Microsoft's net income for fiscal year 2024 was $72.4 billion."
+  }
+}

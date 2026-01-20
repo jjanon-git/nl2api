@@ -1,0 +1,39 @@
+{
+  "id": "lseg-ds-003",
+  "nl_query": "What is Tesla's market cap and PE ratio?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@TSLA",
+        "fields": ["MV", "PE"],
+        "kind": 0
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "TSLA": {
+      "MV": 785000000000,
+      "PE": 65.3
+    }
+  },
+  "expected_nl_response": "Tesla's market cap is $785 billion and its PE ratio is 65.3.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["datastream", "valuation", "multi-field", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@TSLA",
+          "fields": ["MV", "PE"],
+          "kind": 0
+        }
+      }
+    ],
+    "nl_response": "Tesla's market cap is $785 billion and its PE ratio is 65.3."
+  }
+}

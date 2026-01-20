@@ -1,0 +1,37 @@
+{
+  "id": "lseg-screen-005",
+  "nl_query": "Which S&P 500 companies beat earnings estimates last quarter by more than 10%?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),IN(TR.IndexConstituentRIC,\"0#.SPX\"),TR.EPSSurprisePct(Period=FQ0)>10,CURN=USD)"],
+        "fields": ["TR.CommonName", "TR.EPSSurprisePct", "TR.EPSActValue", "TR.EPSMeanEstimate"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "results": [
+      {"name": "Meta Platforms", "surprise_pct": 25.3, "actual": 5.33, "estimate": 4.25},
+      {"name": "Amazon.com", "surprise_pct": 18.7, "actual": 1.43, "estimate": 1.20}
+    ]
+  },
+  "expected_nl_response": "S&P 500 companies that beat estimates by >10%: Meta (25.3% beat), Amazon (18.7% beat)...",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 4,
+    "tags": ["screening", "earnings", "surprise", "sp500"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),IN(TR.IndexConstituentRIC,\"0#.SPX\"),TR.EPSSurprisePct(Period=FQ0)>10,CURN=USD)"],
+          "fields": ["TR.CommonName", "TR.EPSSurprisePct", "TR.EPSActValue", "TR.EPSMeanEstimate"]
+        }
+      }
+    ],
+    "nl_response": "S&P 500 companies that beat estimates by >10%: Meta, Amazon..."
+  }
+}

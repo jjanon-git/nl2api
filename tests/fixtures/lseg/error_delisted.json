@@ -1,0 +1,38 @@
+{
+  "id": "lseg-error-003",
+  "nl_query": "What is the current stock price of Enron?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@ENE",
+        "fields": ["P"],
+        "kind": 0
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "error": "Instrument is delisted",
+    "error_code": "DELISTED",
+    "last_trade_date": "2001-12-02"
+  },
+  "expected_nl_response": "Enron is no longer traded. The company was delisted in December 2001.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["error", "delisted", "historical"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@ENE",
+          "fields": ["P"],
+          "kind": 0
+        }
+      }
+    ],
+    "nl_response": "Enron is no longer traded. The company was delisted."
+  }
+}

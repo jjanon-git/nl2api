@@ -1,0 +1,36 @@
+{
+  "id": "lseg-edge-003",
+  "nl_query": "What is the dividend yield for Berkshire Hathaway?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["BRKa.N"],
+        "fields": ["TR.DividendYield"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "BRKa.N": {
+      "TR.DividendYield": null
+    }
+  },
+  "expected_nl_response": "Berkshire Hathaway does not pay a dividend, so dividend yield is N/A.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["edge-case", "null-value", "dividend"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["BRKa.N"],
+          "fields": ["TR.DividendYield"]
+        }
+      }
+    ],
+    "nl_response": "Berkshire Hathaway does not pay a dividend."
+  }
+}

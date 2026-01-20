@@ -1,0 +1,35 @@
+{
+  "id": "test-logic-mismatch-005",
+  "nl_query": "Get weather for New York",
+  "expected_tool_calls": [
+    {
+      "tool_name": "get_weather",
+      "arguments": {
+        "city": "New York",
+        "units": "fahrenheit"
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "temperature": 72,
+    "conditions": "sunny"
+  },
+  "expected_nl_response": "It's 72F and sunny in New York.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["error-case", "logic"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_weather",
+        "arguments": {
+          "city": "New York",
+          "units": "celsius"
+        }
+      }
+    ],
+    "nl_response": "It's 22C in New York."
+  }
+}

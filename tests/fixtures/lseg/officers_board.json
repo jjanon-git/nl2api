@@ -1,0 +1,37 @@
+{
+  "id": "lseg-od-003",
+  "nl_query": "How many board members does Microsoft have and how many are independent?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["MSFT.O"],
+        "fields": ["TR.BoardSize", "TR.IndependentBoardMembers"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "MSFT.O": {
+      "TR.BoardSize": 12,
+      "TR.IndependentBoardMembers": 11
+    }
+  },
+  "expected_nl_response": "Microsoft has 12 board members, of which 11 are independent.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["officers-directors", "board", "governance", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["MSFT.O"],
+          "fields": ["TR.BoardSize", "TR.IndependentBoardMembers"]
+        }
+      }
+    ],
+    "nl_response": "Microsoft has 12 board members, of which 11 are independent."
+  }
+}

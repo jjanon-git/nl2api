@@ -1,0 +1,46 @@
+{
+  "id": "lseg-od-004",
+  "nl_query": "Who are the top executives at NVIDIA?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["NVDA.O"],
+        "fields": ["TR.OfficerName", "TR.OfficerTitle"],
+        "parameters": {
+          "OfficerType": "Executive"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "NVDA.O": {
+      "officers": [
+        {"TR.OfficerName": "Jensen Huang", "TR.OfficerTitle": "CEO & President"},
+        {"TR.OfficerName": "Colette Kress", "TR.OfficerTitle": "CFO"},
+        {"TR.OfficerName": "Debora Shoquist", "TR.OfficerTitle": "EVP, Operations"}
+      ]
+    }
+  },
+  "expected_nl_response": "NVIDIA's top executives include Jensen Huang (CEO), Colette Kress (CFO), and Debora Shoquist (EVP Operations).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["officers-directors", "executives", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["NVDA.O"],
+          "fields": ["TR.OfficerName", "TR.OfficerTitle"],
+          "parameters": {
+            "OfficerType": "Executive"
+          }
+        }
+      }
+    ],
+    "nl_response": "NVIDIA's top executives include Jensen Huang (CEO), Colette Kress (CFO), and Debora Shoquist (EVP Operations)."
+  }
+}

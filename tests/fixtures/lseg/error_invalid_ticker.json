@@ -1,0 +1,37 @@
+{
+  "id": "lseg-error-001",
+  "nl_query": "What is the stock price of INVALIDTICKER123?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@INVALIDTICKER123",
+        "fields": ["P"],
+        "kind": 0
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "error": "Invalid instrument identifier",
+    "error_code": "INVALID_RIC"
+  },
+  "expected_nl_response": "I couldn't find a stock with ticker INVALIDTICKER123. Please verify the ticker symbol.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["error", "invalid-ticker", "validation"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@INVALIDTICKER123",
+          "fields": ["P"],
+          "kind": 0
+        }
+      }
+    ],
+    "nl_response": "I couldn't find a stock with that ticker symbol."
+  }
+}

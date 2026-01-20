@@ -1,0 +1,43 @@
+{
+  "id": "lseg-temp-007",
+  "nl_query": "What is Meta's trailing twelve month revenue as of Q3 2025?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["META.O"],
+        "fields": ["TR.RevenueTTM"],
+        "parameters": {
+          "Period": "FQ32025"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "META.O": {
+      "TR.RevenueTTM": 156225000000,
+      "Period": "FQ3 2025"
+    }
+  },
+  "expected_nl_response": "Meta's trailing twelve month revenue as of Q3 2025 was $156.2 billion.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["temporal", "ttm", "revenue", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["META.O"],
+          "fields": ["TR.RevenueTTM"],
+          "parameters": {
+            "Period": "FQ32025"
+          }
+        }
+      }
+    ],
+    "nl_response": "Meta's trailing twelve month revenue as of Q3 2025 was $156.2 billion."
+  }
+}

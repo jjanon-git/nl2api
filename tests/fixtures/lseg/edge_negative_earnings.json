@@ -1,0 +1,37 @@
+{
+  "id": "lseg-edge-004",
+  "nl_query": "What is Rivian's PE ratio?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["RIVN.O"],
+        "fields": ["TR.PE", "TR.NetIncome"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "RIVN.O": {
+      "TR.PE": null,
+      "TR.NetIncome": -5400000000
+    }
+  },
+  "expected_nl_response": "Rivian's PE ratio is not meaningful as the company has negative earnings (-$5.4B net loss).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["edge-case", "negative-earnings", "pe-ratio"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["RIVN.O"],
+          "fields": ["TR.PE", "TR.NetIncome"]
+        }
+      }
+    ],
+    "nl_response": "Rivian's PE ratio is N/A due to negative earnings."
+  }
+}

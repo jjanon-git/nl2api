@@ -1,0 +1,49 @@
+{
+  "id": "lseg-edge-006",
+  "nl_query": "Compare Apple's FY2024 revenue to Microsoft's FY2024 revenue",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AAPL.O", "MSFT.O"],
+        "fields": ["TR.Revenue", "TR.FiscalYearEnd"],
+        "parameters": {
+          "Period": "FY2024"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL.O": {
+      "TR.Revenue": 383285000000,
+      "TR.FiscalYearEnd": "September",
+      "period": "Oct 2023 - Sep 2024"
+    },
+    "MSFT.O": {
+      "TR.Revenue": 245122000000,
+      "TR.FiscalYearEnd": "June",
+      "period": "Jul 2023 - Jun 2024"
+    }
+  },
+  "expected_nl_response": "Apple FY2024 revenue: $383B (ends Sep), Microsoft FY2024 revenue: $245B (ends Jun). Note: fiscal years don't align.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["edge-case", "fiscal-year", "comparison", "misalignment"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AAPL.O", "MSFT.O"],
+          "fields": ["TR.Revenue", "TR.FiscalYearEnd"],
+          "parameters": {
+            "Period": "FY2024"
+          }
+        }
+      }
+    ],
+    "nl_response": "Apple FY2024 revenue: $383B, Microsoft FY2024 revenue: $245B. Note: different fiscal year ends."
+  }
+}

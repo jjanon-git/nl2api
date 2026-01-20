@@ -1,0 +1,47 @@
+{
+  "id": "test-multi-tool-002",
+  "nl_query": "Get user profile for ID 123 and their recent orders",
+  "expected_tool_calls": [
+    {
+      "tool_name": "get_user_profile",
+      "arguments": {
+        "user_id": 123
+      }
+    },
+    {
+      "tool_name": "get_user_orders",
+      "arguments": {
+        "user_id": 123,
+        "limit": 10
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "user": {"id": 123, "name": "John Doe"},
+    "orders": [{"id": "order-1", "total": 99.99}]
+  },
+  "expected_nl_response": "User John Doe (ID: 123) has 1 recent order totaling $99.99.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["multi-tool", "user", "orders"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_user_orders",
+        "arguments": {
+          "user_id": 123,
+          "limit": 10
+        }
+      },
+      {
+        "tool_name": "get_user_profile",
+        "arguments": {
+          "user_id": 123
+        }
+      }
+    ],
+    "nl_response": "User John Doe has 1 recent order."
+  }
+}

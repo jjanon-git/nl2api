@@ -1,0 +1,39 @@
+{
+  "id": "lseg-ds-004",
+  "nl_query": "What is the current level of the S&P 500?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "S&PCOMP",
+        "fields": ["PI"],
+        "kind": 0
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "S&PCOMP": {
+      "PI": 5892.45,
+      "DATE": "2026-01-17"
+    }
+  },
+  "expected_nl_response": "The S&P 500 is currently at 5,892.45.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["datastream", "index", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "S&PCOMP",
+          "fields": ["PI"],
+          "kind": 0
+        }
+      }
+    ],
+    "nl_response": "The S&P 500 is currently at 5,892.45."
+  }
+}

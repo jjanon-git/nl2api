@@ -1,0 +1,44 @@
+{
+  "id": "lseg-temp-010",
+  "nl_query": "When did Netflix report Q3 2025 earnings and what was the EPS?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["NFLX.O"],
+        "fields": ["TR.EPSActValue", "TR.EarningsAnnouncementDate"],
+        "parameters": {
+          "Period": "FQ32025"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "NFLX.O": {
+      "TR.EPSActValue": 5.52,
+      "TR.EarningsAnnouncementDate": "2025-10-17",
+      "Period": "FQ3 2025"
+    }
+  },
+  "expected_nl_response": "Netflix reported Q3 2025 earnings on October 17, 2025 with EPS of $5.52.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["temporal", "earnings-date", "eps", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["NFLX.O"],
+          "fields": ["TR.EPSActValue", "TR.EarningsAnnouncementDate"],
+          "parameters": {
+            "Period": "FQ32025"
+          }
+        }
+      }
+    ],
+    "nl_response": "Netflix reported Q3 2025 earnings on October 17, 2025 with EPS of $5.52."
+  }
+}

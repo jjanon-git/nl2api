@@ -1,0 +1,37 @@
+{
+  "id": "lseg-complex-005",
+  "nl_query": "Which mega-cap stocks have had the largest upward EPS revision in the last 30 days?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),TR.CompanyMarketCap>200000000000,TOP(TR.EPSMeanPctChg(Period=FY1,WP=30d),10,nnumber),CURN=USD)"],
+        "fields": ["TR.CommonName", "TR.EPSMean(Period=FY1)", "TR.EPSMeanPctChg(Period=FY1,WP=30d)", "TR.CompanyMarketCap"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "results": [
+      {"name": "NVIDIA Corp", "eps_mean": 3.45, "eps_revision_30d": 15.2, "market_cap": 1800000000000},
+      {"name": "Meta Platforms", "eps_mean": 22.50, "eps_revision_30d": 8.5, "market_cap": 1400000000000}
+    ]
+  },
+  "expected_nl_response": "Mega-caps with largest 30-day EPS revisions: NVIDIA (+15.2%), Meta (+8.5%)...",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 5,
+    "tags": ["complex", "screening", "revisions", "momentum"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),TR.CompanyMarketCap>200000000000,TOP(TR.EPSMeanPctChg(Period=FY1,WP=30d),10,nnumber),CURN=USD)"],
+          "fields": ["TR.CommonName", "TR.EPSMean(Period=FY1)", "TR.EPSMeanPctChg(Period=FY1,WP=30d)", "TR.CompanyMarketCap"]
+        }
+      }
+    ],
+    "nl_response": "Mega-caps with largest 30-day EPS revisions: NVIDIA, Meta..."
+  }
+}

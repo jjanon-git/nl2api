@@ -1,0 +1,47 @@
+{
+  "id": "lseg-rel-001",
+  "nl_query": "What was Apple's revenue last quarter?",
+  "context": {
+    "current_date": "2026-01-19",
+    "resolved_period": "FQ1 2026 (Oct-Dec 2025)"
+  },
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AAPL.O"],
+        "fields": ["TR.Revenue"],
+        "parameters": {
+          "Period": "FQ0"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL.O": {
+      "TR.Revenue": 119580000000,
+      "Period": "FQ1 2026"
+    }
+  },
+  "expected_nl_response": "Apple's revenue last quarter (Q1 FY2026) was $119.6 billion.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["relative-date", "last-quarter", "FQ0", "context-dependent"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AAPL.O"],
+          "fields": ["TR.Revenue"],
+          "parameters": {
+            "Period": "FQ0"
+          }
+        }
+      }
+    ],
+    "nl_response": "Apple's revenue last quarter was $119.6 billion."
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "lseg-ds-001",
+  "nl_query": "What is Apple's stock price?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@AAPL",
+        "fields": ["P"],
+        "kind": 0
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL": {
+      "P": 185.92,
+      "DATE": "2026-01-17"
+    }
+  },
+  "expected_nl_response": "Apple's current stock price is $185.92.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["datastream", "price", "single-stock", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@AAPL",
+          "fields": ["P"],
+          "kind": 0
+        }
+      }
+    ],
+    "nl_response": "Apple's current stock price is $185.92."
+  }
+}

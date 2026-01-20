@@ -1,0 +1,38 @@
+{
+  "id": "lseg-screen-001",
+  "nl_query": "What are the top 10 companies by market cap in the S&P 500?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),IN(TR.IndexConstituentRIC,\"0#.SPX\"),TOP(TR.CompanyMarketCap,10,nnumber),CURN=USD)"],
+        "fields": ["TR.CommonName", "TR.CompanyMarketCap"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "results": [
+      {"name": "Apple Inc", "market_cap": 3200000000000},
+      {"name": "Microsoft Corp", "market_cap": 3100000000000},
+      {"name": "NVIDIA Corp", "market_cap": 1800000000000}
+    ]
+  },
+  "expected_nl_response": "The top 10 S&P 500 companies by market cap are: Apple ($3.2T), Microsoft ($3.1T), NVIDIA ($1.8T)...",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["screening", "market-cap", "ranking", "sp500"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),IN(TR.IndexConstituentRIC,\"0#.SPX\"),TOP(TR.CompanyMarketCap,10,nnumber),CURN=USD)"],
+          "fields": ["TR.CommonName", "TR.CompanyMarketCap"]
+        }
+      }
+    ],
+    "nl_response": "The top 10 S&P 500 companies by market cap are Apple, Microsoft, NVIDIA..."
+  }
+}

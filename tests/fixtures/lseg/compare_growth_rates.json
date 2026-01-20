@@ -1,0 +1,35 @@
+{
+  "id": "lseg-compare-004",
+  "nl_query": "Which has higher revenue growth: Netflix or Disney?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["NFLX.O", "DIS.N"],
+        "fields": ["TR.CommonName", "TR.RevenueGrowth", "TR.Revenue"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "NFLX.O": {"TR.CommonName": "Netflix Inc", "TR.RevenueGrowth": 15.2, "TR.Revenue": 39500000000},
+    "DIS.N": {"TR.CommonName": "Walt Disney Co", "TR.RevenueGrowth": 3.8, "TR.Revenue": 91000000000}
+  },
+  "expected_nl_response": "Netflix has higher revenue growth (15.2%) compared to Disney (3.8%).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["comparison", "multi-ticker", "growth", "versus"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["NFLX.O", "DIS.N"],
+          "fields": ["TR.CommonName", "TR.RevenueGrowth", "TR.Revenue"]
+        }
+      }
+    ],
+    "nl_response": "Netflix has higher revenue growth (15.2%) compared to Disney (3.8%)."
+  }
+}

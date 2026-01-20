@@ -1,0 +1,34 @@
+{
+  "id": "test-type-coercion-003",
+  "nl_query": "Get product details for item 456",
+  "expected_tool_calls": [
+    {
+      "tool_name": "get_product",
+      "arguments": {
+        "product_id": 456,
+        "include_reviews": true
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "product": {"id": 456, "name": "Premium Widget"}
+  },
+  "expected_nl_response": "Product 456 is Premium Widget.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["type-coercion", "product"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "get_product",
+        "arguments": {
+          "product_id": "456",
+          "include_reviews": true
+        }
+      }
+    ],
+    "nl_response": "Product 456 is Premium Widget."
+  }
+}

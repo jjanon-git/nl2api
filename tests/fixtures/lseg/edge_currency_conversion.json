@@ -1,0 +1,45 @@
+{
+  "id": "lseg-edge-001",
+  "nl_query": "What is Toyota's revenue in US dollars?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["7203.T"],
+        "fields": ["TR.Revenue"],
+        "parameters": {
+          "Curn": "USD"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "7203.T": {
+      "TR.Revenue": 275000000000,
+      "original_currency": "JPY",
+      "converted_currency": "USD",
+      "exchange_rate": 0.0067
+    }
+  },
+  "expected_nl_response": "Toyota's revenue is approximately $275 billion USD (converted from JPY).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["edge-case", "currency-conversion", "international"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["7203.T"],
+          "fields": ["TR.Revenue"],
+          "parameters": {
+            "Curn": "USD"
+          }
+        }
+      }
+    ],
+    "nl_response": "Toyota's revenue is approximately $275 billion USD."
+  }
+}

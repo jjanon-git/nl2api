@@ -1,0 +1,43 @@
+{
+  "id": "lseg-temp-004",
+  "nl_query": "Compare NVIDIA's revenue between FY2024 and FY2025",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["NVDA.O"],
+        "fields": ["TR.Revenue"],
+        "parameters": {
+          "Period": "FY2024,FY2025"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "NVDA.O": {
+      "FY2024": {"TR.Revenue": 60922000000},
+      "FY2025": {"TR.Revenue": 130000000000}
+    }
+  },
+  "expected_nl_response": "NVIDIA's revenue grew from $60.9B (FY2024) to $130B (FY2025), a 113% increase.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["temporal", "yoy-comparison", "revenue", "multi-period"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["NVDA.O"],
+          "fields": ["TR.Revenue"],
+          "parameters": {
+            "Period": "FY2024,FY2025"
+          }
+        }
+      }
+    ],
+    "nl_response": "NVIDIA's revenue grew from $60.9B (FY2024) to $130B (FY2025)."
+  }
+}

@@ -1,0 +1,25 @@
+"""
+Storage Abstraction Layer
+
+Provides pluggable backends for test case and scorecard persistence.
+Supports local PostgreSQL development and future Azure services migration.
+"""
+
+from src.storage.config import StorageConfig
+from src.storage.factory import (
+    close_repositories,
+    create_repositories,
+    get_repositories,
+    repository_context,
+)
+from src.storage.protocols import ScorecardRepository, TestCaseRepository
+
+__all__ = [
+    "StorageConfig",
+    "TestCaseRepository",
+    "ScorecardRepository",
+    "create_repositories",
+    "get_repositories",
+    "close_repositories",
+    "repository_context",
+]

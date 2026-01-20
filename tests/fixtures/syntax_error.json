@@ -1,0 +1,21 @@
+{
+  "id": "test-syntax-error-004",
+  "nl_query": "Search for items",
+  "expected_tool_calls": [
+    {
+      "tool_name": "search_items",
+      "arguments": {}
+    }
+  ],
+  "expected_raw_data": null,
+  "expected_nl_response": "Here are the search results.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["error-case", "syntax"]
+  },
+  "response": {
+    "raw_output": "{ invalid json here }",
+    "nl_response": null
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "lseg-od-001",
+  "nl_query": "Who is the CEO of Apple?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AAPL.O"],
+        "fields": ["TR.CEOName"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL.O": {
+      "TR.CEOName": "Timothy D. Cook"
+    }
+  },
+  "expected_nl_response": "The CEO of Apple is Timothy D. Cook.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["officers-directors", "ceo", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AAPL.O"],
+          "fields": ["TR.CEOName"]
+        }
+      }
+    ],
+    "nl_response": "The CEO of Apple is Timothy D. Cook."
+  }
+}

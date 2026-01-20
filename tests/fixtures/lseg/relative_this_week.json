@@ -1,0 +1,52 @@
+{
+  "id": "lseg-rel-007",
+  "nl_query": "Show me Apple's stock price this week",
+  "context": {
+    "current_date": "2026-01-19",
+    "resolved_range": "2026-01-13 (Monday) to 2026-01-17 (Friday)"
+  },
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@AAPL",
+        "fields": ["P"],
+        "start": "-0AW",
+        "end": "0D",
+        "freq": "D"
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL": {
+      "prices": [
+        {"date": "2026-01-13", "P": 183.25},
+        {"date": "2026-01-14", "P": 184.50},
+        {"date": "2026-01-15", "P": 185.10},
+        {"date": "2026-01-16", "P": 184.80},
+        {"date": "2026-01-17", "P": 185.92}
+      ]
+    }
+  },
+  "expected_nl_response": "Apple's stock this week: Mon $183.25, Tue $184.50, Wed $185.10, Thu $184.80, Fri $185.92.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["relative-date", "this-week", "daily", "context-dependent"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@AAPL",
+          "fields": ["P"],
+          "start": "-0AW",
+          "end": "0D",
+          "freq": "D"
+        }
+      }
+    ],
+    "nl_response": "Apple's stock this week ranged from $183.25 to $185.92."
+  }
+}

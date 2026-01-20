@@ -1,0 +1,46 @@
+{
+  "id": "lseg-ds-005",
+  "nl_query": "Get Amazon's OHLCV data for yesterday",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@AMZN",
+        "fields": ["PO", "PH", "PL", "P", "VO"],
+        "start": "-1D",
+        "end": "-1D",
+        "freq": "D"
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AMZN": {
+      "PO": 225.50,
+      "PH": 228.75,
+      "PL": 224.10,
+      "P": 227.30,
+      "VO": 45000000
+    }
+  },
+  "expected_nl_response": "Amazon's OHLCV for yesterday: Open $225.50, High $228.75, Low $224.10, Close $227.30, Volume 45M.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["datastream", "ohlcv", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@AMZN",
+          "fields": ["PO", "PH", "PL", "P", "VO"],
+          "start": "-1D",
+          "end": "-1D",
+          "freq": "D"
+        }
+      }
+    ],
+    "nl_response": "Amazon's OHLCV for yesterday: Open $225.50, High $228.75, Low $224.10, Close $227.30, Volume 45M."
+  }
+}

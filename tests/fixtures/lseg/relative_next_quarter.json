@@ -1,0 +1,47 @@
+{
+  "id": "lseg-rel-004",
+  "nl_query": "What is the EPS estimate for Amazon next quarter?",
+  "context": {
+    "current_date": "2026-01-19",
+    "resolved_period": "FQ2 2026 (Jan-Mar 2026)"
+  },
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AMZN.O"],
+        "fields": ["TR.EPSMean"],
+        "parameters": {
+          "Period": "FQ1"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AMZN.O": {
+      "TR.EPSMean": 1.52,
+      "Period": "FQ2 2026"
+    }
+  },
+  "expected_nl_response": "Amazon's EPS estimate for next quarter (Q2 2026) is $1.52.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["relative-date", "next-quarter", "FQ1", "estimate", "context-dependent"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AMZN.O"],
+          "fields": ["TR.EPSMean"],
+          "parameters": {
+            "Period": "FQ1"
+          }
+        }
+      }
+    ],
+    "nl_response": "Amazon's EPS estimate for next quarter is $1.52."
+  }
+}

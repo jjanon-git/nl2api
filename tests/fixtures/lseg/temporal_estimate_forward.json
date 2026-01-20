@@ -1,0 +1,43 @@
+{
+  "id": "lseg-temp-008",
+  "nl_query": "What is the EPS estimate for Apple for Q2 2026?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AAPL.O"],
+        "fields": ["TR.EPSMean"],
+        "parameters": {
+          "Period": "FQ22026"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL.O": {
+      "TR.EPSMean": 1.62,
+      "Period": "FQ2 2026"
+    }
+  },
+  "expected_nl_response": "The consensus EPS estimate for Apple for Q2 2026 is $1.62.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["temporal", "forward-estimate", "eps", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AAPL.O"],
+          "fields": ["TR.EPSMean"],
+          "parameters": {
+            "Period": "FQ22026"
+          }
+        }
+      }
+    ],
+    "nl_response": "The consensus EPS estimate for Apple for Q2 2026 is $1.62."
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "id": "lseg-temp-009",
+  "nl_query": "Show me Microsoft's annual revenue from 2021 to 2025",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["MSFT.O"],
+        "fields": ["TR.Revenue"],
+        "parameters": {
+          "Period": "FY2021,FY2022,FY2023,FY2024,FY2025"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "MSFT.O": {
+      "FY2021": {"TR.Revenue": 168088000000},
+      "FY2022": {"TR.Revenue": 198270000000},
+      "FY2023": {"TR.Revenue": 211915000000},
+      "FY2024": {"TR.Revenue": 245122000000},
+      "FY2025": {"TR.Revenue": 280000000000}
+    }
+  },
+  "expected_nl_response": "Microsoft's annual revenue: FY21 $168B, FY22 $198B, FY23 $212B, FY24 $245B, FY25 $280B.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["temporal", "multi-year", "revenue", "time-series"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["MSFT.O"],
+          "fields": ["TR.Revenue"],
+          "parameters": {
+            "Period": "FY2021,FY2022,FY2023,FY2024,FY2025"
+          }
+        }
+      }
+    ],
+    "nl_response": "Microsoft's annual revenue from 2021-2025: $168B, $198B, $212B, $245B, $280B."
+  }
+}

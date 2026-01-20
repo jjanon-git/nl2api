@@ -1,0 +1,38 @@
+{
+  "id": "lseg-complex-001",
+  "nl_query": "Calculate Apple's EV/EBITDA ratio using enterprise value and trailing twelve month EBITDA",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AAPL.O"],
+        "fields": ["TR.EnterpriseValue", "TR.EBITDATTM"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL.O": {
+      "TR.EnterpriseValue": 3150000000000,
+      "TR.EBITDATTM": 130000000000,
+      "calculated_ev_ebitda": 24.23
+    }
+  },
+  "expected_nl_response": "Apple's EV/EBITDA ratio is 24.2x (EV: $3.15T, TTM EBITDA: $130B).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 5,
+    "tags": ["complex", "multi-step", "valuation", "calculation"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AAPL.O"],
+          "fields": ["TR.EnterpriseValue", "TR.EBITDATTM"]
+        }
+      }
+    ],
+    "nl_response": "Apple's EV/EBITDA ratio is 24.2x."
+  }
+}

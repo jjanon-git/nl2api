@@ -1,0 +1,47 @@
+{
+  "id": "lseg-rel-002",
+  "nl_query": "What was Microsoft's net income last year?",
+  "context": {
+    "current_date": "2026-01-19",
+    "resolved_period": "FY2025 (Jul 2024 - Jun 2025)"
+  },
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["MSFT.O"],
+        "fields": ["TR.NetIncome"],
+        "parameters": {
+          "Period": "FY0"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "MSFT.O": {
+      "TR.NetIncome": 82500000000,
+      "Period": "FY2025"
+    }
+  },
+  "expected_nl_response": "Microsoft's net income last fiscal year (FY2025) was $82.5 billion.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["relative-date", "last-year", "FY0", "context-dependent"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["MSFT.O"],
+          "fields": ["TR.NetIncome"],
+          "parameters": {
+            "Period": "FY0"
+          }
+        }
+      }
+    ],
+    "nl_response": "Microsoft's net income last fiscal year was $82.5 billion."
+  }
+}

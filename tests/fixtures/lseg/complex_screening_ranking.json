@@ -1,0 +1,37 @@
+{
+  "id": "lseg-complex-004",
+  "nl_query": "Find the top 5 S&P 500 tech stocks by revenue growth that also have positive earnings and a market cap over $100 billion",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),IN(TR.IndexConstituentRIC,\"0#.SPX\"),IN(TR.TRBCEconSectorCode,57),TR.NetIncome>0,TR.CompanyMarketCap>100000000000,TOP(TR.RevenueGrowth,5,nnumber),CURN=USD)"],
+        "fields": ["TR.CommonName", "TR.RevenueGrowth", "TR.NetIncome", "TR.CompanyMarketCap"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "results": [
+      {"name": "NVIDIA Corp", "revenue_growth": 122.5, "net_income": 29760000000, "market_cap": 1800000000000},
+      {"name": "Meta Platforms", "revenue_growth": 24.8, "net_income": 39098000000, "market_cap": 1400000000000}
+    ]
+  },
+  "expected_nl_response": "Top 5 S&P 500 tech stocks by revenue growth (positive earnings, >$100B cap): NVIDIA (122.5%), Meta (24.8%)...",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 5,
+    "tags": ["complex", "screening", "multi-criteria", "ranking"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),IN(TR.IndexConstituentRIC,\"0#.SPX\"),IN(TR.TRBCEconSectorCode,57),TR.NetIncome>0,TR.CompanyMarketCap>100000000000,TOP(TR.RevenueGrowth,5,nnumber),CURN=USD)"],
+          "fields": ["TR.CommonName", "TR.RevenueGrowth", "TR.NetIncome", "TR.CompanyMarketCap"]
+        }
+      }
+    ],
+    "nl_response": "Top 5 S&P 500 tech stocks by revenue growth: NVIDIA, Meta..."
+  }
+}

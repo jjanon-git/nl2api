@@ -1,0 +1,44 @@
+{
+  "id": "lseg-edge-002",
+  "nl_query": "What was NVIDIA's stock price before and after the June 2024 stock split?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@NVDA",
+        "fields": ["P", "UP"],
+        "start": "2024-06-01",
+        "end": "2024-06-15",
+        "freq": "D"
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "NVDA": {
+      "pre_split": {"date": "2024-06-07", "P": 1208.88, "UP": 1208.88},
+      "post_split": {"date": "2024-06-10", "P": 120.89, "UP": 1208.88},
+      "split_ratio": "10:1"
+    }
+  },
+  "expected_nl_response": "NVIDIA had a 10:1 stock split on June 10, 2024. Pre-split: $1,208.88, Post-split: $120.89 (adjusted price unchanged).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["edge-case", "stock-split", "adjusted-price"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@NVDA",
+          "fields": ["P", "UP"],
+          "start": "2024-06-01",
+          "end": "2024-06-15",
+          "freq": "D"
+        }
+      }
+    ],
+    "nl_response": "NVIDIA had a 10:1 stock split. Pre-split: $1,208.88, Post-split: $120.89."
+  }
+}

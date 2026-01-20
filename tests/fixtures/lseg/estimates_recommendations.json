@@ -1,0 +1,41 @@
+{
+  "id": "lseg-est-003",
+  "nl_query": "What is the analyst recommendation for Amazon?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AMZN.O"],
+        "fields": ["TR.RecMean", "TR.NumOfRec", "TR.NumOfStrongBuy", "TR.NumOfBuy", "TR.NumOfHold", "TR.NumOfSell"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AMZN.O": {
+      "TR.RecMean": 1.4,
+      "TR.NumOfRec": 55,
+      "TR.NumOfStrongBuy": 35,
+      "TR.NumOfBuy": 15,
+      "TR.NumOfHold": 5,
+      "TR.NumOfSell": 0
+    }
+  },
+  "expected_nl_response": "Amazon has a Strong Buy consensus (1.4) from 55 analysts: 35 Strong Buy, 15 Buy, 5 Hold, 0 Sell.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["estimates", "recommendations", "consensus", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AMZN.O"],
+          "fields": ["TR.RecMean", "TR.NumOfRec", "TR.NumOfStrongBuy", "TR.NumOfBuy", "TR.NumOfHold", "TR.NumOfSell"]
+        }
+      }
+    ],
+    "nl_response": "Amazon has a Strong Buy consensus from 55 analysts."
+  }
+}

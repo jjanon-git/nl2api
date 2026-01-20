@@ -1,0 +1,54 @@
+{
+  "id": "lseg-complex-002",
+  "nl_query": "Compare NVIDIA's PE ratio to the semiconductor industry average",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["NVDA.O"],
+        "fields": ["TR.PE", "TR.TRBCIndustry"]
+      }
+    },
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),IN(TR.TRBCIndustryCode,57101010),CURN=USD)"],
+        "fields": ["TR.PE"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "NVDA.O": {
+      "TR.PE": 65.3,
+      "TR.TRBCIndustry": "Semiconductors"
+    },
+    "industry_avg": {
+      "TR.PE": 28.5
+    }
+  },
+  "expected_nl_response": "NVIDIA's PE (65.3x) is 129% above the semiconductor industry average (28.5x).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 5,
+    "tags": ["complex", "multi-step", "peer-comparison", "industry"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["NVDA.O"],
+          "fields": ["TR.PE", "TR.TRBCIndustry"]
+        }
+      },
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),IN(TR.TRBCIndustryCode,57101010),CURN=USD)"],
+          "fields": ["TR.PE"]
+        }
+      }
+    ],
+    "nl_response": "NVIDIA's PE (65.3x) is significantly above the semiconductor industry average (28.5x)."
+  }
+}

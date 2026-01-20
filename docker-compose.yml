@@ -1,0 +1,30 @@
+version: '3.8'
+
+# EvalPlatform Local Development Environment
+# PostgreSQL with pgvector extension for similarity search
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: evalplatform-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persist data
+      - postgres_data:/var/lib/postgresql/data
+      # Auto-run migrations on first start
+      - ./src/storage/postgres/migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U eval -d evalplatform"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    name: evalplatform_postgres_data

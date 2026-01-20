@@ -1,0 +1,43 @@
+{
+  "id": "lseg-temp-006",
+  "nl_query": "What was Google's stock price on December 15, 2025?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@GOOGL",
+        "fields": ["P"],
+        "start": "2025-12-15",
+        "end": "2025-12-15",
+        "freq": "D"
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "GOOGL": {
+      "P": 192.45,
+      "DATE": "2025-12-15"
+    }
+  },
+  "expected_nl_response": "Google's stock price on December 15, 2025 was $192.45.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["temporal", "specific-date", "price", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@GOOGL",
+          "fields": ["P"],
+          "start": "2025-12-15",
+          "end": "2025-12-15",
+          "freq": "D"
+        }
+      }
+    ],
+    "nl_response": "Google's stock price on December 15, 2025 was $192.45."
+  }
+}

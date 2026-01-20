@@ -1,0 +1,36 @@
+{
+  "id": "lseg-error-004",
+  "nl_query": "What is Apple's fictional_metric_xyz?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AAPL.O"],
+        "fields": ["TR.FictionalMetricXYZ"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "error": "Unknown field code",
+    "error_code": "INVALID_FIELD",
+    "field": "TR.FictionalMetricXYZ"
+  },
+  "expected_nl_response": "The requested metric 'fictional_metric_xyz' is not a recognized data field.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 1,
+    "tags": ["error", "invalid-field", "validation"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AAPL.O"],
+          "fields": ["TR.FictionalMetricXYZ"]
+        }
+      }
+    ],
+    "nl_response": "That metric is not recognized. Please specify a valid financial metric."
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "id": "lseg-fund-002",
+  "nl_query": "What is Microsoft's net income and operating income for the last 3 years?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["MSFT.O"],
+        "fields": ["TR.NetIncome", "TR.OperatingIncome"],
+        "parameters": {
+          "SDate": "0",
+          "EDate": "-2",
+          "Frq": "FY"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "MSFT.O": {
+      "years": ["FY2025", "FY2024", "FY2023"],
+      "TR.NetIncome": [72361000000, 72361000000, 69940000000],
+      "TR.OperatingIncome": [88523000000, 83383000000, 78920000000]
+    }
+  },
+  "expected_nl_response": "Microsoft's net income and operating income for the last 3 fiscal years.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["fundamentals", "income-statement", "time-series", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["MSFT.O"],
+          "fields": ["TR.NetIncome", "TR.OperatingIncome"],
+          "parameters": {
+            "SDate": "0",
+            "EDate": "-2",
+            "Frq": "FY"
+          }
+        }
+      }
+    ],
+    "nl_response": "Microsoft's net income and operating income for the last 3 fiscal years."
+  }
+}

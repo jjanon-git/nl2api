@@ -1,0 +1,45 @@
+{
+  "id": "lseg-edge-005",
+  "nl_query": "What is Alibaba's stock price on both NYSE (ADR) and Hong Kong?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@BABA,H:9988",
+        "fields": ["P", "NAME"],
+        "kind": 0
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "BABA": {
+      "P": 85.50,
+      "NAME": "Alibaba Group (ADR)",
+      "currency": "USD"
+    },
+    "H:9988": {
+      "P": 83.25,
+      "NAME": "Alibaba Group",
+      "currency": "HKD"
+    }
+  },
+  "expected_nl_response": "Alibaba trades at $85.50 on NYSE (ADR) and HK$83.25 on HKEX.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["edge-case", "adr", "dual-listing", "multi-exchange"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@BABA,H:9988",
+          "fields": ["P", "NAME"],
+          "kind": 0
+        }
+      }
+    ],
+    "nl_response": "Alibaba trades at $85.50 on NYSE and HK$83.25 on HKEX."
+  }
+}

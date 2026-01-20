@@ -1,0 +1,49 @@
+{
+  "id": "lseg-compare-006",
+  "nl_query": "Compare Tesla and Ford stock performance over the past year",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@TSLA,@F",
+        "fields": ["P", "NAME"],
+        "start": "-1Y",
+        "end": "0D",
+        "freq": "M"
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "TSLA": {
+      "start_price": 245.50,
+      "end_price": 425.50,
+      "return_pct": 73.3
+    },
+    "F": {
+      "start_price": 12.25,
+      "end_price": 11.80,
+      "return_pct": -3.7
+    }
+  },
+  "expected_nl_response": "1-year performance: Tesla +73.3% ($245.50→$425.50), Ford -3.7% ($12.25→$11.80).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["comparison", "multi-ticker", "performance", "time-series", "1-year"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@TSLA,@F",
+          "fields": ["P", "NAME"],
+          "start": "-1Y",
+          "end": "0D",
+          "freq": "M"
+        }
+      }
+    ],
+    "nl_response": "1-year performance: Tesla +73.3%, Ford -3.7%."
+  }
+}

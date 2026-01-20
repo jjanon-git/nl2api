@@ -1,0 +1,37 @@
+{
+  "id": "lseg-compare-001",
+  "nl_query": "Compare Apple and Microsoft stock prices",
+  "expected_tool_calls": [
+    {
+      "tool_name": "datastream.get_data",
+      "arguments": {
+        "tickers": "@AAPL,@MSFT",
+        "fields": ["P", "NAME"],
+        "kind": 0
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AAPL": {"P": 185.92, "NAME": "Apple Inc"},
+    "MSFT": {"P": 415.50, "NAME": "Microsoft Corp"}
+  },
+  "expected_nl_response": "Apple is trading at $185.92 and Microsoft at $415.50.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["comparison", "multi-ticker", "price", "two-stocks"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "datastream.get_data",
+        "arguments": {
+          "tickers": "@AAPL,@MSFT",
+          "fields": ["P", "NAME"],
+          "kind": 0
+        }
+      }
+    ],
+    "nl_response": "Apple is trading at $185.92 and Microsoft at $415.50."
+  }
+}

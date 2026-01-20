@@ -1,0 +1,45 @@
+{
+  "id": "lseg-compare-007",
+  "nl_query": "Compare analyst recommendations for AMD and Intel",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["AMD.O", "INTC.O"],
+        "fields": ["TR.CommonName", "TR.RecMean", "TR.NumOfRec", "TR.PriceTargetMean"]
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "AMD.O": {
+      "TR.CommonName": "Advanced Micro Devices",
+      "TR.RecMean": 1.6,
+      "TR.NumOfRec": 45,
+      "TR.PriceTargetMean": 185.00
+    },
+    "INTC.O": {
+      "TR.CommonName": "Intel Corp",
+      "TR.RecMean": 2.8,
+      "TR.NumOfRec": 42,
+      "TR.PriceTargetMean": 28.50
+    }
+  },
+  "expected_nl_response": "AMD: Buy rating (1.6), target $185 from 45 analysts. Intel: Hold rating (2.8), target $28.50 from 42 analysts.",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 3,
+    "tags": ["comparison", "multi-ticker", "estimates", "recommendations"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["AMD.O", "INTC.O"],
+          "fields": ["TR.CommonName", "TR.RecMean", "TR.NumOfRec", "TR.PriceTargetMean"]
+        }
+      }
+    ],
+    "nl_response": "AMD has a Buy rating, Intel has a Hold rating."
+  }
+}

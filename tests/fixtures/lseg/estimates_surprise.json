@@ -1,0 +1,45 @@
+{
+  "id": "lseg-est-004",
+  "nl_query": "Did Tesla beat or miss earnings estimates last quarter?",
+  "expected_tool_calls": [
+    {
+      "tool_name": "refinitiv.get_data",
+      "arguments": {
+        "instruments": ["TSLA.O"],
+        "fields": ["TR.EPSActValue", "TR.EPSMeanEstimate", "TR.EPSSurprise", "TR.EPSSurprisePct"],
+        "parameters": {
+          "Period": "FQ0"
+        }
+      }
+    }
+  ],
+  "expected_raw_data": {
+    "TSLA.O": {
+      "TR.EPSActValue": 0.85,
+      "TR.EPSMeanEstimate": 0.75,
+      "TR.EPSSurprise": 0.10,
+      "TR.EPSSurprisePct": 13.3
+    }
+  },
+  "expected_nl_response": "Tesla beat earnings estimates last quarter with EPS of $0.85 vs. estimate of $0.75 (13.3% beat).",
+  "metadata": {
+    "api_version": "v1.0.0",
+    "complexity_level": 2,
+    "tags": ["estimates", "earnings-surprise", "quarterly", "lookup"]
+  },
+  "response": {
+    "tool_calls": [
+      {
+        "tool_name": "refinitiv.get_data",
+        "arguments": {
+          "instruments": ["TSLA.O"],
+          "fields": ["TR.EPSActValue", "TR.EPSMeanEstimate", "TR.EPSSurprise", "TR.EPSSurprisePct"],
+          "parameters": {
+            "Period": "FQ0"
+          }
+        }
+      }
+    ],
+    "nl_response": "Tesla beat earnings estimates last quarter with EPS of $0.85 vs. estimate of $0.75."
+  }
+}
