@@ -3,13 +3,13 @@ Run command - Execute evaluation on a test case file or from storage.
 
 Usage:
     # From local file
-    python -m src.cli.main run tests/fixtures/search_products.json
+    python -m src.evaluation.cli.main run tests/fixtures/search_products.json
 
     # From storage by ID
-    python -m src.cli.main run --test-id <uuid>
+    python -m src.evaluation.cli.main run --test-id <uuid>
 
     # Save scorecard to storage
-    python -m src.cli.main run tests/fixtures/search_products.json --save
+    python -m src.evaluation.cli.main run tests/fixtures/search_products.json --save
 """
 
 from __future__ import annotations
@@ -31,7 +31,7 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.core.evaluators import WaterfallEvaluator
+from src.evaluation.core.evaluators import WaterfallEvaluator
 
 console = Console()
 
@@ -96,7 +96,7 @@ async def _run_async(
     verbose: bool,
 ) -> None:
     """Async implementation of run command."""
-    from src.storage import StorageConfig, create_repositories, close_repositories
+    from src.common.storage import StorageConfig, create_repositories, close_repositories
 
     test_case: TestCase | None = None
     test_case_repo = None
