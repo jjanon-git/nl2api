@@ -1,5 +1,3 @@
-version: '3.8'
-
 # EvalPlatform Local Development Environment
 # PostgreSQL with pgvector extension for similarity search
 
