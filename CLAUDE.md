@@ -69,6 +69,41 @@ When implementing external API integrations, before marking work complete:
 
 ---
 
+## CRITICAL: Backlog Tracking
+
+**All planned work must be tracked in [BACKLOG.md](BACKLOG.md).**
+
+### Before starting significant work:
+1. Check if the work is already in the backlog
+2. If not, add it with priority, status, and description
+3. Link to detailed plan docs in `docs/plans/` for complex items
+
+### While working:
+1. Update status in BACKLOG.md as work progresses
+2. Move items between sections (In Progress, High Priority, etc.)
+3. Add sub-tasks for partially complete work
+
+### When completing work:
+1. Move item to "Completed" section with date
+2. Update any related plan docs (roadmap.md, status.md)
+3. Mark checkboxes for sub-tasks
+
+### What to track:
+- New features or capabilities
+- Bug fixes that span multiple files
+- Refactoring efforts
+- Technical debt items
+- Research spikes
+
+### What NOT to track:
+- Simple typo fixes
+- Single-file documentation updates
+- Minor code cleanup
+
+**The backlog is the source of truth for planned work.** Keep it updated so anyone can see what's in progress and what's next.
+
+---
+
 ## CRITICAL: LLM Prompt Review Requirement
 
 **Before running any script or code that calls an LLM API, ALWAYS review the prompt with the user first.**
