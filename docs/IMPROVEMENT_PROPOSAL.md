@@ -1,7 +1,5 @@
 # NL2API Improvement Proposal
 
-**Author:** Principal AI Engineer Review
-**Date:** 2026-01-20
 **Status:** Approved - Implementation In Progress
 
 ---
@@ -169,6 +167,6 @@ See individual implementation plan files:
 
 ## Changelog
 
-| Date | Change | Author |
-|------|--------|--------|
-| 2026-01-20 | Initial proposal created | Principal AI Engineer Review |
+| Date | Change |
+|------|--------|
+| 2026-01-20 | Initial proposal created |

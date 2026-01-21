@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**EvalPlatform** is a distributed evaluation framework for testing LLM tool-calling at scale (~400k test cases), with an embedded **NL2API system** for translating natural language queries into LSEG financial API calls.
+**NL2API** is a Natural Language to API translation system for LSEG financial data APIs. It translates natural language queries into structured API calls for Datastream, Estimates, Fundamentals, and other LSEG data services. Includes an evaluation framework for testing at scale (~400k test cases).
 
 ## Quick Commands
 
@@ -13,20 +13,28 @@ docker compose up -d
 # Run all tests
 .venv/bin/python -m pytest tests/unit/ -v
 
-# Run NL2API tests only (497 tests)
+# Run NL2API tests only
 .venv/bin/python -m pytest tests/unit/nl2api/ -v
 
 # Run fixture coverage tests
 .venv/bin/python -m pytest tests/unit/nl2api/test_fixture_coverage.py -v
 
+# Run accuracy tests (requires ANTHROPIC_API_KEY)
+.venv/bin/python -m pytest tests/accuracy/ -m tier1 -v   # Quick (~50 samples)
+.venv/bin/python -m pytest tests/accuracy/ -m tier2 -v   # Standard (~200 samples)
+.venv/bin/python -m pytest tests/accuracy/ -m tier3 -v   # Comprehensive (all)
+
+# Lint
+ruff check .
+
 # Run single test case evaluation
-.venv/bin/python -m src.cli.main run tests/fixtures/search_products.json
+.venv/bin/python -m src.evaluation.cli.main run tests/fixtures/search_products.json
 
 # Run batch evaluation
-.venv/bin/python -m src.cli.main batch run --limit 10
+.venv/bin/python -m src.evaluation.cli.main batch run --limit 10
 
 # View batch results
-.venv/bin/python -m src.cli.main batch list
+.venv/bin/python -m src.evaluation.cli.main batch list
 ```
 
 ## Architecture
@@ -93,7 +101,7 @@ Factory pattern: `create_repositories(config) -> (test_case_repo, scorecard_repo
 ## Directory Structure
 
 ```
-evalPlatform/
+nl2api/
 ├── CONTRACTS.py              # Pydantic v2 data models
 ├── src/
 │   ├── nl2api/               # NL2API System
@@ -106,17 +114,24 @@ evalPlatform/
 │   │   ├── clarification/    # Ambiguity detection
 │   │   ├── conversation/     # Multi-turn support
 │   │   └── evaluation/       # Eval adapter
-│   ├── common/storage/       # Shared storage layer
+│   ├── common/
+│   │   ├── storage/          # Storage layer (postgres, memory)
+│   │   ├── telemetry/        # OTEL metrics + tracing
+│   │   ├── cache/            # Redis caching
+│   │   └── resilience/       # Circuit breaker, retry
 │   └── evaluation/           # Evaluation pipeline
 │       ├── core/             # Evaluators
 │       └── batch/            # Batch runner
 ├── tests/
-│   ├── unit/nl2api/          # 497 NL2API tests
-│   │   ├── fixture_loader.py # Fixture loading utility
-│   │   ├── test_fixture_coverage.py  # Dynamic coverage tests
-│   │   └── test_*_fixtures.py        # Agent fixture tests
+│   ├── unit/                         # Unit tests (mocked LLM)
+│   │   ├── nl2api/                   # NL2API unit tests
+│   │   └── common/                   # Resilience + cache tests
+│   ├── accuracy/                     # Accuracy tests (real LLM)
+│   │   ├── core/                     # Evaluator, config, thresholds
+│   │   ├── agents/                   # Per-agent accuracy tests
+│   │   └── domains/                  # Per-domain accuracy tests
 │   └── fixtures/lseg/generated/      # 12,887 test fixtures
-└── docker-compose.yml        # PostgreSQL + pgvector
+└── docker-compose.yml                # PostgreSQL + pgvector + Redis + OTEL
 ```
 
 ## Dynamic Fixture-Based Testing
@@ -157,6 +172,54 @@ class CoverageRegistry:
 1. Add JSON to `tests/fixtures/lseg/generated/<category>/`
 2. Tests auto-discover and include new data
 3. Add coverage requirements to `CoverageRegistry` if needed
+
+## Accuracy Testing
+
+Accuracy tests use **real LLM calls** to measure system output quality (vs unit tests which mock LLMs).
+
+### Key Distinction
+
+| Aspect | Unit Tests | Accuracy Tests |
+|--------|-----------|----------------|
+| LLM Calls | Mocked | Real |
+| Purpose | Test code behavior | Measure output quality |
+| Assertions | Exact matches | Threshold-based (≥80%) |
+| Speed | Fast (ms) | Slower (seconds/query) |
+
+### Test Tiers
+
+| Tier | Samples | Use Case |
+|------|---------|----------|
+| tier1 | ~50 | PR checks, quick feedback |
+| tier2 | ~200 | Daily CI |
+| tier3 | All | Weekly comprehensive |
+
+### Thresholds
+
+- **Global**: 80% minimum accuracy
+- **Per-category**: lookups (85%), temporal (80%), comparisons (75%), screening (75%), complex (70%), errors (90%)
+
+### Running Accuracy Tests
+
+```bash
+# Requires ANTHROPIC_API_KEY
+pytest tests/accuracy/ -m tier1    # Quick
+pytest tests/accuracy/ -m tier2    # Standard
+pytest tests/accuracy/ -m tier3    # Comprehensive
+```
+
+See [docs/ACCURACY_TESTING.md](docs/ACCURACY_TESTING.md) for full documentation.
+
+## CI/CD
+
+GitHub Actions workflows in `.github/workflows/`:
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `ci.yml` | Push/PR to main | Lint + unit tests |
+| `accuracy.yml` | PR (tier1), daily (tier2), weekly (tier3) | Accuracy tests with real LLM |
+
+Manual trigger: Go to Actions → select workflow → "Run workflow" → choose tier.
 
 ## Key Patterns
 
@@ -206,17 +269,19 @@ Agents use pattern matching first, fall back to LLM for complex queries.
 
 ## Current Status
 
-**Phase 4 Complete** - All domain agents implemented with comprehensive fixture-based tests.
+**Phase 5+ Complete** - Scale, Production, and Observability features implemented.
 
-| Component | Tests |
-|-----------|-------|
-| DatastreamAgent | 36 + 26 fixture-based |
-| ScreeningAgent | 47 + 22 fixture-based |
-| EstimatesAgent | 51 |
-| FundamentalsAgent | 49 |
-| OfficersAgent | 41 |
-| Conversation | 45 |
-| **Total NL2API** | **497 passing** |
+| Component | Description |
+|-----------|-------------|
+| Circuit Breaker | `src/common/resilience/circuit_breaker.py` - Fail-fast for external services |
+| Retry with Backoff | `src/common/resilience/retry.py` - Exponential backoff |
+| Redis Cache | `src/common/cache/redis_cache.py` - L1/L2 caching |
+| Bulk Indexing | COPY protocol for fast RAG inserts |
+| Checkpoint/Resume | Resumable indexing for large jobs |
+| OTEL Telemetry | `src/common/telemetry/` - Metrics, tracing via OTEL Collector |
+| Accuracy Testing | `tests/accuracy/` - Real LLM accuracy evaluation framework |
+
+**Total Tests: 606+ (unit) + accuracy tests**
 
 ## Important Files to Review
 
@@ -227,3 +292,5 @@ Agents use pattern matching first, fall back to LLM for complex queries.
 | `src/nl2api/agents/*.py` | Domain agent implementations |
 | `tests/unit/nl2api/test_fixture_coverage.py` | Dynamic test infrastructure |
 | `tests/unit/nl2api/fixture_loader.py` | Fixture loading utility |
+| `tests/accuracy/core/evaluator.py` | Accuracy testing evaluator |
+| `docs/ACCURACY_TESTING.md` | Accuracy testing pattern documentation |

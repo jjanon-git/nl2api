@@ -1,7 +1,5 @@
 # NL2API MCP Migration Plan
 
-**Author:** Principal ML Engineer
-**Date:** 2026-01-20
 **Status:** Approved - Implementation Ready
 
 ---
