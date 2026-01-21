@@ -15,7 +15,10 @@ from collections import OrderedDict
 from dataclasses import dataclass, field
 from typing import Any, TypeVar, Callable, Awaitable
 
+from src.common.telemetry import get_tracer
+
 logger = logging.getLogger(__name__)
+tracer = get_tracer(__name__)
 
 T = TypeVar("T")
 
@@ -199,29 +202,39 @@ class RedisCache:
         Returns:
             Cached value or None if not found
         """
-        full_key = self._make_key(key)
+        with tracer.start_as_current_span("cache.get") as span:
+            full_key = self._make_key(key)
+            span.set_attribute("cache.key", key[:50])  # Truncate for span
 
-        # Try Redis first
-        if self._use_redis and self._connected:
-            try:
-                value = await self._redis.get(full_key)
-                if value is not None:
-                    self._stats.hits += 1
-                    return json.loads(value)
+            # Try Redis first
+            if self._use_redis and self._connected:
+                try:
+                    value = await self._redis.get(full_key)
+                    if value is not None:
+                        self._stats.hits += 1
+                        span.set_attribute("cache.hit", True)
+                        span.set_attribute("cache.source", "redis")
+                        return json.loads(value)
+                    self._stats.misses += 1
+                    span.set_attribute("cache.hit", False)
+                    span.set_attribute("cache.source", "redis")
+                    return None
+                except Exception as e:
+                    self._stats.errors += 1
+                    span.set_attribute("cache.error", str(e))
+                    logger.warning(f"Redis get error: {e}")
+                    # Fall through to memory cache
+
+            # Fallback to memory cache
+            value = await self._memory_cache.get(full_key)
+            if value is not None:
+                self._stats.hits += 1
+                span.set_attribute("cache.hit", True)
+            else:
                 self._stats.misses += 1
-                return None
-            except Exception as e:
-                self._stats.errors += 1
-                logger.warning(f"Redis get error: {e}")
-                # Fall through to memory cache
-
-        # Fallback to memory cache
-        value = await self._memory_cache.get(full_key)
-        if value is not None:
-            self._stats.hits += 1
-        else:
-            self._stats.misses += 1
-        return value
+                span.set_attribute("cache.hit", False)
+            span.set_attribute("cache.source", "memory")
+            return value
 
     async def set(
         self,
@@ -240,25 +253,31 @@ class RedisCache:
         Returns:
             True if set successfully
         """
-        full_key = self._make_key(key)
-        ttl = ttl or self._config.default_ttl_seconds
+        with tracer.start_as_current_span("cache.set") as span:
+            full_key = self._make_key(key)
+            ttl = ttl or self._config.default_ttl_seconds
+            span.set_attribute("cache.key", key[:50])  # Truncate for span
+            span.set_attribute("cache.ttl", ttl)
 
-        # Try Redis first
-        if self._use_redis and self._connected:
-            try:
-                serialized = json.dumps(value)
-                await self._redis.setex(full_key, ttl, serialized)
-                self._stats.sets += 1
-                return True
-            except Exception as e:
-                self._stats.errors += 1
-                logger.warning(f"Redis set error: {e}")
-                # Fall through to memory cache
+            # Try Redis first
+            if self._use_redis and self._connected:
+                try:
+                    serialized = json.dumps(value)
+                    await self._redis.setex(full_key, ttl, serialized)
+                    self._stats.sets += 1
+                    span.set_attribute("cache.source", "redis")
+                    return True
+                except Exception as e:
+                    self._stats.errors += 1
+                    span.set_attribute("cache.error", str(e))
+                    logger.warning(f"Redis set error: {e}")
+                    # Fall through to memory cache
 
-        # Fallback to memory cache
-        await self._memory_cache.set(full_key, value, ttl)
-        self._stats.sets += 1
-        return True
+            # Fallback to memory cache
+            await self._memory_cache.set(full_key, value, ttl)
+            self._stats.sets += 1
+            span.set_attribute("cache.source", "memory")
+            return True
 
     async def delete(self, key: str) -> bool:
         """Delete key from cache."""

@@ -19,6 +19,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
+from src.common.telemetry import get_tracer
 from src.nl2api.rag.checkpoint import CheckpointManager, IndexingCheckpoint
 from src.nl2api.rag.protocols import DocumentType
 
@@ -26,6 +27,7 @@ if TYPE_CHECKING:
     import asyncpg
 
 logger = logging.getLogger(__name__)
+tracer = get_tracer(__name__)
 
 # Type alias for progress callback
 ProgressCallback = Callable[[int, int], None]  # (processed, total) -> None
@@ -192,6 +194,28 @@ class RAGIndexer:
         Returns:
             List of document IDs
         """
+        with tracer.start_as_current_span("rag.index_field_codes_batch") as span:
+            span.set_attribute("rag.total_docs", len(docs))
+            span.set_attribute("rag.batch_size", batch_size)
+            span.set_attribute("rag.generate_embeddings", generate_embeddings)
+            span.set_attribute("rag.use_bulk_insert", self._use_bulk_insert)
+            if docs:
+                span.set_attribute("rag.domain", docs[0].domain)
+
+            return await self._index_field_codes_batch_impl(
+                docs, generate_embeddings, batch_size, checkpoint_id, progress_callback, span
+            )
+
+    async def _index_field_codes_batch_impl(
+        self,
+        docs: list[FieldCodeDocument],
+        generate_embeddings: bool,
+        batch_size: int,
+        checkpoint_id: str | None,
+        progress_callback: ProgressCallback | None,
+        span: Any,
+    ) -> list[str]:
+        """Internal implementation of index_field_codes_batch."""
         if not docs:
             return []
 
@@ -307,8 +331,10 @@ class RAGIndexer:
             # Mark checkpoint as failed
             if checkpoint_id:
                 await self._checkpoint_manager.mark_failed(checkpoint_id, str(e))
+            span.set_attribute("rag.error", str(e))
             raise
 
+        span.set_attribute("rag.indexed_count", len(doc_ids))
         return doc_ids
 
     async def _bulk_insert_field_codes(

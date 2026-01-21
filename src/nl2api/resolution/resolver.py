@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any
 from rapidfuzz import fuzz, process
 
 from src.common.resilience import CircuitBreaker, CircuitOpenError, RetryConfig, retry_with_backoff
+from src.common.telemetry import get_tracer
 from src.nl2api.resolution.mappings import get_all_known_names, load_mappings
 from src.nl2api.resolution.openfigi import resolve_via_openfigi
 from src.nl2api.resolution.protocols import ResolvedEntity
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
     from src.common.cache import RedisCache
 
 logger = logging.getLogger(__name__)
+tracer = get_tracer(__name__)
 
 
 class ExternalEntityResolver:
@@ -138,15 +140,21 @@ class ExternalEntityResolver:
         Returns:
             Dictionary mapping entity names to RICs
         """
-        entities = self._extract_entities(query)
-        resolved: dict[str, str] = {}
+        with tracer.start_as_current_span("entity.resolve") as span:
+            span.set_attribute("entity.query_length", len(query))
 
-        for entity in entities:
-            result = await self.resolve_single(entity)
-            if result:
-                resolved[result.original] = result.identifier
+            entities = self._extract_entities(query)
+            span.set_attribute("entity.extracted_count", len(entities))
 
-        return resolved
+            resolved: dict[str, str] = {}
+
+            for entity in entities:
+                result = await self.resolve_single(entity)
+                if result:
+                    resolved[result.original] = result.identifier
+
+            span.set_attribute("entity.resolved_count", len(resolved))
+            return resolved
 
     async def resolve_single(
         self,
@@ -169,6 +177,17 @@ class ExternalEntityResolver:
         Returns:
             ResolvedEntity if found
         """
+        with tracer.start_as_current_span("entity.resolve_single") as span:
+            span.set_attribute("entity.name", entity[:50])  # Truncate for span
+            return await self._resolve_single_impl(entity, entity_type, span)
+
+    async def _resolve_single_impl(
+        self,
+        entity: str,
+        entity_type: str | None,
+        span: Any,
+    ) -> ResolvedEntity | None:
+        """Internal implementation of resolve_single."""
         # Normalize entity name
         normalized = entity.lower().strip()
         # Strip common company suffixes: Inc, Corp, Ltd, LLC, PLC, & Co, & Company, etc.
@@ -182,10 +201,12 @@ class ExternalEntityResolver:
 
         # Skip common words
         if normalized in self._ignore_words:
+            span.set_attribute("entity.source", "ignored")
             return None
 
         # L1: Check in-memory cache
         if self._use_cache and normalized in self._cache:
+            span.set_attribute("entity.source", "l1_cache")
             return self._cache[normalized]
 
         # L2: Check Redis cache
@@ -202,6 +223,7 @@ class ExternalEntityResolver:
                 )
                 # Populate L1 cache
                 self._cache[normalized] = result
+                span.set_attribute("entity.source", "l2_cache")
                 return result
 
         # Check ticker mappings
@@ -213,6 +235,7 @@ class ExternalEntityResolver:
                 confidence=0.99,
             )
             await self._cache_result(normalized, result)
+            span.set_attribute("entity.source", "ticker_mapping")
             return result
 
         # Check common mappings
@@ -224,6 +247,7 @@ class ExternalEntityResolver:
                 confidence=0.95,
             )
             await self._cache_result(normalized, result)
+            span.set_attribute("entity.source", "static_mapping")
             return result
 
         # Try fuzzy matching
@@ -236,6 +260,8 @@ class ExternalEntityResolver:
                 confidence=fuzzy_result["score"] / 100,
             )
             await self._cache_result(normalized, result)
+            span.set_attribute("entity.source", "fuzzy_match")
+            span.set_attribute("entity.fuzzy_score", fuzzy_result["score"])
             return result
 
         # Try external API if configured
@@ -243,9 +269,11 @@ class ExternalEntityResolver:
             result = await self._resolve_via_api(entity)
             if result:
                 await self._cache_result(normalized, result)
+                span.set_attribute("entity.source", "external_api")
                 return result
 
         # No resolution found
+        span.set_attribute("entity.source", "not_found")
         logger.debug(f"Could not resolve entity: {entity}")
         return None
 

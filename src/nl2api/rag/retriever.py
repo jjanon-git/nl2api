@@ -15,6 +15,7 @@ import hashlib
 import logging
 from typing import TYPE_CHECKING, Any
 
+from src.common.telemetry import get_tracer
 from src.nl2api.rag.protocols import DocumentType, RetrievalResult
 
 if TYPE_CHECKING:
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from src.common.cache import RedisCache
 
 logger = logging.getLogger(__name__)
+tracer = get_tracer(__name__)
 
 
 class HybridRAGRetriever:
@@ -109,6 +111,28 @@ class HybridRAGRetriever:
         Returns:
             List of RetrievalResult ordered by relevance
         """
+        with tracer.start_as_current_span("rag.retrieve") as span:
+            span.set_attribute("rag.query_length", len(query))
+            span.set_attribute("rag.domain", domain or "all")
+            span.set_attribute("rag.limit", limit)
+            span.set_attribute("rag.threshold", threshold)
+            span.set_attribute("rag.use_cache", use_cache)
+            if document_types:
+                span.set_attribute("rag.document_types", [dt.value for dt in document_types])
+
+            return await self._retrieve_impl(query, domain, document_types, limit, threshold, use_cache, span)
+
+    async def _retrieve_impl(
+        self,
+        query: str,
+        domain: str | None,
+        document_types: list[DocumentType] | None,
+        limit: int,
+        threshold: float,
+        use_cache: bool,
+        span: Any,
+    ) -> list[RetrievalResult]:
+        """Internal implementation of retrieve with span for tracing."""
         if self._embedder is None:
             raise RuntimeError("Embedder not set. Call set_embedder() first.")
 
@@ -118,6 +142,8 @@ class HybridRAGRetriever:
             cached = await self._redis_cache.get(cache_key)
             if cached:
                 logger.debug(f"RAG cache hit for query: {query[:50]}...")
+                span.set_attribute("rag.cache_hit", True)
+                span.set_attribute("rag.result_count", len(cached))
                 return [
                     RetrievalResult(
                         id=r["id"],
@@ -132,6 +158,8 @@ class HybridRAGRetriever:
                     )
                     for r in cached
                 ]
+
+        span.set_attribute("rag.cache_hit", False)
 
         # Generate query embedding
         query_embedding = await self._embedder.embed(query)
@@ -249,6 +277,7 @@ class HybridRAGRetriever:
             ]
             await self._redis_cache.set(cache_key, cache_data, ttl=self._cache_ttl)
 
+        span.set_attribute("rag.result_count", len(results))
         return results
 
     async def retrieve_field_codes(
@@ -303,53 +332,61 @@ class HybridRAGRetriever:
         Returns:
             List of RetrievalResult ordered by keyword relevance
         """
-        type_filter = ""
-        if document_types:
-            types = ", ".join(f"'{dt.value}'" for dt in document_types)
-            type_filter = f"AND document_type IN ({types})"
+        with tracer.start_as_current_span("rag.retrieve_by_keyword") as span:
+            span.set_attribute("rag.query_length", len(query))
+            span.set_attribute("rag.domain", domain or "all")
+            span.set_attribute("rag.limit", limit)
+            if document_types:
+                span.set_attribute("rag.document_types", [dt.value for dt in document_types])
 
-        domain_filter = ""
-        if domain:
-            domain_filter = f"AND domain = '{domain}'"
+            type_filter = ""
+            if document_types:
+                types = ", ".join(f"'{dt.value}'" for dt in document_types)
+                type_filter = f"AND document_type IN ({types})"
 
-        sql = f"""
-        SELECT
-            id,
-            content,
-            document_type,
-            domain,
-            field_code,
-            example_query,
-            example_api_call,
-            metadata,
-            ts_rank(search_vector, plainto_tsquery('english', $1)) as score
-        FROM rag_documents
-        WHERE search_vector @@ plainto_tsquery('english', $1)
-        {type_filter}
-        {domain_filter}
-        ORDER BY score DESC
-        LIMIT $2
-        """
+            domain_filter = ""
+            if domain:
+                domain_filter = f"AND domain = '{domain}'"
 
-        async with self._pool.acquire() as conn:
-            rows = await conn.fetch(sql, query, limit)
+            sql = f"""
+            SELECT
+                id,
+                content,
+                document_type,
+                domain,
+                field_code,
+                example_query,
+                example_api_call,
+                metadata,
+                ts_rank(search_vector, plainto_tsquery('english', $1)) as score
+            FROM rag_documents
+            WHERE search_vector @@ plainto_tsquery('english', $1)
+            {type_filter}
+            {domain_filter}
+            ORDER BY score DESC
+            LIMIT $2
+            """
 
-        results = []
-        for row in rows:
-            results.append(RetrievalResult(
-                id=row["id"],
-                content=row["content"],
-                document_type=DocumentType(row["document_type"]),
-                score=float(row["score"]),
-                domain=row["domain"],
-                field_code=row["field_code"],
-                example_query=row["example_query"],
-                example_api_call=row["example_api_call"],
-                metadata=row["metadata"] or {},
-            ))
+            async with self._pool.acquire() as conn:
+                rows = await conn.fetch(sql, query, limit)
 
-        logger.debug(f"Keyword search found {len(results)} results for: {query[:50]}...")
-        return results
+            results = []
+            for row in rows:
+                results.append(RetrievalResult(
+                    id=row["id"],
+                    content=row["content"],
+                    document_type=DocumentType(row["document_type"]),
+                    score=float(row["score"]),
+                    domain=row["domain"],
+                    field_code=row["field_code"],
+                    example_query=row["example_query"],
+                    example_api_call=row["example_api_call"],
+                    metadata=row["metadata"] or {},
+                ))
+
+            span.set_attribute("rag.result_count", len(results))
+            logger.debug(f"Keyword search found {len(results)} results for: {query[:50]}...")
+            return results
 
     async def retrieve_examples(
         self,

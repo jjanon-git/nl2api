@@ -20,6 +20,9 @@ from CONTRACTS import (
     StageResult,
     ToolCall,
 )
+from src.common.telemetry import get_tracer
+
+tracer = get_tracer(__name__)
 
 
 class PostgresScorecardRepository:
@@ -40,16 +43,22 @@ class PostgresScorecardRepository:
 
     async def get(self, scorecard_id: str) -> Scorecard | None:
         """Fetch a single scorecard by ID."""
-        try:
-            sc_uuid = uuid.UUID(scorecard_id)
-        except ValueError:
-            return None
+        with tracer.start_as_current_span("db.scorecard.get") as span:
+            span.set_attribute("db.operation", "get")
+            span.set_attribute("db.scorecard_id", scorecard_id[:36])
 
-        row = await self.pool.fetchrow(
-            "SELECT * FROM scorecards WHERE id = $1",
-            sc_uuid,
-        )
-        return self._row_to_scorecard(row) if row else None
+            try:
+                sc_uuid = uuid.UUID(scorecard_id)
+            except ValueError:
+                span.set_attribute("db.result", "invalid_id")
+                return None
+
+            row = await self.pool.fetchrow(
+                "SELECT * FROM scorecards WHERE id = $1",
+                sc_uuid,
+            )
+            span.set_attribute("db.found", row is not None)
+            return self._row_to_scorecard(row) if row else None
 
     async def get_by_test_case(
         self,
@@ -97,72 +106,78 @@ class PostgresScorecardRepository:
 
     async def save(self, scorecard: Scorecard) -> None:
         """Save a scorecard (insert or update)."""
-        sc_uuid = uuid.UUID(scorecard.scorecard_id)
-        tc_uuid = uuid.UUID(scorecard.test_case_id)
+        with tracer.start_as_current_span("db.scorecard.save") as span:
+            span.set_attribute("db.operation", "save")
+            span.set_attribute("db.scorecard_id", scorecard.scorecard_id[:36])
+            span.set_attribute("db.test_case_id", scorecard.test_case_id[:36])
+            span.set_attribute("db.overall_passed", scorecard.overall_passed)
 
-        # Serialize stage results
-        syntax_json = self._stage_result_to_json(scorecard.syntax_result)
-        logic_json = self._stage_result_to_json(scorecard.logic_result) if scorecard.logic_result else None
-        execution_json = self._stage_result_to_json(scorecard.execution_result) if scorecard.execution_result else None
-        semantics_json = self._stage_result_to_json(scorecard.semantics_result) if scorecard.semantics_result else None
+            sc_uuid = uuid.UUID(scorecard.scorecard_id)
+            tc_uuid = uuid.UUID(scorecard.test_case_id)
 
-        # Serialize tool calls
-        tool_calls_json = None
-        if scorecard.generated_tool_calls:
-            tool_calls_json = json.dumps([
-                {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
-                for tc in scorecard.generated_tool_calls
-            ])
+            # Serialize stage results
+            syntax_json = self._stage_result_to_json(scorecard.syntax_result)
+            logic_json = self._stage_result_to_json(scorecard.logic_result) if scorecard.logic_result else None
+            execution_json = self._stage_result_to_json(scorecard.execution_result) if scorecard.execution_result else None
+            semantics_json = self._stage_result_to_json(scorecard.semantics_result) if scorecard.semantics_result else None
 
-        await self.pool.execute(
-            """
-            INSERT INTO scorecards (
-                id, test_case_id, batch_id, run_id,
-                syntax_result, logic_result, execution_result, semantics_result,
-                generated_tool_calls, generated_nl_response,
-                overall_passed, overall_score,
-                worker_id, attempt_number, message_id, total_latency_ms,
-                created_at, completed_at
-            ) VALUES (
-                $1, $2, $3, $4,
-                $5::jsonb, $6::jsonb, $7::jsonb, $8::jsonb,
-                $9::jsonb, $10,
-                $11, $12,
-                $13, $14, $15, $16,
-                $17, $18
+            # Serialize tool calls
+            tool_calls_json = None
+            if scorecard.generated_tool_calls:
+                tool_calls_json = json.dumps([
+                    {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+                    for tc in scorecard.generated_tool_calls
+                ])
+
+            await self.pool.execute(
+                """
+                INSERT INTO scorecards (
+                    id, test_case_id, batch_id, run_id,
+                    syntax_result, logic_result, execution_result, semantics_result,
+                    generated_tool_calls, generated_nl_response,
+                    overall_passed, overall_score,
+                    worker_id, attempt_number, message_id, total_latency_ms,
+                    created_at, completed_at
+                ) VALUES (
+                    $1, $2, $3, $4,
+                    $5::jsonb, $6::jsonb, $7::jsonb, $8::jsonb,
+                    $9::jsonb, $10,
+                    $11, $12,
+                    $13, $14, $15, $16,
+                    $17, $18
+                )
+                ON CONFLICT (id) DO UPDATE SET
+                    syntax_result = EXCLUDED.syntax_result,
+                    logic_result = EXCLUDED.logic_result,
+                    execution_result = EXCLUDED.execution_result,
+                    semantics_result = EXCLUDED.semantics_result,
+                    generated_tool_calls = EXCLUDED.generated_tool_calls,
+                    generated_nl_response = EXCLUDED.generated_nl_response,
+                    overall_passed = EXCLUDED.overall_passed,
+                    overall_score = EXCLUDED.overall_score,
+                    attempt_number = EXCLUDED.attempt_number,
+                    total_latency_ms = EXCLUDED.total_latency_ms,
+                    completed_at = EXCLUDED.completed_at
+                """,
+                sc_uuid,
+                tc_uuid,
+                scorecard.batch_id,
+                None,  # run_id placeholder
+                syntax_json,
+                logic_json,
+                execution_json,
+                semantics_json,
+                tool_calls_json,
+                scorecard.generated_nl_response,
+                scorecard.overall_passed,
+                scorecard.overall_score,
+                scorecard.worker_id,
+                scorecard.attempt_number,
+                scorecard.message_id,
+                scorecard.total_latency_ms,
+                scorecard.timestamp,
+                scorecard.completed_at,
             )
-            ON CONFLICT (id) DO UPDATE SET
-                syntax_result = EXCLUDED.syntax_result,
-                logic_result = EXCLUDED.logic_result,
-                execution_result = EXCLUDED.execution_result,
-                semantics_result = EXCLUDED.semantics_result,
-                generated_tool_calls = EXCLUDED.generated_tool_calls,
-                generated_nl_response = EXCLUDED.generated_nl_response,
-                overall_passed = EXCLUDED.overall_passed,
-                overall_score = EXCLUDED.overall_score,
-                attempt_number = EXCLUDED.attempt_number,
-                total_latency_ms = EXCLUDED.total_latency_ms,
-                completed_at = EXCLUDED.completed_at
-            """,
-            sc_uuid,
-            tc_uuid,
-            scorecard.batch_id,
-            None,  # run_id placeholder
-            syntax_json,
-            logic_json,
-            execution_json,
-            semantics_json,
-            tool_calls_json,
-            scorecard.generated_nl_response,
-            scorecard.overall_passed,
-            scorecard.overall_score,
-            scorecard.worker_id,
-            scorecard.attempt_number,
-            scorecard.message_id,
-            scorecard.total_latency_ms,
-            scorecard.timestamp,
-            scorecard.completed_at,
-        )
 
     async def get_latest(self, test_case_id: str) -> Scorecard | None:
         """Get the most recent scorecard for a test case."""

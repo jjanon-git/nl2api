@@ -14,6 +14,9 @@ from typing import Any
 import asyncpg
 
 from CONTRACTS import TestCase, TestCaseMetadata, TestCaseStatus, ToolCall
+from src.common.telemetry import get_tracer
+
+tracer = get_tracer(__name__)
 
 
 class PostgresTestCaseRepository:
@@ -34,98 +37,115 @@ class PostgresTestCaseRepository:
 
     async def get(self, test_case_id: str) -> TestCase | None:
         """Fetch a single test case by ID."""
-        try:
-            test_uuid = uuid.UUID(test_case_id)
-        except ValueError:
-            return None
+        with tracer.start_as_current_span("db.test_case.get") as span:
+            span.set_attribute("db.operation", "get")
+            span.set_attribute("db.test_case_id", test_case_id[:36])
 
-        row = await self.pool.fetchrow(
-            "SELECT * FROM test_cases WHERE id = $1",
-            test_uuid,
-        )
-        return self._row_to_test_case(row) if row else None
+            try:
+                test_uuid = uuid.UUID(test_case_id)
+            except ValueError:
+                span.set_attribute("db.result", "invalid_id")
+                return None
+
+            row = await self.pool.fetchrow(
+                "SELECT * FROM test_cases WHERE id = $1",
+                test_uuid,
+            )
+            span.set_attribute("db.found", row is not None)
+            return self._row_to_test_case(row) if row else None
 
     async def get_many(self, test_case_ids: list[str]) -> list[TestCase]:
         """Fetch multiple test cases by IDs."""
-        if not test_case_ids:
-            return []
+        with tracer.start_as_current_span("db.test_case.get_many") as span:
+            span.set_attribute("db.operation", "get_many")
+            span.set_attribute("db.requested_count", len(test_case_ids))
 
-        # Convert to UUIDs, skipping invalid ones
-        valid_uuids = []
-        for tid in test_case_ids:
-            try:
-                valid_uuids.append(uuid.UUID(tid))
-            except ValueError:
-                continue
+            if not test_case_ids:
+                span.set_attribute("db.result_count", 0)
+                return []
 
-        if not valid_uuids:
-            return []
+            # Convert to UUIDs, skipping invalid ones
+            valid_uuids = []
+            for tid in test_case_ids:
+                try:
+                    valid_uuids.append(uuid.UUID(tid))
+                except ValueError:
+                    continue
 
-        rows = await self.pool.fetch(
-            "SELECT * FROM test_cases WHERE id = ANY($1::uuid[])",
-            valid_uuids,
-        )
-        return [self._row_to_test_case(row) for row in rows]
+            if not valid_uuids:
+                span.set_attribute("db.result_count", 0)
+                return []
+
+            rows = await self.pool.fetch(
+                "SELECT * FROM test_cases WHERE id = ANY($1::uuid[])",
+                valid_uuids,
+            )
+            span.set_attribute("db.result_count", len(rows))
+            return [self._row_to_test_case(row) for row in rows]
 
     async def save(self, test_case: TestCase) -> None:
         """Save or update a test case (upsert)."""
-        test_uuid = uuid.UUID(test_case.id)
+        with tracer.start_as_current_span("db.test_case.save") as span:
+            span.set_attribute("db.operation", "save")
+            span.set_attribute("db.test_case_id", test_case.id[:36])
 
-        # Serialize complex fields
-        tool_calls_json = json.dumps([
-            {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
-            for tc in test_case.expected_tool_calls
-        ])
-        raw_data_json = json.dumps(test_case.expected_raw_data) if test_case.expected_raw_data else None
-        tags_list = list(test_case.metadata.tags)
+            test_uuid = uuid.UUID(test_case.id)
 
-        # Convert embedding to list if present
-        embedding = list(test_case.embedding) if test_case.embedding else None
+            # Serialize complex fields
+            tool_calls_json = json.dumps([
+                {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+                for tc in test_case.expected_tool_calls
+            ])
+            raw_data_json = json.dumps(test_case.expected_raw_data) if test_case.expected_raw_data else None
+            tags_list = list(test_case.metadata.tags)
 
-        await self.pool.execute(
-            """
-            INSERT INTO test_cases (
-                id, nl_query, expected_tool_calls, expected_raw_data, expected_nl_response,
-                api_version, complexity_level, tags, author, source,
-                status, stale_reason, content_hash, embedding, created_at, updated_at
-            ) VALUES (
-                $1, $2, $3::jsonb, $4::jsonb, $5,
-                $6, $7, $8, $9, $10,
-                $11, $12, $13, $14::vector, $15, $16
+            # Convert embedding to list if present
+            embedding = list(test_case.embedding) if test_case.embedding else None
+
+            await self.pool.execute(
+                """
+                INSERT INTO test_cases (
+                    id, nl_query, expected_tool_calls, expected_raw_data, expected_nl_response,
+                    api_version, complexity_level, tags, author, source,
+                    status, stale_reason, content_hash, embedding, created_at, updated_at
+                ) VALUES (
+                    $1, $2, $3::jsonb, $4::jsonb, $5,
+                    $6, $7, $8, $9, $10,
+                    $11, $12, $13, $14::vector, $15, $16
+                )
+                ON CONFLICT (id) DO UPDATE SET
+                    nl_query = EXCLUDED.nl_query,
+                    expected_tool_calls = EXCLUDED.expected_tool_calls,
+                    expected_raw_data = EXCLUDED.expected_raw_data,
+                    expected_nl_response = EXCLUDED.expected_nl_response,
+                    api_version = EXCLUDED.api_version,
+                    complexity_level = EXCLUDED.complexity_level,
+                    tags = EXCLUDED.tags,
+                    author = EXCLUDED.author,
+                    source = EXCLUDED.source,
+                    status = EXCLUDED.status,
+                    stale_reason = EXCLUDED.stale_reason,
+                    content_hash = EXCLUDED.content_hash,
+                    embedding = EXCLUDED.embedding,
+                    updated_at = NOW()
+                """,
+                test_uuid,
+                test_case.nl_query,
+                tool_calls_json,
+                raw_data_json,
+                test_case.expected_nl_response,
+                test_case.metadata.api_version,
+                test_case.metadata.complexity_level,
+                tags_list,
+                test_case.metadata.author,
+                test_case.metadata.source,
+                test_case.status.value,
+                test_case.stale_reason,
+                test_case.content_hash,
+                embedding,
+                test_case.metadata.created_at,
+                test_case.metadata.updated_at,
             )
-            ON CONFLICT (id) DO UPDATE SET
-                nl_query = EXCLUDED.nl_query,
-                expected_tool_calls = EXCLUDED.expected_tool_calls,
-                expected_raw_data = EXCLUDED.expected_raw_data,
-                expected_nl_response = EXCLUDED.expected_nl_response,
-                api_version = EXCLUDED.api_version,
-                complexity_level = EXCLUDED.complexity_level,
-                tags = EXCLUDED.tags,
-                author = EXCLUDED.author,
-                source = EXCLUDED.source,
-                status = EXCLUDED.status,
-                stale_reason = EXCLUDED.stale_reason,
-                content_hash = EXCLUDED.content_hash,
-                embedding = EXCLUDED.embedding,
-                updated_at = NOW()
-            """,
-            test_uuid,
-            test_case.nl_query,
-            tool_calls_json,
-            raw_data_json,
-            test_case.expected_nl_response,
-            test_case.metadata.api_version,
-            test_case.metadata.complexity_level,
-            tags_list,
-            test_case.metadata.author,
-            test_case.metadata.source,
-            test_case.status.value,
-            test_case.stale_reason,
-            test_case.content_hash,
-            embedding,
-            test_case.metadata.created_at,
-            test_case.metadata.updated_at,
-        )
 
     async def delete(self, test_case_id: str) -> bool:
         """Delete a test case. Returns True if deleted."""
