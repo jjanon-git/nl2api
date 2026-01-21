@@ -7,6 +7,7 @@ natural language queries into API calls.
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
@@ -86,6 +87,30 @@ class DomainAgent(Protocol):
         """Return a description of what this domain handles."""
         ...
 
+    @property
+    def capabilities(self) -> tuple[str, ...]:
+        """
+        Return the data types this agent handles.
+
+        Used by LLMToolRouter for better routing context.
+
+        Returns:
+            Tuple of capability strings (e.g., ("stock prices", "market cap"))
+        """
+        ...
+
+    @property
+    def example_queries(self) -> tuple[str, ...]:
+        """
+        Return example queries this agent handles well.
+
+        Used by LLMToolRouter for routing context and training.
+
+        Returns:
+            Tuple of example query strings
+        """
+        ...
+
     async def process(
         self,
         context: AgentContext,
@@ -104,6 +129,9 @@ class DomainAgent(Protocol):
     async def can_handle(self, query: str) -> float:
         """
         Check if this agent can handle the given query.
+
+        .. deprecated::
+            Will be removed in v2.0. Use LLMToolRouter for query routing instead.
 
         Returns a confidence score (0.0 to 1.0) indicating how likely
         this agent is the right one for the query.

@@ -162,6 +162,31 @@ class OfficersAgent(BaseDomainAgent):
             "compensation data, and officer backgrounds"
         )
 
+    @property
+    def capabilities(self) -> tuple[str, ...]:
+        """Return the data types this agent handles."""
+        return (
+            "CEO and CFO information",
+            "board of directors",
+            "executive compensation",
+            "officer tenure",
+            "management team",
+            "governance data",
+            "officer biography",
+            "education background",
+        )
+
+    @property
+    def example_queries(self) -> tuple[str, ...]:
+        """Return example queries this agent handles well."""
+        return (
+            "Who is the CEO of Apple?",
+            "Show Microsoft's board of directors",
+            "What is Tim Cook's compensation?",
+            "List Tesla's executive team",
+            "How long has Satya Nadella been CEO?",
+        )
+
     def get_system_prompt(self) -> str:
         """Return the system prompt for the Officers domain."""
         return """You are an expert at translating natural language queries into LSEG Officers & Directors API calls.
@@ -234,7 +259,7 @@ Generate the most appropriate refinitiv.get_data tool call for the user's query.
         """Return the tools available for this domain."""
         return [
             LLMToolDefinition(
-                name="refinitiv.get_data",
+                name="refinitiv_get_data",
                 description="Retrieve officer and director data from Refinitiv",
                 parameters={
                     "type": "object",
@@ -354,7 +379,7 @@ Generate the most appropriate refinitiv.get_data tool call for the user's query.
             arguments["parameters"] = params
 
         tool_call = ToolCall(
-            tool_name="refinitiv.get_data",
+            tool_name="refinitiv_get_data",
             arguments=arguments,
         )
 

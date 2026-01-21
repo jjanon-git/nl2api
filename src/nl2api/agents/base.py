@@ -58,6 +58,24 @@ class BaseDomainAgent(ABC):
         """Return the domain description."""
         ...
 
+    @property
+    def capabilities(self) -> tuple[str, ...]:
+        """
+        Return the data types this agent handles.
+
+        Override in subclasses for better routing context.
+        """
+        return ()
+
+    @property
+    def example_queries(self) -> tuple[str, ...]:
+        """
+        Return example queries this agent handles well.
+
+        Override in subclasses for better routing context.
+        """
+        return ()
+
     @abstractmethod
     def get_system_prompt(self) -> str:
         """Return the system prompt for this domain."""

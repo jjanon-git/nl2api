@@ -354,3 +354,239 @@ class TestOrchestratorWithRAG:
         assert captured_context is not None
         assert len(captured_context.field_codes) == 1
         assert len(captured_context.query_examples) == 1
+
+
+class TestOrchestratorDualModeContext:
+    """Test suite for orchestrator dual-mode context retrieval."""
+
+    @dataclass
+    class MockContextProvider:
+        """Mock context provider for testing."""
+
+        field_codes: list = field(default_factory=list)
+        examples: list = field(default_factory=list)
+        calls: list = field(default_factory=list)
+
+        async def get_field_codes(self, query, domain, limit=5):
+            self.calls.append(("field_codes", query, domain, limit))
+            return self.field_codes
+
+        async def get_query_examples(self, query, domain, limit=3):
+            self.calls.append(("examples", query, domain, limit))
+            return self.examples
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_uses_context_retriever(self) -> None:
+        """Test that orchestrator uses the context retriever when provided."""
+        llm = MockLLMProvider()
+        agent = MockAgent()
+        captured_context = None
+
+        async def capture_context(context):
+            nonlocal captured_context
+            captured_context = context
+            return AgentResult(
+                tool_calls=(ToolCall(tool_name="get_data", arguments={}),),
+                confidence=0.9,
+                domain="estimates",
+            )
+
+        agent.process = capture_context
+
+        context_provider = self.MockContextProvider(
+            field_codes=[{"code": "TR.EPSMean", "description": "EPS Mean", "source": "test"}],
+            examples=[{"query": "What is EPS?", "api_call": "get_data()", "source": "test"}],
+        )
+
+        orchestrator = NL2APIOrchestrator(
+            llm=llm,
+            agents={"estimates": agent},
+            context_retriever=context_provider,
+        )
+
+        await orchestrator.process("What is Apple's EPS?")
+
+        # Context provider should have been called
+        assert len(context_provider.calls) == 2
+        assert context_provider.calls[0][0] == "field_codes"
+        assert context_provider.calls[1][0] == "examples"
+
+        # Context should have been passed to agent
+        assert captured_context is not None
+        assert len(captured_context.field_codes) == 1
+        assert captured_context.field_codes[0]["code"] == "TR.EPSMean"
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_creates_dual_mode_retriever_from_rag(self) -> None:
+        """Test that orchestrator creates DualModeContextRetriever from RAG."""
+        from src.nl2api.rag.protocols import DocumentType, RetrievalResult
+
+        llm = MockLLMProvider()
+        agent = MockAgent()
+        captured_context = None
+
+        async def capture_context(context):
+            nonlocal captured_context
+            captured_context = context
+            return AgentResult(
+                tool_calls=(ToolCall(tool_name="get_data", arguments={}),),
+                confidence=0.9,
+                domain="estimates",
+            )
+
+        agent.process = capture_context
+
+        @dataclass
+        class MockRAG:
+            async def retrieve_field_codes(self, query, domain=None, limit=10):
+                return [
+                    RetrievalResult(
+                        id="fc-001",
+                        document_type=DocumentType.FIELD_CODE,
+                        content="Mean EPS",
+                        score=0.9,
+                        field_code="TR.EPSMean",
+                    )
+                ]
+
+            async def retrieve_examples(self, query, domain=None, limit=5):
+                return [
+                    RetrievalResult(
+                        id="qe-001",
+                        document_type=DocumentType.QUERY_EXAMPLE,
+                        content="Q: EPS?",
+                        score=0.8,
+                        example_query="EPS?",
+                        example_api_call="get_data(...)",
+                    )
+                ]
+
+        orchestrator = NL2APIOrchestrator(
+            llm=llm,
+            agents={"estimates": agent},
+            rag=MockRAG(),
+            context_mode="local",  # Use RAG mode
+        )
+
+        await orchestrator.process("What is Apple's EPS?")
+
+        # Context should have been retrieved from RAG
+        assert captured_context is not None
+        assert len(captured_context.field_codes) == 1
+        assert captured_context.field_codes[0]["code"] == "TR.EPSMean"
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_context_mode_hybrid(self) -> None:
+        """Test orchestrator in hybrid context mode."""
+        llm = MockLLMProvider()
+        agent = MockAgent()
+        captured_context = None
+
+        async def capture_context(context):
+            nonlocal captured_context
+            captured_context = context
+            return AgentResult(
+                tool_calls=(ToolCall(tool_name="get_data", arguments={}),),
+                confidence=0.9,
+                domain="estimates",
+            )
+
+        agent.process = capture_context
+
+        # Create mock MCP retriever
+        @dataclass
+        class MockMCPRetriever:
+            async def get_field_codes(self, query, domain, limit=5):
+                return [{"code": "MCP_CODE", "description": "From MCP", "source": "mcp"}]
+
+            async def get_query_examples(self, query, domain, limit=3):
+                return [{"query": "MCP query", "api_call": "mcp_call()", "source": "mcp"}]
+
+        orchestrator = NL2APIOrchestrator(
+            llm=llm,
+            agents={"estimates": agent},
+            rag=None,  # No RAG
+            mcp_retriever=MockMCPRetriever(),
+            context_mode="mcp",  # Use MCP mode
+        )
+
+        await orchestrator.process("What is Apple's EPS?")
+
+        # Context should have been retrieved from MCP
+        assert captured_context is not None
+        assert len(captured_context.field_codes) == 1
+        assert captured_context.field_codes[0]["code"] == "MCP_CODE"
+        assert captured_context.field_codes[0]["source"] == "mcp"
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_context_retrieval_handles_errors(self) -> None:
+        """Test that context retrieval errors are handled gracefully."""
+        llm = MockLLMProvider()
+        agent = MockAgent()
+        captured_context = None
+
+        async def capture_context(context):
+            nonlocal captured_context
+            captured_context = context
+            return AgentResult(
+                tool_calls=(ToolCall(tool_name="get_data", arguments={}),),
+                confidence=0.9,
+                domain="estimates",
+            )
+
+        agent.process = capture_context
+
+        # Create error-raising context provider
+        @dataclass
+        class ErrorContextProvider:
+            async def get_field_codes(self, query, domain, limit=5):
+                raise Exception("Context retrieval failed")
+
+            async def get_query_examples(self, query, domain, limit=3):
+                raise Exception("Context retrieval failed")
+
+        orchestrator = NL2APIOrchestrator(
+            llm=llm,
+            agents={"estimates": agent},
+            context_retriever=ErrorContextProvider(),
+        )
+
+        # Should not raise, should continue with empty context
+        result = await orchestrator.process("What is Apple's EPS?")
+
+        assert result.tool_calls is not None
+        assert captured_context is not None
+        # Context should be empty due to error
+        assert len(captured_context.field_codes) == 0
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_without_context_retriever(self) -> None:
+        """Test orchestrator works without any context retriever."""
+        llm = MockLLMProvider()
+        agent = MockAgent()
+        captured_context = None
+
+        async def capture_context(context):
+            nonlocal captured_context
+            captured_context = context
+            return AgentResult(
+                tool_calls=(ToolCall(tool_name="get_data", arguments={}),),
+                confidence=0.9,
+                domain="estimates",
+            )
+
+        agent.process = capture_context
+
+        orchestrator = NL2APIOrchestrator(
+            llm=llm,
+            agents={"estimates": agent},
+            rag=None,
+            context_retriever=None,
+        )
+
+        await orchestrator.process("What is Apple's EPS?")
+
+        # Should work with empty context
+        assert captured_context is not None
+        assert len(captured_context.field_codes) == 0
+        assert len(captured_context.query_examples) == 0

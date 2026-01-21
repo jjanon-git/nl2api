@@ -10,12 +10,22 @@ Key components:
 - Agents: Domain-specific agents for each API domain
 - Entity Resolution: Company name to RIC resolution
 - Clarification: Ambiguity detection and question generation
+- Routing: FM-first query routing with caching
 """
 
 from src.nl2api.orchestrator import NL2APIOrchestrator
 from src.nl2api.models import NL2APIResponse, ClarificationQuestion, ConversationTurn
 from src.nl2api.config import NL2APIConfig, load_config
 from src.nl2api.evaluation.adapter import NL2APITargetAdapter, NL2APIBatchAdapter
+from src.nl2api.routing import (
+    QueryRouter,
+    RouterResult,
+    LLMToolRouter,
+    EscalatingLLMRouter,
+    AgentToolProvider,
+    RoutingCache,
+    InMemoryRoutingCache,
+)
 
 __all__ = [
     # Core
@@ -29,4 +39,12 @@ __all__ = [
     # Evaluation
     "NL2APITargetAdapter",
     "NL2APIBatchAdapter",
+    # Routing
+    "QueryRouter",
+    "RouterResult",
+    "LLMToolRouter",
+    "EscalatingLLMRouter",
+    "AgentToolProvider",
+    "RoutingCache",
+    "InMemoryRoutingCache",
 ]

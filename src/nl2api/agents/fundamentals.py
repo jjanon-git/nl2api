@@ -258,6 +258,33 @@ class FundamentalsAgent(BaseDomainAgent):
             "cash flow, financial ratios, and per share data for companies"
         )
 
+    @property
+    def capabilities(self) -> tuple[str, ...]:
+        """Return the data types this agent handles."""
+        return (
+            "income statement",
+            "balance sheet",
+            "cash flow statement",
+            "revenue and profit",
+            "assets and liabilities",
+            "financial ratios",
+            "ROE and ROA",
+            "profit margins",
+            "EPS and book value",
+            "debt ratios",
+        )
+
+    @property
+    def example_queries(self) -> tuple[str, ...]:
+        """Return example queries this agent handles well."""
+        return (
+            "What is Apple's revenue for the last 3 years?",
+            "Show Microsoft's balance sheet",
+            "What is Tesla's debt to equity ratio?",
+            "Get Amazon's free cash flow",
+            "What is Google's operating margin?",
+        )
+
     def get_system_prompt(self) -> str:
         """Return the system prompt for the Fundamentals domain."""
         return """You are an expert at translating natural language queries into LSEG Refinitiv Fundamentals API calls.
@@ -358,7 +385,7 @@ Generate the most appropriate refinitiv.get_data tool call for the user's query.
         """Return the tools available for this domain."""
         return [
             LLMToolDefinition(
-                name="refinitiv.get_data",
+                name="refinitiv_get_data",
                 description="Retrieve fundamental financial data from Refinitiv",
                 parameters={
                     "type": "object",
@@ -493,7 +520,7 @@ Generate the most appropriate refinitiv.get_data tool call for the user's query.
             arguments["parameters"] = params
 
         tool_call = ToolCall(
-            tool_name="refinitiv.get_data",
+            tool_name="refinitiv_get_data",
             arguments=arguments,
         )
 
