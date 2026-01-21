@@ -69,6 +69,47 @@ When implementing external API integrations, before marking work complete:
 
 ---
 
+## CRITICAL: LLM Prompt Review Requirement
+
+**Before running any script or code that calls an LLM API, ALWAYS review the prompt with the user first.**
+
+This applies to:
+- New scripts that generate content using LLMs (e.g., `generate_nl_responses.py`)
+- Modifications to existing LLM prompts in agents or evaluators
+- Any batch processing that will make multiple LLM API calls
+
+**Required review process:**
+1. Show the **full system prompt** and **example user prompt** to the user
+2. Explain what the LLM will be asked to generate
+3. Get explicit confirmation before running
+4. Document the approved prompt in the script or a referenced file
+
+**Why this matters:**
+- LLM calls cost money (especially at scale)
+- Prompt quality directly impacts output quality
+- Bad prompts can generate thousands of low-quality test cases
+- Prompts should be reviewed like code before "deploying"
+
+**Required review format:**
+```
+SYSTEM PROMPT:
+[full system prompt text]
+
+USER PROMPT (template):
+[example user prompt with placeholders]
+
+EXAMPLE OUTPUT:
+[what the LLM is expected to return]
+
+Scope: N test cases
+Estimated cost: $X.XX (show calculation: input tokens × rate + output tokens × rate)
+Model: [model name]
+```
+
+**Cost estimation is mandatory** - always calculate and show the estimated cost before getting approval.
+
+---
+
 ## Project Overview
 
 **NL2API** is a Natural Language to API translation system for LSEG financial data APIs. It translates natural language queries into structured API calls for Datastream, Estimates, Fundamentals, and other LSEG data services. Includes an evaluation framework for testing at scale (~400k test cases).
