@@ -131,6 +131,32 @@ class EstimatesAgent(BaseDomainAgent):
             "estimate revisions; forward valuations"
         )
 
+    @property
+    def capabilities(self) -> tuple[str, ...]:
+        """Return the data types this agent handles."""
+        return (
+            "EPS estimates",
+            "revenue forecasts",
+            "analyst recommendations",
+            "buy/hold/sell ratings",
+            "price targets",
+            "earnings surprises",
+            "estimate revisions",
+            "forward PE",
+            "consensus estimates",
+        )
+
+    @property
+    def example_queries(self) -> tuple[str, ...]:
+        """Return example queries this agent handles well."""
+        return (
+            "What are the EPS estimates for Apple?",
+            "Show analyst recommendations for Tesla",
+            "What is the consensus price target for Microsoft?",
+            "Did Amazon beat earnings last quarter?",
+            "What is Google's forward PE ratio?",
+        )
+
     def get_system_prompt(self) -> str:
         """Return the system prompt for the Estimates domain."""
         return """You are an expert at translating natural language queries into LSEG I/B/E/S Estimates API calls.

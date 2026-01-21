@@ -100,6 +100,22 @@ class NL2APIConfig(BaseSettings):
         default=True,
         description="Whether to cache resolved entities",
     )
+    entity_resolution_timeout_seconds: float = Field(
+        default=5.0,
+        description="Timeout for entity resolution API calls",
+    )
+    entity_resolution_circuit_failure_threshold: int = Field(
+        default=5,
+        description="Failures before opening circuit breaker",
+    )
+    entity_resolution_circuit_recovery_seconds: float = Field(
+        default=30.0,
+        description="Seconds before trying to recover from open circuit",
+    )
+    entity_resolution_retry_max_attempts: int = Field(
+        default=3,
+        description="Maximum retry attempts for entity resolution",
+    )
 
     # Clarification Settings
     clarification_enabled: bool = Field(
@@ -127,7 +143,7 @@ class NL2APIConfig(BaseSettings):
 
     # Database Settings (shared with storage)
     postgres_url: str = Field(
-        default="postgresql://postgres:postgres@localhost:5432/evalplatform",
+        default="postgresql://nl2api:nl2api@localhost:5432/nl2api",
         description="PostgreSQL connection URL",
     )
 
@@ -144,6 +160,195 @@ class NL2APIConfig(BaseSettings):
         default=1536,
         description="Embedding dimension",
     )
+    embedding_max_concurrent: int = Field(
+        default=5,
+        description="Maximum concurrent embedding requests",
+    )
+    embedding_requests_per_minute: int = Field(
+        default=3000,
+        description="Rate limit for embedding requests per minute",
+    )
+
+    # RAG Indexing Settings
+    rag_indexing_batch_size: int = Field(
+        default=100,
+        description="Batch size for RAG indexing operations",
+    )
+    rag_indexing_use_bulk_insert: bool = Field(
+        default=True,
+        description="Use COPY protocol for bulk inserts",
+    )
+    rag_indexing_checkpoint_enabled: bool = Field(
+        default=True,
+        description="Enable checkpointing for large indexing jobs",
+    )
+
+    # Redis Cache Settings
+    redis_enabled: bool = Field(
+        default=False,
+        description="Enable Redis caching (requires redis package)",
+    )
+    redis_url: str = Field(
+        default="redis://localhost:6379/0",
+        description="Redis connection URL",
+    )
+    redis_default_ttl_seconds: int = Field(
+        default=3600,
+        description="Default TTL for cached values (1 hour)",
+    )
+    redis_key_prefix: str = Field(
+        default="nl2api:",
+        description="Prefix for all Redis keys",
+    )
+    redis_max_connections: int = Field(
+        default=10,
+        description="Maximum Redis connections",
+    )
+    redis_entity_cache_ttl_seconds: int = Field(
+        default=86400,
+        description="TTL for entity resolution cache (24 hours)",
+    )
+    redis_rag_cache_ttl_seconds: int = Field(
+        default=3600,
+        description="TTL for RAG query cache (1 hour)",
+    )
+
+    # Query Routing Settings
+    routing_enabled: bool = Field(
+        default=True,
+        description="Enable FM-first routing (uses LLM for domain classification)",
+    )
+    routing_model: str | None = Field(
+        default=None,
+        description="Model for routing (e.g., 'claude-3-haiku' for cost savings). None = use main llm_model",
+    )
+    routing_cache_enabled: bool = Field(
+        default=True,
+        description="Enable routing decision caching",
+    )
+    routing_cache_ttl_seconds: int = Field(
+        default=3600,
+        description="TTL for cached routing decisions (1 hour)",
+    )
+    routing_semantic_cache_enabled: bool = Field(
+        default=True,
+        description="Enable semantic similarity cache for routing (requires pgvector)",
+    )
+    routing_semantic_threshold: float = Field(
+        default=0.92,
+        description="Minimum similarity for semantic cache hits",
+    )
+    routing_confidence_threshold: float = Field(
+        default=0.5,
+        description="Confidence threshold below which clarification is requested",
+    )
+    routing_escalation_enabled: bool = Field(
+        default=False,
+        description="Enable model escalation for complex queries",
+    )
+    routing_escalation_threshold: float = Field(
+        default=0.7,
+        description="Confidence threshold for escalating to a more capable model",
+    )
+    routing_tier1_model: str = Field(
+        default="claude-3-haiku-20240307",
+        description="Tier 1 model for routing (fast/cheap)",
+    )
+    routing_tier2_model: str = Field(
+        default="claude-sonnet-4-20250514",
+        description="Tier 2 model for routing (balanced)",
+    )
+    routing_tier3_model: str | None = Field(
+        default=None,
+        description="Tier 3 model for routing (most capable). None = skip tier 3",
+    )
+
+    # MCP (Model Context Protocol) Settings - Dual Mode Support
+    mcp_enabled: bool = Field(
+        default=False,
+        description="Enable MCP server integration for tools and context",
+    )
+    mcp_mode: Literal["local", "mcp", "hybrid"] = Field(
+        default="local",
+        description=(
+            "Context retrieval mode: "
+            "'local' = existing RAG/agents only, "
+            "'mcp' = MCP servers only, "
+            "'hybrid' = prefer MCP with local fallback"
+        ),
+    )
+    mcp_servers: str = Field(
+        default="",
+        description=(
+            "Comma-separated list of MCP server URIs "
+            "(e.g., 'mcp://datastream.lseg.com,mcp://estimates.lseg.com')"
+        ),
+    )
+    mcp_cache_enabled: bool = Field(
+        default=True,
+        description="Enable caching for MCP tool/resource lookups",
+    )
+    mcp_cache_ttl_seconds: int = Field(
+        default=300,
+        description="TTL for cached MCP data (5 minutes)",
+    )
+    mcp_default_timeout_seconds: int = Field(
+        default=30,
+        description="Default timeout for MCP server requests",
+    )
+    mcp_max_retries: int = Field(
+        default=3,
+        description="Maximum retry attempts for MCP requests",
+    )
+    mcp_fallback_to_local: bool = Field(
+        default=True,
+        description="Fall back to local agents if MCP servers fail (hybrid mode)",
+    )
+    mcp_datastream_uri: str | None = Field(
+        default=None,
+        description="MCP server URI for Datastream API",
+    )
+    mcp_estimates_uri: str | None = Field(
+        default=None,
+        description="MCP server URI for Estimates API",
+    )
+    mcp_fundamentals_uri: str | None = Field(
+        default=None,
+        description="MCP server URI for Fundamentals API",
+    )
+    mcp_officers_uri: str | None = Field(
+        default=None,
+        description="MCP server URI for Officers API",
+    )
+    mcp_screening_uri: str | None = Field(
+        default=None,
+        description="MCP server URI for Screening API",
+    )
+
+    def get_mcp_server_uris(self) -> list[str]:
+        """Get list of configured MCP server URIs."""
+        uris = []
+
+        # From comma-separated list
+        if self.mcp_servers:
+            uris.extend(
+                uri.strip()
+                for uri in self.mcp_servers.split(",")
+                if uri.strip()
+            )
+
+        # From individual domain configs
+        for uri in [
+            self.mcp_datastream_uri,
+            self.mcp_estimates_uri,
+            self.mcp_fundamentals_uri,
+            self.mcp_officers_uri,
+            self.mcp_screening_uri,
+        ]:
+            if uri and uri not in uris:
+                uris.append(uri)
+
+        return uris
 
     def get_llm_api_key(self) -> str:
         """Get the appropriate API key for the configured LLM provider."""

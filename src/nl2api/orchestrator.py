@@ -2,8 +2,13 @@
 NL2API Orchestrator
 
 Main entry point for the NL2API system.
-Coordinates query classification, entity resolution, RAG retrieval,
+Coordinates query classification, entity resolution, context retrieval,
 and domain agent routing. Supports multi-turn conversations.
+
+Dual-Mode Context Retrieval:
+- local: Use RAG retriever only
+- mcp: Use MCP servers only
+- hybrid: Try MCP first, fall back to RAG
 """
 
 from __future__ import annotations
@@ -11,7 +16,7 @@ from __future__ import annotations
 import logging
 import time
 from datetime import timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 from CONTRACTS import ToolCall
@@ -21,8 +26,15 @@ from src.nl2api.conversation.manager import ConversationManager, ConversationSto
 from src.nl2api.conversation.models import ConversationTurn
 from src.nl2api.models import ClarificationQuestion, NL2APIResponse
 from src.nl2api.llm.protocols import LLMMessage, LLMProvider, MessageRole
+from src.nl2api.mcp.context import ContextProvider, DualModeContextRetriever
 from src.nl2api.rag.protocols import RAGRetriever
 from src.nl2api.resolution.protocols import EntityResolver
+from src.nl2api.routing.protocols import QueryRouter, RouterResult
+
+if TYPE_CHECKING:
+    from src.nl2api.mcp.client import MCPClient
+    from src.nl2api.mcp.context import MCPContextRetriever
+    from src.nl2api.routing.cache import RoutingCache
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +59,15 @@ class NL2APIOrchestrator:
         entity_resolver: EntityResolver | None = None,
         conversation_storage: ConversationStorage | None = None,
         ambiguity_detector: AmbiguityDetector | None = None,
+        router: QueryRouter | None = None,
+        routing_cache: RoutingCache | None = None,
+        routing_confidence_threshold: float = 0.5,
         history_limit: int = 5,
         session_ttl_minutes: int = 30,
+        context_retriever: ContextProvider | None = None,
+        context_mode: str = "local",
+        mcp_retriever: MCPContextRetriever | None = None,
+        mcp_fallback_enabled: bool = True,
     ):
         """
         Initialize the orchestrator.
@@ -56,23 +75,49 @@ class NL2APIOrchestrator:
         Args:
             llm: LLM provider for classification and fallback
             agents: Dictionary of domain name to agent
-            rag: Optional RAG retriever
+            rag: Optional RAG retriever (legacy, prefer context_retriever)
             entity_resolver: Optional entity resolver
             conversation_storage: Optional storage for multi-turn conversations
             ambiguity_detector: Optional detector for ambiguous queries
+            router: Optional query router (defaults to LLMToolRouter)
+            routing_cache: Optional cache for routing decisions
+            routing_confidence_threshold: Threshold below which clarification is needed
             history_limit: Maximum conversation turns to keep in context
             session_ttl_minutes: Session timeout in minutes
+            context_retriever: Optional context provider (overrides rag/mcp setup)
+            context_mode: Mode for context retrieval ("local", "mcp", "hybrid")
+            mcp_retriever: Optional MCP context retriever for dual-mode
+            mcp_fallback_enabled: In hybrid mode, fall back to RAG if MCP fails
         """
         self._llm = llm
         self._agents = agents
         self._rag = rag
         self._entity_resolver = entity_resolver
         self._ambiguity_detector = ambiguity_detector or AmbiguityDetector()
+        self._routing_confidence_threshold = routing_confidence_threshold
         self._conversation_manager = ConversationManager(
             storage=conversation_storage,
             history_limit=history_limit,
             session_ttl_minutes=session_ttl_minutes,
         )
+
+        # Initialize context retriever (dual-mode support)
+        self._context_retriever = context_retriever
+        if self._context_retriever is None and (rag or mcp_retriever):
+            # Create DualModeContextRetriever from individual retrievers
+            self._context_retriever = self._create_context_retriever(
+                rag=rag,
+                mcp_retriever=mcp_retriever,
+                mode=context_mode,
+                fallback_enabled=mcp_fallback_enabled,
+            )
+
+        # Initialize router
+        self._router = router
+        self._routing_cache = routing_cache
+        if self._router is None:
+            # Create default LLMToolRouter
+            self._router = self._create_default_router()
 
     async def process(
         self,
@@ -115,10 +160,11 @@ class NL2APIOrchestrator:
                     )
 
             # Step 2: Classify query to determine domain
-            domain = await self._classify_query(effective_query)
-            logger.info(f"Query classified to domain: {domain}")
+            domain, confidence = await self._classify_query(effective_query)
+            logger.info(f"Query classified to domain: {domain} (confidence={confidence:.2f})")
 
-            if domain not in self._agents:
+            # Check if confidence is too low
+            if confidence < self._routing_confidence_threshold or domain not in self._agents:
                 # Fallback to generic response
                 return NL2APIResponse(
                     needs_clarification=True,
@@ -162,37 +208,11 @@ class NL2APIOrchestrator:
                     processing_time_ms=int((time.perf_counter() - start_time) * 1000),
                 )
 
-            # Step 5: Retrieve context from RAG
-            field_codes = []
-            query_examples = []
-            if self._rag:
-                # Get relevant field codes
-                field_results = await self._rag.retrieve_field_codes(
-                    query=effective_query,
-                    domain=domain,
-                    limit=5,
-                )
-                field_codes = [
-                    {
-                        "code": r.field_code,
-                        "description": r.content,
-                    }
-                    for r in field_results
-                ]
-
-                # Get similar query examples
-                example_results = await self._rag.retrieve_examples(
-                    query=effective_query,
-                    domain=domain,
-                    limit=3,
-                )
-                query_examples = [
-                    {
-                        "query": r.example_query,
-                        "api_call": r.example_api_call,
-                    }
-                    for r in example_results
-                ]
+            # Step 5: Retrieve context (dual-mode: RAG or MCP)
+            field_codes, query_examples = await self._retrieve_context(
+                query=effective_query,
+                domain=domain,
+            )
 
             # Step 6: Build context for agent including conversation history
             history_prompt = self._conversation_manager.build_history_prompt(session)
@@ -281,17 +301,68 @@ class NL2APIOrchestrator:
                 processing_time_ms=processing_time_ms,
             )
 
-    async def _classify_query(self, query: str) -> str:
+    def _create_default_router(self) -> QueryRouter:
+        """
+        Create the default LLMToolRouter.
+
+        Called when no router is provided to __init__.
+        """
+        from src.nl2api.routing.llm_router import LLMToolRouter
+        from src.nl2api.routing.providers import AgentToolProvider
+
+        # Wrap agents as tool providers
+        providers = [
+            AgentToolProvider(agent)
+            for agent in self._agents.values()
+        ]
+
+        return LLMToolRouter(
+            llm=self._llm,
+            tool_providers=providers,
+            cache=self._routing_cache,
+        )
+
+    async def _classify_query(self, query: str) -> tuple[str, float]:
         """
         Classify the query to determine the appropriate domain.
 
-        Uses LLM to classify the query into one of the available domains.
+        Uses the FM-first router for classification.
 
         Args:
             query: Natural language query
 
         Returns:
-            Domain name string
+            Tuple of (domain name, confidence score)
+        """
+        # Use the router for classification
+        if self._router:
+            try:
+                result = await self._router.route(query)
+                logger.info(
+                    f"Router result: domain={result.domain}, "
+                    f"confidence={result.confidence:.2f}, "
+                    f"cached={result.cached}, "
+                    f"latency={result.latency_ms}ms"
+                )
+                return result.domain, result.confidence
+            except Exception as e:
+                logger.warning(f"Router failed, falling back to legacy: {e}")
+                # Fall through to legacy classification
+
+        # Legacy fallback: keyword-based classification
+        return await self._classify_query_legacy(query)
+
+    async def _classify_query_legacy(self, query: str) -> tuple[str, float]:
+        """
+        Legacy query classification using keyword matching and LLM fallback.
+
+        Deprecated: Will be removed when FM-first routing is fully validated.
+
+        Args:
+            query: Natural language query
+
+        Returns:
+            Tuple of (domain name, confidence score)
         """
         # First, try quick keyword-based classification
         domain_scores: dict[str, float] = {}
@@ -304,7 +375,7 @@ class NL2APIOrchestrator:
         if domain_scores:
             best_domain = max(domain_scores, key=domain_scores.get)
             if domain_scores[best_domain] >= 0.7:
-                return best_domain
+                return best_domain, domain_scores[best_domain]
 
         # Otherwise, use LLM for classification
         domain_descriptions = "\n".join(
@@ -339,15 +410,17 @@ If you cannot determine the domain, respond with "unknown".
 
         # Validate domain
         if domain in self._agents:
-            return domain
+            return domain, 0.8  # LLM classification confidence
 
         # Try to fuzzy match
         for domain_name in self._agents.keys():
             if domain_name.lower() in domain:
-                return domain_name
+                return domain_name, 0.6  # Lower confidence for fuzzy match
 
-        # Return first domain as fallback (should be configurable)
-        return list(self._agents.keys())[0] if self._agents else "unknown"
+        # Return first domain as fallback
+        if self._agents:
+            return list(self._agents.keys())[0], 0.3
+        return "unknown", 0.0
 
     def register_agent(self, agent: DomainAgent) -> None:
         """
@@ -362,3 +435,163 @@ If you cannot determine the domain, respond with "unknown".
     def get_domains(self) -> list[str]:
         """Return list of available domain names."""
         return list(self._agents.keys())
+
+    def _create_context_retriever(
+        self,
+        rag: RAGRetriever | None,
+        mcp_retriever: MCPContextRetriever | None,
+        mode: str,
+        fallback_enabled: bool,
+    ) -> DualModeContextRetriever:
+        """
+        Create a DualModeContextRetriever from individual retrievers.
+
+        Args:
+            rag: Optional RAG retriever
+            mcp_retriever: Optional MCP context retriever
+            mode: Context mode ("local", "mcp", "hybrid")
+            fallback_enabled: Whether to fall back to RAG in hybrid mode
+
+        Returns:
+            Configured DualModeContextRetriever
+        """
+        # Wrap RAG retriever to match ContextProvider protocol
+        rag_wrapper = None
+        if rag:
+            rag_wrapper = _RAGContextAdapter(rag)
+
+        return DualModeContextRetriever(
+            rag_retriever=rag_wrapper,
+            mcp_retriever=mcp_retriever,
+            mode=mode,
+            fallback_enabled=fallback_enabled,
+        )
+
+    async def _retrieve_context(
+        self,
+        query: str,
+        domain: str,
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+        """
+        Retrieve field codes and query examples for context.
+
+        Uses the configured context retriever (DualModeContextRetriever)
+        which can source from RAG, MCP, or both depending on mode.
+
+        Args:
+            query: User's natural language query
+            domain: Target domain for context retrieval
+
+        Returns:
+            Tuple of (field_codes, query_examples) lists
+        """
+        field_codes: list[dict[str, Any]] = []
+        query_examples: list[dict[str, Any]] = []
+
+        if self._context_retriever:
+            try:
+                # Use unified context retriever interface
+                field_codes = await self._context_retriever.get_field_codes(
+                    query=query,
+                    domain=domain,
+                    limit=5,
+                )
+                query_examples = await self._context_retriever.get_query_examples(
+                    query=query,
+                    domain=domain,
+                    limit=3,
+                )
+                logger.debug(
+                    f"Retrieved {len(field_codes)} field codes, "
+                    f"{len(query_examples)} examples for domain={domain}"
+                )
+            except Exception as e:
+                logger.warning(f"Context retrieval failed: {e}")
+                # Continue with empty context rather than failing
+
+        elif self._rag:
+            # Legacy fallback: direct RAG retrieval
+            try:
+                field_results = await self._rag.retrieve_field_codes(
+                    query=query,
+                    domain=domain,
+                    limit=5,
+                )
+                field_codes = [
+                    {
+                        "code": r.field_code,
+                        "description": r.content,
+                    }
+                    for r in field_results
+                ]
+
+                example_results = await self._rag.retrieve_examples(
+                    query=query,
+                    domain=domain,
+                    limit=3,
+                )
+                query_examples = [
+                    {
+                        "query": r.example_query,
+                        "api_call": r.example_api_call,
+                    }
+                    for r in example_results
+                ]
+            except Exception as e:
+                logger.warning(f"RAG retrieval failed: {e}")
+
+        return field_codes, query_examples
+
+
+class _RAGContextAdapter:
+    """
+    Adapter to make RAGRetriever compatible with ContextProvider protocol.
+
+    This allows the DualModeContextRetriever to use the existing RAG
+    infrastructure without changes.
+    """
+
+    def __init__(self, rag: RAGRetriever):
+        self._rag = rag
+
+    async def get_field_codes(
+        self,
+        query: str,
+        domain: str,
+        limit: int = 5,
+    ) -> list[dict[str, Any]]:
+        """Retrieve field codes via RAG and convert to dict format."""
+        results = await self._rag.retrieve_field_codes(
+            query=query,
+            domain=domain,
+            limit=limit,
+        )
+        return [
+            {
+                "code": r.field_code,
+                "description": r.content,
+                "source": "rag",
+            }
+            for r in results
+        ]
+
+    async def get_query_examples(
+        self,
+        query: str,
+        domain: str,
+        limit: int = 3,
+    ) -> list[dict[str, Any]]:
+        """Retrieve query examples via RAG and convert to dict format."""
+        results = await self._rag.retrieve_examples(
+            query=query,
+            domain=domain,
+            limit=limit,
+        )
+        return [
+            {
+                "query": r.example_query,
+                "api_call": r.example_api_call,
+                "source": "rag",
+            }
+            for r in results
+        ]

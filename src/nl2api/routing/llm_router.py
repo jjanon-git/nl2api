@@ -1,0 +1,278 @@
+"""
+LLM Tool Router
+
+Routes queries using LLM tool selection. Agents are exposed as "tools"
+to the LLM, which selects the appropriate one based on the query.
+"""
+
+from __future__ import annotations
+
+import logging
+import time
+from typing import TYPE_CHECKING, Any
+
+from src.nl2api.llm.protocols import (
+    LLMMessage,
+    LLMProvider,
+    LLMToolDefinition,
+    MessageRole,
+)
+from src.nl2api.routing.protocols import (
+    QueryRouter,
+    RouterResult,
+    RoutingToolDefinition,
+    ToolProvider,
+)
+
+if TYPE_CHECKING:
+    from src.nl2api.routing.cache import RoutingCache
+
+logger = logging.getLogger(__name__)
+
+# Default system prompt for routing
+ROUTING_SYSTEM_PROMPT = """You are a query router for LSEG financial data APIs.
+
+Your task is to analyze the user's query and select the most appropriate domain API by calling the corresponding routing tool.
+
+Consider:
+- What type of data is being requested (prices, estimates, fundamentals, officers, screening)
+- Any time periods mentioned (historical data, forecasts, current values)
+- The entities mentioned (companies, indices, sectors)
+- The specific metrics or fields requested
+
+Call the routing tool that best matches the query. If you're uncertain between domains, choose the one that seems most likely and indicate lower confidence.
+
+Important guidelines:
+- "datastream" handles: stock prices, market data, trading volume, historical time series, indices
+- "estimates" handles: analyst forecasts, consensus estimates, recommendations, I/B/E/S data
+- "fundamentals" handles: financial statements, Worldscope data, ratios, balance sheet items
+- "officers" handles: executives, board members, compensation, governance data
+- "screening" handles: stock screening, ranking, filtering criteria, TOP/BOTTOM queries"""
+
+
+class LLMToolRouter:
+    """
+    Routes queries using LLM tool selection.
+
+    Exposes each domain agent as a "routing tool" to the LLM.
+    The LLM's tool selection capability determines the appropriate domain.
+    """
+
+    def __init__(
+        self,
+        llm: LLMProvider,
+        tool_providers: list[ToolProvider],
+        cache: RoutingCache | None = None,
+        routing_model: str | None = None,
+        system_prompt: str | None = None,
+        default_confidence: float = 0.85,
+    ):
+        """
+        Initialize the LLM tool router.
+
+        Args:
+            llm: LLM provider for routing decisions
+            tool_providers: List of tool providers (agents or MCP servers)
+            cache: Optional routing cache for performance
+            routing_model: Optional model override for routing (e.g., use Haiku for cost)
+            system_prompt: Optional custom system prompt
+            default_confidence: Default confidence when LLM doesn't provide one
+        """
+        self._llm = llm
+        self._providers = tool_providers
+        self._cache = cache
+        self._routing_model = routing_model
+        self._system_prompt = system_prompt or ROUTING_SYSTEM_PROMPT
+        self._default_confidence = default_confidence
+
+        # Build routing tools from providers
+        self._routing_tools = self._build_routing_tools()
+
+        logger.info(
+            f"LLMToolRouter initialized with {len(self._providers)} providers, "
+            f"model={routing_model or 'default'}"
+        )
+
+    def _build_routing_tools(self) -> list[LLMToolDefinition]:
+        """
+        Convert tool providers to routing tools.
+
+        Each provider becomes a routing tool the LLM can select.
+        """
+        tools = []
+
+        for provider in self._providers:
+            # Create routing tool definition
+            routing_def = RoutingToolDefinition(
+                name=f"route_to_{provider.provider_name}",
+                description=provider.provider_description,
+                # Get capabilities and examples if provider supports them
+                capabilities=getattr(provider, "capabilities", ()),
+                example_queries=getattr(provider, "example_queries", ()),
+            )
+            tools.append(routing_def.to_llm_tool())
+
+        return tools
+
+    def _get_provider_names(self) -> list[str]:
+        """Get list of provider names."""
+        return [p.provider_name for p in self._providers]
+
+    async def route(
+        self,
+        query: str,
+        context: dict[str, Any] | None = None,
+    ) -> RouterResult:
+        """
+        Route a query to the appropriate domain.
+
+        Args:
+            query: Natural language query to route
+            context: Optional context (resolved entities, etc.)
+
+        Returns:
+            RouterResult with domain and confidence
+        """
+        start_time = time.perf_counter()
+
+        # Step 1: Check cache
+        if self._cache:
+            cached = await self._cache.get(query)
+            if cached:
+                latency_ms = int((time.perf_counter() - start_time) * 1000)
+                logger.debug(f"Cache hit for query routing: {cached.domain}")
+                return RouterResult(
+                    domain=cached.domain,
+                    confidence=cached.confidence,
+                    reasoning=cached.reasoning,
+                    cached=True,
+                    latency_ms=latency_ms,
+                )
+
+        # Step 2: Build routing messages
+        messages = [
+            LLMMessage(role=MessageRole.SYSTEM, content=self._system_prompt),
+            LLMMessage(role=MessageRole.USER, content=query),
+        ]
+
+        # Add context if provided
+        if context:
+            context_str = self._format_context(context)
+            if context_str:
+                messages.append(
+                    LLMMessage(
+                        role=MessageRole.SYSTEM,
+                        content=f"Additional context:\n{context_str}",
+                    )
+                )
+
+        # Step 3: LLM call with routing tools
+        try:
+            response = await self._llm.complete(
+                messages=messages,
+                tools=self._routing_tools,
+                temperature=0.0,
+                max_tokens=150,
+            )
+        except Exception as e:
+            logger.error(f"LLM routing call failed: {e}")
+            # Return unknown domain with zero confidence
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
+            return RouterResult(
+                domain="unknown",
+                confidence=0.0,
+                reasoning=f"Routing error: {e}",
+                latency_ms=latency_ms,
+            )
+
+        # Step 4: Parse tool selection
+        result = self._parse_routing_response(response, start_time)
+
+        # Step 5: Cache result (if successful)
+        if self._cache and result.domain != "unknown":
+            await self._cache.set(query, result)
+
+        return result
+
+    def _parse_routing_response(
+        self,
+        response: Any,
+        start_time: float,
+    ) -> RouterResult:
+        """
+        Parse the LLM response to extract routing decision.
+
+        Args:
+            response: LLM response object
+            start_time: Start time for latency calculation
+
+        Returns:
+            RouterResult parsed from response
+        """
+        latency_ms = int((time.perf_counter() - start_time) * 1000)
+
+        if response.has_tool_calls:
+            tool_call = response.tool_calls[0]
+            tool_name = tool_call.name
+
+            # Extract domain from tool name (route_to_<domain>)
+            if tool_name.startswith("route_to_"):
+                domain = tool_name[len("route_to_"):]
+
+                # Validate domain exists
+                if domain in self._get_provider_names():
+                    confidence = tool_call.arguments.get(
+                        "confidence", self._default_confidence
+                    )
+                    reasoning = tool_call.arguments.get("reasoning")
+
+                    return RouterResult(
+                        domain=domain,
+                        confidence=float(confidence),
+                        reasoning=reasoning,
+                        latency_ms=latency_ms,
+                        model_used=self._llm.model_name,
+                    )
+
+            logger.warning(f"Unknown routing tool selected: {tool_name}")
+
+        # Fallback: try to parse from content (shouldn't normally happen)
+        if response.content:
+            content_lower = response.content.lower()
+            for provider in self._providers:
+                if provider.provider_name.lower() in content_lower:
+                    logger.warning(
+                        f"Routing via content parsing (tool call expected): "
+                        f"{provider.provider_name}"
+                    )
+                    return RouterResult(
+                        domain=provider.provider_name,
+                        confidence=0.5,  # Lower confidence for fallback
+                        reasoning="Parsed from response content (no tool call)",
+                        latency_ms=latency_ms,
+                        model_used=self._llm.model_name,
+                    )
+
+        # No valid routing found
+        logger.warning("No valid routing decision from LLM")
+        return RouterResult(
+            domain="unknown",
+            confidence=0.0,
+            reasoning="LLM did not select a routing tool",
+            latency_ms=latency_ms,
+            model_used=self._llm.model_name,
+        )
+
+    def _format_context(self, context: dict[str, Any]) -> str:
+        """Format context dict as string for the prompt."""
+        parts = []
+
+        if "resolved_entities" in context and context["resolved_entities"]:
+            entities = context["resolved_entities"]
+            entity_str = ", ".join(f"{k}={v}" for k, v in entities.items())
+            parts.append(f"Resolved entities: {entity_str}")
+
+        if "conversation_history" in context and context["conversation_history"]:
+            parts.append("Previous conversation context available")
+
+        return "\n".join(parts)

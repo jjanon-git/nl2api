@@ -154,6 +154,31 @@ class ScreeningAgent(BaseDomainAgent):
             "top N rankings, index constituents, multi-criteria filtering"
         )
 
+    @property
+    def capabilities(self) -> tuple[str, ...]:
+        """Return the data types this agent handles."""
+        return (
+            "top N rankings",
+            "company screening",
+            "multi-criteria filtering",
+            "index constituents",
+            "sector screening",
+            "value stocks",
+            "growth stocks",
+            "dividend screeners",
+        )
+
+    @property
+    def example_queries(self) -> tuple[str, ...]:
+        """Return example queries this agent handles well."""
+        return (
+            "Top 10 companies by market cap in the S&P 500",
+            "Find tech stocks with PE below 20",
+            "List FTSE 100 constituents",
+            "Highest dividend yield stocks in healthcare",
+            "Companies with revenue growth above 20%",
+        )
+
     def get_system_prompt(self) -> str:
         """Return the system prompt for the Screening domain."""
         return """You are an expert at translating natural language screening queries into LSEG Screener API calls.
@@ -235,7 +260,7 @@ Generate the most appropriate refinitiv.get_data tool call for the user's query.
         """Return the tools available for this domain."""
         return [
             LLMToolDefinition(
-                name="refinitiv.get_data",
+                name="refinitiv_get_data",
                 description="Execute a screening query against the Refinitiv database",
                 parameters={
                     "type": "object",
@@ -370,7 +395,7 @@ Generate the most appropriate refinitiv.get_data tool call for the user's query.
 
         # Build tool call
         tool_call = ToolCall(
-            tool_name="refinitiv.get_data",
+            tool_name="refinitiv_get_data",
             arguments={
                 "instruments": [screen_expr],
                 "fields": display_fields,

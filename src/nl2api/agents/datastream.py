@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from CONTRACTS import ToolCall
+from CONTRACTS import ToolCall, ToolRegistry
 from src.nl2api.agents.base import BaseDomainAgent
 from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import LLMProvider, LLMToolDefinition
@@ -186,6 +186,32 @@ class DatastreamAgent(BaseDomainAgent):
             "PE ratios, dividend yields, historical time series, index data"
         )
 
+    @property
+    def capabilities(self) -> tuple[str, ...]:
+        """Return the data types this agent handles."""
+        return (
+            "stock prices",
+            "trading volume",
+            "market capitalization",
+            "PE ratios",
+            "dividend yields",
+            "historical time series",
+            "index data",
+            "OHLC data",
+            "valuation metrics",
+        )
+
+    @property
+    def example_queries(self) -> tuple[str, ...]:
+        """Return example queries this agent handles well."""
+        return (
+            "What is Apple's current stock price?",
+            "Get Microsoft's market cap and PE ratio",
+            "Show Tesla's OHLC for the past month",
+            "Compare dividend yields for Apple and Microsoft",
+            "S&P 500 historical data for the past year",
+        )
+
     def get_system_prompt(self) -> str:
         """Return the system prompt for the Datastream domain."""
         return """You are an expert at translating natural language queries into LSEG Datastream API calls.
@@ -289,7 +315,7 @@ Generate the most appropriate get_data tool call for the user's query."""
         """Return the tools available for this domain."""
         return [
             LLMToolDefinition(
-                name="datastream.get_data",
+                name=ToolRegistry.DATASTREAM_GET_DATA,
                 description="Retrieve market data from LSEG Datastream",
                 parameters={
                     "type": "object",
@@ -413,7 +439,7 @@ Generate the most appropriate get_data tool call for the user's query."""
             arguments.update(time_params)
 
         tool_call = ToolCall(
-            tool_name="datastream.get_data",
+            tool_name=ToolRegistry.DATASTREAM_GET_DATA,
             arguments=arguments,
         )
 
