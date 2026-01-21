@@ -22,9 +22,9 @@ This file tracks all planned work, technical debt, and in-flight items for the N
 | Capability | Description | Fixtures | Eval Mode | Baseline | Status |
 |------------|-------------|----------|-----------|----------|--------|
 | **Entity Resolution** | Map company names → RICs | 3,109 | `resolver` | **99.5%** | ✅ Evaluated |
-| **Query Routing** | Route query → correct domain agent | 75 | `routing` | **94.7%** | ✅ Evaluated |
+| **Query Routing** | Route query → correct domain agent | 270 | `routing` | **88.9%** (95.2% excl. out-of-domain) | ✅ Evaluated |
 | **Tool Selection** | Select correct tool within agent | 2,288 (complex) | `orchestrator` | — | ❌ Not loaded/run |
-| **Entity Extraction** | Extract company names from NL query | 0 | — | — | ❌ No fixtures |
+| **Entity Extraction** | Extract company names from NL query | 1,605 | `orchestrator` | — | ❌ Not loaded/run |
 | **DatastreamAgent** | Price, time series, calculated fields | 3,715 (lookups) + 2,500 (temporal) | `orchestrator` | — | ❌ Not loaded/run |
 | **EstimatesAgent** | I/B/E/S forecasts, recommendations | 0 | `orchestrator` | — | ❌ No fixtures |
 | **FundamentalsAgent** | WC codes, TR codes, financials | 0 | `orchestrator` | — | ❌ No fixtures |
@@ -171,7 +171,20 @@ Connect evaluation pipeline to real LSEG APIs to:
 
 Test if Claude 3.5 Haiku performs comparably to Sonnet for query routing.
 
-**Baseline established:** Sonnet achieves **94.7%** on 75 routing test cases. Run same fixtures with Haiku to compare.
+**Baseline established:** Sonnet achieves **88.9%** on 270 routing test cases (95.2% excluding out-of-domain). Run same fixtures with Haiku to compare.
+
+**By subcategory:**
+| Category | Pass Rate | Notes |
+|----------|-----------|-------|
+| fundamentals_clear | 100% (40/40) | |
+| officers_clear | 100% (25/25) | |
+| screening_clear | 100% (25/25) | |
+| estimates_clear | 97.5% (39/40) | |
+| temporal_ambiguous | 96.7% (29/30) | |
+| edge_cases | 96% (24/25) | |
+| datastream_clear | 87.5% (35/40) | Some price queries routed to fundamentals |
+| domain_boundary | 84% (21/25) | Ambiguous cross-domain queries |
+| negative_cases | 10% (2/20) | Expected - model tries to help with non-financial queries |
 
 ```bash
 # Run routing evaluation (uses configured model)
@@ -378,7 +391,7 @@ Migrate from pgvector to Azure AI Search for production scale.
 
 ### 2026-01-21
 
-- [x] **Routing Validation Benchmark (P1.1): 94.7% baseline** - 75 routing test cases, Claude Sonnet 4. Failures: 3 ambiguous cases + 1 PE ratio mis-route. Enables Haiku cost comparison spike.
+- [x] **Routing Validation Benchmark (P1.1): 88.9% baseline** - 270 routing test cases, Claude Sonnet 4. By category: fundamentals/officers/screening 100%, estimates 97.5%, edge cases 96%, datastream 87.5%, negative (out-of-domain) 10%. Excluding out-of-domain: **95.2%**. Enables Haiku cost comparison spike.
 - [x] **Entity Resolution (P0.2): 99.5% accuracy** - Database-backed resolution with 2.9M entities, pg_trgm fuzzy matching, multi-stage lookup (aliases → primary_name → ticker → fuzzy). See [edge cases doc](docs/plans/entity-resolution-edge-cases.md) for remaining 0.5%.
 - [x] Public Release Audit (P0): LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, GitHub templates
 - [x] pyproject.toml metadata for PyPI
