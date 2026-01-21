@@ -163,17 +163,27 @@ Connect evaluation pipeline to real LSEG APIs to:
 
 ## Medium Priority (P1)
 
-### Haiku Routing Spike (P1.1)
+### Haiku Routing Spike (P1.1) ✅ COMPLETE
 **Created:** 2026-01-21
-**Status:** Ready to Start
-**Duration:** 1 week
-**Hypothesis:** Haiku may be sufficient at 1/10th cost
+**Completed:** 2026-01-21
+**Result:** ✅ **Haiku outperforms Sonnet at 1/10th cost**
 
-Test if Claude 3.5 Haiku performs comparably to Sonnet for query routing.
+| Model | Pass Rate | Cost/query | Notes |
+|-------|-----------|------------|-------|
+| **Sonnet** | 88.9% (240/270) | ~$0.003 | Baseline |
+| **Haiku** | 94.1% (254/270) | ~$0.0003 | **Winner** |
 
-**Baseline established:** Sonnet achieves **88.9%** on 270 routing test cases (95.2% excluding out-of-domain). Run same fixtures with Haiku to compare.
+**Recommendation:** Switch routing to Claude 3.5 Haiku for production.
+- 5.2% accuracy improvement
+- 10x cost reduction
+- Slightly higher latency acceptable for routing
 
-**By subcategory:**
+```bash
+# Run routing evaluation with model override
+.venv/bin/python -m src.evaluation.cli.main batch run --tag routing --mode routing --model claude-3-5-haiku-20241022
+```
+
+**Sonnet subcategory breakdown (for reference):**
 | Category | Pass Rate | Notes |
 |----------|-----------|-------|
 | fundamentals_clear | 100% (40/40) | |
@@ -184,14 +194,7 @@ Test if Claude 3.5 Haiku performs comparably to Sonnet for query routing.
 | edge_cases | 96% (24/25) | |
 | datastream_clear | 87.5% (35/40) | Some price queries routed to fundamentals |
 | domain_boundary | 84% (21/25) | Ambiguous cross-domain queries |
-| negative_cases | 10% (2/20) | Expected - model tries to help with non-financial queries |
-
-```bash
-# Run routing evaluation (uses configured model)
-.venv/bin/python -m src.evaluation.cli.main batch run --tag routing --mode routing
-```
-
-**Why promoted from Research:** High potential ROI, low implementation risk. Baseline now established.
+| negative_cases | 10% (2/20) | Expected - model tries to help |
 
 ---
 
@@ -391,6 +394,7 @@ Migrate from pgvector to Azure AI Search for production scale.
 
 ### 2026-01-21
 
+- [x] **Haiku Routing Spike: Haiku wins** - Haiku achieves **94.1%** vs Sonnet's 88.9% on 270 routing cases at 1/10th cost. Recommendation: use Haiku for production routing.
 - [x] **Routing Validation Benchmark (P1.1): 88.9% baseline** - 270 routing test cases, Claude Sonnet 4. By category: fundamentals/officers/screening 100%, estimates 97.5%, edge cases 96%, datastream 87.5%, negative (out-of-domain) 10%. Excluding out-of-domain: **95.2%**. Enables Haiku cost comparison spike.
 - [x] **Entity Resolution (P0.2): 99.5% accuracy** - Database-backed resolution with 2.9M entities, pg_trgm fuzzy matching, multi-stage lookup (aliases → primary_name → ticker → fuzzy). See [edge cases doc](docs/plans/entity-resolution-edge-cases.md) for remaining 0.5%.
 - [x] Public Release Audit (P0): LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, GitHub templates

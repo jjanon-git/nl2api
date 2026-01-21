@@ -78,6 +78,10 @@ def batch_run(
         bool,
         typer.Option("--verbose", "-v", help="Show detailed output"),
     ] = False,
+    model: Annotated[
+        str | None,
+        typer.Option("--model", help="Override LLM model (e.g., claude-3-5-haiku-20241022)"),
+    ] = None,
 ) -> None:
     """
     Run batch evaluation on test cases from database.
@@ -108,6 +112,7 @@ def batch_run(
         concurrency=concurrency,
         mode=mode,
         verbose=verbose,
+        model=model,
     ))
 
 
@@ -119,6 +124,7 @@ async def _batch_run_async(
     concurrency: int,
     mode: str,
     verbose: bool,
+    model: str | None = None,
 ) -> None:
     """Async implementation of batch run command."""
     from src.common.storage import (
@@ -208,14 +214,16 @@ async def _batch_run_async(
             ]
 
             cfg = NL2APIConfig()
+            # Use --model override if provided, otherwise use config default
+            llm_model = model if model else cfg.llm_model
             llm = create_llm_provider(
                 provider=cfg.llm_provider,
                 api_key=cfg.get_llm_api_key(),
-                model=cfg.llm_model,
+                model=llm_model,
             )
             router = LLMToolRouter(llm=llm, tool_providers=tool_providers)
             response_generator = create_routing_generator(router)
-            console.print(f"[green]Using LLM router ({cfg.llm_provider}/{cfg.llm_model}).[/green]\n")
+            console.print(f"[green]Using LLM router ({cfg.llm_provider}/{llm_model}).[/green]\n")
 
         runner_config = BatchRunnerConfig(
             max_concurrency=concurrency,
