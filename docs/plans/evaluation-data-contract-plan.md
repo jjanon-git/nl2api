@@ -13,10 +13,183 @@
 | Populate `expected_response`? | ⏸️ Leave null | Until execution stage is implemented (tracked as future work) |
 | Haiku model version? | ✅ Claude 3.5 Haiku | ~$3 more but better quality; one-time cost |
 | Git strategy for fixtures? | ✅ Commit to git | Reproducibility, review visibility, no CI API calls |
+| Field nullability? | ✅ Test case set metadata | Each dataset declares which fields are required |
 
 ### Tracking: Future Work
 
 - [ ] **DEFERRED**: Populate `expected_response` with realistic data when execution stage is implemented
+
+---
+
+## Test Case Set Configuration
+
+### Problem
+
+Different evaluation capabilities have different field requirements:
+
+| Capability | `expected_nl_response` | `expected_response` |
+|------------|------------------------|---------------------|
+| NL2API (full) | Required | Optional (until execution stage) |
+| Entity extraction | Not applicable | Not applicable |
+| Tool call generation | Not applicable | Optional |
+| Response formatting | Required | Required |
+
+Making fields globally nullable loses validation - we can't detect incomplete data.
+
+### Solution: Test Case Set Metadata
+
+Each test case set (fixture file) declares which fields are required via a `_meta` block.
+
+### Interface Definition
+
+**Add to `CONTRACTS.py`:**
+
+```python
+class TestCaseSetConfig(BaseModel):
+    """
+    Configuration for a test case set defining required fields and metadata.
+
+    Embedded in fixture files as the '_meta' key. The fixture loader validates
+    each test case against this configuration.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    # Identity
+    name: str = Field(
+        description="Human-readable name for this test case set",
+        examples=["lookups", "entity_extraction_us_equities"],
+    )
+    capability: str = Field(
+        description="The capability this set evaluates",
+        examples=["nl2api", "entity_extraction", "tool_generation"],
+    )
+    description: str | None = Field(
+        default=None,
+        description="Optional description of what this test set covers",
+    )
+
+    # Field requirements - which fields must be present
+    requires_nl_response: bool = Field(
+        default=True,
+        description="Whether expected_nl_response is required for test cases in this set",
+    )
+    requires_expected_response: bool = Field(
+        default=False,
+        description="Whether expected_response is required for test cases in this set",
+    )
+
+    # Generation metadata
+    schema_version: str = Field(
+        default="1.0",
+        description="Schema version for forward compatibility",
+    )
+    generated_at: datetime | None = Field(
+        default=None,
+        description="When this fixture set was generated",
+    )
+    generator: str | None = Field(
+        default=None,
+        description="Script/tool that generated this set",
+        examples=["scripts/generate_test_cases.py"],
+    )
+```
+
+### Fixture File Format
+
+```json
+{
+  "_meta": {
+    "name": "entity_extraction_us_equities",
+    "capability": "entity_extraction",
+    "description": "Entity extraction tests for US equity tickers",
+    "requires_nl_response": false,
+    "requires_expected_response": false,
+    "schema_version": "1.0",
+    "generated_at": "2026-01-21T10:00:00Z",
+    "generator": "scripts/generate_entity_tests.py"
+  },
+  "test_cases": [
+    {
+      "id": "entity_001",
+      "nl_query": "What is Apple's stock price?",
+      "expected_tool_calls": [...],
+      "expected_response": null,
+      "expected_nl_response": null
+    }
+  ]
+}
+```
+
+**NL2API example (requires NL response):**
+
+```json
+{
+  "_meta": {
+    "name": "lookups",
+    "capability": "nl2api",
+    "requires_nl_response": true,
+    "requires_expected_response": false,
+    "schema_version": "1.0"
+  },
+  "test_cases": [
+    {
+      "id": "lookups_001",
+      "nl_query": "What is Apple's stock price?",
+      "expected_tool_calls": [...],
+      "expected_nl_response": "Apple's stock price is $246.02."
+    }
+  ]
+}
+```
+
+### Fixture Loader Validation
+
+**Update `tests/unit/nl2api/fixture_loader.py`:**
+
+```python
+class FixtureLoader:
+    def load(self, path: Path) -> tuple[TestCaseSetConfig, list[TestCase]]:
+        """Load fixture file and validate against its metadata."""
+        data = json.loads(path.read_text())
+
+        # Parse metadata (use defaults if missing for backward compat)
+        meta_data = data.get("_meta", {})
+        config = TestCaseSetConfig(
+            name=meta_data.get("name", path.stem),
+            capability=meta_data.get("capability", "nl2api"),
+            **{k: v for k, v in meta_data.items() if k in TestCaseSetConfig.model_fields}
+        )
+
+        # Load and validate test cases
+        test_cases = []
+        for tc_data in data.get("test_cases", data):  # Support old format
+            tc = TestCase(**tc_data)
+            self._validate_against_config(tc, config)
+            test_cases.append(tc)
+
+        return config, test_cases
+
+    def _validate_against_config(self, tc: TestCase, config: TestCaseSetConfig) -> None:
+        """Validate test case has required fields per set config."""
+        if config.requires_nl_response and not tc.expected_nl_response:
+            raise ValueError(
+                f"Test case {tc.id} missing expected_nl_response "
+                f"(required by {config.name})"
+            )
+        if config.requires_expected_response and not tc.expected_response:
+            raise ValueError(
+                f"Test case {tc.id} missing expected_response "
+                f"(required by {config.name})"
+            )
+```
+
+### Migration Path
+
+1. **Phase 1**: Add `TestCaseSetConfig` to `CONTRACTS.py`
+2. **Phase 2**: Update fixture loader to parse `_meta` (with backward compat)
+3. **Phase 3**: Add `_meta` blocks to existing fixtures during regeneration
+4. **Phase 4**: Enable validation (initially as warnings, then errors)
 
 ---
 
@@ -469,10 +642,12 @@ For production evaluation, consider validating against live API responses.
 
 | File | Changes |
 |------|---------|
-| `CONTRACTS.py` | Rename field, make nl_response optional |
+| `CONTRACTS.py` | Rename field, make nl_response optional, add `TestCaseSetConfig` |
 | `migrations/008_*.sql` | Schema migration |
-| `scripts/generators/base_generator.py` | Align TestCase dataclass |
+| `scripts/generators/base_generator.py` | Align TestCase dataclass, add `_meta` generation |
 | `scripts/load_test_cases.py` | Handle new fields |
 | `scripts/generate_nl_responses.py` | New script |
+| `tests/unit/nl2api/fixture_loader.py` | Add `_meta` parsing and validation |
 | `docs/evaluation-data.md` | New documentation |
-| `CLAUDE.md` | Add eval data section |
+| `CLAUDE.md` | Add eval data section ✅ |
+| `tests/fixtures/lseg/generated/*.json` | Add `_meta` blocks during regeneration |

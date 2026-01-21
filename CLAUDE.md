@@ -424,6 +424,35 @@ class TestCase:
 - `expected_response` = structured data from API
 - `expected_nl_response` = natural language summary for user
 
+### Test Case Set Configuration
+
+Different capabilities have different field requirements. Each fixture file declares what's required via `_meta`:
+
+```json
+{
+  "_meta": {
+    "name": "entity_extraction_us_equities",
+    "capability": "entity_extraction",
+    "requires_nl_response": false,
+    "requires_expected_response": false,
+    "schema_version": "1.0"
+  },
+  "test_cases": [...]
+}
+```
+
+| Capability | `requires_nl_response` | `requires_expected_response` |
+|------------|------------------------|------------------------------|
+| `nl2api` | `true` | `false` (until execution stage) |
+| `entity_extraction` | `false` | `false` |
+| `tool_generation` | `false` | `false` |
+
+**When creating new test case sets:**
+1. Always include a `_meta` block
+2. Set `capability` to identify what's being evaluated
+3. Set `requires_*` flags based on what the evaluation needs
+4. The fixture loader validates test cases against these requirements
+
 ### Regenerating Fixtures
 
 ```bash
