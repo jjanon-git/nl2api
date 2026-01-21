@@ -11,10 +11,12 @@ from src.nl2api.agents.protocols import (
     DomainAgent,
 )
 from src.nl2api.agents.base import BaseDomainAgent
+from src.nl2api.agents.estimates import EstimatesAgent
 
 __all__ = [
     "AgentContext",
     "AgentResult",
     "DomainAgent",
     "BaseDomainAgent",
+    "EstimatesAgent",
 ]

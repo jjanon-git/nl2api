@@ -15,6 +15,7 @@ Key components:
 from src.nl2api.orchestrator import NL2APIOrchestrator
 from src.nl2api.models import NL2APIResponse, ClarificationQuestion, ConversationTurn
 from src.nl2api.config import NL2APIConfig, load_config
+from src.nl2api.evaluation.adapter import NL2APITargetAdapter, NL2APIBatchAdapter
 
 __all__ = [
     # Core
@@ -25,4 +26,7 @@ __all__ = [
     # Config
     "NL2APIConfig",
     "load_config",
+    # Evaluation
+    "NL2APITargetAdapter",
+    "NL2APIBatchAdapter",
 ]
