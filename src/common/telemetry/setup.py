@@ -150,21 +150,29 @@ def shutdown_telemetry() -> None:
     """
     Shutdown telemetry and flush pending data.
 
-    Call this at application shutdown.
+    Call this at application shutdown. Forces a flush of all pending
+    metrics and traces before shutting down providers.
     """
-    global _tracer_provider, _meter_provider
+    global _tracer_provider, _meter_provider, _telemetry_initialized
 
-    if not _otel_available:
+    if not _otel_available or not _telemetry_initialized:
         return
 
     try:
+        # Force flush before shutdown to ensure all data is exported
+        if _meter_provider:
+            _meter_provider.force_flush(timeout_millis=5000)
+            logger.debug("Meter provider flushed")
+            _meter_provider.shutdown()
+            logger.debug("Meter provider shut down")
+
         if _tracer_provider:
+            _tracer_provider.force_flush(timeout_millis=5000)
+            logger.debug("Tracer provider flushed")
             _tracer_provider.shutdown()
             logger.debug("Tracer provider shut down")
 
-        if _meter_provider:
-            _meter_provider.shutdown()
-            logger.debug("Meter provider shut down")
+        _telemetry_initialized = False
 
     except Exception as e:
         logger.warning(f"Error during telemetry shutdown: {e}")
