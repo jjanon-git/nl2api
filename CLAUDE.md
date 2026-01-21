@@ -1,5 +1,19 @@
 # CLAUDE.md - Project Context for Claude Code
 
+## CRITICAL: Every Capability Needs Evaluation
+
+**No capability is complete without evaluation data and metrics.** This is non-negotiable.
+
+When building or modifying a capability:
+1. **Define what "correct" means** - What is the expected output for a given input?
+2. **Create evaluation fixtures** - Test cases with inputs and expected outputs
+3. **Establish baseline metrics** - Run evaluation and record accuracy
+4. **Track over time** - Ensure changes don't regress accuracy
+
+A capability without evaluation is untested code. See **BACKLOG.md → Capabilities Evaluation Matrix** for current status.
+
+---
+
 ## CRITICAL: Testing Requirements
 
 **ALWAYS run tests after making code changes.** This is non-negotiable.
@@ -47,6 +61,7 @@
 |----------|-----------|------------------|---------------|
 | Pure function logic | ✅ | | |
 | Class with injected dependencies | ✅ | | |
+| **Config defaults and behavior** | ✅ | | |
 | Repository CRUD operations | | ✅ | |
 | Multi-component orchestration | | ✅ | |
 | Database migrations | | ✅ | |
@@ -58,6 +73,37 @@ When implementing external API integrations, before marking work complete:
 1. Run the script/code manually with real credentials
 2. Verify data is fetched and parsed correctly
 3. Document what you tested in the PR/commit (e.g., "Manually verified: fetched 10 GLEIF records, parsed LEI/company name correctly")
+
+### Testing Configuration Changes
+
+**When modifying config defaults or adding config-driven behavior, ALWAYS add tests for:**
+
+| Change Type | Required Tests |
+|-------------|----------------|
+| New config field | Test default value is correct |
+| Config affects runtime behavior | Test behavior uses config value |
+| Config switches between implementations | Test both code paths |
+| Config with environment override | Test env var is respected |
+
+**Example: Routing model configuration**
+```python
+# 1. Test config default
+def test_config_defaults_to_haiku_for_routing():
+    cfg = NL2APIConfig()
+    assert cfg.routing_model == "claude-3-5-haiku-20241022"
+
+# 2. Test behavior uses config
+def test_orchestrator_creates_separate_routing_llm():
+    # Verify orchestrator creates different LLM when routing_model differs
+    ...
+
+# 3. Test matching case (no separate LLM needed)
+def test_orchestrator_reuses_main_llm_when_models_match():
+    # Verify no extra LLM created when models are same
+    ...
+```
+
+**Why this matters:** Config changes silently affect runtime behavior. Without tests, regressions go unnoticed until production. The routing model switch (Sonnet → Haiku) required 3 tests to properly verify.
 
 ### Pre-commit checklist:
 1. ✅ Unit tests pass: `pytest tests/unit/ -v --tb=short -x`

@@ -590,3 +590,70 @@ class TestOrchestratorDualModeContext:
         assert captured_context is not None
         assert len(captured_context.field_codes) == 0
         assert len(captured_context.query_examples) == 0
+
+
+class TestOrchestratorRoutingModel:
+    """Test suite for routing model configuration."""
+
+    def test_config_defaults_to_haiku_for_routing(self) -> None:
+        """Config should default to Haiku for routing (cost optimization)."""
+        from src.nl2api.config import NL2APIConfig
+
+        cfg = NL2APIConfig()
+        assert cfg.routing_model == "claude-3-5-haiku-20241022"
+        assert cfg.routing_model != cfg.llm_model  # Should differ from main model
+
+    def test_orchestrator_creates_separate_routing_llm(self) -> None:
+        """Orchestrator should use separate LLM for routing when configured."""
+        from unittest.mock import MagicMock, patch
+
+        # Mock the config to return different models
+        mock_config = MagicMock()
+        mock_config.routing_model = "claude-3-5-haiku-20241022"
+        mock_config.llm_model = "claude-sonnet-4-20250514"
+        mock_config.llm_provider = "claude"
+        mock_config.get_llm_api_key.return_value = "test-key"
+
+        # Mock LLM and agent
+        main_llm = MockLLMProvider(model_name="sonnet")
+        agent = MockAgent()
+
+        # Patch at the import location inside _create_default_router
+        with patch("src.nl2api.config.NL2APIConfig", return_value=mock_config):
+            with patch("src.nl2api.llm.factory.create_llm_provider") as mock_factory:
+                mock_routing_llm = MockLLMProvider(model_name="haiku")
+                mock_factory.return_value = mock_routing_llm
+
+                orchestrator = NL2APIOrchestrator(
+                    llm=main_llm,
+                    agents={"estimates": agent},
+                )
+
+                # Verify create_llm_provider was called for routing
+                mock_factory.assert_called_once_with(
+                    provider="claude",
+                    api_key="test-key",
+                    model="claude-3-5-haiku-20241022",
+                )
+
+    def test_orchestrator_reuses_main_llm_when_models_match(self) -> None:
+        """Orchestrator should reuse main LLM when routing_model matches llm_model."""
+        from unittest.mock import MagicMock, patch
+
+        # Mock the config with matching models
+        mock_config = MagicMock()
+        mock_config.routing_model = "claude-sonnet-4-20250514"
+        mock_config.llm_model = "claude-sonnet-4-20250514"
+
+        main_llm = MockLLMProvider(model_name="sonnet")
+        agent = MockAgent()
+
+        with patch("src.nl2api.config.NL2APIConfig", return_value=mock_config):
+            with patch("src.nl2api.llm.factory.create_llm_provider") as mock_factory:
+                orchestrator = NL2APIOrchestrator(
+                    llm=main_llm,
+                    agents={"estimates": agent},
+                )
+
+                # Should NOT create a separate LLM - reuse main
+                mock_factory.assert_not_called()
