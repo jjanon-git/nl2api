@@ -1,5 +1,35 @@
 # CLAUDE.md - Project Context for Claude Code
 
+## CRITICAL: Testing Requirements
+
+**ALWAYS run tests after making code changes.** This is non-negotiable.
+
+### After ANY code modification:
+```bash
+# 1. Run unit tests (REQUIRED before committing)
+.venv/bin/python -m pytest tests/unit/ -v --tb=short -x
+
+# 2. If tests fail: FIX THE ISSUES before proceeding
+# 3. Only commit after all tests pass
+```
+
+### When to run accuracy tests:
+- **tier1**: Quick sanity check (~50 samples, ~2 min) - Run when modifying routing/agents
+- **tier2**: Standard evaluation (~200 samples, ~10 min) - Run before merging significant changes
+- **tier3**: Comprehensive (~2000+ samples, ~60 min) - Run weekly or for major releases
+
+```bash
+# Only run accuracy tests when specifically needed (they cost API credits)
+.venv/bin/python -m pytest tests/accuracy/ -m tier1 -v  # Quick check
+```
+
+### Pre-commit checklist:
+1. ✅ Unit tests pass: `pytest tests/unit/ -v --tb=short -x`
+2. ✅ Linting passes: `ruff check .`
+3. ✅ No regressions in changed areas
+
+---
+
 ## Project Overview
 
 **NL2API** is a Natural Language to API translation system for LSEG financial data APIs. It translates natural language queries into structured API calls for Datastream, Estimates, Fundamentals, and other LSEG data services. Includes an evaluation framework for testing at scale (~400k test cases).

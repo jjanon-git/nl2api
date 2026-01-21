@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv
+ENV
+env
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov
+coverage.xml
+*.cover
+.tox
+.nox
+
+# Build
+build
+dist
+*.egg-info
+.eggs
+
+# Environment
+.env
+.env.*
+*.env
+
+# Data
+data/
+*.jsonl
+*.json
+!tests/fixtures/**/*.json
+
+# Documentation (not needed in image)
+*.md
+!README.md
+
+# CI/CD
+.github
+
+# Misc
+.DS_Store
+Thumbs.db
+Makefile
+docker-compose*.yml

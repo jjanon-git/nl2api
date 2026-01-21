@@ -1,0 +1,75 @@
+# Configuration for PR labeler workflow
+# Maps labels to file path patterns
+
+# Component labels
+nl2api:
+  - changed-files:
+      - any-glob-to-any-file: 'src/nl2api/**/*'
+
+agents:
+  - changed-files:
+      - any-glob-to-any-file: 'src/nl2api/agents/**/*'
+
+routing:
+  - changed-files:
+      - any-glob-to-any-file: 'src/nl2api/routing/**/*'
+
+rag:
+  - changed-files:
+      - any-glob-to-any-file: 'src/nl2api/rag/**/*'
+
+llm:
+  - changed-files:
+      - any-glob-to-any-file: 'src/nl2api/llm/**/*'
+
+evaluation:
+  - changed-files:
+      - any-glob-to-any-file: 'src/evaluation/**/*'
+
+storage:
+  - changed-files:
+      - any-glob-to-any-file: 'src/common/storage/**/*'
+
+telemetry:
+  - changed-files:
+      - any-glob-to-any-file: 'src/common/telemetry/**/*'
+
+resilience:
+  - changed-files:
+      - any-glob-to-any-file: 'src/common/resilience/**/*'
+
+# Type labels
+tests:
+  - changed-files:
+      - any-glob-to-any-file: 'tests/**/*'
+
+fixtures:
+  - changed-files:
+      - any-glob-to-any-file: 'tests/fixtures/**/*'
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**/*'
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '.github/**/*'
+          - 'Dockerfile'
+          - 'docker-compose.yml'
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'pyproject.toml'
+          - 'requirements*.txt'
+
+config:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '*.toml'
+          - '*.yaml'
+          - '*.yml'
+          - '.env*'
