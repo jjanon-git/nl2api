@@ -29,24 +29,35 @@
 - Database operations (repository methods against real PostgreSQL)
 - Multi-component flows (orchestrator → agent → storage)
 - API endpoint handlers
-- External service integrations (even with test doubles)
 - Configuration loading and validation
+
+**DO NOT write automated integration tests for external third-party APIs:**
+- GLEIF, SEC EDGAR, OpenFIGI, and similar public data APIs
+- These APIs change, have rate limits, and require network access
+- Instead: **manually verify** the integration works, then document what you tested
 
 ```bash
 # Run integration tests (requires docker compose up -d)
 .venv/bin/python -m pytest tests/integration/ -v --tb=short -x
 ```
 
-**When to write integration tests vs unit tests:**
+**When to write integration tests vs unit tests vs manual verification:**
 
-| Scenario | Unit Test | Integration Test |
-|----------|-----------|------------------|
-| Pure function logic | ✅ | |
-| Class with injected dependencies | ✅ | |
-| Repository CRUD operations | | ✅ |
-| Multi-component orchestration | | ✅ |
-| Database migrations | | ✅ |
-| End-to-end query processing | | ✅ |
+| Scenario | Unit Test | Integration Test | Manual Verify |
+|----------|-----------|------------------|---------------|
+| Pure function logic | ✅ | | |
+| Class with injected dependencies | ✅ | | |
+| Repository CRUD operations | | ✅ | |
+| Multi-component orchestration | | ✅ | |
+| Database migrations | | ✅ | |
+| End-to-end query processing | | ✅ | |
+| External API integrations (GLEIF, SEC, etc.) | ✅ (mock) | | ✅ |
+
+**Manual verification for external APIs:**
+When implementing external API integrations, before marking work complete:
+1. Run the script/code manually with real credentials
+2. Verify data is fetched and parsed correctly
+3. Document what you tested in the PR/commit (e.g., "Manually verified: fetched 10 GLEIF records, parsed LEI/company name correctly")
 
 ### Pre-commit checklist:
 1. ✅ Unit tests pass: `pytest tests/unit/ -v --tb=short -x`
