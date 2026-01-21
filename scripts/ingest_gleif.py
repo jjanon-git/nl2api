@@ -37,6 +37,7 @@ import argparse
 import asyncio
 import csv
 import gzip
+import zipfile
 import hashlib
 import json
 import logging
@@ -88,10 +89,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-# GLEIF API endpoints
-GLEIF_API_BASE = "https://leidata.gleif.org/api/v2"
-GLEIF_GOLDEN_COPY_API = f"{GLEIF_API_BASE}/golden-copies/publishes/latest"
+# GLEIF API endpoints (goldencopy.gleif.org is the correct host)
+GLEIF_API_BASE = "https://goldencopy.gleif.org/api/v2"
+GLEIF_GOLDEN_COPY_API = f"{GLEIF_API_BASE}/golden-copies/publishes/lei2/latest"
 GLEIF_DELTA_API = f"{GLEIF_API_BASE}/delta-files"
+
+# HTTP headers for GLEIF requests
+GLEIF_HEADERS = {
+    "User-Agent": "NL2API/1.0 (Entity Resolution; contact@example.com)",
+    "Accept": "application/json",
+}
 
 
 # Company suffixes to strip for alias generation
@@ -152,28 +159,23 @@ async def get_gleif_golden_copy_info(timeout: int = 30) -> dict:
     Returns:
         Dict with download_url, publish_date, record_count
     """
-    async with httpx.AsyncClient(timeout=timeout) as client:
+    async with httpx.AsyncClient(timeout=timeout, headers=GLEIF_HEADERS) as client:
         response = await client.get(GLEIF_GOLDEN_COPY_API)
         response.raise_for_status()
         data = response.json()
 
-        # Extract info from response
+        # Extract info from response (new API format)
+        data_section = data.get("data", {})
+        csv_info = data_section.get("full_file", {}).get("csv", {})
+
         result = {
-            "publish_date": data.get("data", {}).get("publishDate"),
-            "download_url": None,
-            "record_count": None,
+            "publish_date": data_section.get("publish_date"),
+            "download_url": csv_info.get("url"),
+            "record_count": csv_info.get("record_count"),
         }
 
-        # Find the CSV download URL
-        for item in data.get("data", {}).get("concatenatedFiles", []):
-            if item.get("fileExtension") == "csv.gz":
-                result["download_url"] = item.get("url")
-                result["record_count"] = item.get("recordCount")
-                break
-
         if not result["download_url"]:
-            # Fallback URL
-            result["download_url"] = f"{GLEIF_API_BASE}/golden-copies/publishes/latest/download"
+            raise ValueError("No CSV download URL found in GLEIF API response")
 
         return result
 
@@ -196,7 +198,7 @@ async def get_gleif_delta_files(since_date: datetime, timeout: int = 30) -> list
     """
     delta_files = []
 
-    async with httpx.AsyncClient(timeout=timeout) as client:
+    async with httpx.AsyncClient(timeout=timeout, headers=GLEIF_HEADERS) as client:
         # GLEIF delta files are organized by date
         current_date = since_date.date()
         today = datetime.now(timezone.utc).date()
@@ -256,7 +258,7 @@ async def download_file_streaming(
         {SpanAttributes.SOURCE: "gleif", SpanAttributes.SOURCE_URL: url},
     ) as span:
         try:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout)) as client:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout), headers=GLEIF_HEADERS) as client:
                 async with client.stream("GET", url, follow_redirects=True) as response:
                     response.raise_for_status()
                     total_size = int(response.headers.get("content-length", 0))
@@ -300,6 +302,25 @@ async def download_file_streaming(
             ) from e
 
 
+def _open_compressed_csv(csv_path: Path):
+    """Open a compressed CSV file (supports .zip and .gz)."""
+    path_str = str(csv_path).lower()
+
+    if path_str.endswith(".zip"):
+        # ZIP file - open the first CSV inside
+        zf = zipfile.ZipFile(csv_path, "r")
+        csv_names = [n for n in zf.namelist() if n.endswith(".csv")]
+        if not csv_names:
+            raise ValueError(f"No CSV file found inside {csv_path}")
+        return zf.open(csv_names[0]), zf
+    elif path_str.endswith(".gz"):
+        # GZIP file
+        return gzip.open(csv_path, "rt", encoding="utf-8"), None
+    else:
+        # Plain CSV
+        return open(csv_path, "r", encoding="utf-8"), None
+
+
 def parse_gleif_csv_streaming(
     csv_path: Path,
     skip_rows: int = 0,
@@ -309,15 +330,23 @@ def parse_gleif_csv_streaming(
     Parse GLEIF CSV as generator - never loads full file into memory.
 
     Args:
-        csv_path: Path to gzipped CSV file
+        csv_path: Path to compressed CSV file (.zip or .gz)
         skip_rows: Number of rows to skip (for resume)
         include_inactive: Include inactive/retired entities (for delta processing)
 
     Yields:
         Entity dictionaries
     """
-    with gzip.open(csv_path, "rt", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
+    import io
+
+    file_handle, archive = _open_compressed_csv(csv_path)
+
+    try:
+        # If it's a binary file from zipfile, wrap it
+        if isinstance(file_handle, zipfile.ZipExtFile):
+            file_handle = io.TextIOWrapper(file_handle, encoding="utf-8")
+
+        reader = csv.DictReader(file_handle)
 
         for i, row in enumerate(reader):
             if i < skip_rows:
@@ -345,6 +374,10 @@ def parse_gleif_csv_streaming(
                 "entity_status": "active" if status == "ACTIVE" else "inactive",
                 "data_source": "gleif",
             }
+    finally:
+        file_handle.close()
+        if archive:
+            archive.close()
 
 
 def transform_to_db_records(
@@ -396,14 +429,26 @@ def transform_to_db_records(
 
 
 async def count_csv_rows(csv_path: Path, include_inactive: bool = False) -> int:
-    """Count rows in gzipped CSV for progress tracking."""
+    """Count rows in compressed CSV for progress tracking."""
+    import io
+
     count = 0
-    with gzip.open(csv_path, "rt", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
+    file_handle, archive = _open_compressed_csv(csv_path)
+
+    try:
+        if isinstance(file_handle, zipfile.ZipExtFile):
+            file_handle = io.TextIOWrapper(file_handle, encoding="utf-8")
+
+        reader = csv.DictReader(file_handle)
         for row in reader:
             status = row.get("Entity.EntityStatus", "").upper()
             if include_inactive or status == "ACTIVE":
                 count += 1
+    finally:
+        file_handle.close()
+        if archive:
+            archive.close()
+
     return count
 
 
@@ -772,7 +817,7 @@ async def run_full_ingestion(
     )
 
     # Download
-    download_path = config.download_dir / "gleif_golden_copy.csv.gz"
+    download_path = config.download_dir / "gleif_golden_copy.csv.zip"
 
     if not args.skip_download:
         checkpoint = checkpoint_mgr.create_new()
@@ -880,7 +925,7 @@ async def run_delta_ingestion(
         logger.info("Processing delta: %s (%d records)", delta_file["date"], delta_file["record_count"])
 
         # Download delta file
-        delta_path = config.download_dir / f"gleif_delta_{delta_file['date'].replace('-', '')}.csv.gz"
+        delta_path = config.download_dir / f"gleif_delta_{delta_file['date'].replace('-', '')}.csv.zip"
 
         await download_file_streaming(
             url=delta_file["url"],

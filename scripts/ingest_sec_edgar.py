@@ -84,6 +84,12 @@ logger = logging.getLogger(__name__)
 SEC_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json"
 SEC_EXCHANGES_URL = "https://www.sec.gov/files/company_tickers_exchange.json"
 
+# SEC requires User-Agent header identifying the requester
+SEC_HEADERS = {
+    "User-Agent": "NL2API/1.0 (Entity Resolution; contact@example.com)",
+    "Accept-Encoding": "gzip, deflate",
+}
+
 # Exchange suffix mapping for RIC generation
 EXCHANGE_SUFFIX_MAP = {
     # US exchanges
@@ -203,7 +209,7 @@ async def fetch_sec_tickers(timeout: int = 30) -> dict:
         {SpanAttributes.SOURCE: "sec_edgar", SpanAttributes.SOURCE_URL: SEC_TICKERS_URL},
     ) as span:
         try:
-            async with httpx.AsyncClient(timeout=timeout) as client:
+            async with httpx.AsyncClient(timeout=timeout, headers=SEC_HEADERS) as client:
                 response = await client.get(SEC_TICKERS_URL)
                 response.raise_for_status()
                 data = response.json()
@@ -239,7 +245,7 @@ async def fetch_sec_exchanges(timeout: int = 30) -> dict:
     logger.info("Fetching SEC exchange mappings...")
 
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        async with httpx.AsyncClient(timeout=timeout, headers=SEC_HEADERS) as client:
             response = await client.get(SEC_EXCHANGES_URL)
             response.raise_for_status()
             data = response.json()
