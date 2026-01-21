@@ -186,3 +186,72 @@ def add_span_event(name: str, attributes: dict[str, Any] | None = None) -> None:
             span.add_event(name, attributes or {})
     except Exception as e:
         logger.debug(f"Failed to add span event: {e}")
+
+
+from contextlib import contextmanager
+from typing import Generator
+
+
+@contextmanager
+def trace_span(
+    name: str,
+    attributes: dict[str, Any] | None = None,
+) -> Generator[Any, None, None]:
+    """
+    Context manager for creating a traced span.
+
+    Provides a simple way to add tracing spans inline without decorators.
+
+    Args:
+        name: Span name (e.g., "entity_resolution", "routing")
+        attributes: Optional initial span attributes
+
+    Yields:
+        The active span (or NoOpSpan if telemetry disabled)
+
+    Example:
+        with trace_span("entity.resolution", {"query_length": len(query)}) as span:
+            result = await resolve_entities(query)
+            span.set_attribute("entities.count", len(result))
+    """
+    tracer = get_tracer()
+
+    with tracer.start_as_current_span(name) as span:
+        if attributes and hasattr(span, "set_attributes"):
+            span.set_attributes(attributes)
+        try:
+            yield span
+        except Exception as e:
+            record_exception(e, span)
+            raise
+
+
+@contextmanager
+def trace_span_safe(
+    name: str,
+    attributes: dict[str, Any] | None = None,
+) -> Generator[Any, None, None]:
+    """
+    Safe version of trace_span that never raises exceptions.
+
+    Use this in critical paths where tracing failures should not
+    affect request processing.
+
+    Args:
+        name: Span name
+        attributes: Optional initial span attributes
+
+    Yields:
+        The active span (or NoOpSpan on any error)
+    """
+    from src.common.telemetry.setup import _NoOpSpan
+
+    try:
+        tracer = get_tracer()
+        with tracer.start_as_current_span(name) as span:
+            if attributes and hasattr(span, "set_attributes"):
+                span.set_attributes(attributes)
+            yield span
+    except Exception as e:
+        logger.debug(f"trace_span_safe failed: {e}")
+        yield _NoOpSpan()

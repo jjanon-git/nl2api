@@ -22,9 +22,9 @@ After comprehensive review of the NL2API system, the current implementation is a
 
 | # | Recommendation | Problem | Impact | Effort | Status |
 |---|---------------|---------|--------|--------|--------|
-| P0.1 | End-to-End Observability | No visibility into production performance | High | 1-2 weeks | 🔲 Not Started |
+| P0.1 | End-to-End Observability | No visibility into production performance | High | 1-2 weeks | ✅ Complete |
 | P0.2 | Entity Resolution Coverage | Only ~30 companies in static mappings | High | 1 week | 🔲 Not Started |
-| P0.3 | Request-Level Metrics | No accuracy measurement in production | High | 3-5 days | 🔲 Not Started |
+| P0.3 | Request-Level Metrics | No accuracy measurement in production | High | 3-5 days | ✅ Complete |
 
 ### P1: High Priority (Next Sprint)
 
@@ -114,7 +114,7 @@ Total: ~850ms, ~1100 tokens per request
 1. **Multiple LLM Calls** - Routing + Agent = 2 calls per request
 2. **Static Prompts** - 800-1200 tokens of fixed content per agent
 3. **Limited Entity Resolution** - ~30 companies hardcoded
-4. **No Observability** - Basic logging only
+4. ~~**No Observability** - Basic logging only~~ ✅ OTEL stack implemented
 
 ---
 
@@ -170,3 +170,6 @@ See individual implementation plan files:
 | Date | Change |
 |------|--------|
 | 2026-01-20 | Initial proposal created |
+| 2026-01-20 | P0.3 Complete: RequestMetrics, emitters, OTEL integration |
+| 2026-01-20 | P0.1 80%: OTEL stack, Grafana dashboards, accuracy metrics. Remaining: tracing spans |
+| 2026-01-21 | P0.1 Complete: Added tracing spans to orchestrator and router |

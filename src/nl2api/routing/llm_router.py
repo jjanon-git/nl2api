@@ -23,6 +23,7 @@ from src.nl2api.routing.protocols import (
     RoutingToolDefinition,
     ToolProvider,
 )
+from src.common.telemetry import trace_span, add_span_event
 
 if TYPE_CHECKING:
     from src.nl2api.routing.cache import RoutingCache
@@ -144,64 +145,87 @@ class LLMToolRouter:
         """
         start_time = time.perf_counter()
 
-        # Step 1: Check cache
-        if self._cache:
-            cached = await self._cache.get(query)
-            if cached:
-                latency_ms = int((time.perf_counter() - start_time) * 1000)
-                logger.debug(f"Cache hit for query routing: {cached.domain}")
-                return RouterResult(
-                    domain=cached.domain,
-                    confidence=cached.confidence,
-                    reasoning=cached.reasoning,
-                    cached=True,
-                    latency_ms=latency_ms,
-                )
+        with trace_span("router.route", {"query_length": len(query)}) as span:
+            # Step 1: Check cache
+            with trace_span("router.cache_lookup") as cache_span:
+                if self._cache:
+                    cached = await self._cache.get(query)
+                    cache_span.set_attribute("cache.hit", cached is not None)
+                    if cached:
+                        latency_ms = int((time.perf_counter() - start_time) * 1000)
+                        logger.debug(f"Cache hit for query routing: {cached.domain}")
+                        span.set_attribute("routing.cached", True)
+                        span.set_attribute("routing.domain", cached.domain)
+                        span.set_attribute("routing.confidence", cached.confidence)
+                        span.set_attribute("routing.latency_ms", latency_ms)
+                        return RouterResult(
+                            domain=cached.domain,
+                            confidence=cached.confidence,
+                            reasoning=cached.reasoning,
+                            cached=True,
+                            latency_ms=latency_ms,
+                        )
+                else:
+                    cache_span.set_attribute("cache.enabled", False)
 
-        # Step 2: Build routing messages
-        messages = [
-            LLMMessage(role=MessageRole.SYSTEM, content=self._system_prompt),
-            LLMMessage(role=MessageRole.USER, content=query),
-        ]
+            # Step 2: Build routing messages
+            messages = [
+                LLMMessage(role=MessageRole.SYSTEM, content=self._system_prompt),
+                LLMMessage(role=MessageRole.USER, content=query),
+            ]
 
-        # Add context if provided
-        if context:
-            context_str = self._format_context(context)
-            if context_str:
-                messages.append(
-                    LLMMessage(
-                        role=MessageRole.SYSTEM,
-                        content=f"Additional context:\n{context_str}",
+            # Add context if provided
+            if context:
+                context_str = self._format_context(context)
+                if context_str:
+                    messages.append(
+                        LLMMessage(
+                            role=MessageRole.SYSTEM,
+                            content=f"Additional context:\n{context_str}",
+                        )
                     )
-                )
 
-        # Step 3: LLM call with routing tools
-        try:
-            response = await self._llm.complete(
-                messages=messages,
-                tools=self._routing_tools,
-                temperature=0.0,
-                max_tokens=150,
-            )
-        except Exception as e:
-            logger.error(f"LLM routing call failed: {e}")
-            # Return unknown domain with zero confidence
-            latency_ms = int((time.perf_counter() - start_time) * 1000)
-            return RouterResult(
-                domain="unknown",
-                confidence=0.0,
-                reasoning=f"Routing error: {e}",
-                latency_ms=latency_ms,
-            )
+            # Step 3: LLM call with routing tools
+            with trace_span("router.llm_call") as llm_span:
+                llm_span.set_attribute("llm.model", self._llm.model_name)
+                llm_span.set_attribute("llm.tools_count", len(self._routing_tools))
+                try:
+                    response = await self._llm.complete(
+                        messages=messages,
+                        tools=self._routing_tools,
+                        temperature=0.0,
+                        max_tokens=150,
+                    )
+                    if hasattr(response, 'usage') and response.usage:
+                        llm_span.set_attribute("llm.tokens_total", response.usage.total_tokens if hasattr(response.usage, 'total_tokens') else 0)
+                except Exception as e:
+                    logger.error(f"LLM routing call failed: {e}")
+                    llm_span.set_attribute("llm.error", str(e))
+                    # Return unknown domain with zero confidence
+                    latency_ms = int((time.perf_counter() - start_time) * 1000)
+                    span.set_attribute("routing.error", True)
+                    span.set_attribute("routing.latency_ms", latency_ms)
+                    return RouterResult(
+                        domain="unknown",
+                        confidence=0.0,
+                        reasoning=f"Routing error: {e}",
+                        latency_ms=latency_ms,
+                    )
 
-        # Step 4: Parse tool selection
-        result = self._parse_routing_response(response, start_time)
+            # Step 4: Parse tool selection
+            result = self._parse_routing_response(response, start_time)
+            span.set_attribute("routing.domain", result.domain)
+            span.set_attribute("routing.confidence", result.confidence)
+            span.set_attribute("routing.cached", False)
+            span.set_attribute("routing.latency_ms", result.latency_ms)
 
-        # Step 5: Cache result (if successful)
-        if self._cache and result.domain != "unknown":
-            await self._cache.set(query, result)
+            # Step 5: Cache result (if successful)
+            if self._cache and result.domain != "unknown":
+                with trace_span("router.cache_set") as cache_set_span:
+                    await self._cache.set(query, result)
+                    cache_set_span.set_attribute("cache.domain", result.domain)
 
-        return result
+            return result
 
     def _parse_routing_response(
         self,
