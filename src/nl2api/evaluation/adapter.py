@@ -71,7 +71,7 @@ class NL2APITargetAdapter:
         """
         self._orchestrator = orchestrator
         self._session_id = session_id
-        self._conversation_history: list[dict[str, Any]] = []
+        self._turn_count = 0
 
     async def invoke(self, nl_query: str) -> SystemResponse:
         """
@@ -88,18 +88,18 @@ class NL2APITargetAdapter:
 
         try:
             # Call the orchestrator
+            # Session management is now handled internally by the orchestrator
             nl2api_response = await self._orchestrator.process(
                 query=nl_query,
                 session_id=self._session_id,
-                conversation_history=self._conversation_history,
             )
 
-            # Store turn in conversation history for multi-turn
+            # Track turns for multi-turn conversations
             if self._session_id:
-                self._conversation_history.append({
-                    "query": nl_query,
-                    "response": nl2api_response.to_dict(),
-                })
+                self._turn_count += 1
+                # Update session_id from response if not set
+                if nl2api_response.session_id:
+                    self._session_id = nl2api_response.session_id
 
             # Convert to SystemResponse
             return self._convert_response(nl2api_response, start_time)
@@ -177,8 +177,9 @@ class NL2APITargetAdapter:
         )
 
     def reset_conversation(self) -> None:
-        """Reset the conversation history for a new session."""
-        self._conversation_history = []
+        """Reset the conversation for a new session."""
+        self._session_id = None
+        self._turn_count = 0
 
     def set_session_id(self, session_id: str | None) -> None:
         """
@@ -189,7 +190,12 @@ class NL2APITargetAdapter:
         """
         self._session_id = session_id
         if session_id is None:
-            self._conversation_history = []
+            self._turn_count = 0
+
+    @property
+    def turn_count(self) -> int:
+        """Return the number of turns in the current session."""
+        return self._turn_count
 
 
 class NL2APIBatchAdapter:

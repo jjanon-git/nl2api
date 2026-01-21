@@ -170,31 +170,31 @@ class TestNL2APITargetAdapter:
         # First turn
         await adapter.invoke("What is Apple's EPS estimate?")
 
-        # History should be updated
-        assert len(adapter._conversation_history) == 1
-        assert adapter._conversation_history[0]["query"] == "What is Apple's EPS estimate?"
+        # Turn count should be updated
+        assert adapter.turn_count == 1
 
     @pytest.mark.asyncio
     async def test_reset_conversation_clears_history(self) -> None:
-        """Test that reset_conversation clears history."""
+        """Test that reset_conversation clears session."""
         adapter = NL2APITargetAdapter(self.orchestrator, session_id="test-session")
 
         await adapter.invoke("Test query")
-        assert len(adapter._conversation_history) == 1
+        assert adapter.turn_count == 1
 
         adapter.reset_conversation()
-        assert len(adapter._conversation_history) == 0
+        assert adapter.turn_count == 0
+        assert adapter._session_id is None
 
     @pytest.mark.asyncio
     async def test_set_session_id_clears_history_when_none(self) -> None:
-        """Test that setting session_id to None clears history."""
+        """Test that setting session_id to None clears turn count."""
         adapter = NL2APITargetAdapter(self.orchestrator, session_id="test-session")
 
         await adapter.invoke("Test query")
         adapter.set_session_id(None)
 
         assert adapter._session_id is None
-        assert len(adapter._conversation_history) == 0
+        assert adapter.turn_count == 0
 
 
 class TestNL2APIBatchAdapter:
