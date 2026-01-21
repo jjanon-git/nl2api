@@ -158,6 +158,40 @@ Missing integration tests for:
 
 ## Low Priority (P2)
 
+### pyproject.toml Repository URL
+**Created:** 2026-01-21
+**Status:** Pending (needs repo URL decision)
+
+`pyproject.toml` and `CONTRIBUTING.md` still have `YOUR_USERNAME` placeholder. Update when public repo URL is finalized.
+
+---
+
+### CHANGELOG.md
+**Created:** 2026-01-21
+**Status:** Not Started
+
+Add changelog following Keep a Changelog format. Start from current state or document all phases.
+
+---
+
+### Type Hint Completeness
+**Created:** 2026-01-21
+**Status:** Not Started
+
+mypy runs with `continue-on-error: true` in CI. Fix mypy errors incrementally and remove the flag.
+
+---
+
+### Silent Exception Handlers
+**Created:** 2026-01-21
+**Status:** Not Started
+
+19 occurrences of `except: pass` or `except Exception: pass` in the codebase. Add `logger.debug()` or `logger.warning()` for observability.
+
+**Locations:** Primarily in `src/evaluation/cli/commands/batch.py` and `run.py` cleanup blocks.
+
+---
+
 ### Streaming Support (P2.1)
 **Created:** 2026-01-20
 **Status:** Not Started
@@ -260,9 +294,12 @@ Migrate from pgvector to Azure AI Search for production scale.
 - [x] Deprecation warning for `can_handle()` in base.py
 - [x] Documentation reorganization (kebab-case naming in docs/plans/)
 - [x] GLEIF/SEC API compatibility fixes (User-Agent headers, ZIP support)
-- [x] Phase 1-3: Evaluation data contract alignment
+- [x] Fixture contract alignment: Generators aligned with CONTRACTS.py, `_meta` blocks, `tool_name` field
 - [x] Security fixes: SQL query building refactored (whitelist-based)
 - [x] Error handling fixes: bare except, swallowed exceptions, exception chains
+- [x] Tool selection eval data: 15,760 test cases loaded into PostgreSQL
+- [x] OTEL metrics fix: Switched to Prometheus scrape pattern (port 8889)
+- [x] Observability verification: Traces → Jaeger ✓, Metrics → Prometheus ✓, Scorecards → PostgreSQL ✓
 
 ### 2026-01-20
 
