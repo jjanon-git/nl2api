@@ -64,33 +64,45 @@ def create_entity_resolver_generator(resolver: EntityResolver):
         """
         Generate response by running the real EntityResolver.
 
-        Extracts input_entity from test case metadata and resolves it.
+        For entity_resolution tests, uses input_entity from metadata (stored
+        in expected_response) to call resolve_single directly. This avoids
+        regex extraction bugs when parsing full NL queries.
         """
         import time
 
         start_time = time.perf_counter()
 
-        # The nl_query contains the entity reference
-        # e.g., "What is Apple's revenue?" -> resolver extracts "Apple"
-        query = test_case.nl_query
-
         try:
-            # Use the resolver to process the query
-            resolved = await resolver.resolve(query)
+            # Get input_entity from metadata stored in expected_response
+            metadata = test_case.expected_response or {}
+            input_entity = metadata.get("input_entity") if metadata else None
 
-            # Build tool calls from resolution results
             tool_calls = []
-            if resolved:
-                # Get the first resolved RIC (for single entity queries)
-                rics = list(resolved.values())
-                if rics:
+            if input_entity:
+                # Use resolve_single for direct entity → RIC mapping
+                # This is the correct approach for entity_resolution tests
+                result = await resolver.resolve_single(input_entity)
+                if result:
                     tool_calls.append({
                         "tool_name": "get_data",
                         "arguments": {
-                            "tickers": rics,
+                            "tickers": [result.identifier],
                             "fields": ["TR.Revenue"]  # Default field
                         }
                     })
+            else:
+                # Fallback for non-entity_resolution tests: parse full query
+                resolved = await resolver.resolve(test_case.nl_query)
+                if resolved:
+                    rics = list(resolved.values())
+                    if rics:
+                        tool_calls.append({
+                            "tool_name": "get_data",
+                            "arguments": {
+                                "tickers": rics,
+                                "fields": ["TR.Revenue"]  # Default field
+                            }
+                        })
 
             latency_ms = int((time.perf_counter() - start_time) * 1000)
 

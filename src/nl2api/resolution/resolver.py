@@ -14,15 +14,13 @@ import logging
 import re
 from typing import TYPE_CHECKING, Any
 
-from rapidfuzz import fuzz, process
-
 from src.common.resilience import CircuitBreaker, CircuitOpenError, RetryConfig, retry_with_backoff
 from src.common.telemetry import get_tracer
-from src.nl2api.resolution.mappings import get_all_known_names, load_mappings
 from src.nl2api.resolution.openfigi import resolve_via_openfigi
 from src.nl2api.resolution.protocols import ResolvedEntity
 
 if TYPE_CHECKING:
+    import asyncpg
     from src.common.cache import RedisCache
 
 logger = logging.getLogger(__name__)
@@ -31,18 +29,18 @@ tracer = get_tracer(__name__)
 
 class ExternalEntityResolver:
     """
-    Entity resolver using an external API for company/RIC resolution.
+    Entity resolver using database and external APIs for company/RIC resolution.
 
     Extracts company mentions from queries and resolves them to RICs
-    using a configurable external service.
+    using database lookups and external APIs (OpenFIGI).
 
     Features:
     - Circuit breaker: Fails fast when external service is unhealthy
     - Retry with backoff: Handles transient failures gracefully
     - Timeout: Prevents hanging on slow responses
     - Caching: In-memory and optional Redis caching for resolved entities
-    - Fuzzy matching: Handles company name variants
-    - Static mappings: Fast lookup for 500+ major companies
+    - Database lookup: 2.9M entities from GLEIF/SEC EDGAR
+    - OpenFIGI fallback: External API for entities not in database
     """
 
     def __init__(
@@ -56,7 +54,7 @@ class ExternalEntityResolver:
         retry_max_attempts: int = 3,
         redis_cache: "RedisCache | None" = None,
         redis_cache_ttl_seconds: int = 86400,
-        fuzzy_threshold: int = 85,
+        db_pool: "asyncpg.Pool | None" = None,
     ):
         """
         Initialize the entity resolver.
@@ -71,7 +69,7 @@ class ExternalEntityResolver:
             retry_max_attempts: Maximum retry attempts for transient failures
             redis_cache: Optional Redis cache for distributed caching
             redis_cache_ttl_seconds: TTL for Redis cache entries (default 24 hours)
-            fuzzy_threshold: Minimum similarity score for fuzzy matching (0-100)
+            db_pool: Optional asyncpg connection pool for database lookups
         """
         self._api_endpoint = api_endpoint
         self._api_key = api_key
@@ -80,7 +78,7 @@ class ExternalEntityResolver:
         self._cache: dict[str, ResolvedEntity] = {}  # In-memory L1 cache
         self._redis_cache = redis_cache  # Optional L2 distributed cache
         self._redis_ttl = redis_cache_ttl_seconds
-        self._fuzzy_threshold = fuzzy_threshold
+        self._db_pool = db_pool  # Optional database pool for entity lookups
 
         # Initialize circuit breaker
         self._circuit_breaker = CircuitBreaker(
@@ -100,19 +98,6 @@ class ExternalEntityResolver:
                 OSError,
             ),
         )
-
-        # Load mappings from JSON
-        mappings_data = load_mappings()
-        self._common_mappings: dict[str, str] = {
-            name: data["ric"] for name, data in mappings_data.get("mappings", {}).items()
-        }
-        # Add aliases to common mappings
-        for name, data in mappings_data.get("mappings", {}).items():
-            for alias in data.get("aliases", []):
-                self._common_mappings[alias] = data["ric"]
-
-        self._ticker_mappings = mappings_data.get("tickers", {})
-        self._known_names = get_all_known_names()
 
         # Common words that should not be treated as companies
         self._ignore_words = {
@@ -226,45 +211,15 @@ class ExternalEntityResolver:
                 span.set_attribute("entity.source", "l2_cache")
                 return result
 
-        # Check ticker mappings
-        if normalized.upper() in self._ticker_mappings:
-            result = ResolvedEntity(
-                original=entity,
-                identifier=self._ticker_mappings[normalized.upper()],
-                entity_type="ticker",
-                confidence=0.99,
-            )
-            await self._cache_result(normalized, result)
-            span.set_attribute("entity.source", "ticker_mapping")
-            return result
+        # Try database lookup (entity_aliases table)
+        if self._db_pool:
+            db_result = await self._resolve_via_database(entity, normalized)
+            if db_result:
+                await self._cache_result(normalized, db_result)
+                span.set_attribute("entity.source", "database")
+                return db_result
 
-        # Check common mappings
-        if normalized in self._common_mappings:
-            result = ResolvedEntity(
-                original=entity,
-                identifier=self._common_mappings[normalized],
-                entity_type="company",
-                confidence=0.95,
-            )
-            await self._cache_result(normalized, result)
-            span.set_attribute("entity.source", "static_mapping")
-            return result
-
-        # Try fuzzy matching
-        fuzzy_result = self._fuzzy_match(normalized)
-        if fuzzy_result:
-            result = ResolvedEntity(
-                original=entity,
-                identifier=fuzzy_result["ric"],
-                entity_type="company",
-                confidence=fuzzy_result["score"] / 100,
-            )
-            await self._cache_result(normalized, result)
-            span.set_attribute("entity.source", "fuzzy_match")
-            span.set_attribute("entity.fuzzy_score", fuzzy_result["score"])
-            return result
-
-        # Try external API if configured
+        # Try external API (OpenFIGI)
         if self._api_endpoint or True:  # Fallback to OpenFIGI even if endpoint not set
             result = await self._resolve_via_api(entity)
             if result:
@@ -275,61 +230,6 @@ class ExternalEntityResolver:
         # No resolution found
         span.set_attribute("entity.source", "not_found")
         logger.debug(f"Could not resolve entity: {entity}")
-        return None
-
-    def _fuzzy_match(self, query: str) -> dict[str, Any] | None:
-        """
-        Fuzzy match against known company names.
-
-        Args:
-            query: Normalized query string
-
-        Returns:
-            Dict with 'ric' and 'score' if match found
-        """
-        if not self._known_names or len(query) < 3:
-            return None
-
-        # Use different scorers based on length
-        # For short strings, be more strict
-        scorer = fuzz.WRatio if len(query) >= 5 else fuzz.ratio
-
-        # Get multiple matches to find the best one
-        # (set iteration order is non-deterministic, so extractOne may return different results)
-        results = process.extract(
-            query,
-            self._known_names,
-            scorer=scorer,
-            score_cutoff=self._fuzzy_threshold,
-            limit=10,
-        )
-
-        if not results:
-            return None
-
-        # Filter by length heuristic and sort by score (desc), then length (asc)
-        # This prefers high-scoring short matches over high-scoring long matches
-        valid_matches = []
-        for matched_name, score, _ in results:
-            len_diff = abs(len(matched_name) - len(query))
-            max_len = max(len(query), len(matched_name))
-            # Relax length constraint for longer matches that contain query substring
-            if len_diff <= max_len * 0.7 or query in matched_name.lower():
-                valid_matches.append((matched_name, score))
-
-        if not valid_matches:
-            logger.debug(f"No valid fuzzy matches for '{query}' (all rejected by length heuristic)")
-            return None
-
-        # Sort by score descending, then by length ascending (prefer shorter matches)
-        valid_matches.sort(key=lambda x: (-x[1], len(x[0])))
-        matched_name, score = valid_matches[0]
-
-        ric = self._common_mappings.get(matched_name)
-        if ric:
-            logger.info(f"Fuzzy match: '{query}' -> '{matched_name}' (score={score}, ric={ric})")
-            return {"ric": ric, "score": score}
-
         return None
 
     async def _cache_result(self, normalized: str, result: ResolvedEntity) -> None:
@@ -351,6 +251,138 @@ class ExternalEntityResolver:
                 "alternatives": list(result.alternatives) if result.alternatives else [],
             }
             await self._redis_cache.set(cache_key, cache_data, ttl=self._redis_ttl)
+
+    async def _resolve_via_database(
+        self,
+        entity: str,
+        normalized: str,
+    ) -> ResolvedEntity | None:
+        """
+        Resolve entity using the database entity_aliases table.
+
+        Queries the entity_aliases table which contains ~3.7M aliases
+        mapping company names, tickers, and variations to RICs.
+
+        Args:
+            entity: Original entity string
+            normalized: Normalized (lowercase, suffix-stripped) entity
+
+        Returns:
+            ResolvedEntity if found in database
+        """
+        if not self._db_pool:
+            return None
+
+        try:
+            async with self._db_pool.acquire() as conn:
+                # Try exact match first (case-insensitive)
+                row = await conn.fetchrow(
+                    """
+                    SELECT e.primary_name, e.ticker, e.ric, e.entity_type,
+                           a.alias_type
+                    FROM entity_aliases a
+                    JOIN entities e ON a.entity_id = e.id
+                    WHERE a.alias ILIKE $1
+                    AND e.ric IS NOT NULL
+                    LIMIT 1
+                    """,
+                    normalized,
+                )
+
+                if not row:
+                    # Try with original entity (preserves case for tickers)
+                    row = await conn.fetchrow(
+                        """
+                        SELECT e.primary_name, e.ticker, e.ric, e.entity_type,
+                               a.alias_type
+                        FROM entity_aliases a
+                        JOIN entities e ON a.entity_id = e.id
+                        WHERE a.alias ILIKE $1
+                        AND e.ric IS NOT NULL
+                        LIMIT 1
+                        """,
+                        entity,
+                    )
+
+                if not row:
+                    # Fallback: query entities.primary_name directly
+                    # (for entities without aliases)
+                    row = await conn.fetchrow(
+                        """
+                        SELECT primary_name, ticker, ric, entity_type,
+                               'primary_name' as alias_type
+                        FROM entities
+                        WHERE primary_name ILIKE $1
+                        AND ric IS NOT NULL
+                        LIMIT 1
+                        """,
+                        entity,
+                    )
+
+                if not row:
+                    # Try ticker lookup (handles short queries like HP, IBM, 3M)
+                    row = await conn.fetchrow(
+                        """
+                        SELECT primary_name, ticker, ric, entity_type,
+                               'ticker_direct' as alias_type
+                        FROM entities
+                        WHERE ticker ILIKE $1
+                        AND ric IS NOT NULL
+                        LIMIT 1
+                        """,
+                        entity,
+                    )
+
+                if not row and len(entity) >= 4:
+                    # Fuzzy match using pg_trgm trigram similarity
+                    # Only for queries >= 4 chars to avoid false positives
+                    row = await conn.fetchrow(
+                        """
+                        SELECT primary_name, ticker, ric, entity_type,
+                               'fuzzy' as alias_type,
+                               similarity(primary_name, $1) as sim_score
+                        FROM entities
+                        WHERE ric IS NOT NULL
+                        AND similarity(primary_name, $1) > 0.3
+                        ORDER BY similarity(primary_name, $1) DESC
+                        LIMIT 1
+                        """,
+                        entity,
+                    )
+                    if row:
+                        logger.debug(
+                            f"Fuzzy match: '{entity}' -> '{row['primary_name']}' "
+                            f"(score={row['sim_score']:.2f})"
+                        )
+
+                if row:
+                    # Determine entity type and confidence based on alias type
+                    alias_type = row["alias_type"]
+                    if alias_type in ("ticker", "ticker_direct"):
+                        entity_type = "ticker"
+                        confidence = 0.99
+                    elif alias_type == "legal_name":
+                        entity_type = "company"
+                        confidence = 0.98
+                    elif alias_type == "fuzzy":
+                        entity_type = row["entity_type"] or "company"
+                        # Use similarity score as confidence for fuzzy matches
+                        confidence = row.get("sim_score", 0.7)
+                    else:
+                        entity_type = row["entity_type"] or "company"
+                        confidence = 0.95
+
+                    return ResolvedEntity(
+                        original=entity,
+                        identifier=row["ric"],
+                        entity_type=entity_type,
+                        confidence=confidence,
+                    )
+
+        except Exception as e:
+            logger.warning(f"Database lookup failed for '{entity}': {e}")
+
+        return None
 
     async def resolve_batch(
         self,
@@ -392,16 +424,7 @@ class ExternalEntityResolver:
         matches = re.findall(cap_pattern, query)
         entities.extend(matches)
 
-        # Pattern 2: Known company name patterns
-        for company in self._common_mappings.keys():
-            if company.lower() in query.lower():
-                # Find the actual casing in the query
-                pattern = re.compile(re.escape(company), re.IGNORECASE)
-                match = pattern.search(query)
-                if match:
-                    entities.append(match.group())
-
-        # Pattern 3: Ticker-like patterns (all caps 1-5 letters)
+        # Pattern 2: Ticker-like patterns (all caps 1-5 letters)
         ticker_pattern = r'\b([A-Z]{1,5})\b'
         ticker_matches = re.findall(ticker_pattern, query)
         # Only add if they look like real tickers (not common words)

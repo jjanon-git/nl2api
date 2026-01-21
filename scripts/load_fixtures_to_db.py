@@ -100,7 +100,10 @@ async def load_fixtures_to_db(
                 tool_calls_json = json.dumps(expected_tool_calls)
 
                 # Prepare other fields - using existing schema fields
-                expected_raw_data = tc.get("expected_response")
+                # Store metadata in expected_response for entity_resolution tests
+                # This allows the response generator to access input_entity directly
+                metadata = tc.get("metadata", {})
+                expected_raw_data = tc.get("expected_response") or metadata
                 expected_raw_data_json = (
                     json.dumps(expected_raw_data) if expected_raw_data else None
                 )

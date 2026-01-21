@@ -143,10 +143,20 @@ async def _batch_run_async(
             response_generator = simulate_correct_response
         elif mode == "resolver":
             # Use real EntityResolver for accuracy measurement
+            from src.common.storage.postgres.client import get_pool
             from src.nl2api.resolution.resolver import ExternalEntityResolver
-            resolver = ExternalEntityResolver()
+
+            # Get database pool for entity lookups (2.9M entities, 3.7M aliases)
+            try:
+                db_pool = await get_pool()
+                resolver = ExternalEntityResolver(db_pool=db_pool)
+                console.print("[green]Using EntityResolver with database (2.9M entities).[/green]\n")
+            except RuntimeError:
+                # Pool not initialized (e.g., using memory backend)
+                resolver = ExternalEntityResolver()
+                console.print("[yellow]Using EntityResolver without database (static mappings only).[/yellow]\n")
+
             response_generator = create_entity_resolver_generator(resolver)
-            console.print("[green]Using real EntityResolver for accuracy measurement.[/green]\n")
         elif mode == "orchestrator":
             # Use full NL2API orchestrator
             from src.nl2api.orchestrator import NL2APIOrchestrator
