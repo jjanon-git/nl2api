@@ -46,6 +46,14 @@ import httpx
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# Import ingestion telemetry (after path setup)
+from src.nl2api.ingestion.telemetry import (
+    trace_ingestion_operation,
+    record_ingestion_metric,
+    SpanAttributes,
+)
+from src.nl2api.ingestion.errors import DownloadError, LoadError
+
 
 def _load_env():
     """Load environment variables from .env file."""
@@ -184,13 +192,41 @@ async def fetch_sec_tickers(timeout: int = 30) -> dict:
 
     Returns:
         Dict mapping index to {cik_str, ticker, title}
+
+    Raises:
+        DownloadError: If fetch fails
     """
     logger.info("Fetching SEC company tickers...")
 
-    async with httpx.AsyncClient(timeout=timeout) as client:
-        response = await client.get(SEC_TICKERS_URL)
-        response.raise_for_status()
-        return response.json()
+    with trace_ingestion_operation(
+        "fetch_tickers",
+        {SpanAttributes.SOURCE: "sec_edgar", SpanAttributes.SOURCE_URL: SEC_TICKERS_URL},
+    ) as span:
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                response = await client.get(SEC_TICKERS_URL)
+                response.raise_for_status()
+                data = response.json()
+
+                if span:
+                    span.set_attribute(SpanAttributes.RECORDS_PROCESSED, len(data))
+
+                record_ingestion_metric("fetch_records_total", len(data), {"source": "sec_edgar", "type": "tickers"})
+                return data
+
+        except httpx.HTTPStatusError as e:
+            raise DownloadError(
+                f"Failed to fetch SEC tickers: HTTP {e.response.status_code}",
+                source="sec_edgar",
+                url=SEC_TICKERS_URL,
+                status_code=e.response.status_code,
+            ) from e
+        except httpx.RequestError as e:
+            raise DownloadError(
+                f"Failed to fetch SEC tickers: {e}",
+                source="sec_edgar",
+                url=SEC_TICKERS_URL,
+            ) from e
 
 
 async def fetch_sec_exchanges(timeout: int = 30) -> dict:
@@ -285,6 +321,9 @@ async def upsert_sec_entities(
 
     Returns:
         Stats dict
+
+    Raises:
+        LoadError: If upsert fails
     """
     stats = {
         "inserted": 0,
@@ -293,72 +332,89 @@ async def upsert_sec_entities(
         "skipped": 0,
     }
 
-    async with pool.acquire() as conn:
-        for i in range(0, len(entities), batch_size):
-            batch = entities[i:i + batch_size]
+    with trace_ingestion_operation(
+        "upsert_entities",
+        {
+            SpanAttributes.SOURCE: "sec_edgar",
+            SpanAttributes.DB_OPERATION: "upsert",
+            SpanAttributes.DB_TABLE: "entities",
+            SpanAttributes.RECORDS_PROCESSED: len(entities),
+        },
+    ) as span:
+        async with pool.acquire() as conn:
+            for i in range(0, len(entities), batch_size):
+                batch = entities[i:i + batch_size]
 
-            for entity in batch:
-                cik = entity["cik"]
-                ticker = entity["ticker"]
-                ric = entity["ric"]
+                for entity in batch:
+                    cik = entity["cik"]
+                    ticker = entity["ticker"]
+                    ric = entity["ric"]
 
-                # First, try to find existing entity by CIK
-                existing = await conn.fetchrow(
-                    "SELECT id, data_source FROM entities WHERE cik = $1",
-                    cik,
+                    # First, try to find existing entity by CIK
+                    existing = await conn.fetchrow(
+                        "SELECT id, data_source FROM entities WHERE cik = $1",
+                        cik,
+                    )
+
+                    if existing:
+                        # Update existing entity with SEC data
+                        await conn.execute(
+                            """
+                            UPDATE entities SET
+                                ticker = COALESCE($1, ticker),
+                                ric = COALESCE($2, ric),
+                                exchange = COALESCE($3, exchange),
+                                is_public = true,
+                                updated_at = NOW()
+                            WHERE cik = $4
+                            """,
+                            ticker or None,
+                            ric or None,
+                            entity.get("exchange"),
+                            cik,
+                        )
+                        stats["updated"] += 1
+                        if existing["data_source"] == "gleif":
+                            stats["matched_gleif"] += 1
+                    else:
+                        # Insert new entity (no ON CONFLICT needed - we already checked)
+                        entity_id = uuid.uuid4()
+                        await conn.execute(
+                            """
+                            INSERT INTO entities (
+                                id, cik, primary_name, ticker, ric, exchange,
+                                entity_type, entity_status, is_public,
+                                country_code, data_source, confidence_score
+                            ) VALUES (
+                                $1, $2, $3, $4, $5, $6,
+                                'company', 'active', true,
+                                'US', 'sec_edgar', 1.0
+                            )
+                            """,
+                            entity_id,
+                            cik,
+                            entity["primary_name"],
+                            ticker or None,
+                            ric or None,
+                            entity.get("exchange"),
+                        )
+                        stats["inserted"] += 1
+
+                logger.info(
+                    "Processed batch %d-%d: +%d new, ~%d updated",
+                    i,
+                    min(i + batch_size, len(entities)),
+                    stats["inserted"],
+                    stats["updated"],
                 )
 
-                if existing:
-                    # Update existing entity with SEC data
-                    await conn.execute(
-                        """
-                        UPDATE entities SET
-                            ticker = COALESCE($1, ticker),
-                            ric = COALESCE($2, ric),
-                            exchange = COALESCE($3, exchange),
-                            is_public = true,
-                            updated_at = NOW()
-                        WHERE cik = $4
-                        """,
-                        ticker or None,
-                        ric or None,
-                        entity.get("exchange"),
-                        cik,
-                    )
-                    stats["updated"] += 1
-                    if existing["data_source"] == "gleif":
-                        stats["matched_gleif"] += 1
-                else:
-                    # Insert new entity (no ON CONFLICT needed - we already checked)
-                    entity_id = uuid.uuid4()
-                    await conn.execute(
-                        """
-                        INSERT INTO entities (
-                            id, cik, primary_name, ticker, ric, exchange,
-                            entity_type, entity_status, is_public,
-                            country_code, data_source, confidence_score
-                        ) VALUES (
-                            $1, $2, $3, $4, $5, $6,
-                            'company', 'active', true,
-                            'US', 'sec_edgar', 1.0
-                        )
-                        """,
-                        entity_id,
-                        cik,
-                        entity["primary_name"],
-                        ticker or None,
-                        ric or None,
-                        entity.get("exchange"),
-                    )
-                    stats["inserted"] += 1
+        # Record final metrics
+        if span:
+            span.set_attribute(SpanAttributes.RECORDS_INSERTED, stats["inserted"])
+            span.set_attribute(SpanAttributes.RECORDS_UPDATED, stats["updated"])
 
-            logger.info(
-                "Processed batch %d-%d: +%d new, ~%d updated",
-                i,
-                min(i + batch_size, len(entities)),
-                stats["inserted"],
-                stats["updated"],
-            )
+        record_ingestion_metric("entities_inserted_total", stats["inserted"], {"source": "sec_edgar"})
+        record_ingestion_metric("entities_updated_total", stats["updated"], {"source": "sec_edgar"})
 
     return stats
 

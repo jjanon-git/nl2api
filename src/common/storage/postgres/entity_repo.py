@@ -667,35 +667,73 @@ class PostgresEntityRepository:
         Returns:
             List of matching entities
         """
+        sql, params = self._build_search_query(
+            query=query,
+            country_code=country_code,
+            exchange=exchange,
+            is_public=is_public,
+            limit=limit,
+        )
+        rows = await self.pool.fetch(sql, *params)
+        return [self._row_to_entity(row) for row in rows]
+
+    def _build_search_query(
+        self,
+        query: str,
+        country_code: str | None = None,
+        exchange: str | None = None,
+        is_public: bool | None = None,
+        limit: int = 20,
+    ) -> tuple[str, list[Any]]:
+        """
+        Build a parameterized search query with filters.
+
+        Uses a whitelist approach for conditions to prevent SQL injection.
+        All dynamic values are passed as parameters, never interpolated.
+
+        Returns:
+            Tuple of (query_string, params_list)
+        """
+        # Whitelist of allowed condition templates
+        CONDITION_TEMPLATES = {
+            "full_text": """(to_tsvector('english', primary_name) @@ plainto_tsquery('english', ${idx})
+             OR to_tsvector('english', COALESCE(display_name, '')) @@ plainto_tsquery('english', ${idx}))""",
+            "country_code": "country_code = ${idx}",
+            "exchange": "exchange = ${idx}",
+            "is_public": "is_public = ${idx}",
+        }
+
         conditions = ["entity_status = 'active'"]
         params: list[Any] = []
         param_idx = 1
 
-        # Full-text search condition
-        conditions.append(f"""
-            (to_tsvector('english', primary_name) @@ plainto_tsquery('english', ${param_idx})
-             OR to_tsvector('english', COALESCE(display_name, '')) @@ plainto_tsquery('english', ${param_idx}))
-        """)
+        # Full-text search condition (always included)
+        template = CONDITION_TEMPLATES["full_text"]
+        conditions.append(template.replace("${idx}", f"${param_idx}"))
         params.append(query)
         param_idx += 1
 
-        if country_code:
-            conditions.append(f"country_code = ${param_idx}")
+        if country_code is not None:
+            template = CONDITION_TEMPLATES["country_code"]
+            conditions.append(template.replace("${idx}", f"${param_idx}"))
             params.append(country_code.upper())
             param_idx += 1
 
-        if exchange:
-            conditions.append(f"exchange = ${param_idx}")
+        if exchange is not None:
+            template = CONDITION_TEMPLATES["exchange"]
+            conditions.append(template.replace("${idx}", f"${param_idx}"))
             params.append(exchange.upper())
             param_idx += 1
 
         if is_public is not None:
-            conditions.append(f"is_public = ${param_idx}")
+            template = CONDITION_TEMPLATES["is_public"]
+            conditions.append(template.replace("${idx}", f"${param_idx}"))
             params.append(is_public)
             param_idx += 1
 
         params.append(limit)
 
+        # Build final query with static structure
         sql = f"""
             SELECT * FROM entities
             WHERE {' AND '.join(conditions)}
@@ -705,8 +743,7 @@ class PostgresEntityRepository:
             LIMIT ${param_idx}
         """
 
-        rows = await self.pool.fetch(sql, *params)
-        return [self._row_to_entity(row) for row in rows]
+        return sql, params
 
     # =========================================================================
     # Bulk Import (COPY protocol)

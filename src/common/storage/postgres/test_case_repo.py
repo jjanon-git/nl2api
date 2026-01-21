@@ -149,35 +149,15 @@ class PostgresTestCaseRepository:
         offset: int = 0,
     ) -> list[TestCase]:
         """List test cases with optional filters."""
-        conditions = ["status = 'active'"]
-        params: list[Any] = []
-        param_idx = 1
-
-        if tags:
-            conditions.append(f"tags && ${param_idx}::text[]")
-            params.append(tags)
-            param_idx += 1
-
-        if complexity_min is not None:
-            conditions.append(f"complexity_level >= ${param_idx}")
-            params.append(complexity_min)
-            param_idx += 1
-
-        if complexity_max is not None:
-            conditions.append(f"complexity_level <= ${param_idx}")
-            params.append(complexity_max)
-            param_idx += 1
-
-        where_clause = " AND ".join(conditions)
-        params.extend([limit, offset])
-
-        query = f"""
-            SELECT * FROM test_cases
-            WHERE {where_clause}
-            ORDER BY created_at DESC
-            LIMIT ${param_idx} OFFSET ${param_idx + 1}
-        """
-
+        query, params = self._build_filter_query(
+            base_query="SELECT * FROM test_cases",
+            tags=tags,
+            complexity_min=complexity_min,
+            complexity_max=complexity_max,
+            order_by="ORDER BY created_at DESC",
+            limit=limit,
+            offset=offset,
+        )
         rows = await self.pool.fetch(query, *params)
         return [self._row_to_test_case(row) for row in rows]
 
@@ -227,30 +207,82 @@ class PostgresTestCaseRepository:
         complexity_max: int | None = None,
     ) -> int:
         """Count test cases matching the given filters."""
+        query, params = self._build_filter_query(
+            base_query="SELECT COUNT(*) FROM test_cases",
+            tags=tags,
+            complexity_min=complexity_min,
+            complexity_max=complexity_max,
+        )
+        result = await self.pool.fetchval(query, *params)
+        return result or 0
+
+    def _build_filter_query(
+        self,
+        base_query: str,
+        tags: list[str] | None = None,
+        complexity_min: int | None = None,
+        complexity_max: int | None = None,
+        order_by: str | None = None,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> tuple[str, list[Any]]:
+        """
+        Build a parameterized query with filters.
+
+        Uses a whitelist approach for conditions to prevent SQL injection.
+        All dynamic values are passed as parameters, never interpolated.
+
+        Returns:
+            Tuple of (query_string, params_list)
+        """
+        # Whitelist of allowed condition templates
+        # Each template uses a placeholder that will be replaced with the actual param index
+        CONDITION_TEMPLATES = {
+            "tags": "tags && ${idx}::text[]",
+            "complexity_min": "complexity_level >= ${idx}",
+            "complexity_max": "complexity_level <= ${idx}",
+        }
+
         conditions = ["status = 'active'"]
         params: list[Any] = []
         param_idx = 1
 
-        if tags:
-            conditions.append(f"tags && ${param_idx}::text[]")
+        # Build conditions using whitelist
+        if tags is not None:
+            template = CONDITION_TEMPLATES["tags"]
+            conditions.append(template.replace("${idx}", f"${param_idx}"))
             params.append(tags)
             param_idx += 1
 
         if complexity_min is not None:
-            conditions.append(f"complexity_level >= ${param_idx}")
+            template = CONDITION_TEMPLATES["complexity_min"]
+            conditions.append(template.replace("${idx}", f"${param_idx}"))
             params.append(complexity_min)
             param_idx += 1
 
         if complexity_max is not None:
-            conditions.append(f"complexity_level <= ${param_idx}")
+            template = CONDITION_TEMPLATES["complexity_max"]
+            conditions.append(template.replace("${idx}", f"${param_idx}"))
             params.append(complexity_max)
             param_idx += 1
 
-        where_clause = " AND ".join(conditions)
-        query = f"SELECT COUNT(*) FROM test_cases WHERE {where_clause}"
+        # Build query with static structure
+        query_parts = [base_query, "WHERE", " AND ".join(conditions)]
 
-        result = await self.pool.fetchval(query, *params)
-        return result or 0
+        if order_by:
+            query_parts.append(order_by)
+
+        if limit is not None:
+            query_parts.append(f"LIMIT ${param_idx}")
+            params.append(limit)
+            param_idx += 1
+
+        if offset is not None:
+            query_parts.append(f"OFFSET ${param_idx}")
+            params.append(offset)
+            param_idx += 1
+
+        return " ".join(query_parts), params
 
     def _row_to_test_case(self, row: asyncpg.Record) -> TestCase:
         """Convert database row to TestCase model."""

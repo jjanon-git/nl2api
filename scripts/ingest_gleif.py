@@ -54,6 +54,14 @@ import httpx
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# Import ingestion telemetry (after path setup)
+from src.nl2api.ingestion.telemetry import (
+    trace_ingestion_operation,
+    record_ingestion_metric,
+    SpanAttributes,
+)
+from src.nl2api.ingestion.errors import DownloadError, LoadError
+
 
 def _load_env():
     """Load environment variables from .env file."""
@@ -237,32 +245,59 @@ async def download_file_streaming(
 
     Returns:
         Number of bytes downloaded
+
+    Raises:
+        DownloadError: If download fails
     """
     logger.info("%s from %s", description, url)
 
-    async with httpx.AsyncClient(timeout=httpx.Timeout(timeout)) as client:
-        async with client.stream("GET", url, follow_redirects=True) as response:
-            response.raise_for_status()
-            total_size = int(response.headers.get("content-length", 0))
-            downloaded = 0
+    with trace_ingestion_operation(
+        "download_file",
+        {SpanAttributes.SOURCE: "gleif", SpanAttributes.SOURCE_URL: url},
+    ) as span:
+        try:
+            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout)) as client:
+                async with client.stream("GET", url, follow_redirects=True) as response:
+                    response.raise_for_status()
+                    total_size = int(response.headers.get("content-length", 0))
+                    downloaded = 0
 
-            with open(output_path, "wb") as f:
-                async for chunk in response.aiter_bytes(chunk_size=chunk_size):
-                    f.write(chunk)
-                    downloaded += len(chunk)
+                    with open(output_path, "wb") as f:
+                        async for chunk in response.aiter_bytes(chunk_size=chunk_size):
+                            f.write(chunk)
+                            downloaded += len(chunk)
 
-                    # Log progress every 50MB
-                    if total_size and downloaded % (50 * 1024 * 1024) < chunk_size:
-                        percent = downloaded / total_size * 100
-                        logger.info(
-                            "Download progress: %.1f%% (%d MB / %d MB)",
-                            percent,
-                            downloaded // (1024 * 1024),
-                            total_size // (1024 * 1024),
-                        )
+                            # Log progress every 50MB
+                            if total_size and downloaded % (50 * 1024 * 1024) < chunk_size:
+                                percent = downloaded / total_size * 100
+                                logger.info(
+                                    "Download progress: %.1f%% (%d MB / %d MB)",
+                                    percent,
+                                    downloaded // (1024 * 1024),
+                                    total_size // (1024 * 1024),
+                                )
 
-    logger.info("Download complete: %d bytes", downloaded)
-    return downloaded
+            if span:
+                span.set_attribute(SpanAttributes.FILE_SIZE_BYTES, downloaded)
+                span.set_attribute(SpanAttributes.FILE_PATH, str(output_path))
+
+            logger.info("Download complete: %d bytes", downloaded)
+            record_ingestion_metric("download_bytes_total", downloaded, {"source": "gleif"})
+            return downloaded
+
+        except httpx.HTTPStatusError as e:
+            raise DownloadError(
+                f"HTTP error downloading {url}: {e.response.status_code}",
+                source="gleif",
+                url=url,
+                status_code=e.response.status_code,
+            ) from e
+        except httpx.RequestError as e:
+            raise DownloadError(
+                f"Request error downloading {url}: {e}",
+                source="gleif",
+                url=url,
+            ) from e
 
 
 def parse_gleif_csv_streaming(
@@ -382,6 +417,9 @@ async def bulk_load_entities(
 ) -> int:
     """
     Bulk load using PostgreSQL COPY protocol (10-100x faster than INSERT).
+
+    Raises:
+        LoadError: If bulk load fails
     """
     columns = [
         "id", "lei", "cik", "permid", "figi",
@@ -396,50 +434,71 @@ async def bulk_load_entities(
 
     total_loaded = 0
     batch = []
+    batch_number = 0
 
-    async with pool.acquire() as conn:
-        for record in records:
-            batch.append(record)
+    with trace_ingestion_operation(
+        "bulk_load",
+        {
+            SpanAttributes.SOURCE: "gleif",
+            SpanAttributes.DB_OPERATION: "copy",
+            SpanAttributes.DB_TABLE: "entities",
+            SpanAttributes.DB_BATCH_SIZE: batch_size,
+        },
+    ) as span:
+        async with pool.acquire() as conn:
+            for record in records:
+                batch.append(record)
 
-            if len(batch) >= batch_size:
-                try:
-                    result = await conn.copy_records_to_table(
-                        "entities",
-                        records=batch,
-                        columns=columns,
-                    )
-                    loaded = int(result.split()[-1])
-                    total_loaded += loaded
-
-                    if progress:
-                        progress.update(loaded)
-
-                    if checkpoint and checkpoint_manager:
-                        checkpoint.update_progress(
-                            offset=total_loaded,
-                            imported=loaded,
-                            last_entity_id=str(batch[-1][0]),
+                if len(batch) >= batch_size:
+                    batch_number += 1
+                    try:
+                        result = await conn.copy_records_to_table(
+                            "entities",
+                            records=batch,
+                            columns=columns,
                         )
-                        checkpoint_manager.save(checkpoint)
+                        loaded = int(result.split()[-1])
+                        total_loaded += loaded
 
-                    logger.info("Batch loaded: %d (total: %d)", loaded, total_loaded)
-                except Exception as e:
-                    logger.error("Batch load failed: %s", e)
-                    raise
+                        if progress:
+                            progress.update(loaded)
 
-                batch = []
+                        if checkpoint and checkpoint_manager:
+                            checkpoint.update_progress(
+                                offset=total_loaded,
+                                imported=loaded,
+                                last_entity_id=str(batch[-1][0]),
+                            )
+                            checkpoint_manager.save(checkpoint)
 
-        # Load remaining records
-        if batch:
-            result = await conn.copy_records_to_table(
-                "entities",
-                records=batch,
-                columns=columns,
-            )
-            loaded = int(result.split()[-1])
-            total_loaded += loaded
-            if progress:
-                progress.update(loaded)
+                        logger.info("Batch loaded: %d (total: %d)", loaded, total_loaded)
+                    except Exception as e:
+                        logger.error("Batch load failed: %s", e)
+                        raise LoadError(
+                            f"Bulk load failed at batch {batch_number}: {e}",
+                            source="gleif",
+                            batch_number=batch_number,
+                            rows_affected=len(batch),
+                        ) from e
+
+                    batch = []
+
+            # Load remaining records
+            if batch:
+                result = await conn.copy_records_to_table(
+                    "entities",
+                    records=batch,
+                    columns=columns,
+                )
+                loaded = int(result.split()[-1])
+                total_loaded += loaded
+                if progress:
+                    progress.update(loaded)
+
+        if span:
+            span.set_attribute(SpanAttributes.RECORDS_INSERTED, total_loaded)
+
+        record_ingestion_metric("entities_loaded_total", total_loaded, {"source": "gleif"})
 
     return total_loaded
 

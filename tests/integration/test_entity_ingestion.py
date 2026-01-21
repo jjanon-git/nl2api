@@ -276,48 +276,68 @@ class TestIngestionDBOperations:
 
         from scripts.ingest_sec_edgar import upsert_sec_entities
 
+        # Use unique CIKs that won't conflict with real data
+        test_ciks = ["9999999901", "9999999902"]
+
+        # Clean up any existing test entities with these CIKs
+        async with db_pool.acquire() as conn:
+            await conn.execute(
+                "DELETE FROM entity_aliases WHERE entity_id IN (SELECT id FROM entities WHERE cik = ANY($1::text[]))",
+                test_ciks,
+            )
+            await conn.execute("DELETE FROM entities WHERE cik = ANY($1::text[])", test_ciks)
+
         entities = [
             {
-                "cik": "9999990001",
+                "cik": test_ciks[0],
                 "ticker": "TST1",
                 "primary_name": "Test SEC Company 1",
                 "ric": "TST1.O",
                 "exchange": "NASDAQ",
                 "is_public": True,
                 "country_code": "US",
-                "data_source": "test_sec",
+                "data_source": "sec_edgar",
             },
             {
-                "cik": "9999990002",
+                "cik": test_ciks[1],
                 "ticker": "TST2",
                 "primary_name": "Test SEC Company 2",
                 "ric": "TST2.N",
                 "exchange": "NYSE",
                 "is_public": True,
                 "country_code": "US",
-                "data_source": "test_sec",
+                "data_source": "sec_edgar",
             },
         ]
 
-        # First upsert - should insert
-        stats = await upsert_sec_entities(db_pool, entities, batch_size=10)
-        assert stats["inserted"] == 2
-        assert stats["updated"] == 0
+        try:
+            # First upsert - should insert
+            stats = await upsert_sec_entities(db_pool, entities, batch_size=10)
+            assert stats["inserted"] == 2
+            assert stats["updated"] == 0
 
-        # Second upsert - should update
-        stats = await upsert_sec_entities(db_pool, entities, batch_size=10)
-        assert stats["updated"] == 2
-        assert stats["inserted"] == 0
+            # Second upsert - should update
+            stats = await upsert_sec_entities(db_pool, entities, batch_size=10)
+            assert stats["updated"] == 2
+            assert stats["inserted"] == 0
 
-        # Verify in database
-        async with db_pool.acquire() as conn:
-            entity = await conn.fetchrow(
-                "SELECT * FROM entities WHERE cik = '9999990001'"
-            )
-            assert entity is not None
-            assert entity["ticker"] == "TST1"
-            assert entity["ric"] == "TST1.O"
-            assert entity["is_public"] is True
+            # Verify in database
+            async with db_pool.acquire() as conn:
+                entity = await conn.fetchrow(
+                    "SELECT * FROM entities WHERE cik = $1", test_ciks[0]
+                )
+                assert entity is not None
+                assert entity["ticker"] == "TST1"
+                assert entity["ric"] == "TST1.O"
+                assert entity["is_public"] is True
+        finally:
+            # Clean up
+            async with db_pool.acquire() as conn:
+                await conn.execute(
+                    "DELETE FROM entity_aliases WHERE entity_id IN (SELECT id FROM entities WHERE cik = ANY($1::text[]))",
+                    test_ciks,
+                )
+                await conn.execute("DELETE FROM entities WHERE cik = ANY($1::text[])", test_ciks)
 
     @pytest.mark.asyncio
     async def test_alias_generation_for_loaded_entities(

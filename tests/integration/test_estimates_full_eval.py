@@ -149,8 +149,8 @@ def load_estimates_test_cases() -> list[dict]:
                     data = json.load(f)
                     if isinstance(data, dict) and "estimates" in data.get("metadata", {}).get("tags", []):
                         all_cases.append(data)
-                except:
-                    pass
+                except (json.JSONDecodeError, KeyError, TypeError):
+                    pass  # Skip malformed or unexpected JSON files
 
     return all_cases
 

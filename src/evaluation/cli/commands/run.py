@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -31,7 +32,10 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
+
 from src.evaluation.core.evaluators import WaterfallEvaluator
+
+logger = logging.getLogger(__name__)
 
 console = Console()
 
@@ -184,8 +188,8 @@ async def _run_async(
         # Cleanup storage connections
         try:
             await close_repositories()
-        except Exception:
-            pass  # Ignore cleanup errors
+        except Exception as e:
+            logger.warning(f"Error during cleanup: {e}")
 
 
 def _parse_test_case(data: dict[str, Any]) -> TestCase:

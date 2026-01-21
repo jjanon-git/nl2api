@@ -25,7 +25,10 @@ from CONTRACTS import (
     ToolCall,
 )
 
+from src.common.telemetry import get_tracer
 from src.evaluation.core.ast_comparator import ASTComparator, ComparisonResult
+
+tracer = get_tracer(__name__)
 
 
 class SyntaxEvaluator:
@@ -237,49 +240,73 @@ class WaterfallEvaluator(Evaluator):
         3. Execution (CRITICAL) - Skipped in Sprint 1
         4. Semantics (LOW) - Skipped in Sprint 1
         """
-        start_time = time.perf_counter()
+        with tracer.start_as_current_span("evaluator.evaluate") as span:
+            span.set_attribute("test_case.id", test_case.id)
+            span.set_attribute("test_case.category", test_case.metadata.source or "unknown")
+            span.set_attribute("worker_id", worker_id)
 
-        # Stage 1: Syntax
-        syntax_result, parsed_calls = self.evaluate_syntax(system_response.raw_output)
+            start_time = time.perf_counter()
 
-        if not syntax_result.passed:
-            # GATE failure - halt pipeline
+            # Stage 1: Syntax
+            with tracer.start_as_current_span("evaluator.syntax") as syntax_span:
+                syntax_result, parsed_calls = self.evaluate_syntax(system_response.raw_output)
+                syntax_span.set_attribute("result.passed", syntax_result.passed)
+                syntax_span.set_attribute("result.score", syntax_result.score)
+                syntax_span.set_attribute("result.duration_ms", syntax_result.duration_ms)
+
+            if not syntax_result.passed:
+                # GATE failure - halt pipeline
+                total_latency_ms = int((time.perf_counter() - start_time) * 1000)
+                span.set_attribute("result.passed", False)
+                span.set_attribute("result.gate_failed", True)
+                span.set_attribute("result.total_latency_ms", total_latency_ms)
+                span.add_event("gate_failure", {"stage": "syntax"})
+                return Scorecard(
+                    test_case_id=test_case.id,
+                    syntax_result=syntax_result,
+                    logic_result=None,
+                    execution_result=None,
+                    semantics_result=None,
+                    generated_tool_calls=None,
+                    generated_nl_response=system_response.nl_response,
+                    worker_id=worker_id,
+                    total_latency_ms=total_latency_ms,
+                )
+
+            # Stage 2: Logic
+            with tracer.start_as_current_span("evaluator.logic") as logic_span:
+                logic_result = self.evaluate_logic(
+                    test_case.expected_tool_calls,
+                    parsed_calls or (),
+                )
+                logic_span.set_attribute("result.passed", logic_result.passed)
+                logic_span.set_attribute("result.score", logic_result.score)
+                logic_span.set_attribute("result.duration_ms", logic_result.duration_ms)
+
+            # Stage 3 & 4: Skipped in Sprint 1
+            execution_result = None
+            semantics_result = None
+
             total_latency_ms = int((time.perf_counter() - start_time) * 1000)
+
+            # Record final results
+            overall_passed = syntax_result.passed and logic_result.passed
+            span.set_attribute("result.passed", overall_passed)
+            span.set_attribute("result.syntax_passed", syntax_result.passed)
+            span.set_attribute("result.logic_passed", logic_result.passed)
+            span.set_attribute("result.total_latency_ms", total_latency_ms)
+
             return Scorecard(
                 test_case_id=test_case.id,
                 syntax_result=syntax_result,
-                logic_result=None,
-                execution_result=None,
-                semantics_result=None,
-                generated_tool_calls=None,
+                logic_result=logic_result,
+                execution_result=execution_result,
+                semantics_result=semantics_result,
+                generated_tool_calls=parsed_calls,
                 generated_nl_response=system_response.nl_response,
                 worker_id=worker_id,
                 total_latency_ms=total_latency_ms,
             )
-
-        # Stage 2: Logic
-        logic_result = self.evaluate_logic(
-            test_case.expected_tool_calls,
-            parsed_calls or (),
-        )
-
-        # Stage 3 & 4: Skipped in Sprint 1
-        execution_result = None
-        semantics_result = None
-
-        total_latency_ms = int((time.perf_counter() - start_time) * 1000)
-
-        return Scorecard(
-            test_case_id=test_case.id,
-            syntax_result=syntax_result,
-            logic_result=logic_result,
-            execution_result=execution_result,
-            semantics_result=semantics_result,
-            generated_tool_calls=parsed_calls,
-            generated_nl_response=system_response.nl_response,
-            worker_id=worker_id,
-            total_latency_ms=total_latency_ms,
-        )
 
     def evaluate_syntax(self, raw_output: str) -> tuple[StageResult, tuple[ToolCall, ...] | None]:
         """Stage 1: Validate JSON structure and schema."""

@@ -262,7 +262,17 @@ class IngestionErrorHandler:
         return False
 
 
-class IngestionAbortError(Exception):
-    """Raised when ingestion must abort due to too many errors."""
+# Re-export from errors module for backwards compatibility
+from src.nl2api.ingestion.errors import IngestionAbortError
 
-    pass
+__all__ = [
+    "ValidationResult",
+    "EntityValidator",
+    "IngestionErrorHandler",
+    "IngestionAbortError",
+    "VALID_COUNTRY_CODES",
+    "LEI_PATTERN",
+    "CIK_PATTERN",
+    "FIGI_PATTERN",
+    "TICKER_PATTERN",
+]

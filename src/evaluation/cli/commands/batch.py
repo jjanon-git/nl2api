@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from pathlib import Path
 from typing import Annotated
 
@@ -28,6 +29,8 @@ from rich.table import Table
 
 from CONTRACTS import TaskStatus
 from src.evaluation.cli.commands.api_batch import api_app
+
+logger = logging.getLogger(__name__)
 
 console = Console()
 
@@ -142,8 +145,8 @@ async def _batch_run_async(
     finally:
         try:
             await close_repositories()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during cleanup: {e}")
 
 
 @batch_app.command("status")
@@ -217,8 +220,8 @@ async def _batch_status_async(batch_id: str) -> None:
     finally:
         try:
             await close_repositories()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during cleanup: {e}")
 
 
 @batch_app.command("results")
@@ -360,8 +363,8 @@ async def _batch_results_async(
     finally:
         try:
             await close_repositories()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during cleanup: {e}")
 
 
 @batch_app.command("list")
@@ -434,5 +437,5 @@ async def _batch_list_async(limit: int) -> None:
     finally:
         try:
             await close_repositories()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Error during cleanup: {e}")

@@ -6,13 +6,13 @@ Abstract base class providing common functionality for domain agents.
 
 from __future__ import annotations
 
-import json
 import logging
 import warnings
 from abc import ABC, abstractmethod
 from typing import Any
 
 from CONTRACTS import ToolCall
+from src.common.telemetry import get_tracer
 from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import (
     LLMMessage,
@@ -23,6 +23,7 @@ from src.nl2api.llm.protocols import (
 from src.nl2api.rag.protocols import RAGRetriever
 
 logger = logging.getLogger(__name__)
+tracer = get_tracer(__name__)
 
 
 class BaseDomainAgent(ABC):
@@ -103,45 +104,62 @@ class BaseDomainAgent(ABC):
         Returns:
             AgentResult with tool calls or clarification
         """
-        # Build the prompt
-        messages = self._build_messages(context)
-        tools = self.get_tools()
+        with tracer.start_as_current_span("agent.process") as span:
+            span.set_attribute("agent.name", self.domain_name)
+            span.set_attribute("agent.query_length", len(context.query))
+            span.set_attribute("agent.has_conversation_history", bool(context.conversation_history))
+            span.set_attribute("agent.resolved_entities_count", len(context.resolved_entities) if context.resolved_entities else 0)
 
-        # Call LLM
-        try:
-            response = await self._llm.complete_with_retry(
-                messages=messages,
-                tools=tools,
-                temperature=0.0,
-            )
-        except Exception as e:
-            logger.error(f"LLM call failed: {e}")
-            return AgentResult(
-                needs_clarification=True,
-                clarification_questions=("Sorry, I encountered an error processing your request. Please try again.",),
-                domain=self.domain_name,
-            )
+            # Build the prompt
+            messages = self._build_messages(context)
+            tools = self.get_tools()
+            span.set_attribute("agent.tools_count", len(tools))
 
-        # Parse response
-        if response.has_tool_calls:
-            tool_calls = tuple(
-                ToolCall(
-                    tool_name=tc.name,
-                    arguments=tc.arguments,
+            # Call LLM
+            try:
+                response = await self._llm.complete_with_retry(
+                    messages=messages,
+                    tools=tools,
+                    temperature=0.0,
                 )
-                for tc in response.tool_calls
-            )
-            return AgentResult(
-                tool_calls=tool_calls,
-                confidence=0.9,  # High confidence when tool calls generated
-                reasoning=response.content,
-                domain=self.domain_name,
-                raw_llm_response=response.content,
-                tokens_used=response.usage.get("total_tokens", 0),
-            )
-        else:
-            # No tool calls - might need clarification
-            return self._parse_text_response(response.content)
+            except Exception as e:
+                logger.error(f"LLM call failed: {e}")
+                span.set_attribute("agent.error", str(e))
+                span.set_attribute("agent.result", "error")
+                return AgentResult(
+                    needs_clarification=True,
+                    clarification_questions=("Sorry, I encountered an error processing your request. Please try again.",),
+                    domain=self.domain_name,
+                )
+
+            # Parse response
+            if response.has_tool_calls:
+                tool_calls = tuple(
+                    ToolCall(
+                        tool_name=tc.name,
+                        arguments=tc.arguments,
+                    )
+                    for tc in response.tool_calls
+                )
+                span.set_attribute("agent.tool_calls_count", len(tool_calls))
+                span.set_attribute("agent.confidence", 0.9)
+                span.set_attribute("agent.result", "tool_calls")
+                span.set_attribute("agent.tokens_used", response.usage.get("total_tokens", 0))
+                return AgentResult(
+                    tool_calls=tool_calls,
+                    confidence=0.9,  # High confidence when tool calls generated
+                    reasoning=response.content,
+                    domain=self.domain_name,
+                    raw_llm_response=response.content,
+                    tokens_used=response.usage.get("total_tokens", 0),
+                )
+            else:
+                # No tool calls - might need clarification
+                result = self._parse_text_response(response.content)
+                span.set_attribute("agent.confidence", result.confidence)
+                span.set_attribute("agent.needs_clarification", result.needs_clarification)
+                span.set_attribute("agent.result", "clarification" if result.needs_clarification else "text")
+                return result
 
     def _build_messages(self, context: AgentContext) -> list[LLMMessage]:
         """Build the message list for the LLM."""
