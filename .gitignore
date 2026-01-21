@@ -61,6 +61,9 @@ Thumbs.db
 
 # Data (local test data)
 data/
+# But track company mappings
+!src/nl2api/resolution/data/
+!src/nl2api/resolution/data/company_mappings.json
 
 # Evaluation results
 routing_eval_*.json

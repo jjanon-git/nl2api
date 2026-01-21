@@ -1,0 +1,841 @@
+{
+  "version": "1.0.0",
+  "updated": "2026-01-20",
+  "company_count": 109,
+  "mappings": {
+    "apple": {
+      "ric": "AAPL.O",
+      "aliases": [
+        "apple inc",
+        "apple computer",
+        "aapl"
+      ]
+    },
+    "microsoft": {
+      "ric": "MSFT.O",
+      "aliases": [
+        "microsoft corp",
+        "msft"
+      ]
+    },
+    "alphabet": {
+      "ric": "GOOGL.O",
+      "aliases": [
+        "google",
+        "goog",
+        "googl"
+      ]
+    },
+    "amazon": {
+      "ric": "AMZN.O",
+      "aliases": [
+        "amazon.com",
+        "amzn"
+      ]
+    },
+    "meta": {
+      "ric": "META.O",
+      "aliases": [
+        "facebook",
+        "meta platforms",
+        "fb",
+        "meta"
+      ]
+    },
+    "nvidia": {
+      "ric": "NVDA.O",
+      "aliases": [
+        "nvidia corp",
+        "nvda"
+      ]
+    },
+    "tesla": {
+      "ric": "TSLA.O",
+      "aliases": [
+        "tesla motors",
+        "tsla"
+      ]
+    },
+    "broadcom": {
+      "ric": "AVGO.O",
+      "aliases": [
+        "avgo"
+      ]
+    },
+    "oracle": {
+      "ric": "ORCL.N",
+      "aliases": [
+        "oracle corp",
+        "orcl"
+      ]
+    },
+    "salesforce": {
+      "ric": "CRM.N",
+      "aliases": [
+        "salesforce.com",
+        "crm"
+      ]
+    },
+    "adobe": {
+      "ric": "ADBE.O",
+      "aliases": [
+        "adobe systems",
+        "adbe"
+      ]
+    },
+    "cisco": {
+      "ric": "CSCO.O",
+      "aliases": [
+        "cisco systems",
+        "csco"
+      ]
+    },
+    "intel": {
+      "ric": "INTC.O",
+      "aliases": [
+        "intel corp",
+        "intc"
+      ]
+    },
+    "amd": {
+      "ric": "AMD.O",
+      "aliases": [
+        "advanced micro devices",
+        "amd"
+      ]
+    },
+    "ibm": {
+      "ric": "IBM.N",
+      "aliases": [
+        "international business machines",
+        "ibm"
+      ]
+    },
+    "qualcomm": {
+      "ric": "QCOM.O",
+      "aliases": [
+        "qcom"
+      ]
+    },
+    "texas instruments": {
+      "ric": "TXN.O",
+      "aliases": [
+        "ti",
+        "txn"
+      ]
+    },
+    "applied materials": {
+      "ric": "AMAT.O",
+      "aliases": [
+        "amat"
+      ]
+    },
+    "intuit": {
+      "ric": "INTU.O",
+      "aliases": [
+        "intu"
+      ]
+    },
+    "servicenow": {
+      "ric": "NOW.N",
+      "aliases": [
+        "now"
+      ]
+    },
+    "jpmorgan": {
+      "ric": "JPM.N",
+      "aliases": [
+        "jp morgan",
+        "jpmorgan chase",
+        "jpm",
+        "chase"
+      ]
+    },
+    "bank of america": {
+      "ric": "BAC.N",
+      "aliases": [
+        "bofa",
+        "boa",
+        "bac"
+      ]
+    },
+    "wells fargo": {
+      "ric": "WFC.N",
+      "aliases": [
+        "wfc"
+      ]
+    },
+    "goldman sachs": {
+      "ric": "GS.N",
+      "aliases": [
+        "goldman",
+        "gs"
+      ]
+    },
+    "morgan stanley": {
+      "ric": "MS.N",
+      "aliases": [
+        "ms"
+      ]
+    },
+    "citigroup": {
+      "ric": "C.N",
+      "aliases": [
+        "citi",
+        "citibank",
+        "c"
+      ]
+    },
+    "blackrock": {
+      "ric": "BLK.N",
+      "aliases": [
+        "blk"
+      ]
+    },
+    "charles schwab": {
+      "ric": "SCHW.N",
+      "aliases": [
+        "schwab",
+        "schw"
+      ]
+    },
+    "american express": {
+      "ric": "AXP.N",
+      "aliases": [
+        "amex",
+        "axp"
+      ]
+    },
+    "visa": {
+      "ric": "V.N",
+      "aliases": [
+        "v"
+      ]
+    },
+    "mastercard": {
+      "ric": "MA.N",
+      "aliases": [
+        "ma"
+      ]
+    },
+    "paypal": {
+      "ric": "PYPL.O",
+      "aliases": [
+        "pypl"
+      ]
+    },
+    "s&p global": {
+      "ric": "SPGI.N",
+      "aliases": [
+        "s&p",
+        "standard and poors",
+        "spgi"
+      ]
+    },
+    "moody's": {
+      "ric": "MCO.N",
+      "aliases": [
+        "moodys",
+        "mco"
+      ]
+    },
+    "cme group": {
+      "ric": "CME.O",
+      "aliases": [
+        "cme"
+      ]
+    },
+    "intercontinental exchange": {
+      "ric": "ICE.N",
+      "aliases": [
+        "ice"
+      ]
+    },
+    "nasdaq": {
+      "ric": "NDAQ.O",
+      "aliases": [
+        "ndaq"
+      ]
+    },
+    "unitedhealth": {
+      "ric": "UNH.N",
+      "aliases": [
+        "unitedhealth group",
+        "united health",
+        "unh"
+      ]
+    },
+    "johnson & johnson": {
+      "ric": "JNJ.N",
+      "aliases": [
+        "j&j",
+        "jnj"
+      ]
+    },
+    "eli lilly": {
+      "ric": "LLY.N",
+      "aliases": [
+        "lilly",
+        "lly"
+      ]
+    },
+    "pfizer": {
+      "ric": "PFE.N",
+      "aliases": [
+        "pfe"
+      ]
+    },
+    "abbvie": {
+      "ric": "ABBV.N",
+      "aliases": [
+        "abbv"
+      ]
+    },
+    "merck": {
+      "ric": "MRK.N",
+      "aliases": [
+        "merck & co",
+        "mrk"
+      ]
+    },
+    "thermo fisher": {
+      "ric": "TMO.N",
+      "aliases": [
+        "thermo fisher scientific",
+        "tmo"
+      ]
+    },
+    "abbott": {
+      "ric": "ABT.N",
+      "aliases": [
+        "abbott laboratories",
+        "abt"
+      ]
+    },
+    "danaher": {
+      "ric": "DHR.N",
+      "aliases": [
+        "dhr"
+      ]
+    },
+    "amgen": {
+      "ric": "AMGN.O",
+      "aliases": [
+        "amgn"
+      ]
+    },
+    "gilead": {
+      "ric": "GILD.O",
+      "aliases": [
+        "gilead sciences",
+        "gild"
+      ]
+    },
+    "regeneron": {
+      "ric": "REGN.O",
+      "aliases": [
+        "regn"
+      ]
+    },
+    "vertex": {
+      "ric": "VRTX.O",
+      "aliases": [
+        "vertex pharmaceuticals",
+        "vrtx"
+      ]
+    },
+    "moderna": {
+      "ric": "MRNA.O",
+      "aliases": [
+        "mrna"
+      ]
+    },
+    "intuitive surgical": {
+      "ric": "ISRG.O",
+      "aliases": [
+        "isrg"
+      ]
+    },
+    "boston scientific": {
+      "ric": "BSX.N",
+      "aliases": [
+        "bsx"
+      ]
+    },
+    "medtronic": {
+      "ric": "MDT.N",
+      "aliases": [
+        "mdt"
+      ]
+    },
+    "stryker": {
+      "ric": "SYK.N",
+      "aliases": [
+        "syk"
+      ]
+    },
+    "cigna": {
+      "ric": "CI.N",
+      "aliases": [
+        "ci"
+      ]
+    },
+    "cvs health": {
+      "ric": "CVS.N",
+      "aliases": [
+        "cvs"
+      ]
+    },
+    "walmart": {
+      "ric": "WMT.N",
+      "aliases": [
+        "wal-mart",
+        "wmt"
+      ]
+    },
+    "costco": {
+      "ric": "COST.O",
+      "aliases": [
+        "cost"
+      ]
+    },
+    "home depot": {
+      "ric": "HD.N",
+      "aliases": [
+        "hd"
+      ]
+    },
+    "procter & gamble": {
+      "ric": "PG.N",
+      "aliases": [
+        "p&g",
+        "procter and gamble",
+        "pg"
+      ]
+    },
+    "coca-cola": {
+      "ric": "KO.N",
+      "aliases": [
+        "coke",
+        "ko"
+      ]
+    },
+    "pepsico": {
+      "ric": "PEP.O",
+      "aliases": [
+        "pepsi",
+        "pep"
+      ]
+    },
+    "nike": {
+      "ric": "NKE.N",
+      "aliases": [
+        "nke"
+      ]
+    },
+    "mcdonald's": {
+      "ric": "MCD.N",
+      "aliases": [
+        "mcdonalds",
+        "mcd"
+      ]
+    },
+    "starbucks": {
+      "ric": "SBUX.O",
+      "aliases": [
+        "sbux"
+      ]
+    },
+    "disney": {
+      "ric": "DIS.N",
+      "aliases": [
+        "walt disney",
+        "dis"
+      ]
+    },
+    "netflix": {
+      "ric": "NFLX.O",
+      "aliases": [
+        "nflx"
+      ]
+    },
+    "booking holdings": {
+      "ric": "BKNG.O",
+      "aliases": [
+        "booking.com",
+        "priceline",
+        "bkng"
+      ]
+    },
+    "lowe's": {
+      "ric": "LOW.N",
+      "aliases": [
+        "lowes",
+        "low"
+      ]
+    },
+    "target": {
+      "ric": "TGT.N",
+      "aliases": [
+        "tgt"
+      ]
+    },
+    "boeing": {
+      "ric": "BA.N",
+      "aliases": [
+        "ba"
+      ]
+    },
+    "caterpillar": {
+      "ric": "CAT.N",
+      "aliases": [
+        "cat"
+      ]
+    },
+    "general electric": {
+      "ric": "GE.N",
+      "aliases": [
+        "ge"
+      ]
+    },
+    "honeywell": {
+      "ric": "HON.O",
+      "aliases": [
+        "hon"
+      ]
+    },
+    "3m": {
+      "ric": "MMM.N",
+      "aliases": [
+        "mmm"
+      ]
+    },
+    "lockheed martin": {
+      "ric": "LMT.N",
+      "aliases": [
+        "lockheed",
+        "lmt"
+      ]
+    },
+    "raytheon": {
+      "ric": "RTX.N",
+      "aliases": [
+        "rtx"
+      ]
+    },
+    "union pacific": {
+      "ric": "UNP.N",
+      "aliases": [
+        "unp"
+      ]
+    },
+    "ups": {
+      "ric": "UPS.N",
+      "aliases": [
+        "united parcel service",
+        "ups"
+      ]
+    },
+    "fedex": {
+      "ric": "FDX.N",
+      "aliases": [
+        "fdx"
+      ]
+    },
+    "deere": {
+      "ric": "DE.N",
+      "aliases": [
+        "john deere",
+        "de"
+      ]
+    },
+    "exxon": {
+      "ric": "XOM.N",
+      "aliases": [
+        "exxon mobil",
+        "exxonmobil",
+        "xom"
+      ]
+    },
+    "chevron": {
+      "ric": "CVX.N",
+      "aliases": [
+        "cvx"
+      ]
+    },
+    "conocophillips": {
+      "ric": "COP.N",
+      "aliases": [
+        "cop"
+      ]
+    },
+    "schlumberger": {
+      "ric": "SLB.N",
+      "aliases": [
+        "slb"
+      ]
+    },
+    "eog resources": {
+      "ric": "EOG.N",
+      "aliases": [
+        "eog"
+      ]
+    },
+    "pioneer natural resources": {
+      "ric": "PXD.N",
+      "aliases": [
+        "pioneer",
+        "pxd"
+      ]
+    },
+    "at&t": {
+      "ric": "T.N",
+      "aliases": [
+        "att",
+        "t"
+      ]
+    },
+    "verizon": {
+      "ric": "VZ.N",
+      "aliases": [
+        "vz"
+      ]
+    },
+    "t-mobile": {
+      "ric": "TMUS.O",
+      "aliases": [
+        "tmobile",
+        "tmus"
+      ]
+    },
+    "comcast": {
+      "ric": "CMCSA.O",
+      "aliases": [
+        "cmcsa"
+      ]
+    },
+    "charter": {
+      "ric": "CHTR.O",
+      "aliases": [
+        "charter communications",
+        "chtr"
+      ]
+    },
+    "nextera energy": {
+      "ric": "NEE.N",
+      "aliases": [
+        "nextera",
+        "nee"
+      ]
+    },
+    "duke energy": {
+      "ric": "DUK.N",
+      "aliases": [
+        "duke",
+        "duk"
+      ]
+    },
+    "southern company": {
+      "ric": "SO.N",
+      "aliases": [
+        "southern",
+        "so"
+      ]
+    },
+    "american tower": {
+      "ric": "AMT.N",
+      "aliases": [
+        "amt"
+      ]
+    },
+    "prologis": {
+      "ric": "PLD.N",
+      "aliases": [
+        "pld"
+      ]
+    },
+    "equinix": {
+      "ric": "EQIX.O",
+      "aliases": [
+        "eqix"
+      ]
+    },
+    "berkshire hathaway": {
+      "ric": "BRKa.N",
+      "aliases": [
+        "berkshire",
+        "brk",
+        "brka"
+      ]
+    },
+    "toyota": {
+      "ric": "7203.T",
+      "aliases": [
+        "toyota motor",
+        "7203"
+      ]
+    },
+    "samsung": {
+      "ric": "005930.KS",
+      "aliases": [
+        "samsung electronics",
+        "005930"
+      ]
+    },
+    "nestle": {
+      "ric": "NESN.S",
+      "aliases": [
+        "nesn"
+      ]
+    },
+    "lvmh": {
+      "ric": "LVMH.PA",
+      "aliases": [
+        "lvmh"
+      ]
+    },
+    "novo nordisk": {
+      "ric": "NOVOb.CO",
+      "aliases": [
+        "novob"
+      ]
+    },
+    "asml": {
+      "ric": "ASML.AS",
+      "aliases": [
+        "asml"
+      ]
+    },
+    "shell": {
+      "ric": "SHEL.L",
+      "aliases": [
+        "royal dutch shell",
+        "shel"
+      ]
+    },
+    "bp": {
+      "ric": "BP.L",
+      "aliases": [
+        "british petroleum",
+        "bp"
+      ]
+    },
+    "hsbc": {
+      "ric": "HSBA.L",
+      "aliases": [
+        "hsba"
+      ]
+    }
+  },
+  "tickers": {
+    "AAPL": "AAPL.O",
+    "MSFT": "MSFT.O",
+    "GOOGL": "GOOGL.O",
+    "AMZN": "AMZN.O",
+    "META": "META.O",
+    "NVDA": "NVDA.O",
+    "TSLA": "TSLA.O",
+    "AVGO": "AVGO.O",
+    "ORCL": "ORCL.N",
+    "CRM": "CRM.N",
+    "ADBE": "ADBE.O",
+    "CSCO": "CSCO.O",
+    "INTC": "INTC.O",
+    "AMD": "AMD.O",
+    "IBM": "IBM.N",
+    "QCOM": "QCOM.O",
+    "TXN": "TXN.O",
+    "AMAT": "AMAT.O",
+    "INTU": "INTU.O",
+    "NOW": "NOW.N",
+    "JPM": "JPM.N",
+    "BAC": "BAC.N",
+    "WFC": "WFC.N",
+    "GS": "GS.N",
+    "MS": "MS.N",
+    "C": "C.N",
+    "BLK": "BLK.N",
+    "SCHW": "SCHW.N",
+    "AXP": "AXP.N",
+    "V": "V.N",
+    "MA": "MA.N",
+    "PYPL": "PYPL.O",
+    "SPGI": "SPGI.N",
+    "MCO": "MCO.N",
+    "CME": "CME.O",
+    "ICE": "ICE.N",
+    "NDAQ": "NDAQ.O",
+    "UNH": "UNH.N",
+    "JNJ": "JNJ.N",
+    "LLY": "LLY.N",
+    "PFE": "PFE.N",
+    "ABBV": "ABBV.N",
+    "MRK": "MRK.N",
+    "TMO": "TMO.N",
+    "ABT": "ABT.N",
+    "DHR": "DHR.N",
+    "AMGN": "AMGN.O",
+    "GILD": "GILD.O",
+    "REGN": "REGN.O",
+    "VRTX": "VRTX.O",
+    "MRNA": "MRNA.O",
+    "ISRG": "ISRG.O",
+    "BSX": "BSX.N",
+    "MDT": "MDT.N",
+    "SYK": "SYK.N",
+    "CI": "CI.N",
+    "CVS": "CVS.N",
+    "WMT": "WMT.N",
+    "COST": "COST.O",
+    "HD": "HD.N",
+    "PG": "PG.N",
+    "KO": "KO.N",
+    "PEP": "PEP.O",
+    "NKE": "NKE.N",
+    "MCD": "MCD.N",
+    "SBUX": "SBUX.O",
+    "DIS": "DIS.N",
+    "NFLX": "NFLX.O",
+    "BKNG": "BKNG.O",
+    "LOW": "LOW.N",
+    "TGT": "TGT.N",
+    "BA": "BA.N",
+    "CAT": "CAT.N",
+    "GE": "GE.N",
+    "HON": "HON.O",
+    "MMM": "MMM.N",
+    "LMT": "LMT.N",
+    "RTX": "RTX.N",
+    "UNP": "UNP.N",
+    "UPS": "UPS.N",
+    "FDX": "FDX.N",
+    "DE": "DE.N",
+    "XOM": "XOM.N",
+    "CVX": "CVX.N",
+    "COP": "COP.N",
+    "SLB": "SLB.N",
+    "EOG": "EOG.N",
+    "PXD": "PXD.N",
+    "T": "T.N",
+    "VZ": "VZ.N",
+    "TMUS": "TMUS.O",
+    "CMCSA": "CMCSA.O",
+    "CHTR": "CHTR.O",
+    "NEE": "NEE.N",
+    "DUK": "DUK.N",
+    "SO": "SO.N",
+    "AMT": "AMT.N",
+    "PLD": "PLD.N",
+    "EQIX": "EQIX.O",
+    "BRKa": "BRKa.N",
+    "7203": "7203.T",
+    "005930": "005930.KS",
+    "NESN": "NESN.S",
+    "LVMH": "LVMH.PA",
+    "NOVOb": "NOVOb.CO",
+    "ASML": "ASML.AS",
+    "SHEL": "SHEL.L",
+    "BP": "BP.L",
+    "HSBA": "HSBA.L"
+  }
+}

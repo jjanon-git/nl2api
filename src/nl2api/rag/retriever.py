@@ -261,7 +261,16 @@ class HybridRAGRetriever:
         Retrieve relevant field codes for a domain.
 
         Specialized retrieval focused on field codes.
+        Falls back to keyword-only search if embedder not available.
         """
+        # Use keyword-only search if no embedder configured
+        if self._embedder is None:
+            return await self.retrieve_by_keyword(
+                query=query,
+                domain=domain,
+                document_types=[DocumentType.FIELD_CODE],
+                limit=limit,
+            )
         return await self.retrieve(
             query=query,
             domain=domain,
@@ -269,6 +278,78 @@ class HybridRAGRetriever:
             limit=limit,
             threshold=0.3,  # Lower threshold for field codes
         )
+
+    async def retrieve_by_keyword(
+        self,
+        query: str,
+        domain: str | None = None,
+        document_types: list[DocumentType] | None = None,
+        limit: int = 10,
+    ) -> list[RetrievalResult]:
+        """
+        Retrieve documents using keyword search only.
+
+        Does not require embedder or embeddings. Useful when:
+        - Embedder not configured
+        - Documents don't have embeddings yet
+        - Pure keyword search is desired
+
+        Args:
+            query: Natural language query
+            domain: Optional domain filter
+            document_types: Optional document type filter
+            limit: Maximum results
+
+        Returns:
+            List of RetrievalResult ordered by keyword relevance
+        """
+        type_filter = ""
+        if document_types:
+            types = ", ".join(f"'{dt.value}'" for dt in document_types)
+            type_filter = f"AND document_type IN ({types})"
+
+        domain_filter = ""
+        if domain:
+            domain_filter = f"AND domain = '{domain}'"
+
+        sql = f"""
+        SELECT
+            id,
+            content,
+            document_type,
+            domain,
+            field_code,
+            example_query,
+            example_api_call,
+            metadata,
+            ts_rank(search_vector, plainto_tsquery('english', $1)) as score
+        FROM rag_documents
+        WHERE search_vector @@ plainto_tsquery('english', $1)
+        {type_filter}
+        {domain_filter}
+        ORDER BY score DESC
+        LIMIT $2
+        """
+
+        async with self._pool.acquire() as conn:
+            rows = await conn.fetch(sql, query, limit)
+
+        results = []
+        for row in rows:
+            results.append(RetrievalResult(
+                id=row["id"],
+                content=row["content"],
+                document_type=DocumentType(row["document_type"]),
+                score=float(row["score"]),
+                domain=row["domain"],
+                field_code=row["field_code"],
+                example_query=row["example_query"],
+                example_api_call=row["example_api_call"],
+                metadata=row["metadata"] or {},
+            ))
+
+        logger.debug(f"Keyword search found {len(results)} results for: {query[:50]}...")
+        return results
 
     async def retrieve_examples(
         self,
@@ -280,7 +361,16 @@ class HybridRAGRetriever:
         Retrieve similar query examples.
 
         Used for few-shot prompting.
+        Falls back to keyword-only search if embedder not available.
         """
+        # Use keyword-only search if no embedder configured
+        if self._embedder is None:
+            return await self.retrieve_by_keyword(
+                query=query,
+                domain=domain,
+                document_types=[DocumentType.QUERY_EXAMPLE],
+                limit=limit,
+            )
         return await self.retrieve(
             query=query,
             domain=domain,

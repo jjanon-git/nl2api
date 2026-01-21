@@ -6,6 +6,7 @@ Provides checkpoint/resume functionality for large indexing jobs.
 
 from __future__ import annotations
 
+import json
 import logging
 import uuid
 from dataclasses import dataclass, field
@@ -135,7 +136,7 @@ class CheckpointManager:
                 checkpoint.status.value,
                 checkpoint.domain,
                 checkpoint.batch_size,
-                checkpoint.metadata,
+                json.dumps(checkpoint.metadata),
                 checkpoint.started_at,
             )
 

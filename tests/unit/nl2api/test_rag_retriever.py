@@ -230,7 +230,7 @@ class TestHybridRAGRetriever:
 
     @pytest.mark.asyncio
     async def test_retrieve_without_embedder_raises(self, mock_pool) -> None:
-        """Test that retrieval without embedder raises RuntimeError."""
+        """Test that hybrid retrieve() without embedder raises RuntimeError."""
         from src.nl2api.rag.retriever import HybridRAGRetriever
 
         pool, conn = mock_pool
@@ -238,9 +238,29 @@ class TestHybridRAGRetriever:
         # Create retriever without setting embedder
         retriever = HybridRAGRetriever(pool=pool)
 
-        # Should raise RuntimeError
+        # Main retrieve() should raise RuntimeError (requires embedder for vector search)
         with pytest.raises(RuntimeError, match="Embedder not set"):
-            await retriever.retrieve_field_codes(query="EPS", domain="estimates", limit=5)
+            await retriever.retrieve(query="EPS", domain="estimates", limit=5)
+
+    @pytest.mark.asyncio
+    async def test_retrieve_field_codes_falls_back_to_keyword(self, mock_pool) -> None:
+        """Test that retrieve_field_codes falls back to keyword search without embedder."""
+        from src.nl2api.rag.retriever import HybridRAGRetriever
+
+        pool, conn = mock_pool
+
+        # Create retriever without setting embedder
+        retriever = HybridRAGRetriever(pool=pool)
+
+        # Set up mock to return empty results for keyword search
+        conn.fetch.return_value = []
+
+        # Should not raise - falls back to keyword search
+        results = await retriever.retrieve_field_codes(query="EPS", domain="estimates", limit=5)
+        assert results == []
+
+        # Verify fetch was called (keyword search)
+        conn.fetch.assert_called_once()
 
 
 class TestOpenAIEmbedder:

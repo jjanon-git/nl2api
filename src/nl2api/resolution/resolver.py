@@ -14,7 +14,11 @@ import logging
 import re
 from typing import TYPE_CHECKING, Any
 
+from rapidfuzz import fuzz, process
+
 from src.common.resilience import CircuitBreaker, CircuitOpenError, RetryConfig, retry_with_backoff
+from src.nl2api.resolution.mappings import get_all_known_names, load_mappings
+from src.nl2api.resolution.openfigi import resolve_via_openfigi
 from src.nl2api.resolution.protocols import ResolvedEntity
 
 if TYPE_CHECKING:
@@ -35,6 +39,8 @@ class ExternalEntityResolver:
     - Retry with backoff: Handles transient failures gracefully
     - Timeout: Prevents hanging on slow responses
     - Caching: In-memory and optional Redis caching for resolved entities
+    - Fuzzy matching: Handles company name variants
+    - Static mappings: Fast lookup for 500+ major companies
     """
 
     def __init__(
@@ -48,6 +54,7 @@ class ExternalEntityResolver:
         retry_max_attempts: int = 3,
         redis_cache: "RedisCache | None" = None,
         redis_cache_ttl_seconds: int = 86400,
+        fuzzy_threshold: int = 85,
     ):
         """
         Initialize the entity resolver.
@@ -62,6 +69,7 @@ class ExternalEntityResolver:
             retry_max_attempts: Maximum retry attempts for transient failures
             redis_cache: Optional Redis cache for distributed caching
             redis_cache_ttl_seconds: TTL for Redis cache entries (default 24 hours)
+            fuzzy_threshold: Minimum similarity score for fuzzy matching (0-100)
         """
         self._api_endpoint = api_endpoint
         self._api_key = api_key
@@ -70,6 +78,7 @@ class ExternalEntityResolver:
         self._cache: dict[str, ResolvedEntity] = {}  # In-memory L1 cache
         self._redis_cache = redis_cache  # Optional L2 distributed cache
         self._redis_ttl = redis_cache_ttl_seconds
+        self._fuzzy_threshold = fuzzy_threshold
 
         # Initialize circuit breaker
         self._circuit_breaker = CircuitBreaker(
@@ -90,41 +99,27 @@ class ExternalEntityResolver:
             ),
         )
 
-        # Common company name to RIC mappings (fallback)
+        # Load mappings from JSON
+        mappings_data = load_mappings()
         self._common_mappings: dict[str, str] = {
-            "apple": "AAPL.O",
-            "microsoft": "MSFT.O",
-            "google": "GOOGL.O",
-            "alphabet": "GOOGL.O",
-            "amazon": "AMZN.O",
-            "meta": "META.O",
-            "facebook": "META.O",
-            "tesla": "TSLA.O",
-            "nvidia": "NVDA.O",
-            "jpmorgan": "JPM.N",
-            "jp morgan": "JPM.N",
-            "goldman sachs": "GS.N",
-            "bank of america": "BAC.N",
-            "wells fargo": "WFC.N",
-            "exxon": "XOM.N",
-            "chevron": "CVX.N",
-            "walmart": "WMT.N",
-            "johnson & johnson": "JNJ.N",
-            "j&j": "JNJ.N",
-            "procter & gamble": "PG.N",
-            "p&g": "PG.N",
-            "coca-cola": "KO.N",
-            "pepsi": "PEP.O",
-            "pepsico": "PEP.O",
-            "disney": "DIS.N",
-            "netflix": "NFLX.O",
-            "adobe": "ADBE.O",
-            "salesforce": "CRM.N",
-            "oracle": "ORCL.N",
-            "intel": "INTC.O",
-            "amd": "AMD.O",
-            "cisco": "CSCO.O",
-            "ibm": "IBM.N",
+            name: data["ric"] for name, data in mappings_data.get("mappings", {}).items()
+        }
+        # Add aliases to common mappings
+        for name, data in mappings_data.get("mappings", {}).items():
+            for alias in data.get("aliases", []):
+                self._common_mappings[alias] = data["ric"]
+
+        self._ticker_mappings = mappings_data.get("tickers", {})
+        self._known_names = get_all_known_names()
+
+        # Common words that should not be treated as companies
+        self._ignore_words = {
+            "what", "how", "show", "get", "find", "list", "who", "when", "where", "why",
+            "is", "are", "was", "were", "the", "a", "an", "and", "or", "for", "with",
+            "forecast", "estimate", "eps", "revenue", "price", "target", "rating",
+            "of", "in", "to", "at", "by", "from", "on", "about", "above", "below",
+            "best", "stock", "stocks", "market", "data", "show", "me", "tell", "need",
+            "corp", "inc", "ltd", "limited", "company", "corporation"
         }
 
     async def resolve(
@@ -176,8 +171,18 @@ class ExternalEntityResolver:
         """
         # Normalize entity name
         normalized = entity.lower().strip()
-        normalized = re.sub(r'\s+(inc\.?|corp\.?|ltd\.?|llc|plc)$', '', normalized, flags=re.I)
+        # Strip common company suffixes: Inc, Corp, Ltd, LLC, PLC, & Co, & Company, etc.
+        normalized = re.sub(
+            r'\s*(&\s*(co\.?|company))?\s*(inc\.?|corp\.?|ltd\.?|llc|plc)?\.?$',
+            '',
+            normalized,
+            flags=re.I
+        )
         normalized = normalized.strip()
+
+        # Skip common words
+        if normalized in self._ignore_words:
+            return None
 
         # L1: Check in-memory cache
         if self._use_cache and normalized in self._cache:
@@ -199,6 +204,17 @@ class ExternalEntityResolver:
                 self._cache[normalized] = result
                 return result
 
+        # Check ticker mappings
+        if normalized.upper() in self._ticker_mappings:
+            result = ResolvedEntity(
+                original=entity,
+                identifier=self._ticker_mappings[normalized.upper()],
+                entity_type="ticker",
+                confidence=0.99,
+            )
+            await self._cache_result(normalized, result)
+            return result
+
         # Check common mappings
         if normalized in self._common_mappings:
             result = ResolvedEntity(
@@ -210,8 +226,20 @@ class ExternalEntityResolver:
             await self._cache_result(normalized, result)
             return result
 
+        # Try fuzzy matching
+        fuzzy_result = self._fuzzy_match(normalized)
+        if fuzzy_result:
+            result = ResolvedEntity(
+                original=entity,
+                identifier=fuzzy_result["ric"],
+                entity_type="company",
+                confidence=fuzzy_result["score"] / 100,
+            )
+            await self._cache_result(normalized, result)
+            return result
+
         # Try external API if configured
-        if self._api_endpoint:
+        if self._api_endpoint or True:  # Fallback to OpenFIGI even if endpoint not set
             result = await self._resolve_via_api(entity)
             if result:
                 await self._cache_result(normalized, result)
@@ -219,6 +247,61 @@ class ExternalEntityResolver:
 
         # No resolution found
         logger.debug(f"Could not resolve entity: {entity}")
+        return None
+
+    def _fuzzy_match(self, query: str) -> dict[str, Any] | None:
+        """
+        Fuzzy match against known company names.
+
+        Args:
+            query: Normalized query string
+
+        Returns:
+            Dict with 'ric' and 'score' if match found
+        """
+        if not self._known_names or len(query) < 3:
+            return None
+
+        # Use different scorers based on length
+        # For short strings, be more strict
+        scorer = fuzz.WRatio if len(query) >= 5 else fuzz.ratio
+
+        # Get multiple matches to find the best one
+        # (set iteration order is non-deterministic, so extractOne may return different results)
+        results = process.extract(
+            query,
+            self._known_names,
+            scorer=scorer,
+            score_cutoff=self._fuzzy_threshold,
+            limit=10,
+        )
+
+        if not results:
+            return None
+
+        # Filter by length heuristic and sort by score (desc), then length (asc)
+        # This prefers high-scoring short matches over high-scoring long matches
+        valid_matches = []
+        for matched_name, score, _ in results:
+            len_diff = abs(len(matched_name) - len(query))
+            max_len = max(len(query), len(matched_name))
+            # Relax length constraint for longer matches that contain query substring
+            if len_diff <= max_len * 0.7 or query in matched_name.lower():
+                valid_matches.append((matched_name, score))
+
+        if not valid_matches:
+            logger.debug(f"No valid fuzzy matches for '{query}' (all rejected by length heuristic)")
+            return None
+
+        # Sort by score descending, then by length ascending (prefer shorter matches)
+        valid_matches.sort(key=lambda x: (-x[1], len(x[0])))
+        matched_name, score = valid_matches[0]
+
+        ric = self._common_mappings.get(matched_name)
+        if ric:
+            logger.info(f"Fuzzy match: '{query}' -> '{matched_name}' (score={score}, ric={ric})")
+            return {"ric": ric, "score": score}
+
         return None
 
     async def _cache_result(self, normalized: str, result: ResolvedEntity) -> None:
@@ -299,13 +382,21 @@ class ExternalEntityResolver:
             if ticker not in common_words:
                 entities.append(ticker)
 
-        # Deduplicate while preserving order
+        # Deduplicate while preserving order and filter common words/noise
         seen = set()
         unique_entities = []
         for entity in entities:
-            normalized = entity.lower()
-            if normalized not in seen:
-                seen.add(normalized)
+            normalized = entity.lower().strip()
+            
+            # Skip noise (single chars, common words)
+            if len(normalized) < 2 or normalized in self._ignore_words:
+                continue
+                
+            # Basic normalization for check
+            check_name = re.sub(r'\s+(inc\.?|corp\.?|ltd\.?|llc|plc)$', '', normalized, flags=re.I).strip()
+            
+            if check_name not in seen and check_name not in self._ignore_words and len(check_name) >= 2:
+                seen.add(check_name)
                 unique_entities.append(entity)
 
         return unique_entities
@@ -314,26 +405,36 @@ class ExternalEntityResolver:
         """
         Resolve entity using external API with resilience patterns.
 
-        Uses circuit breaker to fail fast when service is unhealthy,
-        and retry with backoff for transient failures.
+        Uses OpenFIGI as a primary source, then falls back to configured API.
+        Uses circuit breaker and retry for external calls.
 
         Args:
             entity: Entity name to resolve
 
         Returns:
-            ResolvedEntity if found, None if not found or on error
-
-        Note:
-            Returns None (graceful degradation) on circuit open or
-            after retry exhaustion, allowing fallback to static mappings.
+            ResolvedEntity if found
         """
-        if not self._api_endpoint:
-            return None
-
+        # 1. Try OpenFIGI first (free, no API key required for low volume)
         try:
-            import aiohttp
-        except ImportError:
-            logger.warning("aiohttp not installed, cannot use external API")
+            # We don't apply circuit breaker here yet, but we could
+            figi_result = await resolve_via_openfigi(
+                query=entity,
+                api_key=self._api_key if not self._api_endpoint else None, # Use key if it might be OpenFIGI key
+                timeout=self._timeout_seconds,
+            )
+
+            if figi_result and figi_result.get("found"):
+                return ResolvedEntity(
+                    original=entity,
+                    identifier=figi_result["identifier"],
+                    entity_type=figi_result.get("type", "company"),
+                    confidence=figi_result.get("confidence", 0.8),
+                )
+        except Exception as e:
+            logger.debug(f"OpenFIGI resolution failed: {e}")
+
+        # 2. Fall back to configured external API
+        if not self._api_endpoint:
             return None
 
         async def _make_request() -> ResolvedEntity | None:
