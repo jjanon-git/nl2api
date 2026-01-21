@@ -37,7 +37,8 @@ class AgentContext:
     # e.g., [{"query": "What is Apple's EPS?", "api_call": {...}}]
 
     # Conversation history (for multi-turn)
-    conversation_history: list[dict[str, Any]] = field(default_factory=list)
+    # Can be a string (formatted history text) or list of turn dicts
+    conversation_history: str | list[dict[str, Any]] = ""
 
     # Session metadata
     session_id: str | None = None

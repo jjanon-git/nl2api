@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-**EvalPlatform** is a distributed evaluation framework for testing LLM tool-calling at scale (~400k test cases). It validates that LLM orchestrators correctly parse queries, call the right APIs with correct arguments, and return appropriate responses.
+**EvalPlatform** is a distributed evaluation framework for testing LLM tool-calling at scale (~400k test cases), with an embedded **NL2API system** for translating natural language queries into LSEG financial API calls.
 
 ## Quick Commands
 
@@ -10,8 +10,14 @@
 # Start PostgreSQL (required for storage)
 docker compose up -d
 
-# Run tests
+# Run all tests
 .venv/bin/python -m pytest tests/unit/ -v
+
+# Run NL2API tests only (497 tests)
+.venv/bin/python -m pytest tests/unit/nl2api/ -v
+
+# Run fixture coverage tests
+.venv/bin/python -m pytest tests/unit/nl2api/test_fixture_coverage.py -v
 
 # Run single test case evaluation
 .venv/bin/python -m src.cli.main run tests/fixtures/search_products.json
@@ -19,14 +25,37 @@ docker compose up -d
 # Run batch evaluation
 .venv/bin/python -m src.cli.main batch run --limit 10
 
-# Check batch status
-.venv/bin/python -m src.cli.main batch list
-
 # View batch results
-.venv/bin/python -m src.cli.main batch results <batch-id>
+.venv/bin/python -m src.cli.main batch list
 ```
 
 ## Architecture
+
+### NL2API System
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         NL2API System                            │
+├─────────────────────────────────────────────────────────────────┤
+│  NL2APIOrchestrator                                              │
+│  ├─ Query classification (route to domain agent)                │
+│  ├─ Entity resolution (Company → RIC via resolver)              │
+│  └─ Ambiguity detection → Clarification flow                    │
+├─────────────────────────────────────────────────────────────────┤
+│  Domain Agents (5 implemented)                                   │
+│  ├─ DatastreamAgent     (price, time series, calculated fields) │
+│  ├─ EstimatesAgent      (I/B/E/S forecasts, recommendations)    │
+│  ├─ FundamentalsAgent   (WC codes, TR codes, financials)        │
+│  ├─ OfficersAgent       (executives, compensation, governance)  │
+│  └─ ScreeningAgent      (SCREEN expressions, rankings)          │
+├─────────────────────────────────────────────────────────────────┤
+│  Support Components                                              │
+│  ├─ LLM Abstraction (Claude + OpenAI providers)                 │
+│  ├─ RAG Retriever (hybrid vector + keyword, pgvector)           │
+│  ├─ Conversation Manager (multi-turn, query expansion)          │
+│  └─ Entity Resolver (pattern-based + static mappings)           │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ### Evaluation Pipeline (Waterfall)
 
@@ -40,8 +69,8 @@ Raw Output → [Stage 1: Syntax] → Parsed ToolCalls → [Stage 2: Logic] → S
 
 - **Stage 1 (Syntax)**: Validates JSON structure and schema - GATE (hard stop on failure)
 - **Stage 2 (Logic)**: AST-based tool call comparison - HIGH priority (soft continue)
-- **Stage 3 (Execution)**: Live API verification - CRITICAL (not yet implemented)
-- **Stage 4 (Semantics)**: LLM-as-Judge NL comparison - LOW priority (not yet implemented)
+- **Stage 3 (Execution)**: Live API verification - CRITICAL (configurable)
+- **Stage 4 (Semantics)**: LLM-as-Judge NL comparison - LOW priority (configurable)
 
 ### Key Data Models (CONTRACTS.py)
 
@@ -55,8 +84,8 @@ BatchJob     # Batch tracking with status and progress
 ### Storage Layer
 
 Protocol-based abstraction with implementations for:
-- **PostgreSQL** (`src/storage/postgres/`) - Local development
-- **In-Memory** (`src/storage/memory/`) - Unit tests
+- **PostgreSQL** (`src/common/storage/postgres/`) - Local development
+- **In-Memory** (`src/common/storage/memory/`) - Unit tests
 - **Azure** (not yet implemented) - Production
 
 Factory pattern: `create_repositories(config) -> (test_case_repo, scorecard_repo, batch_repo)`
@@ -65,40 +94,78 @@ Factory pattern: `create_repositories(config) -> (test_case_repo, scorecard_repo
 
 ```
 evalPlatform/
-├── CONTRACTS.py              # Pydantic v2 data models (TestCase, Scorecard, etc.)
+├── CONTRACTS.py              # Pydantic v2 data models
 ├── src/
-│   ├── batch/                # Batch runner with concurrency control
-│   │   ├── runner.py         # BatchRunner class
-│   │   ├── config.py         # BatchRunnerConfig
-│   │   └── metrics.py        # OpenTelemetry metrics
-│   ├── cli/
-│   │   ├── main.py           # CLI entry point
-│   │   └── commands/
-│   │       ├── run.py        # Single evaluation command
-│   │       └── batch.py      # Batch commands (run, status, results, list)
-│   ├── core/
-│   │   ├── evaluators.py     # SyntaxEvaluator, LogicEvaluator, WaterfallEvaluator
-│   │   └── ast_comparator.py # Tool call comparison (order-independent, type-coercing)
-│   └── storage/
-│       ├── protocols.py      # Repository protocols (duck-typed interfaces)
-│       ├── factory.py        # Repository factory
-│       ├── postgres/         # PostgreSQL implementations
-│       └── memory/           # In-memory implementations
+│   ├── nl2api/               # NL2API System
+│   │   ├── orchestrator.py   # Main entry point
+│   │   ├── config.py         # Configuration (pydantic-settings)
+│   │   ├── llm/              # LLM providers (Claude, OpenAI)
+│   │   ├── agents/           # Domain agents (5 implemented)
+│   │   ├── rag/              # RAG retrieval (pgvector)
+│   │   ├── resolution/       # Entity resolution
+│   │   ├── clarification/    # Ambiguity detection
+│   │   ├── conversation/     # Multi-turn support
+│   │   └── evaluation/       # Eval adapter
+│   ├── common/storage/       # Shared storage layer
+│   └── evaluation/           # Evaluation pipeline
+│       ├── core/             # Evaluators
+│       └── batch/            # Batch runner
 ├── tests/
-│   ├── unit/                 # Unit tests (71 tests, ~1s)
-│   └── fixtures/             # Sample test cases
+│   ├── unit/nl2api/          # 497 NL2API tests
+│   │   ├── fixture_loader.py # Fixture loading utility
+│   │   ├── test_fixture_coverage.py  # Dynamic coverage tests
+│   │   └── test_*_fixtures.py        # Agent fixture tests
+│   └── fixtures/lseg/generated/      # 12,887 test fixtures
 └── docker-compose.yml        # PostgreSQL + pgvector
 ```
 
+## Dynamic Fixture-Based Testing
+
+Tests automatically scale with test data using programmatic fixture expansion:
+
+### How It Works
+
+1. **FixtureLoader** discovers all categories from `tests/fixtures/lseg/generated/`
+2. **CoverageRegistry** defines minimum coverage thresholds per category/agent
+3. **Parameterized tests** auto-generate from fixture structure
+4. Tests **fail if coverage drops** below thresholds (prevents regressions)
+5. **Growth detection** alerts when fixture counts change
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `tests/unit/nl2api/fixture_loader.py` | `FixtureLoader` class, `GeneratedTestCase` dataclass |
+| `tests/unit/nl2api/test_fixture_coverage.py` | `CoverageRegistry`, dynamic parameterized tests |
+| `tests/unit/nl2api/test_datastream_fixtures.py` | DatastreamAgent against 6,000+ fixtures |
+| `tests/unit/nl2api/test_screening_fixtures.py` | ScreeningAgent against 265 fixtures |
+
+### Coverage Registry Example
+
+```python
+class CoverageRegistry:
+    REQUIRED_COVERAGE = [
+        # (category, subcategory, min_rate, agent_class)
+        ("lookups", "single_field", 0.3, DatastreamAgent),
+        ("lookups", "multi_field", 0.15, DatastreamAgent),
+        ("screening", "top_n", 0.5, ScreeningAgent),
+    ]
+```
+
+### Adding New Test Data
+
+1. Add JSON to `tests/fixtures/lseg/generated/<category>/`
+2. Tests auto-discover and include new data
+3. Add coverage requirements to `CoverageRegistry` if needed
+
 ## Key Patterns
 
-### 1. Protocol-Based Repositories
+### 1. Protocol-Based Design
 ```python
 @runtime_checkable
-class TestCaseRepository(Protocol):
-    async def get(self, test_case_id: str) -> TestCase | None: ...
-    async def save(self, test_case: TestCase) -> None: ...
-    async def list(...) -> list[TestCase]: ...
+class DomainAgent(Protocol):
+    async def can_handle(self, query: str) -> float: ...
+    async def process(self, context: AgentContext) -> AgentResult: ...
 ```
 
 ### 2. Frozen Pydantic Models
@@ -108,10 +175,10 @@ All data models use `model_config = ConfigDict(frozen=True)` for immutability.
 `ToolCall.arguments` uses `FrozenDict` for hashability, enabling set-based comparison.
 
 ### 4. Async-First Design
-All repository operations and evaluators are async.
+All repository operations, agents, and evaluators are async.
 
-### 5. Semaphore-Based Concurrency
-`BatchRunner` uses `asyncio.Semaphore(max_concurrency)` for controlled parallelism.
+### 5. Rule-Based + LLM Fallback
+Agents use pattern matching first, fall back to LLM for complex queries.
 
 ## Development Notes
 
@@ -120,33 +187,43 @@ All repository operations and evaluators are async.
 # All unit tests
 .venv/bin/python -m pytest tests/unit/ -v
 
-# Specific test file
-.venv/bin/python -m pytest tests/unit/test_batch_runner.py -v
+# NL2API tests only
+.venv/bin/python -m pytest tests/unit/nl2api/ -v
+
+# Specific agent tests
+.venv/bin/python -m pytest tests/unit/nl2api/test_datastream.py -v
 ```
 
 ### Database
-- Uses PostgreSQL 16 with pgvector extension
-- Schema in `src/storage/postgres/migrations/001_initial.sql`
+- PostgreSQL 16 with pgvector extension
 - Tables: `test_cases`, `scorecards`, `batch_jobs`
 
 ### Environment Variables
 - `EVAL_BACKEND`: "postgres" | "memory" | "azure"
-- `EVAL_POSTGRES_URL`: PostgreSQL connection string (default: localhost)
+- `NL2API_LLM_PROVIDER`: "anthropic" | "openai"
+- `NL2API_ANTHROPIC_API_KEY`: Claude API key
+- `NL2API_OPENAI_API_KEY`: OpenAI API key
 
-## Current Sprint Status
+## Current Status
 
-Sprint 3 implemented: Batch Runner with local concurrency
-- Batch run/status/results/list commands
-- PostgreSQL batch job persistence
-- Progress tracking with Rich
-- OpenTelemetry metrics (optional)
+**Phase 4 Complete** - All domain agents implemented with comprehensive fixture-based tests.
+
+| Component | Tests |
+|-----------|-------|
+| DatastreamAgent | 36 + 26 fixture-based |
+| ScreeningAgent | 47 + 22 fixture-based |
+| EstimatesAgent | 51 |
+| FundamentalsAgent | 49 |
+| OfficersAgent | 41 |
+| Conversation | 45 |
+| **Total NL2API** | **497 passing** |
 
 ## Important Files to Review
 
 | File | Purpose |
 |------|---------|
 | `CONTRACTS.py` | All data models - read this first |
-| `src/core/evaluators.py` | Evaluation pipeline implementation |
-| `src/storage/protocols.py` | Repository interfaces |
-| `src/batch/runner.py` | Batch execution logic |
-| `src/cli/commands/batch.py` | CLI command implementations |
+| `src/nl2api/orchestrator.py` | NL2API main entry point |
+| `src/nl2api/agents/*.py` | Domain agent implementations |
+| `tests/unit/nl2api/test_fixture_coverage.py` | Dynamic test infrastructure |
+| `tests/unit/nl2api/fixture_loader.py` | Fixture loading utility |

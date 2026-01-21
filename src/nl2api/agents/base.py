@@ -146,23 +146,29 @@ class BaseDomainAgent(ABC):
             )
             system_prompt += f"\n\nExample queries:\n{examples_text}"
 
+        # Add string-format conversation history to system prompt
+        if context.conversation_history and isinstance(context.conversation_history, str):
+            if context.conversation_history.strip():
+                system_prompt += f"\n\n{context.conversation_history}"
+
         messages.append(LLMMessage(
             role=MessageRole.SYSTEM,
             content=system_prompt,
         ))
 
-        # Add conversation history if available
-        for turn in context.conversation_history:
-            if turn.get("role") == "user":
-                messages.append(LLMMessage(
-                    role=MessageRole.USER,
-                    content=turn.get("content", ""),
-                ))
-            elif turn.get("role") == "assistant":
-                messages.append(LLMMessage(
-                    role=MessageRole.ASSISTANT,
-                    content=turn.get("content", ""),
-                ))
+        # Add list-format conversation history as separate messages
+        if context.conversation_history and isinstance(context.conversation_history, list):
+            for turn in context.conversation_history:
+                if turn.get("role") == "user":
+                    messages.append(LLMMessage(
+                        role=MessageRole.USER,
+                        content=turn.get("content", ""),
+                    ))
+                elif turn.get("role") == "assistant":
+                    messages.append(LLMMessage(
+                        role=MessageRole.ASSISTANT,
+                        content=turn.get("content", ""),
+                    ))
 
         # Add resolved entities if any
         query_with_context = context.expanded_query or context.query
