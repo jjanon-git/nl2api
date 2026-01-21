@@ -3,10 +3,15 @@ Hybrid RAG Retriever
 
 Implementation using pgvector for vector similarity and PostgreSQL
 full-text search for keyword matching.
+
+Features:
+- Hybrid search (vector + keyword)
+- Optional Redis caching for query results
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -14,6 +19,7 @@ from src.nl2api.rag.protocols import DocumentType, RetrievalResult
 
 if TYPE_CHECKING:
     import asyncpg
+    from src.common.cache import RedisCache
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +30,10 @@ class HybridRAGRetriever:
 
     Uses PostgreSQL with pgvector extension for vector operations
     and built-in full-text search for keyword matching.
+
+    Features:
+    - Hybrid vector + keyword search
+    - Optional Redis caching for query results
     """
 
     def __init__(
@@ -32,6 +42,8 @@ class HybridRAGRetriever:
         embedding_dimension: int = 1536,
         vector_weight: float = 0.7,
         keyword_weight: float = 0.3,
+        redis_cache: "RedisCache | None" = None,
+        cache_ttl_seconds: int = 3600,
     ):
         """
         Initialize the hybrid retriever.
@@ -41,16 +53,36 @@ class HybridRAGRetriever:
             embedding_dimension: Dimension of embedding vectors
             vector_weight: Weight for vector similarity (0.0 to 1.0)
             keyword_weight: Weight for keyword matching (0.0 to 1.0)
+            redis_cache: Optional Redis cache for query results
+            cache_ttl_seconds: TTL for cached query results (default 1 hour)
         """
         self._pool = pool
         self._embedding_dimension = embedding_dimension
         self._vector_weight = vector_weight
         self._keyword_weight = keyword_weight
         self._embedder: Any = None
+        self._redis_cache = redis_cache
+        self._cache_ttl = cache_ttl_seconds
 
     def set_embedder(self, embedder: Any) -> None:
         """Set the embedder for generating query embeddings."""
         self._embedder = embedder
+
+    def _make_cache_key(
+        self,
+        query: str,
+        domain: str | None,
+        document_types: list[DocumentType] | None,
+        limit: int,
+    ) -> str:
+        """Generate cache key for a query."""
+        key_parts = [
+            hashlib.sha256(query.encode()).hexdigest()[:16],
+            domain or "all",
+            ",".join(sorted(dt.value for dt in document_types)) if document_types else "all",
+            str(limit),
+        ]
+        return f"rag:{':'.join(key_parts)}"
 
     async def retrieve(
         self,
@@ -59,6 +91,7 @@ class HybridRAGRetriever:
         document_types: list[DocumentType] | None = None,
         limit: int = 10,
         threshold: float = 0.5,
+        use_cache: bool = True,
     ) -> list[RetrievalResult]:
         """
         Retrieve relevant documents using hybrid search.
@@ -71,12 +104,34 @@ class HybridRAGRetriever:
             document_types: Optional document type filter
             limit: Maximum results
             threshold: Minimum relevance score
+            use_cache: Whether to use Redis cache (if configured)
 
         Returns:
             List of RetrievalResult ordered by relevance
         """
         if self._embedder is None:
             raise RuntimeError("Embedder not set. Call set_embedder() first.")
+
+        # Check Redis cache first
+        cache_key = self._make_cache_key(query, domain, document_types, limit)
+        if use_cache and self._redis_cache:
+            cached = await self._redis_cache.get(cache_key)
+            if cached:
+                logger.debug(f"RAG cache hit for query: {query[:50]}...")
+                return [
+                    RetrievalResult(
+                        id=r["id"],
+                        content=r["content"],
+                        document_type=DocumentType(r["document_type"]),
+                        score=r["score"],
+                        domain=r.get("domain"),
+                        field_code=r.get("field_code"),
+                        example_query=r.get("example_query"),
+                        example_api_call=r.get("example_api_call"),
+                        metadata=r.get("metadata", {}),
+                    )
+                    for r in cached
+                ]
 
         # Generate query embedding
         query_embedding = await self._embedder.embed(query)
@@ -176,6 +231,24 @@ class HybridRAGRetriever:
                 metadata=row["metadata"] or {},
             ))
 
+        # Cache results in Redis
+        if use_cache and self._redis_cache and results:
+            cache_data = [
+                {
+                    "id": r.id,
+                    "content": r.content,
+                    "document_type": r.document_type.value,
+                    "score": r.score,
+                    "domain": r.domain,
+                    "field_code": r.field_code,
+                    "example_query": r.example_query,
+                    "example_api_call": r.example_api_call,
+                    "metadata": r.metadata,
+                }
+                for r in results
+            ]
+            await self._redis_cache.set(cache_key, cache_data, ttl=self._cache_ttl)
+
         return results
 
     async def retrieve_field_codes(
@@ -219,13 +292,20 @@ class HybridRAGRetriever:
 
 class OpenAIEmbedder:
     """
-    Embedder using OpenAI's text-embedding-ada-002 model.
+    Embedder using OpenAI's text-embedding models.
+
+    Features:
+    - Concurrency control via semaphore
+    - Automatic retry with exponential backoff for rate limits
+    - Token tracking for rate limit awareness
     """
 
     def __init__(
         self,
         api_key: str,
         model: str = "text-embedding-3-small",
+        max_concurrent: int = 5,
+        requests_per_minute: int = 3000,
     ):
         """
         Initialize the OpenAI embedder.
@@ -233,6 +313,8 @@ class OpenAIEmbedder:
         Args:
             api_key: OpenAI API key
             model: Embedding model name
+            max_concurrent: Maximum concurrent requests
+            requests_per_minute: Rate limit (for logging/monitoring)
         """
         try:
             import openai
@@ -243,6 +325,12 @@ class OpenAIEmbedder:
 
         self._model = model
         self._client = openai.AsyncOpenAI(api_key=api_key)
+        self._max_concurrent = max_concurrent
+        self._requests_per_minute = requests_per_minute
+
+        # Concurrency control
+        import asyncio
+        self._semaphore = asyncio.Semaphore(max_concurrent)
 
         # Dimension varies by model
         self._dimensions = {
@@ -251,23 +339,107 @@ class OpenAIEmbedder:
             "text-embedding-3-large": 3072,
         }
 
+        # Metrics
+        self._total_requests = 0
+        self._total_tokens = 0
+        self._rate_limit_hits = 0
+
     @property
     def dimension(self) -> int:
         """Return the embedding dimension."""
         return self._dimensions.get(self._model, 1536)
 
+    @property
+    def stats(self) -> dict[str, int]:
+        """Get embedder statistics."""
+        return {
+            "total_requests": self._total_requests,
+            "total_tokens": self._total_tokens,
+            "rate_limit_hits": self._rate_limit_hits,
+        }
+
     async def embed(self, text: str) -> list[float]:
         """Generate embedding for a single text."""
-        response = await self._client.embeddings.create(
-            model=self._model,
-            input=text,
-        )
-        return response.data[0].embedding
+        async with self._semaphore:
+            return await self._embed_with_retry(text)
 
     async def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        """Generate embeddings for multiple texts."""
-        response = await self._client.embeddings.create(
-            model=self._model,
-            input=texts,
-        )
-        return [item.embedding for item in response.data]
+        """
+        Generate embeddings for multiple texts.
+
+        Uses semaphore to limit concurrent requests and handles rate limits.
+        """
+        async with self._semaphore:
+            return await self._embed_batch_with_retry(texts)
+
+    async def _embed_with_retry(
+        self,
+        text: str,
+        max_retries: int = 3,
+        base_delay: float = 1.0,
+    ) -> list[float]:
+        """Embed with retry logic for rate limits."""
+        import asyncio
+        import random
+
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                response = await self._client.embeddings.create(
+                    model=self._model,
+                    input=text,
+                )
+                self._total_requests += 1
+                self._total_tokens += response.usage.total_tokens
+                return response.data[0].embedding
+            except Exception as e:
+                last_error = e
+                error_str = str(e).lower()
+                if "rate_limit" in error_str or "429" in error_str:
+                    self._rate_limit_hits += 1
+                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    logger.warning(
+                        f"OpenAI rate limit hit, retrying in {delay:.1f}s "
+                        f"(attempt {attempt + 1}/{max_retries})"
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    raise
+
+        raise last_error or RuntimeError("Embed failed after retries")
+
+    async def _embed_batch_with_retry(
+        self,
+        texts: list[str],
+        max_retries: int = 3,
+        base_delay: float = 1.0,
+    ) -> list[list[float]]:
+        """Embed batch with retry logic for rate limits."""
+        import asyncio
+        import random
+
+        last_error = None
+        for attempt in range(max_retries):
+            try:
+                response = await self._client.embeddings.create(
+                    model=self._model,
+                    input=texts,
+                )
+                self._total_requests += 1
+                self._total_tokens += response.usage.total_tokens
+                return [item.embedding for item in response.data]
+            except Exception as e:
+                last_error = e
+                error_str = str(e).lower()
+                if "rate_limit" in error_str or "429" in error_str:
+                    self._rate_limit_hits += 1
+                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    logger.warning(
+                        f"OpenAI rate limit hit, retrying in {delay:.1f}s "
+                        f"(attempt {attempt + 1}/{max_retries})"
+                    )
+                    await asyncio.sleep(delay)
+                else:
+                    raise
+
+        raise last_error or RuntimeError("Embed batch failed after retries")

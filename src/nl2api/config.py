@@ -325,6 +325,46 @@ class NL2APIConfig(BaseSettings):
         description="MCP server URI for Screening API",
     )
 
+    # Telemetry Settings (OpenTelemetry)
+    telemetry_enabled: bool = Field(
+        default=False,
+        description="Enable OpenTelemetry instrumentation",
+    )
+    telemetry_service_name: str = Field(
+        default="nl2api",
+        description="Service name for telemetry identification",
+    )
+    telemetry_otlp_endpoint: str = Field(
+        default="http://localhost:4317",
+        description="OTLP collector endpoint (gRPC)",
+    )
+    telemetry_tracing_enabled: bool = Field(
+        default=True,
+        description="Enable distributed tracing",
+    )
+    telemetry_metrics_enabled: bool = Field(
+        default=True,
+        description="Enable metrics export",
+    )
+    telemetry_export_interval_ms: int = Field(
+        default=10000,
+        description="Metrics export interval in milliseconds",
+    )
+
+    # Metrics Emission Settings
+    metrics_log_enabled: bool = Field(
+        default=True,
+        description="Enable logging emitter for metrics",
+    )
+    metrics_file_path: str | None = Field(
+        default=None,
+        description="Path for JSONL metrics file (None = disabled)",
+    )
+    metrics_otel_enabled: bool = Field(
+        default=False,
+        description="Enable OpenTelemetry emitter for metrics",
+    )
+
     def get_mcp_server_uris(self) -> list[str]:
         """Get list of configured MCP server URIs."""
         uris = []

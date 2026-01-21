@@ -61,3 +61,9 @@ Thumbs.db
 
 # Data (local test data)
 data/
+
+# Evaluation results
+routing_eval_*.json
+eval_results.json
+batch_*.json
+batch_*.jsonl

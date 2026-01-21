@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from CONTRACTS import ToolCall
+from CONTRACTS import ToolCall, ToolRegistry
 from src.nl2api.agents.base import BaseDomainAgent
 from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import LLMProvider, LLMToolDefinition
@@ -241,7 +241,7 @@ Generate the most appropriate get_data tool call for the user's query."""
         """Return the tools available for this domain."""
         return [
             LLMToolDefinition(
-                name="get_data",
+                name=ToolRegistry.ESTIMATES_GET_DATA,
                 description="Retrieve financial estimates data from the LSEG I/B/E/S database",
                 parameters={
                     "type": "object",
@@ -357,7 +357,7 @@ Generate the most appropriate get_data tool call for the user's query."""
 
         # Build tool call
         tool_call = ToolCall(
-            tool_name="get_data",
+            tool_name=ToolRegistry.ESTIMATES_GET_DATA,
             arguments={
                 "RICs": rics,
                 "fields": fields,

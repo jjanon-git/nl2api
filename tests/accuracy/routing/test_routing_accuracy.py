@@ -194,7 +194,7 @@ class TestRoutingAccuracy:
             if current % 10 == 0:
                 print(f"  [{current}/{total}] Latest: {result.expected} -> {result.predicted}")
 
-        report = await evaluator.evaluate_batch(test_cases, progress_callback=progress)
+        report = await evaluator.evaluate_batch(test_cases, progress_callback=progress, tier="tier1")
         print_report(report, threshold)
 
         assert report.accuracy >= threshold, (
@@ -217,7 +217,7 @@ class TestRoutingAccuracy:
             if current % 20 == 0:
                 print(f"  [{current}/{total}]")
 
-        report = await evaluator.evaluate_batch(test_cases, progress_callback=progress)
+        report = await evaluator.evaluate_batch(test_cases, progress_callback=progress, tier="tier2")
         print_report(report, threshold)
 
         assert report.accuracy >= threshold, (
@@ -240,7 +240,7 @@ class TestRoutingAccuracy:
             if current % 100 == 0:
                 print(f"  [{current}/{total}]")
 
-        report = await evaluator.evaluate_batch(test_cases, progress_callback=progress)
+        report = await evaluator.evaluate_batch(test_cases, progress_callback=progress, tier="tier3")
         print_report(report, threshold)
 
         assert report.accuracy >= threshold, (

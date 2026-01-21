@@ -68,6 +68,13 @@ class AgentResult:
     raw_llm_response: str = ""
     tokens_used: int = 0
 
+    # Metrics fields (for observability)
+    used_llm: bool = True  # Whether LLM was used (vs rule-based)
+    rule_matched: str | None = None  # Which rule pattern matched (if any)
+    tokens_prompt: int = 0  # Prompt tokens used
+    tokens_completion: int = 0  # Completion tokens used
+    llm_model: str | None = None  # Model used for processing
+
 
 @runtime_checkable
 class DomainAgent(Protocol):

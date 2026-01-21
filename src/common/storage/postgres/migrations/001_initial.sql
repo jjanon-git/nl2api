@@ -1,4 +1,4 @@
--- EvalPlatform Initial Schema
+-- NL2API Initial Schema
 -- PostgreSQL + pgvector migration
 --
 -- This schema mirrors the Azure Table Storage / AI Search design for local development.

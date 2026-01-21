@@ -27,6 +27,7 @@ from rich.console import Console
 from rich.table import Table
 
 from CONTRACTS import TaskStatus
+from src.evaluation.cli.commands.api_batch import api_app
 
 console = Console()
 
@@ -36,6 +37,9 @@ batch_app = typer.Typer(
     help="Batch evaluation commands",
     no_args_is_help=True,
 )
+
+# Add the Anthropic API subcommand group
+batch_app.add_typer(api_app, name="api", help="Anthropic Message Batches API (50% cheaper)")
 
 
 @batch_app.command("run")

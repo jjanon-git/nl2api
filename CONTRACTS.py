@@ -1,7 +1,7 @@
 """
-EvalPlatform Contracts - Pydantic v2 Schemas
+NL2API Contracts - Pydantic v2 Schemas
 
-This module defines all data contracts for the distributed evaluation framework.
+This module defines all data contracts for the NL2API system and evaluation framework.
 All models are designed for:
 - Azure Table Storage compatibility (partition/row keys)
 - Azure AI Search compatibility (embeddings, filterable fields)
@@ -96,6 +96,78 @@ class EvaluationStage(str, Enum):
     LOGIC = "logic"
     EXECUTION = "execution"
     SEMANTICS = "semantics"
+
+
+# =============================================================================
+# Tool Registry - Single Source of Truth for Tool Names
+# =============================================================================
+
+
+class ToolRegistry:
+    """
+    Central registry of all tool names used by agents and expected in fixtures.
+
+    This ensures agents and test fixtures stay in sync. All tool names must:
+    - Match pattern: ^[a-zA-Z0-9_-]{1,128}$ (Anthropic API requirement)
+    - Be defined here as the single source of truth
+
+    Usage:
+        # In agents:
+        from CONTRACTS import ToolRegistry
+        name=ToolRegistry.DATASTREAM_GET_DATA
+
+        # In generators:
+        from CONTRACTS import ToolRegistry
+        "function": ToolRegistry.DATASTREAM_GET_DATA
+
+        # For comparison (handles legacy names):
+        canonical = ToolRegistry.normalize("datastream.get_data")  # -> "get_data"
+    """
+
+    # Canonical tool names (used in fixtures for portability)
+    GET_DATA = "get_data"
+    SCREEN = "screen"
+
+    # Agent-specific tool names (prefixed for API clarity)
+    DATASTREAM_GET_DATA = "datastream_get_data"
+    ESTIMATES_GET_DATA = "estimates_get_data"
+    FUNDAMENTALS_GET_DATA = "refinitiv_get_data"
+    OFFICERS_GET_DATA = "refinitiv_get_data"
+    SCREENING_GET_DATA = "refinitiv_get_data"
+
+    # Mapping from agent tool names to canonical names
+    _TO_CANONICAL: ClassVar[dict[str, str]] = {
+        "datastream_get_data": "get_data",
+        "datastream.get_data": "get_data",  # Legacy
+        "refinitiv_get_data": "get_data",
+        "refinitiv.get_data": "get_data",  # Legacy
+        "estimates_get_data": "get_data",
+        "get_data": "get_data",
+    }
+
+    @classmethod
+    def normalize(cls, tool_name: str) -> str:
+        """
+        Normalize a tool name to its canonical form for comparison.
+
+        Args:
+            tool_name: Any tool name (agent-specific or canonical)
+
+        Returns:
+            Canonical tool name for comparison
+        """
+        return cls._TO_CANONICAL.get(tool_name, tool_name)
+
+    @classmethod
+    def is_valid(cls, tool_name: str) -> bool:
+        """Check if a tool name is valid (known to the registry)."""
+        return tool_name in cls._TO_CANONICAL
+
+    @classmethod
+    def is_api_compliant(cls, tool_name: str) -> bool:
+        """Check if tool name matches Anthropic API requirements."""
+        import re
+        return bool(re.match(r'^[a-zA-Z0-9_-]{1,128}$', tool_name))
 
 
 class TaskStatus(str, Enum):

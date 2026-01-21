@@ -1,7 +1,7 @@
 [project]
-name = "eval-platform"
+name = "nl2api"
 version = "0.1.0"
-description = "Distributed evaluation framework for testing LLM tool-calling at scale"
+description = "Natural Language to API translation system for LSEG financial data APIs"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -16,10 +16,11 @@ postgres = [
     "pgvector>=0.2.0",
     "pydantic-settings>=2.0.0",
 ]
-metrics = [
+telemetry = [
     "opentelemetry-api>=1.20.0",
     "opentelemetry-sdk>=1.20.0",
     "opentelemetry-exporter-otlp>=1.20.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.20.0",
 ]
 dev = [
     "pytest>=7.0.0",
@@ -31,6 +32,11 @@ dev = [
     "asyncpg>=0.29.0",
     "pgvector>=0.2.0",
     "pydantic-settings>=2.0.0",
+    # Include telemetry deps in dev
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+    "opentelemetry-exporter-otlp>=1.20.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.20.0",
 ]
 
 [project.scripts]

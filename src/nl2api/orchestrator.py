@@ -27,6 +27,7 @@ from src.nl2api.conversation.models import ConversationTurn
 from src.nl2api.models import ClarificationQuestion, NL2APIResponse
 from src.nl2api.llm.protocols import LLMMessage, LLMProvider, MessageRole
 from src.nl2api.mcp.context import ContextProvider, DualModeContextRetriever
+from src.nl2api.observability import RequestMetrics, emit_metrics
 from src.nl2api.rag.protocols import RAGRetriever
 from src.nl2api.resolution.protocols import EntityResolver
 from src.nl2api.routing.protocols import QueryRouter, RouterResult
@@ -138,12 +139,16 @@ class NL2APIOrchestrator:
         """
         start_time = time.perf_counter()
 
+        # Initialize metrics collection
+        metrics = RequestMetrics(query=query, session_id=session_id)
+
         try:
             # Step 0: Get or create conversation session
             session_uuid = UUID(session_id) if session_id else None
             session = await self._conversation_manager.get_or_create_session(
                 session_id=session_uuid,
             )
+            metrics.session_id = str(session.id)
             logger.info(f"Using session: {session.id}")
 
             # Step 1: Expand query if this is a follow-up
@@ -155,17 +160,36 @@ class NL2APIOrchestrator:
                 )
                 if expansion_result.was_expanded:
                     effective_query = expansion_result.expanded_query
+                    metrics.query_expanded = True
+                    metrics.query_expansion_reason = "follow_up"
                     logger.info(
                         f"Expanded query: '{query}' -> '{effective_query}'"
                     )
 
             # Step 2: Classify query to determine domain
+            routing_start = time.perf_counter()
             domain, confidence = await self._classify_query(effective_query)
+            routing_latency = int((time.perf_counter() - routing_start) * 1000)
+
+            # Get routing details from last router result
+            routing_cached = getattr(self, '_last_router_result_cached', False)
+            routing_model = getattr(self, '_last_router_result_model', None)
+
+            metrics.set_routing_result(
+                domain=domain,
+                confidence=confidence,
+                cached=routing_cached,
+                model=routing_model,
+                latency_ms=routing_latency,
+            )
             logger.info(f"Query classified to domain: {domain} (confidence={confidence:.2f})")
 
             # Check if confidence is too low
             if confidence < self._routing_confidence_threshold or domain not in self._agents:
-                # Fallback to generic response
+                metrics.set_clarification("domain")
+                metrics.finalize(int((time.perf_counter() - start_time) * 1000))
+                await self._emit_metrics_safe(metrics)
+
                 return NL2APIResponse(
                     needs_clarification=True,
                     clarification_questions=(
@@ -181,15 +205,24 @@ class NL2APIOrchestrator:
                 )
 
             # Step 3: Resolve entities (company names to RICs)
+            entity_start = time.perf_counter()
             resolved_entities = {}
             if self._entity_resolver:
                 resolved_entities = await self._entity_resolver.resolve(effective_query)
                 logger.info(f"Resolved entities: {resolved_entities}")
 
+            entity_latency = int((time.perf_counter() - entity_start) * 1000)
+
             # Also include entities from conversation context
             context_entities = session.get_all_entities()
-            # Context entities provide defaults, new resolutions override
             merged_entities = {**context_entities, **resolved_entities}
+
+            metrics.set_entity_resolution(
+                extracted=list(resolved_entities.keys()),
+                resolved=resolved_entities,
+                method="static" if resolved_entities else "none",
+                latency_ms=entity_latency,
+            )
 
             # Step 4: Check for ambiguity before proceeding
             ambiguity_analysis = await self._ambiguity_detector.analyze(
@@ -198,6 +231,10 @@ class NL2APIOrchestrator:
             )
             if ambiguity_analysis.is_ambiguous:
                 logger.info(f"Query is ambiguous: {ambiguity_analysis.ambiguity_types}")
+                metrics.set_clarification("ambiguity")
+                metrics.finalize(int((time.perf_counter() - start_time) * 1000))
+                await self._emit_metrics_safe(metrics)
+
                 return NL2APIResponse(
                     needs_clarification=True,
                     clarification_questions=ambiguity_analysis.clarification_questions,
@@ -209,9 +246,18 @@ class NL2APIOrchestrator:
                 )
 
             # Step 5: Retrieve context (dual-mode: RAG or MCP)
+            context_start = time.perf_counter()
             field_codes, query_examples = await self._retrieve_context(
                 query=effective_query,
                 domain=domain,
+            )
+            context_latency = int((time.perf_counter() - context_start) * 1000)
+
+            metrics.set_context_retrieval(
+                mode=getattr(self, '_context_mode', 'local'),
+                field_codes_count=len(field_codes),
+                examples_count=len(query_examples),
+                latency_ms=context_latency,
             )
 
             # Step 6: Build context for agent including conversation history
@@ -226,14 +272,30 @@ class NL2APIOrchestrator:
             )
 
             # Step 7: Invoke domain agent
+            agent_start = time.perf_counter()
             agent = self._agents[domain]
             result = await agent.process(context)
+            agent_latency = int((time.perf_counter() - agent_start) * 1000)
+
+            metrics.set_agent_result(
+                domain=domain,
+                used_llm=result.used_llm,
+                rule_matched=result.rule_matched,
+                llm_model=result.llm_model,
+                tokens_prompt=result.tokens_prompt,
+                tokens_completion=result.tokens_completion,
+                latency_ms=agent_latency,
+            )
 
             # Step 8: Build response and save conversation turn
             processing_time_ms = int((time.perf_counter() - start_time) * 1000)
             turn_number = session.total_turns + 1
 
             if result.needs_clarification:
+                metrics.set_clarification("agent")
+                metrics.finalize(processing_time_ms)
+                await self._emit_metrics_safe(metrics)
+
                 # Save turn with clarification request
                 turn = ConversationTurn(
                     turn_number=turn_number,
@@ -261,6 +323,11 @@ class NL2APIOrchestrator:
                     tokens_used=result.tokens_used,
                     processing_time_ms=processing_time_ms,
                 )
+
+            # Set successful output metrics
+            metrics.set_tool_calls(result.tool_calls)
+            metrics.finalize(processing_time_ms)
+            await self._emit_metrics_safe(metrics)
 
             # Save successful turn
             turn = ConversationTurn(
@@ -291,6 +358,12 @@ class NL2APIOrchestrator:
         except Exception as e:
             logger.error(f"Error processing query: {e}", exc_info=True)
             processing_time_ms = int((time.perf_counter() - start_time) * 1000)
+
+            # Record error in metrics
+            metrics.set_error(e)
+            metrics.finalize(processing_time_ms)
+            await self._emit_metrics_safe(metrics)
+
             return NL2APIResponse(
                 needs_clarification=True,
                 clarification_questions=(
@@ -300,6 +373,13 @@ class NL2APIOrchestrator:
                 ),
                 processing_time_ms=processing_time_ms,
             )
+
+    async def _emit_metrics_safe(self, metrics: RequestMetrics) -> None:
+        """Emit metrics without raising exceptions."""
+        try:
+            await emit_metrics(metrics)
+        except Exception as e:
+            logger.warning(f"Failed to emit metrics: {e}")
 
     def _create_default_router(self) -> QueryRouter:
         """

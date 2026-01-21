@@ -227,6 +227,8 @@ Your task is to generate accurate `get_data` tool calls based on the user's quer
 - `PL` - Low price
 - `VO` - Trading volume
 - `LP` - Last traded price
+- `PB` - Bid price (what buyers are willing to pay)
+- `PA` - Ask/offer price (what sellers are asking)
 
 ### Valuation Metrics
 - `MV` - Market capitalization
@@ -302,12 +304,23 @@ Tool call: get_data(tickers=["U:AAPL", "U:MSFT"], fields=["DY"])
 Query: "S&P 500 level yesterday"
 Tool call: get_data(tickers=["S&PCOMP"], fields=["PI"], SDate="-1D", EDate="-1D")
 
+Query: "What's the bid price for Apple?"
+Tool call: get_data(tickers=["U:AAPL"], fields=["PB"])
+
+Query: "Get the ask/offer price for Microsoft"
+Tool call: get_data(tickers=["U:MSFT"], fields=["PA"])
+
+Query: "Show bid and ask for Tesla"
+Tool call: get_data(tickers=["U:TSLA"], fields=["PB", "PA"])
+
 ## Rules
 1. Always use the appropriate ticker prefix for the market
 2. For US stocks, use U: prefix (e.g., U:AAPL)
 3. Use appropriate date parameters for historical queries
 4. Combine multiple fields when user asks for related data
-5. If the query is ambiguous, ask for clarification
+5. For "bid" queries, always use `PB` (not P or LP)
+6. For "ask" or "offer" queries, always use `PA` (not P or LP)
+7. If the query is ambiguous, ask for clarification
 
 Generate the most appropriate get_data tool call for the user's query."""
 

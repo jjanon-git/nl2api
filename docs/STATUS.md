@@ -4,11 +4,11 @@
 
 ## Overview
 
-EvalPlatform is a distributed evaluation framework for testing LLM tool-calling, with an embedded NL2API system for translating natural language queries into LSEG financial API calls.
+NL2API is a Natural Language to API translation system for LSEG financial data APIs. Translates natural language queries into structured API calls for Datastream, Estimates, Fundamentals, and other LSEG data services. Includes an evaluation framework for testing at scale.
 
 ---
 
-## Current Phase: Phase 4 Complete - All Domain Agents Implemented
+## Current Phase: Phase 5 Complete - Scale & Production
 
 ### Implementation Progress
 
@@ -18,7 +18,7 @@ EvalPlatform is a distributed evaluation framework for testing LLM tool-calling,
 | **Phase 2: EstimatesAgent** | ✅ Complete | First domain agent with full evaluation integration |
 | **Phase 3: Multi-turn + Clarification** | ✅ Complete | Conversation sessions, query expansion, entity resolution |
 | **Phase 4: Remaining Agents** | ✅ Complete | All 5 domain agents with comprehensive fixture-based tests |
-| **Phase 5: Scale & Production** | ⏳ Not Started | Index economic indicators, production optimization |
+| **Phase 5: Scale & Production** | ✅ Complete | Resilience patterns, bulk indexing, Redis caching |
 
 ---
 
@@ -31,7 +31,7 @@ EvalPlatform is a distributed evaluation framework for testing LLM tool-calling,
 | **Orchestrator** | ✅ | Query classification, agent routing, entity resolution |
 | **LLM Abstraction** | ✅ | Claude + OpenAI providers with tool-calling |
 | **RAG Retriever** | ✅ | Hybrid vector + keyword search (pgvector) |
-| **Entity Resolution** | ✅ | Pattern-based + static mappings (~30 companies) |
+| **Entity Resolution** | ✅ | Pattern-based + static mappings, circuit breaker, Redis cache |
 | **Clarification Flow** | ✅ | Ambiguity detection and question generation |
 | **Multi-turn Conversations** | ✅ | Session management, query expansion |
 | **Evaluation Adapter** | ✅ | Integrates with WaterfallEvaluator |
@@ -48,13 +48,29 @@ EvalPlatform is a distributed evaluation framework for testing LLM tool-calling,
 
 ---
 
+### Phase 5 Components (Scale & Production)
+
+| Component | File(s) | Description |
+|-----------|---------|-------------|
+| **Circuit Breaker** | `src/common/resilience/circuit_breaker.py` | Fail-fast pattern for external services |
+| **Retry with Backoff** | `src/common/resilience/retry.py` | Exponential backoff for transient failures |
+| **Redis Cache** | `src/common/cache/redis_cache.py` | L1/L2 caching with in-memory fallback |
+| **Bulk Indexing** | `src/nl2api/rag/indexer.py` | COPY protocol for 10-50x faster inserts |
+| **Checkpoint/Resume** | `src/nl2api/rag/checkpoint.py` | Resumable indexing for large jobs |
+| **Rate Limiting** | `src/nl2api/rag/retriever.py` | OpenAI embedding rate limits |
+| **Batch Saves** | `src/common/storage/postgres/scorecard_repo.py` | Efficient batch scorecard persistence |
+| **Pool Health** | `src/common/storage/postgres/client.py` | Connection pool monitoring |
+| **IVFFlat Index** | `src/common/storage/postgres/migrations/005_ivfflat_index.sql` | Vector index for 1M+ documents |
+
+---
+
 ## Test Coverage
 
 ### Summary
 
 ```
-Total Unit Tests:     497 passing
-├── NL2API Tests:     426 passing
+Total Unit Tests:     606 (601 passed, 5 skipped)
+├── NL2API Tests:     502
 │   ├── LLM & Providers:      41
 │   ├── RAG Retriever:        14
 │   ├── Entity Resolver:      32
@@ -68,6 +84,9 @@ Total Unit Tests:     497 passing
 │   ├── OfficersAgent:        41
 │   ├── ScreeningAgent:       47 + 22 fixture-based
 │   └── Fixture Coverage:     ~30 dynamic tests
+├── Common Tests:      33 passing
+│   ├── Resilience:           15 (circuit breaker, retry)
+│   └── Cache:                18 (Redis, memory cache)
 └── Evaluation Tests:  71 passing
 ```
 
@@ -107,9 +126,9 @@ Generated Test Fixtures: 12,887 total
 ## File Structure
 
 ```
-evalPlatform/
+nl2api/
 ├── CONTRACTS.py                 # Shared data models
-├── STATUS.md                    # This file
+├── docs/STATUS.md               # This file
 ├── README.md                    # Project overview
 │
 ├── src/
@@ -132,8 +151,9 @@ evalPlatform/
 │   │   │   └── screening.py     # ScreeningAgent ✅
 │   │   ├── rag/                 # RAG retrieval
 │   │   │   ├── protocols.py
-│   │   │   ├── retriever.py
-│   │   │   └── indexer.py
+│   │   │   ├── retriever.py     # + Redis cache, rate limiting
+│   │   │   ├── indexer.py       # + Bulk insert, progress
+│   │   │   └── checkpoint.py    # NEW: Resumable indexing
 │   │   ├── resolution/          # Entity resolution
 │   │   │   ├── protocols.py
 │   │   │   └── resolver.py
@@ -147,17 +167,28 @@ evalPlatform/
 │   │   └── evaluation/          # Eval integration
 │   │       └── adapter.py
 │   │
-│   ├── common/storage/          # Shared storage layer
+│   ├── common/
+│   │   ├── resilience/          # Phase 5: Resilience patterns
+│   │   │   ├── circuit_breaker.py
+│   │   │   └── retry.py
+│   │   ├── cache/               # Phase 5: Caching layer
+│   │   │   └── redis_cache.py
+│   │   └── storage/             # Shared storage layer
+│   │
 │   └── evaluation/              # Evaluation pipeline
 │       ├── core/                # Evaluators
 │       └── batch/               # Batch runner
 │
 ├── tests/
-│   ├── unit/nl2api/             # 426 unit tests
-│   │   ├── fixture_loader.py    # Fixture loading utility
-│   │   ├── test_fixture_coverage.py    # Dynamic coverage tests
-│   │   ├── test_datastream_fixtures.py # DatastreamAgent fixtures
-│   │   └── test_screening_fixtures.py  # ScreeningAgent fixtures
+│   ├── unit/
+│   │   ├── nl2api/              # 426 NL2API unit tests
+│   │   │   ├── fixture_loader.py
+│   │   │   ├── test_fixture_coverage.py
+│   │   │   ├── test_datastream_fixtures.py
+│   │   │   └── test_screening_fixtures.py
+│   │   └── common/              # 33 common tests (resilience, cache)
+│   │       ├── test_resilience.py
+│   │       └── test_cache.py
 │   └── fixtures/lseg/generated/ # 12,887 test fixtures
 │       ├── lookups/
 │       ├── temporal/
@@ -204,30 +235,34 @@ python scripts/run_estimates_eval.py --limit 50
 
 ---
 
-## Next Steps
+## Next Steps (TODO)
 
-### Phase 5: Scale & Production
+### Production Integration
 
-1. **Index Economic Indicators** - ~1M indicators for RAG
-2. **Performance Optimization** - Caching, batch processing
-3. **External Entity Resolution** - Integrate company→RIC API
-4. **Production Deployment** - Azure infrastructure, monitoring
+| Task | Priority | Description |
+|------|----------|-------------|
+| **External Entity Service** | HIGH | Wire up actual company→RIC resolution API (circuit breaker + Redis cache ready) |
+| **Index Economic Indicators** | HIGH | Load ~1M indicators into RAG using bulk indexer |
+| **Azure AI Search** | MEDIUM | Migrate from pgvector to Azure AI Search for production scale |
+| **Production Deployment** | MEDIUM | Azure infrastructure, monitoring, alerting |
 
-### Improvements
+### Agent Improvements
 
-1. **Increase Agent Coverage** - Current coverage 15-50% depending on category
-2. **Add More Field Patterns** - Expand rule-based detection
-3. **Improve SCREEN Expressions** - More complex filter combinations
-4. **Real LLM Evaluation** - Run against Claude/GPT-4 for accuracy metrics
+| Task | Priority | Description |
+|------|----------|-------------|
+| **Increase Agent Coverage** | MEDIUM | Current coverage 15-50% depending on category |
+| **Add More Field Patterns** | LOW | Expand rule-based detection for common queries |
+| **Improve SCREEN Expressions** | LOW | More complex filter combinations |
+| **Real LLM Evaluation** | LOW | Run against Claude/GPT-4 for accuracy metrics |
 
 ---
 
 ## Known Limitations
 
-1. **Entity Resolution**: Uses static company→RIC mappings (~30 companies). External API planned.
+1. **Entity Resolution**: Uses static company→RIC mappings (~30 companies). External API integration ready (circuit breaker, retry, Redis cache in place) - just needs endpoint configuration.
 
 2. **Rule-Based Coverage**: Agents cover ~15-50% of queries via rules. Complex queries fall back to LLM.
 
 3. **Zero Coverage Categories**: `complex/` and `errors/` categories have expected zero coverage (advanced features).
 
-4. **No Production RAG**: Current RAG uses local pgvector. Azure AI Search planned for scale.
+4. **Local RAG Only**: Current RAG uses local pgvector with IVFFlat index. Azure AI Search planned for production.

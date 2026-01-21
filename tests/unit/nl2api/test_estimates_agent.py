@@ -232,7 +232,7 @@ class TestEstimatesAgentRuleBasedExtraction:
         assert result is not None
         assert result.confidence >= 0.8
         assert len(result.tool_calls) == 1
-        assert result.tool_calls[0].tool_name == "get_data"
+        assert result.tool_calls[0].tool_name == "estimates_get_data"
         assert result.tool_calls[0].arguments["RICs"] == ["AAPL.O"]
         assert "TR.EPSMean(Period=FY1)" in result.tool_calls[0].arguments["fields"]
 
@@ -394,7 +394,7 @@ class TestEstimatesAgentProperties:
         """Test get_tools returns proper tool definition."""
         tools = self.agent.get_tools()
         assert len(tools) == 1
-        assert tools[0].name == "get_data"
+        assert tools[0].name == "estimates_get_data"
         assert "RICs" in tools[0].parameters["properties"]
         assert "fields" in tools[0].parameters["properties"]
 

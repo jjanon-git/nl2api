@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from CONTRACTS import ToolCall
+from CONTRACTS import ToolCall, ToolRegistry
 from src.nl2api.agents.base import BaseDomainAgent
 from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import LLMProvider, LLMToolDefinition
@@ -191,7 +191,7 @@ class OfficersAgent(BaseDomainAgent):
         """Return the system prompt for the Officers domain."""
         return """You are an expert at translating natural language queries into LSEG Officers & Directors API calls.
 
-Your task is to generate accurate `refinitiv.get_data` tool calls based on the user's query about company executives and directors.
+Your task is to generate accurate `refinitiv_get_data` tool calls based on the user's query about company executives and directors.
 
 ## Key Field Codes
 
@@ -235,16 +235,16 @@ Your task is to generate accurate `refinitiv.get_data` tool calls based on the u
 ## Examples
 
 Query: "Who is the CEO of Apple?"
-Tool call: refinitiv.get_data(instruments=["AAPL.O"], fields=["TR.CEOName"])
+Tool call: refinitiv_get_data(instruments=["AAPL.O"], fields=["TR.CEOName"])
 
 Query: "What is the total compensation of Tesla's CEO?"
-Tool call: refinitiv.get_data(instruments=["TSLA.O"], fields=["TR.CEOName", "TR.ODOfficerTotalComp"], parameters={"OfficerType": "CEO"})
+Tool call: refinitiv_get_data(instruments=["TSLA.O"], fields=["TR.CEOName", "TR.ODOfficerTotalComp"], parameters={"OfficerType": "CEO"})
 
 Query: "How many board members does Microsoft have and how many are independent?"
-Tool call: refinitiv.get_data(instruments=["MSFT.O"], fields=["TR.BoardSize", "TR.IndependentBoardMembers"])
+Tool call: refinitiv_get_data(instruments=["MSFT.O"], fields=["TR.BoardSize", "TR.IndependentBoardMembers"])
 
 Query: "Who are the top executives at NVIDIA?"
-Tool call: refinitiv.get_data(instruments=["NVDA.O"], fields=["TR.OfficerName", "TR.OfficerTitle"], parameters={"OfficerType": "Executive"})
+Tool call: refinitiv_get_data(instruments=["NVDA.O"], fields=["TR.OfficerName", "TR.OfficerTitle"], parameters={"OfficerType": "Executive"})
 
 ## Rules
 1. Always use RIC codes for instruments (e.g., AAPL.O for Apple)
@@ -253,13 +253,13 @@ Tool call: refinitiv.get_data(instruments=["NVDA.O"], fields=["TR.OfficerName", 
 4. For executive lists, add OfficerType parameter
 5. If the query is ambiguous, ask for clarification
 
-Generate the most appropriate refinitiv.get_data tool call for the user's query."""
+Generate the most appropriate refinitiv_get_data tool call for the user's query."""
 
     def get_tools(self) -> list[LLMToolDefinition]:
         """Return the tools available for this domain."""
         return [
             LLMToolDefinition(
-                name="refinitiv_get_data",
+                name=ToolRegistry.OFFICERS_GET_DATA,
                 description="Retrieve officer and director data from Refinitiv",
                 parameters={
                     "type": "object",
@@ -379,7 +379,7 @@ Generate the most appropriate refinitiv.get_data tool call for the user's query.
             arguments["parameters"] = params
 
         tool_call = ToolCall(
-            tool_name="refinitiv_get_data",
+            tool_name=ToolRegistry.OFFICERS_GET_DATA,
             arguments=arguments,
         )
 

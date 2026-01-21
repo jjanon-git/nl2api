@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from CONTRACTS import ToolCall
+from CONTRACTS import ToolCall, ToolRegistry
 from src.nl2api.agents.base import BaseDomainAgent
 from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import LLMProvider, LLMToolDefinition
@@ -183,7 +183,7 @@ class ScreeningAgent(BaseDomainAgent):
         """Return the system prompt for the Screening domain."""
         return """You are an expert at translating natural language screening queries into LSEG Screener API calls.
 
-Your task is to generate accurate `refinitiv.get_data` tool calls with SCREEN expressions.
+Your task is to generate accurate `refinitiv_get_data` tool calls with SCREEN expressions.
 
 ## SCREEN Expression Syntax
 
@@ -229,19 +229,19 @@ Example: `TOP(TR.CompanyMarketCap, 10, nnumber)` - top 10 by market cap
 ## Examples
 
 Query: "What are the top 10 companies by market cap in the S&P 500?"
-Tool call: refinitiv.get_data(
+Tool call: refinitiv_get_data(
   instruments=["SCREEN(U(IN(Equity(active,public,primary))),IN(TR.IndexConstituentRIC,\"0#.SPX\"),TOP(TR.CompanyMarketCap,10,nnumber),CURN=USD)"],
   fields=["TR.CommonName", "TR.CompanyMarketCap"]
 )
 
 Query: "Find US tech stocks with dividend yield above 2%"
-Tool call: refinitiv.get_data(
+Tool call: refinitiv_get_data(
   instruments=["SCREEN(U(IN(Equity(active,public,primary))),TR.HQCountryCode=US,IN(TR.TRBCEconSectorCode,57),TR.DividendYield>2,CURN=USD)"],
   fields=["TR.CommonName", "TR.DividendYield", "TR.CompanyMarketCap"]
 )
 
 Query: "Find undervalued stocks with PE ratio below 15 and ROE above 15%"
-Tool call: refinitiv.get_data(
+Tool call: refinitiv_get_data(
   instruments=["SCREEN(U(IN(Equity(active,public,primary))),TR.PE<15,TR.ROE>15,CURN=USD)"],
   fields=["TR.CommonName", "TR.PE", "TR.ROE", "TR.CompanyMarketCap"]
 )
@@ -254,13 +254,13 @@ Tool call: refinitiv.get_data(
 5. Include relevant fields for display
 6. If the query is ambiguous, ask for clarification
 
-Generate the most appropriate refinitiv.get_data tool call for the user's query."""
+Generate the most appropriate refinitiv_get_data tool call for the user's query."""
 
     def get_tools(self) -> list[LLMToolDefinition]:
         """Return the tools available for this domain."""
         return [
             LLMToolDefinition(
-                name="refinitiv_get_data",
+                name=ToolRegistry.SCREENING_GET_DATA,
                 description="Execute a screening query against the Refinitiv database",
                 parameters={
                     "type": "object",
@@ -395,7 +395,7 @@ Generate the most appropriate refinitiv.get_data tool call for the user's query.
 
         # Build tool call
         tool_call = ToolCall(
-            tool_name="refinitiv_get_data",
+            tool_name=ToolRegistry.SCREENING_GET_DATA,
             arguments={
                 "instruments": [screen_expr],
                 "fields": display_fields,

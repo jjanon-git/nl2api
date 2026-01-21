@@ -1,0 +1,27 @@
+# Prometheus Configuration for NL2API
+# Scrapes metrics from OTEL Collector and provides long-term storage
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Alertmanager configuration (optional, for future alerting)
+alerting:
+  alertmanagers: []
+
+# Rule files (optional, for recording/alerting rules)
+rule_files: []
+
+scrape_configs:
+  # Scrape Prometheus itself
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Scrape OTEL Collector metrics
+  - job_name: "otel-collector"
+    static_configs:
+      - targets: ["otel-collector:8888"]
+
+# Enable remote write receiver for OTEL Collector
+# (configured via command line in docker-compose)

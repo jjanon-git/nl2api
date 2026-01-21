@@ -1,0 +1,15 @@
+# Grafana Dashboard Provisioning for NL2API
+
+apiVersion: 1
+
+providers:
+  - name: 'NL2API Dashboards'
+    orgId: 1
+    folder: 'NL2API'
+    folderUid: 'nl2api'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/provisioning/dashboards/json
