@@ -208,7 +208,7 @@ pytest tests/accuracy/ -m tier2    # Standard
 pytest tests/accuracy/ -m tier3    # Comprehensive
 ```
 
-See [docs/ACCURACY_TESTING.md](docs/ACCURACY_TESTING.md) for full documentation.
+See [docs/accuracy-testing.md](docs/accuracy-testing.md) for full documentation.
 
 ## CI/CD
 
@@ -293,4 +293,4 @@ Agents use pattern matching first, fall back to LLM for complex queries.
 | `tests/unit/nl2api/test_fixture_coverage.py` | Dynamic test infrastructure |
 | `tests/unit/nl2api/fixture_loader.py` | Fixture loading utility |
 | `tests/accuracy/core/evaluator.py` | Accuracy testing evaluator |
-| `docs/ACCURACY_TESTING.md` | Accuracy testing pattern documentation |
+| `docs/accuracy-testing.md` | Accuracy testing pattern documentation |

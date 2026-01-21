@@ -128,7 +128,7 @@ Generated Test Fixtures: 12,887 total
 ```
 nl2api/
 ├── CONTRACTS.py                 # Shared data models
-├── docs/STATUS.md               # This file
+├── docs/status.md               # This file
 ├── README.md                    # Project overview
 │
 ├── src/
@@ -235,14 +235,20 @@ python scripts/run_estimates_eval.py --limit 50
 
 ---
 
-## Next Steps (TODO)
+### Recently Implemented (Jan 20, 2026)
+
+| Task | Status | Description |
+|------|--------|-------------|
+| **Entity Resolution Expansion** | ✅ | 100+ static mappings, fuzzy matching (rapidfuzz), OpenFIGI integration |
+| **Economic Indicators Indexing** | ✅ | Bulk indexing support for 8,700+ synthetic indicators (scale-ready) |
+| **Request Metrics (P0.3)** | ✅ | Accuracy measurement, emitters, OTEL integration |
+
+### Next Steps (TODO)
 
 ### Production Integration
 
 | Task | Priority | Description |
 |------|----------|-------------|
-| **External Entity Service** | HIGH | Wire up actual company→RIC resolution API (circuit breaker + Redis cache ready) |
-| **Index Economic Indicators** | HIGH | Load ~1M indicators into RAG using bulk indexer |
 | **Azure AI Search** | MEDIUM | Migrate from pgvector to Azure AI Search for production scale |
 | **Production Deployment** | MEDIUM | Azure infrastructure, monitoring, alerting |
 
@@ -250,10 +256,9 @@ python scripts/run_estimates_eval.py --limit 50
 
 | Task | Priority | Description |
 |------|----------|-------------|
-| **Increase Agent Coverage** | MEDIUM | Current coverage 15-50% depending on category |
-| **Add More Field Patterns** | LOW | Expand rule-based detection for common queries |
-| **Improve SCREEN Expressions** | LOW | More complex filter combinations |
-| **Real LLM Evaluation** | LOW | Run against Claude/GPT-4 for accuracy metrics |
+| **Increase Agent Coverage** | HIGH | Current coverage 15-50% - expand rule-based detection for common queries |
+| **Improve SCREEN Expressions** | MEDIUM | More complex filter combinations |
+| **Real LLM Evaluation** | MEDIUM | Run against Claude/GPT-4 for accuracy metrics |
 
 ---
 

@@ -48,12 +48,13 @@ _load_env()
 
 
 # Reference document paths and their parsers
+# Files are in docs/api-reference/
 REFERENCE_DOCS = {
-    "datastream": ("DATASTREAM_REFERENCE.md", "parse_datastream_reference"),
-    "fundamentals": ("FUNDAMENTALS_REFERENCE.md", "parse_fundamentals_reference"),
-    "estimates": ("ESTIMATES_REFERENCE.md", "parse_estimates_reference"),
-    "officers": ("OFFICERS_DIRECTORS_REFERENCE.md", "parse_officers_reference"),
-    "screening": ("SCREENING_REFERENCE.md", "parse_screening_reference"),
+    "datastream": ("docs/api-reference/datastream.md", "parse_datastream_reference"),
+    "fundamentals": ("docs/api-reference/fundamentals.md", "parse_fundamentals_reference"),
+    "estimates": ("docs/api-reference/estimates.md", "parse_estimates_reference"),
+    "officers": ("docs/api-reference/officers-directors.md", "parse_officers_reference"),
+    "screening": ("docs/api-reference/screening.md", "parse_screening_reference"),
 }
 
 
