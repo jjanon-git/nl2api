@@ -217,32 +217,14 @@ class TestOfficersAgentInstrumentDetection:
         instruments = self.agent._get_instruments(context)
         assert instruments == ["AAPL.O"]
 
-    def test_known_company_pattern(self) -> None:
-        """Test fallback to known company patterns."""
+    def test_no_instruments_without_resolved_entities(self) -> None:
+        """Test that no instruments returned without resolved entities."""
         context = AgentContext(
             query="Who is the CEO of Apple?",
             resolved_entities={},
         )
         instruments = self.agent._get_instruments(context)
-        assert instruments == ["AAPL.O"]
-
-    def test_tesla_known_pattern(self) -> None:
-        """Test Tesla pattern detection."""
-        context = AgentContext(
-            query="Who is Tesla's CEO?",
-            resolved_entities={},
-        )
-        instruments = self.agent._get_instruments(context)
-        assert instruments == ["TSLA.O"]
-
-    def test_jp_morgan_known_pattern(self) -> None:
-        """Test JP Morgan pattern detection."""
-        context = AgentContext(
-            query="Who is the chairman of JP Morgan?",
-            resolved_entities={},
-        )
-        instruments = self.agent._get_instruments(context)
-        assert instruments == ["JPM.N"]
+        assert instruments == []
 
     def test_no_instruments_found(self) -> None:
         """Test when no instruments can be found."""
@@ -341,11 +323,11 @@ class TestOfficersAgentRuleBasedExtraction:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_known_company_pattern(self) -> None:
-        """Test extraction using known company patterns."""
+    async def test_with_resolved_entities(self) -> None:
+        """Test extraction with resolved entities from entity resolver."""
         context = AgentContext(
             query="Who is Apple's CEO?",
-            resolved_entities={},  # No resolved entities, rely on patterns
+            resolved_entities={"Apple": "AAPL.O"},  # Provided by entity resolver
         )
 
         result = self.agent._try_rule_based_extraction(context)

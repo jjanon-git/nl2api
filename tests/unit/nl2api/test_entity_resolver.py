@@ -48,11 +48,17 @@ class TestResolvedEntity:
 
 
 class TestExternalEntityResolver:
-    """Test suite for ExternalEntityResolver."""
+    """Test suite for entity resolution.
+
+    NOTE: These tests use MockEntityResolver since ExternalEntityResolver
+    requires a database connection. For real resolver tests, use integration tests.
+    """
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
-        self.resolver = ExternalEntityResolver()
+        # Use MockEntityResolver for unit tests - ExternalEntityResolver needs database
+        from src.nl2api.resolution.mock_resolver import MockEntityResolver
+        self.resolver = MockEntityResolver()
 
     @pytest.mark.asyncio
     async def test_resolve_known_company(self) -> None:

@@ -549,20 +549,3 @@ class TestTickerExtraction:
             result = extract_ticker_symbol(ticker)
             assert result == expected, f"Expected {expected}, got {result} for {ticker}"
 
-    @pytest.mark.asyncio
-    async def test_company_pattern_coverage(self, agent: DatastreamAgent, loader: FixtureLoader):
-        """Test that common companies in fixtures are recognized."""
-        lookups = loader.load_category("lookups")[:500]
-
-        # Extract company names mentioned in queries
-        company_mentions = {}
-        for case in lookups:
-            query_lower = case.nl_query.lower()
-            for company in agent.US_COMPANY_PATTERNS:
-                if company in query_lower:
-                    company_mentions[company] = company_mentions.get(company, 0) + 1
-
-        print(f"\nCompany mentions in fixtures: {company_mentions}")
-
-        # Should recognize common companies
-        assert len(company_mentions) > 0, "No companies recognized from fixtures"

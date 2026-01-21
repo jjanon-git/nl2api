@@ -309,11 +309,11 @@ class TestDatastreamAgentRuleBasedExtraction:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_known_company_pattern(self) -> None:
-        """Test extraction using known company patterns."""
+    async def test_with_resolved_entities(self) -> None:
+        """Test extraction with resolved entities from entity resolver."""
         context = AgentContext(
             query="What is Apple's PE ratio?",
-            resolved_entities={},  # No resolved entities, rely on patterns
+            resolved_entities={"Apple": "AAPL.O"},  # Provided by entity resolver
         )
 
         result = self.agent._try_rule_based_extraction(context)

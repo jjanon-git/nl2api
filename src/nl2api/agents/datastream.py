@@ -128,31 +128,6 @@ class DatastreamAgent(BaseDomainAgent):
         "return on assets": "WC08326",
     }
 
-    # Known US market prefixes (@ prefix for Datastream)
-    US_COMPANY_PATTERNS = {
-        "apple": "@AAPL",
-        "microsoft": "@MSFT",
-        "google": "@GOOGL",
-        "alphabet": "@GOOGL",
-        "amazon": "@AMZN",
-        "tesla": "@TSLA",
-        "nvidia": "@NVDA",
-        "meta": "@META",
-        "facebook": "@META",
-        "netflix": "@NFLX",
-        "disney": "@DIS",
-        "coca-cola": "@KO",
-        "pepsi": "@PEP",
-        "jpmorgan": "@JPM",
-        "goldman sachs": "@GS",
-        "ibm": "@IBM",
-        "intel": "@INTC",
-        "amd": "@AMD",
-        "walmart": "@WMT",
-        "exxon": "@XOM",
-        "chevron": "@CVX",
-    }
-
     # Domain keywords for classification
     DOMAIN_KEYWORDS = [
         "price", "stock price", "share price",
@@ -468,23 +443,13 @@ Generate the most appropriate get_data tool call for the user's query."""
         query: str,
         resolved_entities: dict[str, str],
     ) -> list[str]:
-        """Extract tickers from query and resolved entities."""
+        """Extract tickers from resolved entities."""
         tickers = []
-
-        # Use resolved entities first (these should be in RIC format)
         if resolved_entities:
             for name, ric in resolved_entities.items():
                 # Convert RIC to Datastream format if needed
                 ticker = self._ric_to_datastream(ric)
                 tickers.append(ticker)
-
-        # Also check for known company patterns
-        if not tickers:
-            query_lower = query.lower()
-            for company, ticker in self.US_COMPANY_PATTERNS.items():
-                if company in query_lower:
-                    tickers.append(ticker)
-
         return tickers
 
     def _ric_to_datastream(self, ric: str) -> str:

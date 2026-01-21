@@ -116,23 +116,6 @@ class OfficersAgent(BaseDomainAgent):
         "background", "biography", "bio",
     ]
 
-    # Known company patterns
-    KNOWN_COMPANIES = {
-        "apple": "AAPL.O",
-        "microsoft": "MSFT.O",
-        "google": "GOOGL.O",
-        "alphabet": "GOOGL.O",
-        "amazon": "AMZN.O",
-        "tesla": "TSLA.O",
-        "nvidia": "NVDA.O",
-        "meta": "META.O",
-        "facebook": "META.O",
-        "netflix": "NFLX.O",
-        "jp morgan": "JPM.N",
-        "jpmorgan": "JPM.N",
-        "goldman sachs": "GS.N",
-    }
-
     def __init__(
         self,
         llm: LLMProvider,
@@ -391,15 +374,9 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
         )
 
     def _get_instruments(self, context: AgentContext) -> list[str]:
-        """Get instrument RICs from context or patterns."""
+        """Get instrument RICs from resolved entities."""
         if context.resolved_entities:
             return list(context.resolved_entities.values())
-
-        query_lower = context.query.lower()
-        for company, ric in self.KNOWN_COMPANIES.items():
-            if company in query_lower:
-                return [ric]
-
         return []
 
     def _detect_fields(self, query: str) -> list[str]:

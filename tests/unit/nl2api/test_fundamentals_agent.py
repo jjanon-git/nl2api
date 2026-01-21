@@ -266,23 +266,23 @@ class TestFundamentalsAgentInstrumentDetection:
         assert "AAPL.O" in instruments
         assert "MSFT.O" in instruments
 
-    def test_known_company_pattern(self) -> None:
-        """Test fallback to known company patterns."""
+    def test_with_resolved_entity(self) -> None:
+        """Test instruments from resolved entities."""
         context = AgentContext(
             query="What is Apple's revenue?",
-            resolved_entities={},
+            resolved_entities={"Apple": "AAPL.O"},
         )
         instruments = self.agent._get_instruments(context)
         assert instruments == ["AAPL.O"]
 
-    def test_google_known_pattern(self) -> None:
-        """Test Google pattern detection."""
+    def test_no_instruments_without_resolved_entities(self) -> None:
+        """Test that no instruments returned without resolved entities."""
         context = AgentContext(
             query="Show Google's total assets",
             resolved_entities={},
         )
         instruments = self.agent._get_instruments(context)
-        assert instruments == ["GOOGL.O"]
+        assert instruments == []
 
     def test_no_instruments_found(self) -> None:
         """Test when no instruments can be found."""
@@ -397,11 +397,11 @@ class TestFundamentalsAgentRuleBasedExtraction:
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_known_company_pattern(self) -> None:
-        """Test extraction using known company patterns."""
+    async def test_with_resolved_entities(self) -> None:
+        """Test extraction with resolved entities from entity resolver."""
         context = AgentContext(
             query="What is Apple's EBITDA?",
-            resolved_entities={},  # No resolved entities, rely on patterns
+            resolved_entities={"Apple": "AAPL.O"},  # Provided by entity resolver
         )
 
         result = self.agent._try_rule_based_extraction(context)

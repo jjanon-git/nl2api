@@ -126,7 +126,8 @@ class ScreeningAgent(BaseDomainAgent):
         "above", "below", "over", "under", "greater than", "less than",
         "more than", "at least",
         # Index
-        "in the", "constituents", "members of",
+        "in the", "constituents", "members of", "members",
+        "s&p 500", "s&p500", "sp500", "nasdaq", "dow jones", "ftse", "russell",
         # Sectors
         "tech", "healthcare", "financial", "energy",
         # Styles

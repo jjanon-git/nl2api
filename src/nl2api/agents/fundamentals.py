@@ -212,20 +212,6 @@ class FundamentalsAgent(BaseDomainAgent):
         "annual report", "quarterly report", "fiscal",
     ]
 
-    # Known company patterns for rule-based extraction
-    KNOWN_COMPANIES = {
-        "apple": "AAPL.O",
-        "microsoft": "MSFT.O",
-        "google": "GOOGL.O",
-        "alphabet": "GOOGL.O",
-        "amazon": "AMZN.O",
-        "tesla": "TSLA.O",
-        "nvidia": "NVDA.O",
-        "meta": "META.O",
-        "facebook": "META.O",
-        "netflix": "NFLX.O",
-    }
-
     def __init__(
         self,
         llm: LLMProvider,
@@ -532,17 +518,9 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
         )
 
     def _get_instruments(self, context: AgentContext) -> list[str]:
-        """Get instrument RICs from context or query patterns."""
-        # First try resolved entities
+        """Get instrument RICs from resolved entities."""
         if context.resolved_entities:
             return list(context.resolved_entities.values())
-
-        # Fall back to known company patterns
-        query_lower = context.query.lower()
-        for company, ric in self.KNOWN_COMPANIES.items():
-            if company in query_lower:
-                return [ric]
-
         return []
 
     def _detect_fields(self, query: str) -> list[str]:
