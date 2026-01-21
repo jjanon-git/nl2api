@@ -3,6 +3,8 @@ Accuracy Evaluator
 
 Core evaluation infrastructure for measuring NL2API accuracy
 using real LLM calls.
+
+Emits metrics to OTEL for tracking accuracy trends over time.
 """
 
 from __future__ import annotations
@@ -18,6 +20,22 @@ from typing import Any
 from tests.accuracy.core.config import AccuracyConfig, DEFAULT_CONFIG
 
 logger = logging.getLogger(__name__)
+
+# Lazy import for metrics to avoid import errors if OTEL not installed
+_accuracy_metrics = None
+
+
+def _get_metrics():
+    """Get accuracy metrics instance (lazy load)."""
+    global _accuracy_metrics
+    if _accuracy_metrics is None:
+        try:
+            from src.common.telemetry import get_accuracy_metrics
+            _accuracy_metrics = get_accuracy_metrics()
+        except ImportError:
+            logger.debug("Telemetry not available, metrics disabled")
+            _accuracy_metrics = None
+    return _accuracy_metrics
 
 
 def _load_env():
@@ -176,6 +194,7 @@ class AccuracyEvaluator:
         test_cases: list[RoutingTestCase],
         parallel: int | None = None,
         progress_callback: Any = None,
+        tier: str = "",
     ) -> AccuracyReport:
         """
         Evaluate a batch of test cases.
@@ -184,6 +203,7 @@ class AccuracyEvaluator:
             test_cases: List of test cases to evaluate
             parallel: Number of parallel requests (uses config default if None)
             progress_callback: Optional callback(current, total, result) for progress
+            tier: Test tier for metrics (tier1, tier2, tier3)
 
         Returns:
             AccuracyReport with results and metrics
@@ -192,8 +212,12 @@ class AccuracyEvaluator:
         report = AccuracyReport(
             total_count=len(test_cases),
             model=self.config.model,
+            tier=tier,
             start_time=datetime.now(),
         )
+
+        # Get metrics instance
+        metrics = _get_metrics()
 
         # Evaluate with concurrency control
         semaphore = asyncio.Semaphore(parallel)
@@ -228,6 +252,19 @@ class AccuracyEvaluator:
                     if result.correct:
                         report.by_category[tc.category]["correct"] += 1
 
+                # Emit per-query metrics to OTEL
+                if metrics:
+                    metrics.record_query_result(
+                        correct=result.correct,
+                        confidence=result.confidence,
+                        latency_ms=result.latency_ms,
+                        expected_domain=result.expected,
+                        predicted_domain=result.predicted,
+                        tier=tier,
+                        category=tc.category,
+                        error=bool(result.error),
+                    )
+
                 if progress_callback:
                     progress_callback(idx + 1, len(test_cases), result)
 
@@ -248,6 +285,17 @@ class AccuracyEvaluator:
                 report.results.append(r)
 
         report.end_time = datetime.now()
+
+        # Emit batch completion metrics to OTEL
+        if metrics:
+            metrics.record_batch_complete(
+                total_count=report.total_count,
+                correct_count=report.correct_count,
+                duration_seconds=report.duration_seconds,
+                tier=tier,
+                model=report.model,
+            )
+
         return report
 
 

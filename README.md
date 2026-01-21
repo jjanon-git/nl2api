@@ -1,6 +1,6 @@
-# EvalPlatform
+# NL2API
 
-Distributed evaluation framework for testing LLM tool-calling at scale (~400k test cases), with an embedded **NL2API system** for translating natural language queries into LSEG financial API calls.
+Natural Language to API translation system for LSEG financial data APIs. Translates natural language queries into structured API calls for Datastream, Estimates, Fundamentals, and other LSEG data services. Includes an evaluation framework for testing at scale (~400k test cases).
 
 ## Quick Start
 
@@ -19,13 +19,13 @@ docker compose up -d
 .venv/bin/python -m pytest tests/unit/ -v
 
 # Run single test case evaluation
-.venv/bin/python -m src.cli.main run tests/fixtures/search_products.json
+.venv/bin/python -m src.evaluation.cli.main run tests/fixtures/search_products.json
 
 # Run batch evaluation
-.venv/bin/python -m src.cli.main batch run --limit 10
+.venv/bin/python -m src.evaluation.cli.main batch run --limit 10
 
 # View batch results
-.venv/bin/python -m src.cli.main batch list
+.venv/bin/python -m src.evaluation.cli.main batch list
 ```
 
 ---
@@ -84,7 +84,7 @@ The test suite uses **programmatic fixture expansion** - tests automatically sca
 
 ```
 Total Test Cases:     12,887 generated fixtures
-Total Unit Tests:     497 passing (+ evaluation tests)
+Total Unit Tests:     606 (601 passed, 5 skipped)
 
 Fixture Categories:
 ├── lookups/       3,745 cases (single/multi-field queries)
@@ -143,7 +143,8 @@ To add new test fixtures:
 
 ## Documentation
 
-- **ARCHITECTURE.md** - Full system design and API specifications
-- **STATUS.md** - Current implementation status and next steps
 - **CLAUDE.md** - Quick reference for AI assistants
-- **\*_REFERENCE.md** - LSEG API reference docs (Datastream, Estimates, Fundamentals, Officers, Screening)
+- **docs/ARCHITECTURE.md** - Full system design and API specifications
+- **docs/STATUS.md** - Current implementation status and next steps
+- **docs/ACCURACY_TESTING.md** - Accuracy testing pattern and configuration
+- **docs/api-reference/** - LSEG API reference docs (Datastream, Estimates, Fundamentals, Officers, Screening)

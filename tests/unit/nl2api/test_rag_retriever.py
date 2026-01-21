@@ -263,12 +263,21 @@ class TestOpenAIEmbedder:
     @pytest.mark.asyncio
     async def test_embed_single_text(self, mock_openai) -> None:
         """Test embedding a single text."""
+        import asyncio
         from src.nl2api.rag.retriever import OpenAIEmbedder
+
+        # Add usage tracking to mock response
+        mock_openai.embeddings.create.return_value.usage = MagicMock()
+        mock_openai.embeddings.create.return_value.usage.total_tokens = 10
 
         embedder = OpenAIEmbedder.__new__(OpenAIEmbedder)
         embedder._client = mock_openai
         embedder._model = "text-embedding-3-small"
         embedder._dimensions = {"text-embedding-3-small": 1536}
+        embedder._semaphore = asyncio.Semaphore(5)
+        embedder._total_requests = 0
+        embedder._total_tokens = 0
+        embedder._rate_limit_hits = 0
 
         embedding = await embedder.embed("What is Apple's EPS?")
 
@@ -278,6 +287,7 @@ class TestOpenAIEmbedder:
     @pytest.mark.asyncio
     async def test_embed_batch(self, mock_openai) -> None:
         """Test embedding a batch of texts."""
+        import asyncio
         from src.nl2api.rag.retriever import OpenAIEmbedder
 
         mock_embedding1 = MagicMock()
@@ -286,11 +296,17 @@ class TestOpenAIEmbedder:
         mock_embedding2.embedding = [0.2] * 1536
 
         mock_openai.embeddings.create.return_value.data = [mock_embedding1, mock_embedding2]
+        mock_openai.embeddings.create.return_value.usage = MagicMock()
+        mock_openai.embeddings.create.return_value.usage.total_tokens = 20
 
         embedder = OpenAIEmbedder.__new__(OpenAIEmbedder)
         embedder._client = mock_openai
         embedder._model = "text-embedding-3-small"
         embedder._dimensions = {"text-embedding-3-small": 1536}
+        embedder._semaphore = asyncio.Semaphore(5)
+        embedder._total_requests = 0
+        embedder._total_tokens = 0
+        embedder._rate_limit_hits = 0
 
         embeddings = await embedder.embed_batch(["Text 1", "Text 2"])
 

@@ -28,7 +28,7 @@ class MockLLMProvider:
         tool_calls=[
             LLMToolCall(
                 id="tc_123",
-                name="refinitiv.get_data",
+                name="refinitiv_get_data",
                 arguments={
                     "instruments": ["AAPL.O"],
                     "fields": ["TR.Revenue"],
@@ -315,7 +315,7 @@ class TestFundamentalsAgentRuleBasedExtraction:
         assert result is not None
         assert len(result.tool_calls) == 1
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv.get_data"
+        assert tc.tool_name == "refinitiv_get_data"
         assert tc.arguments["instruments"] == ["AAPL.O"]
         assert "TR.Revenue" in tc.arguments["fields"]
         assert tc.arguments["parameters"]["Period"] == "FY0"
@@ -473,14 +473,14 @@ class TestFundamentalsAgentProperties:
         prompt = self.agent.get_system_prompt()
         assert "Refinitiv" in prompt
         assert "TR.Revenue" in prompt
-        assert "refinitiv.get_data" in prompt
+        assert "refinitiv_get_data" in prompt
         assert "AAPL.O" in prompt
 
     def test_tools_definition(self) -> None:
         """Test tools definition."""
         tools = self.agent.get_tools()
         assert len(tools) == 1
-        assert tools[0].name == "refinitiv.get_data"
+        assert tools[0].name == "refinitiv_get_data"
         assert "instruments" in tools[0].parameters["properties"]
         assert "fields" in tools[0].parameters["properties"]
         assert "parameters" in tools[0].parameters["properties"]
@@ -507,8 +507,8 @@ class TestFundamentalsAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        # Expected: refinitiv.get_data with instruments=["AAPL.O"], fields=["TR.Revenue"]
-        assert tc.tool_name == "refinitiv.get_data"
+        # Expected: refinitiv_get_data with instruments=["AAPL.O"], fields=["TR.Revenue"]
+        assert tc.tool_name == "refinitiv_get_data"
         assert tc.arguments["instruments"] == ["AAPL.O"]
         assert tc.arguments["fields"] == ["TR.Revenue"]
         # Parameters should include Period and Frq
@@ -529,7 +529,7 @@ class TestFundamentalsAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv.get_data"
+        assert tc.tool_name == "refinitiv_get_data"
         assert tc.arguments["instruments"] == ["MSFT.O"]
         assert "TR.NetIncome" in tc.arguments["fields"]
         assert "TR.OperatingIncome" in tc.arguments["fields"]
@@ -552,7 +552,7 @@ class TestFundamentalsAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv.get_data"
+        assert tc.tool_name == "refinitiv_get_data"
         assert tc.arguments["instruments"] == ["GOOGL.O"]
         assert "TR.TotalAssets" in tc.arguments["fields"]
         assert "TR.TotalDebt" in tc.arguments["fields"]
@@ -570,7 +570,7 @@ class TestFundamentalsAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv.get_data"
+        assert tc.tool_name == "refinitiv_get_data"
         assert tc.arguments["instruments"] == ["NVDA.O"]
         assert "TR.ROE" in tc.arguments["fields"]
         assert "TR.ROA" in tc.arguments["fields"]
@@ -589,7 +589,7 @@ class TestFundamentalsAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv.get_data"
+        assert tc.tool_name == "refinitiv_get_data"
         assert tc.arguments["instruments"] == ["AMZN.O"]
         assert "TR.FreeCashFlow" in tc.arguments["fields"]
         assert "TR.OperatingCashFlow" in tc.arguments["fields"]

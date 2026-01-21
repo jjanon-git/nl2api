@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from CONTRACTS import ToolCall
+from CONTRACTS import ToolCall, ToolRegistry
 from src.nl2api.agents.base import BaseDomainAgent
 from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import LLMProvider, LLMToolDefinition
@@ -289,7 +289,7 @@ class FundamentalsAgent(BaseDomainAgent):
         """Return the system prompt for the Fundamentals domain."""
         return """You are an expert at translating natural language queries into LSEG Refinitiv Fundamentals API calls.
 
-Your task is to generate accurate `refinitiv.get_data` tool calls based on the user's query about company financials.
+Your task is to generate accurate `refinitiv_get_data` tool calls based on the user's query about company financials.
 
 ## Key Field Codes
 
@@ -361,16 +361,16 @@ Your task is to generate accurate `refinitiv.get_data` tool calls based on the u
 ## Examples
 
 Query: "What was Apple's revenue last year?"
-Tool call: refinitiv.get_data(instruments=["AAPL.O"], fields=["TR.Revenue"], parameters={"Period": "FY0", "Frq": "FY"})
+Tool call: refinitiv_get_data(instruments=["AAPL.O"], fields=["TR.Revenue"], parameters={"Period": "FY0", "Frq": "FY"})
 
 Query: "What are Google's total assets and total debt?"
-Tool call: refinitiv.get_data(instruments=["GOOGL.O"], fields=["TR.TotalAssets", "TR.TotalDebt"], parameters={"Period": "FY0"})
+Tool call: refinitiv_get_data(instruments=["GOOGL.O"], fields=["TR.TotalAssets", "TR.TotalDebt"], parameters={"Period": "FY0"})
 
 Query: "Get Microsoft's net income and operating income for the last 3 years"
-Tool call: refinitiv.get_data(instruments=["MSFT.O"], fields=["TR.NetIncome", "TR.OperatingIncome"], parameters={"SDate": "0", "EDate": "-2", "Frq": "FY"})
+Tool call: refinitiv_get_data(instruments=["MSFT.O"], fields=["TR.NetIncome", "TR.OperatingIncome"], parameters={"SDate": "0", "EDate": "-2", "Frq": "FY"})
 
 Query: "What is NVIDIA's ROE, ROA, and profit margin?"
-Tool call: refinitiv.get_data(instruments=["NVDA.O"], fields=["TR.ROE", "TR.ROA", "TR.NetProfitMargin"], parameters={"Period": "FY0"})
+Tool call: refinitiv_get_data(instruments=["NVDA.O"], fields=["TR.ROE", "TR.ROA", "TR.NetProfitMargin"], parameters={"Period": "FY0"})
 
 ## Rules
 1. Always use RIC codes for instruments (e.g., AAPL.O for Apple on NASDAQ)
@@ -379,13 +379,13 @@ Tool call: refinitiv.get_data(instruments=["NVDA.O"], fields=["TR.ROE", "TR.ROA"
 4. Include all relevant fields mentioned in the query
 5. If the query is ambiguous, ask for clarification
 
-Generate the most appropriate refinitiv.get_data tool call for the user's query."""
+Generate the most appropriate refinitiv_get_data tool call for the user's query."""
 
     def get_tools(self) -> list[LLMToolDefinition]:
         """Return the tools available for this domain."""
         return [
             LLMToolDefinition(
-                name="refinitiv_get_data",
+                name=ToolRegistry.FUNDAMENTALS_GET_DATA,
                 description="Retrieve fundamental financial data from Refinitiv",
                 parameters={
                     "type": "object",
@@ -520,7 +520,7 @@ Generate the most appropriate refinitiv.get_data tool call for the user's query.
             arguments["parameters"] = params
 
         tool_call = ToolCall(
-            tool_name="refinitiv_get_data",
+            tool_name=ToolRegistry.FUNDAMENTALS_GET_DATA,
             arguments=arguments,
         )
 

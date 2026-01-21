@@ -1,12 +1,12 @@
-# EvalPlatform Architecture & Design Contract
+# NL2API Architecture & Design Contract
 
 > **Version:** 1.0.0
-> **Status:** Active - Sprint 3 Complete
+> **Status:** Active - Phase 5 Complete
 > **Last Updated:** 2026-01-20
 
 ## Executive Summary
 
-EvalPlatform is a distributed evaluation framework for testing 40+ APIs via natural language queries at scale (~400k test cases). It prioritizes time-to-market while maintaining clean interfaces to avoid unrecoverable technical debt.
+NL2API is a Natural Language to API translation system for LSEG financial data. It includes a distributed evaluation framework for testing at scale (~400k test cases). Prioritizes time-to-market while maintaining clean interfaces to avoid unrecoverable technical debt.
 
 ---
 

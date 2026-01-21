@@ -224,6 +224,101 @@ class PostgresScorecardRepository:
             "avg_score": float(row["avg_score"]),
         }
 
+    async def save_batch(self, scorecards: list[Scorecard]) -> int:
+        """
+        Save multiple scorecards in a single transaction.
+
+        More efficient than calling save() multiple times for batch operations.
+
+        Args:
+            scorecards: List of scorecards to save
+
+        Returns:
+            Number of scorecards saved
+        """
+        if not scorecards:
+            return 0
+
+        # Prepare all records
+        records = []
+        for scorecard in scorecards:
+            sc_uuid = uuid.UUID(scorecard.scorecard_id)
+            tc_uuid = uuid.UUID(scorecard.test_case_id)
+
+            # Serialize stage results
+            syntax_json = self._stage_result_to_json(scorecard.syntax_result)
+            logic_json = self._stage_result_to_json(scorecard.logic_result) if scorecard.logic_result else None
+            execution_json = self._stage_result_to_json(scorecard.execution_result) if scorecard.execution_result else None
+            semantics_json = self._stage_result_to_json(scorecard.semantics_result) if scorecard.semantics_result else None
+
+            # Serialize tool calls
+            tool_calls_json = None
+            if scorecard.generated_tool_calls:
+                tool_calls_json = json.dumps([
+                    {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+                    for tc in scorecard.generated_tool_calls
+                ])
+
+            records.append((
+                sc_uuid,
+                tc_uuid,
+                scorecard.batch_id,
+                None,  # run_id placeholder
+                syntax_json,
+                logic_json,
+                execution_json,
+                semantics_json,
+                tool_calls_json,
+                scorecard.generated_nl_response,
+                scorecard.overall_passed,
+                scorecard.overall_score,
+                scorecard.worker_id,
+                scorecard.attempt_number,
+                scorecard.message_id,
+                scorecard.total_latency_ms,
+                scorecard.timestamp,
+                scorecard.completed_at,
+            ))
+
+        # Execute batch insert in a transaction
+        async with self.pool.acquire() as conn:
+            async with conn.transaction():
+                # Use executemany for batch insert with ON CONFLICT
+                await conn.executemany(
+                    """
+                    INSERT INTO scorecards (
+                        id, test_case_id, batch_id, run_id,
+                        syntax_result, logic_result, execution_result, semantics_result,
+                        generated_tool_calls, generated_nl_response,
+                        overall_passed, overall_score,
+                        worker_id, attempt_number, message_id, total_latency_ms,
+                        created_at, completed_at
+                    ) VALUES (
+                        $1, $2, $3, $4,
+                        $5::jsonb, $6::jsonb, $7::jsonb, $8::jsonb,
+                        $9::jsonb, $10,
+                        $11, $12,
+                        $13, $14, $15, $16,
+                        $17, $18
+                    )
+                    ON CONFLICT (id) DO UPDATE SET
+                        syntax_result = EXCLUDED.syntax_result,
+                        logic_result = EXCLUDED.logic_result,
+                        execution_result = EXCLUDED.execution_result,
+                        semantics_result = EXCLUDED.semantics_result,
+                        generated_tool_calls = EXCLUDED.generated_tool_calls,
+                        generated_nl_response = EXCLUDED.generated_nl_response,
+                        overall_passed = EXCLUDED.overall_passed,
+                        overall_score = EXCLUDED.overall_score,
+                        attempt_number = EXCLUDED.attempt_number,
+                        total_latency_ms = EXCLUDED.total_latency_ms,
+                        completed_at = EXCLUDED.completed_at
+                    """,
+                    records,
+                )
+
+        return len(records)
+
     def _stage_result_to_json(self, result: StageResult) -> str:
         """Convert StageResult to JSON string."""
         data = {

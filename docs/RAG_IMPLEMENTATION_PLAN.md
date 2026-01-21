@@ -15,7 +15,7 @@ The RAG infrastructure is **architecturally complete** but **functionally empty*
 | Hybrid Retriever (vector + keyword) | `src/nl2api/rag/retriever.py` | ✅ Complete |
 | Orchestrator integration | `src/nl2api/orchestrator.py` | ✅ Complete |
 | Agent context injection | `src/nl2api/agents/base.py:153-158` | ✅ Complete |
-| Reference documents | `*_REFERENCE.md` files | ✅ Available |
+| Reference documents | `docs/api-reference/*_REFERENCE.md` | ✅ Available |
 
 ### What's Missing
 
@@ -36,11 +36,11 @@ scripts/index_field_codes.py
 ```
 
 Parse all 5 reference documents:
-- `DATASTREAM_REFERENCE.md` (600+ field codes)
-- `FUNDAMENTALS_REFERENCE.md` (400+ field codes)
-- `ESTIMATES_REFERENCE.md`
-- `OFFICERS_DIRECTORS_REFERENCE.md`
-- `SCREENING_REFERENCE.md`
+- `docs/api-reference/DATASTREAM_REFERENCE.md` (600+ field codes)
+- `docs/api-reference/FUNDAMENTALS_REFERENCE.md` (400+ field codes)
+- `docs/api-reference/ESTIMATES_REFERENCE.md`
+- `docs/api-reference/OFFICERS_DIRECTORS_REFERENCE.md`
+- `docs/api-reference/SCREENING_REFERENCE.md`
 
 **1.2 Add domain-specific parsers**
 

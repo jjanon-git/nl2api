@@ -1,11 +1,11 @@
-# EvalPlatform Makefile
+# NL2API Makefile
 # Common commands for development workflow
 
 .PHONY: help install dev db-up db-down db-reset db-logs load-tests test test-unit lint format clean
 
 # Default target
 help:
-	@echo "EvalPlatform Development Commands"
+	@echo "NL2API Development Commands"
 	@echo ""
 	@echo "Setup:"
 	@echo "  make install      Install production dependencies"
@@ -52,7 +52,7 @@ db-up:
 	docker compose up -d
 	@echo "Waiting for PostgreSQL to be ready..."
 	@sleep 3
-	@docker compose exec -T postgres pg_isready -U eval -d evalplatform || (echo "PostgreSQL not ready" && exit 1)
+	@docker compose exec -T postgres pg_isready -U nl2api -d nl2api || (echo "PostgreSQL not ready" && exit 1)
 	@echo "PostgreSQL is ready!"
 
 db-down:
@@ -69,7 +69,7 @@ db-logs:
 	docker compose logs -f postgres
 
 db-shell:
-	docker compose exec postgres psql -U eval -d evalplatform
+	docker compose exec postgres psql -U nl2api -d nl2api
 
 # ============================================================================
 # Data Loading

@@ -39,7 +39,7 @@ class StorageConfig(BaseSettings):
 
     # PostgreSQL settings
     postgres_url: str = Field(
-        default="postgresql://eval:eval@localhost:5432/evalplatform",
+        default="postgresql://nl2api:nl2api@localhost:5432/nl2api",
         description="PostgreSQL connection URL (asyncpg format)",
     )
     postgres_pool_min: int = Field(
@@ -51,6 +51,26 @@ class StorageConfig(BaseSettings):
         default=10,
         ge=1,
         description="Maximum connection pool size",
+    )
+    postgres_pool_command_timeout: int = Field(
+        default=60,
+        ge=1,
+        description="Command timeout in seconds",
+    )
+    postgres_pool_statement_cache_size: int = Field(
+        default=1024,
+        ge=0,
+        description="Size of the prepared statement cache",
+    )
+    postgres_pool_max_queries: int = Field(
+        default=50000,
+        ge=0,
+        description="Maximum queries per connection before recycling (0 = unlimited)",
+    )
+    postgres_pool_max_inactive_lifetime: float = Field(
+        default=300.0,
+        ge=0.0,
+        description="Maximum seconds a connection can be idle before closing",
     )
 
     # Azure AI Search settings (for future use)

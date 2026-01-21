@@ -28,7 +28,7 @@ class MockLLMProvider:
         tool_calls=[
             LLMToolCall(
                 id="tc_123",
-                name="datastream.get_data",
+                name="datastream_get_data",
                 arguments={"tickers": "@AAPL", "fields": ["P"]},
             )
         ],
@@ -261,7 +261,7 @@ class TestDatastreamAgentRuleBasedExtraction:
         assert result is not None
         assert len(result.tool_calls) == 1
         tc = result.tool_calls[0]
-        assert tc.tool_name == "datastream.get_data"
+        assert tc.tool_name == "datastream_get_data"
         assert tc.arguments["tickers"] == "@AAPL"
         assert "P" in tc.arguments["fields"]
 
@@ -390,6 +390,6 @@ class TestDatastreamAgentProperties:
         """Test tools definition."""
         tools = self.agent.get_tools()
         assert len(tools) == 1
-        assert tools[0].name == "datastream.get_data"
+        assert tools[0].name == "datastream_get_data"
         assert "tickers" in tools[0].parameters["properties"]
         assert "fields" in tools[0].parameters["properties"]

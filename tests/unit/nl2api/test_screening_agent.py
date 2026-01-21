@@ -28,7 +28,7 @@ class MockLLMProvider:
         tool_calls=[
             LLMToolCall(
                 id="tc_123",
-                name="refinitiv.get_data",
+                name="refinitiv_get_data",
                 arguments={
                     "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),CURN=USD)"],
                     "fields": ["TR.CommonName"],
@@ -307,7 +307,7 @@ class TestScreeningAgentRuleBasedExtraction:
         assert result is not None
         assert len(result.tool_calls) == 1
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv.get_data"
+        assert tc.tool_name == "refinitiv_get_data"
         instruments = tc.arguments["instruments"]
         assert len(instruments) == 1
         screen_expr = instruments[0]
@@ -440,13 +440,13 @@ class TestScreeningAgentProperties:
         prompt = self.agent.get_system_prompt()
         assert "SCREEN" in prompt
         assert "TOP" in prompt
-        assert "refinitiv.get_data" in prompt
+        assert "refinitiv_get_data" in prompt
 
     def test_tools_definition(self) -> None:
         """Test tools definition."""
         tools = self.agent.get_tools()
         assert len(tools) == 1
-        assert tools[0].name == "refinitiv.get_data"
+        assert tools[0].name == "refinitiv_get_data"
         assert "instruments" in tools[0].parameters["properties"]
         assert "fields" in tools[0].parameters["properties"]
 
@@ -472,7 +472,7 @@ class TestScreeningAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv.get_data"
+        assert tc.tool_name == "refinitiv_get_data"
         screen_expr = tc.arguments["instruments"][0]
         # Should have S&P 500 filter
         assert "0#.SPX" in screen_expr
