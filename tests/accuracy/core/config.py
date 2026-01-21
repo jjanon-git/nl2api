@@ -53,8 +53,21 @@ class AccuracyConfig:
 
     # LLM settings
     model: str = "claude-3-haiku-20240307"
-    max_retries: int = 2
-    parallel_requests: int = 5
+
+    # Batch API settings (default - 50% cheaper, higher rate limits)
+    use_batch_api: bool = True
+    batch_poll_interval: float = 5.0  # seconds between status checks
+    batch_timeout: float = 3600.0  # max wait time for batch completion (1 hour)
+
+    # Real-time API settings (fallback when use_batch_api=False)
+    parallel_requests: int = 3  # concurrent requests (reduced from 5)
+    request_delay: float = 0.5  # delay between request batches (seconds)
+
+    # Retry settings (applies to real-time API)
+    max_retries: int = 3
+    retry_base_delay: float = 1.0  # base delay for exponential backoff
+    retry_max_delay: float = 30.0  # max delay cap
+    retry_jitter: float = 0.5  # jitter factor (0-1)
 
     # Clarification threshold
     confidence_threshold: float = 0.5
@@ -73,3 +86,7 @@ class AccuracyConfig:
 
 # Default configuration instance
 DEFAULT_CONFIG = AccuracyConfig()
+
+# Module-level exports for backwards compatibility
+DEFAULT_MIN_ACCURACY = DEFAULT_CONFIG.global_threshold
+CATEGORY_THRESHOLDS = DEFAULT_CONFIG.category_thresholds

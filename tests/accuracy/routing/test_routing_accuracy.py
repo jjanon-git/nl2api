@@ -171,12 +171,22 @@ def print_report(report: AccuracyReport, threshold: float):
 
 
 class TestRoutingAccuracy:
-    """Routing accuracy tests with tier-based execution."""
+    """Routing accuracy tests with tier-based execution.
+
+    By default uses Batch API (50% cheaper, higher rate limits).
+    Set use_batch_api=False in config for real-time API with retry.
+    """
 
     @pytest.fixture
     def evaluator(self):
-        """Create a routing accuracy evaluator."""
-        config = AccuracyConfig(model="claude-3-haiku-20240307")
+        """Create a routing accuracy evaluator (batch API by default)."""
+        config = AccuracyConfig(model="claude-3-haiku-20240307", use_batch_api=True)
+        return RoutingAccuracyEvaluator(config=config)
+
+    @pytest.fixture
+    def realtime_evaluator(self):
+        """Create a routing accuracy evaluator (real-time API)."""
+        config = AccuracyConfig(model="claude-3-haiku-20240307", use_batch_api=False)
         return RoutingAccuracyEvaluator(config=config)
 
     @pytest.mark.tier1
@@ -191,10 +201,32 @@ class TestRoutingAccuracy:
         threshold = 0.75  # Lower threshold for quick check
 
         def progress(current, total, result):
-            if current % 10 == 0:
+            if result and current % 10 == 0:
                 print(f"  [{current}/{total}] Latest: {result.expected} -> {result.predicted}")
 
         report = await evaluator.evaluate_batch(test_cases, progress_callback=progress, tier="tier1")
+        print_report(report, threshold)
+
+        assert report.accuracy >= threshold, (
+            f"Routing accuracy {report.accuracy:.1%} below {threshold:.0%} threshold. "
+            f"Failed: {report.failed_count}/{report.total_count}"
+        )
+
+    @pytest.mark.asyncio
+    async def test_routing_tier1_realtime(self, realtime_evaluator):
+        """
+        Tier 1 with real-time API (for quick debugging).
+
+        Run with: pytest tests/accuracy/routing/ -k realtime
+        """
+        test_cases = load_routing_test_cases(limit=50, balanced=True)
+        threshold = 0.75
+
+        def progress(current, total, result):
+            if result and current % 10 == 0:
+                print(f"  [{current}/{total}] {result.expected} -> {result.predicted}")
+
+        report = await realtime_evaluator.evaluate_batch(test_cases, progress_callback=progress, tier="tier1")
         print_report(report, threshold)
 
         assert report.accuracy >= threshold, (
@@ -214,7 +246,7 @@ class TestRoutingAccuracy:
         threshold = 0.80
 
         def progress(current, total, result):
-            if current % 20 == 0:
+            if result and current % 20 == 0:
                 print(f"  [{current}/{total}]")
 
         report = await evaluator.evaluate_batch(test_cases, progress_callback=progress, tier="tier2")

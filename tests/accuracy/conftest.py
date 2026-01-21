@@ -10,11 +10,19 @@ import os
 import pytest
 
 
+# Marker for tests that require LLM access
+requires_llm = pytest.mark.skipif(
+    not (os.environ.get("NL2API_ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")),
+    reason="ANTHROPIC_API_KEY not set"
+)
+
+
 def pytest_configure(config):
     """Configure custom markers and initialize telemetry."""
     config.addinivalue_line("markers", "tier1: Quick accuracy check (~50 samples)")
     config.addinivalue_line("markers", "tier2: Standard accuracy evaluation (~200 samples)")
     config.addinivalue_line("markers", "tier3: Comprehensive accuracy evaluation (all samples)")
+    config.addinivalue_line("markers", "requires_llm: Tests that require LLM API access")
 
     # Initialize telemetry for accuracy metrics
     # Metrics will be sent to OTEL collector if available
