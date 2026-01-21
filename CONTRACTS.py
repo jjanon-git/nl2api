@@ -343,14 +343,15 @@ class TestCase(BaseModel):
         min_length=1,
         description="Expected tool calls (order-independent comparison)",
     )
-    expected_raw_data: dict[str, Any] | None = Field(
+    expected_response: dict[str, Any] | None = Field(
         default=None,
-        description="Mock return data from tool execution (for execution stage)",
+        description="Expected structured data response from API execution",
+        examples=[{"AAPL.O": {"P": 246.02, "MV": 3850000000000}}],
     )
-    expected_nl_response: str = Field(
-        ...,
-        min_length=1,
-        description="Expected natural language response/summary",
+    expected_nl_response: str | None = Field(
+        default=None,
+        description="Expected natural language summary of the response",
+        examples=["Apple's stock price is $246.02 with a market cap of $3.85 trillion."],
     )
 
     # Metadata
@@ -391,9 +392,66 @@ class TestCase(BaseModel):
         content = {
             "nl_query": self.nl_query,
             "expected_tool_calls": [tc.to_canonical_string() for tc in self.expected_tool_calls],
-            "expected_nl_response": self.expected_nl_response,
+            "expected_nl_response": self.expected_nl_response or "",
         }
         return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()[:16]
+
+
+class TestCaseSetConfig(BaseModel):
+    """
+    Configuration for a test case set defining required fields and metadata.
+
+    Embedded in fixture files as the '_meta' key. The fixture loader validates
+    each test case against this configuration.
+
+    Different evaluation capabilities have different field requirements:
+    - nl2api: requires expected_nl_response
+    - entity_extraction: no NL response needed
+    - tool_generation: no NL response needed
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    # Identity
+    name: str = Field(
+        ...,
+        description="Human-readable name for this test case set",
+        examples=["lookups", "entity_extraction_us_equities"],
+    )
+    capability: str = Field(
+        ...,
+        description="The capability this set evaluates",
+        examples=["nl2api", "entity_extraction", "tool_generation"],
+    )
+    description: str | None = Field(
+        default=None,
+        description="Optional description of what this test set covers",
+    )
+
+    # Field requirements - which fields must be present
+    requires_nl_response: bool = Field(
+        default=True,
+        description="Whether expected_nl_response is required for test cases in this set",
+    )
+    requires_expected_response: bool = Field(
+        default=False,
+        description="Whether expected_response is required for test cases in this set",
+    )
+
+    # Generation metadata
+    schema_version: str = Field(
+        default="1.0",
+        description="Schema version for forward compatibility",
+    )
+    generated_at: datetime | None = Field(
+        default=None,
+        description="When this fixture set was generated",
+    )
+    generator: str | None = Field(
+        default=None,
+        description="Script/tool that generated this set",
+        examples=["scripts/generate_test_cases.py"],
+    )
 
 
 # =============================================================================
@@ -1254,6 +1312,7 @@ __all__ = [
     "ToolCall",
     "TestCaseMetadata",
     "TestCase",
+    "TestCaseSetConfig",
     "SystemResponse",
     # Evaluation
     "StageResult",

@@ -3,9 +3,15 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass, field
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Iterator
+
+from CONTRACTS import TestCaseSetConfig
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -20,6 +26,8 @@ class GeneratedTestCase:
     subcategory: str
     tags: tuple[str, ...]
     metadata: dict[str, Any] = field(default_factory=dict)
+    expected_response: dict[str, Any] | None = None
+    expected_nl_response: str | None = None
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> GeneratedTestCase:
@@ -33,7 +41,18 @@ class GeneratedTestCase:
             subcategory=data.get("subcategory", ""),
             tags=tuple(data.get("tags", [])),
             metadata=data.get("metadata", {}),
+            expected_response=data.get("expected_response"),
+            expected_nl_response=data.get("expected_nl_response"),
         )
+
+
+@dataclass
+class LoadedFixtureSet:
+    """A loaded fixture set with its configuration and test cases."""
+
+    config: TestCaseSetConfig
+    test_cases: list[GeneratedTestCase]
+    validation_errors: list[str] = field(default_factory=list)
 
 
 class FixtureLoader:
@@ -48,6 +67,7 @@ class FixtureLoader:
         "complex",
         "screening",
         "errors",
+        "entity_resolution",
     ]
 
     def __init__(self, fixture_dir: Path | None = None):
@@ -56,15 +76,98 @@ class FixtureLoader:
 
     def load_category(self, category: str) -> list[GeneratedTestCase]:
         """Load all test cases from a category."""
+        result = self.load_category_with_config(category)
+        return result.test_cases if result else []
+
+    def load_category_with_config(
+        self, category: str, validate: bool = False
+    ) -> LoadedFixtureSet | None:
+        """
+        Load all test cases from a category with configuration.
+
+        Args:
+            category: The category name to load
+            validate: If True, validate test cases against config requirements
+
+        Returns:
+            LoadedFixtureSet with config, test cases, and any validation errors
+        """
         file_path = self.fixture_dir / category / f"{category}.json"
 
         if not file_path.exists():
-            return []
+            return None
 
         with open(file_path) as f:
             data = json.load(f)
 
-        return [GeneratedTestCase.from_dict(tc) for tc in data.get("test_cases", [])]
+        # Parse _meta block (with defaults for backward compatibility)
+        meta_data = data.get("_meta", {})
+        config = self._parse_config(meta_data, category)
+
+        # Load test cases
+        test_cases = [
+            GeneratedTestCase.from_dict(tc)
+            for tc in data.get("test_cases", data if isinstance(data, list) else [])
+        ]
+
+        # Validate if requested
+        validation_errors = []
+        if validate:
+            validation_errors = self._validate_test_cases(test_cases, config)
+
+        return LoadedFixtureSet(
+            config=config,
+            test_cases=test_cases,
+            validation_errors=validation_errors,
+        )
+
+    def _parse_config(self, meta_data: dict[str, Any], category: str) -> TestCaseSetConfig:
+        """Parse _meta block into TestCaseSetConfig with defaults."""
+        # Parse datetime if present
+        generated_at = None
+        if meta_data.get("generated_at"):
+            try:
+                generated_at = datetime.fromisoformat(
+                    meta_data["generated_at"].replace("Z", "+00:00")
+                )
+            except (ValueError, TypeError):
+                pass
+
+        return TestCaseSetConfig(
+            name=meta_data.get("name", category),
+            capability=meta_data.get("capability", "nl2api"),
+            description=meta_data.get("description"),
+            requires_nl_response=meta_data.get("requires_nl_response", True),
+            requires_expected_response=meta_data.get("requires_expected_response", False),
+            schema_version=meta_data.get("schema_version", "1.0"),
+            generated_at=generated_at,
+            generator=meta_data.get("generator"),
+        )
+
+    def _validate_test_cases(
+        self, test_cases: list[GeneratedTestCase], config: TestCaseSetConfig
+    ) -> list[str]:
+        """Validate test cases against set configuration."""
+        errors = []
+
+        for tc in test_cases:
+            if config.requires_nl_response and not tc.expected_nl_response:
+                errors.append(
+                    f"Test case {tc.id} missing expected_nl_response "
+                    f"(required by {config.name})"
+                )
+            if config.requires_expected_response and not tc.expected_response:
+                errors.append(
+                    f"Test case {tc.id} missing expected_response "
+                    f"(required by {config.name})"
+                )
+
+        if errors:
+            logger.warning(
+                f"Validation errors in {config.name}: {len(errors)} issues found"
+            )
+
+        return errors
 
     def load_all(self) -> dict[str, list[GeneratedTestCase]]:
         """Load all test cases from all categories."""

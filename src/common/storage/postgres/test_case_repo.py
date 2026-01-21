@@ -96,7 +96,7 @@ class PostgresTestCaseRepository:
                 {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
                 for tc in test_case.expected_tool_calls
             ])
-            raw_data_json = json.dumps(test_case.expected_raw_data) if test_case.expected_raw_data else None
+            raw_data_json = json.dumps(test_case.expected_response) if test_case.expected_response else None
             tags_list = list(test_case.metadata.tags)
 
             # Convert embedding to list if present
@@ -105,7 +105,7 @@ class PostgresTestCaseRepository:
             await self.pool.execute(
                 """
                 INSERT INTO test_cases (
-                    id, nl_query, expected_tool_calls, expected_raw_data, expected_nl_response,
+                    id, nl_query, expected_tool_calls, expected_response, expected_nl_response,
                     api_version, complexity_level, tags, author, source,
                     status, stale_reason, content_hash, embedding, created_at, updated_at
                 ) VALUES (
@@ -116,7 +116,7 @@ class PostgresTestCaseRepository:
                 ON CONFLICT (id) DO UPDATE SET
                     nl_query = EXCLUDED.nl_query,
                     expected_tool_calls = EXCLUDED.expected_tool_calls,
-                    expected_raw_data = EXCLUDED.expected_raw_data,
+                    expected_response = EXCLUDED.expected_response,
                     expected_nl_response = EXCLUDED.expected_nl_response,
                     api_version = EXCLUDED.api_version,
                     complexity_level = EXCLUDED.complexity_level,
@@ -317,7 +317,7 @@ class PostgresTestCaseRepository:
         )
 
         # Parse raw data
-        raw_data = row["expected_raw_data"]
+        raw_data = row["expected_response"]
         if isinstance(raw_data, str):
             raw_data = json.loads(raw_data)
 
@@ -341,7 +341,7 @@ class PostgresTestCaseRepository:
             id=str(row["id"]),
             nl_query=row["nl_query"],
             expected_tool_calls=tool_calls,
-            expected_raw_data=raw_data,
+            expected_response=raw_data,
             expected_nl_response=row["expected_nl_response"],
             metadata=metadata,
             status=TestCaseStatus(row["status"]),
