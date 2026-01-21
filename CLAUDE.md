@@ -407,6 +407,45 @@ When modifying `src/evaluation/batch/`:
 2. **Metrics must be recorded** - Use `BatchMetrics` for all test results
 3. **Test with small batches first**: `batch run --limit 10`
 
+### Batch Evaluation vs Unit Tests (CRITICAL DECISION)
+
+**Use the right tool for the right purpose:**
+
+| Purpose | Tool | Persisted? | When to Use |
+|---------|------|------------|-------------|
+| **Accuracy tracking** | `batch run --mode resolver` | ✅ Yes | Measure real system accuracy over time |
+| **End-to-end accuracy** | `batch run --mode orchestrator` | ✅ Yes | Full pipeline accuracy (costs API credits) |
+| **Pipeline testing** | `batch run --mode simulated` | ❌ No* | Test evaluation infrastructure only |
+| **Code correctness** | Unit tests (`pytest`) | ❌ No | Verify code behavior with mocks |
+
+*Simulated results ARE persisted but SHOULD NOT be used for accuracy tracking.
+
+**The key insight:**
+- **Batch evaluation** is for measuring **real system performance** against test cases
+- **Unit tests** are for verifying **code correctness** with mocked dependencies
+- **Simulated responses** produce 100% pass rates and are meaningless for tracking improvement
+
+**Default behavior:**
+```bash
+# Default mode is 'resolver' - uses real EntityResolver for meaningful accuracy
+.venv/bin/python -m src.evaluation.cli.main batch run --tag entity_resolution --limit 100
+
+# Explicit modes
+batch run --mode resolver       # Real accuracy (DEFAULT)
+batch run --mode orchestrator   # Full pipeline (requires LLM API key)
+batch run --mode simulated      # Pipeline testing only (NOT for tracking)
+```
+
+**What gets persisted to track over time:**
+- Scorecards with pass/fail for each test case
+- Batch job metadata (total, passed, failed, duration)
+- Results visible in Grafana dashboards
+
+**What should stay in unit tests:**
+- Pipeline infrastructure validation (use mocked responses)
+- Evaluator logic correctness
+- Repository CRUD operations
+
 ---
 
 ## Evaluation Data Generation Standards
@@ -421,6 +460,8 @@ When modifying `src/evaluation/batch/`:
 | NL response generation model | **Claude 3.5 Haiku** | Better quality than 3 Haiku; negligible cost difference |
 | `expected_response` field | **Leave null** | Until execution stage is implemented (deferred) |
 | Fixture schema | **Align with CONTRACTS.py** | Generator dataclass must match `TestCase` contract |
+| Batch eval default mode | **`resolver` (real)** | Persist meaningful accuracy, not simulated 100% |
+| Simulated responses | **Unit tests only** | Pipeline infra testing doesn't need persistence |
 
 See `docs/plans/evaluation-data-contract-plan.md` for full rationale.
 

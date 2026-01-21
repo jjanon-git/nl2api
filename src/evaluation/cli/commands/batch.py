@@ -67,6 +67,13 @@ def batch_run(
         int,
         typer.Option("--concurrency", "-c", help="Concurrent evaluations"),
     ] = 10,
+    mode: Annotated[
+        str,
+        typer.Option(
+            "--mode", "-m",
+            help="Response mode: resolver (real), orchestrator (full), simulated"
+        ),
+    ] = "resolver",
     verbose: Annotated[
         bool,
         typer.Option("--verbose", "-v", help="Show detailed output"),
@@ -77,13 +84,27 @@ def batch_run(
 
     Fetches test cases matching the filters, runs evaluations concurrently,
     and saves scorecards with a batch ID for tracking.
+
+    MODES:
+    - resolver (default): Uses real EntityResolver for accuracy measurement.
+      Results are persisted and tracked over time.
+    - orchestrator: Uses full NL2API orchestrator (requires LLM API key).
+      End-to-end accuracy measurement.
+    - simulated: Always returns correct answers (for pipeline testing only).
+      Should NOT be used for accuracy tracking - use unit tests instead.
     """
+    if mode not in ("resolver", "orchestrator", "simulated"):
+        console.print(f"[red]Error:[/red] Invalid mode '{mode}'.")
+        console.print("Use 'resolver', 'orchestrator', or 'simulated'.")
+        raise typer.Exit(1)
+
     asyncio.run(_batch_run_async(
         tags=tags,
         complexity_min=complexity_min,
         complexity_max=complexity_max,
         limit=limit,
         concurrency=concurrency,
+        mode=mode,
         verbose=verbose,
     ))
 
@@ -94,15 +115,44 @@ async def _batch_run_async(
     complexity_max: int | None,
     limit: int | None,
     concurrency: int,
+    mode: str,
     verbose: bool,
 ) -> None:
     """Async implementation of batch run command."""
+    from src.common.storage import (
+        StorageConfig,
+        close_repositories,
+        create_repositories,
+    )
     from src.evaluation.batch import BatchRunner, BatchRunnerConfig
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
+    from src.evaluation.batch.response_generators import (
+        create_entity_resolver_generator,
+        create_nl2api_generator,
+        simulate_correct_response,
+    )
 
     try:
         config = StorageConfig()
         test_case_repo, scorecard_repo, batch_repo = await create_repositories(config)
+
+        # Select response generator based on mode
+        response_generator = None
+        if mode == "simulated":
+            console.print("[yellow]WARNING: Simulated responses (pipeline test only).[/yellow]")
+            console.print("[yellow]Results should NOT be used for tracking.[/yellow]\n")
+            response_generator = simulate_correct_response
+        elif mode == "resolver":
+            # Use real EntityResolver for accuracy measurement
+            from src.nl2api.resolution.resolver import ExternalEntityResolver
+            resolver = ExternalEntityResolver()
+            response_generator = create_entity_resolver_generator(resolver)
+            console.print("[green]Using real EntityResolver for accuracy measurement.[/green]\n")
+        elif mode == "orchestrator":
+            # Use full NL2API orchestrator
+            from src.nl2api.orchestrator import NL2APIOrchestrator
+            orchestrator = NL2APIOrchestrator()
+            response_generator = create_nl2api_generator(orchestrator)
+            console.print("[green]Using full NL2API orchestrator (requires LLM API key).[/green]\n")
 
         runner_config = BatchRunnerConfig(
             max_concurrency=concurrency,
@@ -122,6 +172,7 @@ async def _batch_run_async(
             complexity_min=complexity_min,
             complexity_max=complexity_max,
             limit=limit,
+            response_simulator=response_generator,
         )
 
         # Handle no test cases found
@@ -294,7 +345,11 @@ async def _batch_results_async(
                     "syntax_passed": sc.syntax_result.passed,
                     "logic_passed": sc.logic_result.passed if sc.logic_result else None,
                     "logic_score": sc.logic_result.score if sc.logic_result else None,
-                    "error_code": sc.logic_result.error_code.value if sc.logic_result and sc.logic_result.error_code else None,
+                    "error_code": (
+                        sc.logic_result.error_code.value
+                        if sc.logic_result and sc.logic_result.error_code
+                        else None
+                    ),
                     "reason": sc.logic_result.reason if sc.logic_result else None,
                 })
 
@@ -312,7 +367,10 @@ async def _batch_results_async(
         # Summary
         summary = await scorecard_repo.get_batch_summary(batch_id)
         console.print(f"[bold]Batch Results:[/bold] [cyan]{batch_id}[/cyan]")
-        console.print(f"  Total: {summary['total']} | Passed: [green]{summary['passed']}[/green] | Failed: [red]{summary['failed']}[/red] | Avg Score: {summary['avg_score']:.2f}")
+        passed = f"[green]{summary['passed']}[/green]"
+        failed = f"[red]{summary['failed']}[/red]"
+        console.print(f"  Total: {summary['total']} | Passed: {passed} | Failed: {failed}")
+        console.print(f"  Avg Score: {summary['avg_score']:.2f}")
         console.print()
 
         # Results table
@@ -351,7 +409,7 @@ async def _batch_results_async(
         console.print(table)
 
         if len(scorecards) > limit:
-            console.print(f"\n[dim]Showing {limit} of {len(scorecards)} results. Use --limit to show more.[/dim]")
+            console.print(f"\n[dim]Showing {limit}/{len(scorecards)}. Use --limit for more.[/dim]")
 
         console.print()
 
