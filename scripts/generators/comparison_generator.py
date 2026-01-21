@@ -22,7 +22,7 @@ class ComparisonGenerator(BaseGenerator):
                          start: str = "0D", end: str = "0D") -> Dict:
         """Build a tool call for comparison query."""
         return {
-            "function": "get_data",
+            "tool_name": "get_data",
             "arguments": {
                 "tickers": ",".join(tickers),
                 "fields": fields,
@@ -252,7 +252,7 @@ class ComparisonGenerator(BaseGenerator):
                     nl_query = f"Compare {pair_name} performance {time_range['nl']}"
 
                     tool_call = {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": f"{index_a},{index_b}",
                             "fields": [metric["field"]],
@@ -318,7 +318,7 @@ class ComparisonGenerator(BaseGenerator):
                         nl_query = f"Compare {metric['name']} growth for {pair_name} {time_range['nl']}"
 
                         tool_call = {
-                            "function": "get_data",
+                            "tool_name": "get_data",
                             "arguments": {
                                 "tickers": f"{ticker_a},{ticker_b}",
                                 "fields": [metric["field"]],

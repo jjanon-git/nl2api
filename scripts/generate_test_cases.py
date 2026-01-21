@@ -15,11 +15,17 @@ Categories:
     - screening: Stock screening queries (~500)
     - errors: Error scenario test cases (~500)
     - complex: Multi-step workflows (~500)
+    - entity_resolution: Entity name/ticker to RIC resolution (~5,000)
     - all: Generate all categories (default)
+
+Note: entity_resolution requires a PostgreSQL database with entity data.
+      Set DATABASE_URL env var or use --db-url argument.
 """
 
 import argparse
+import asyncio
 import json
+import os
 import sys
 from pathlib import Path
 from datetime import datetime
@@ -35,18 +41,23 @@ from scripts.generators import (
     ComparisonGenerator,
     ScreeningGenerator,
     ErrorGenerator,
-    ComplexGenerator
+    ComplexGenerator,
+    EntityResolutionGenerator,
 )
 
 
 class TestCaseOrchestrator:
     """Main orchestrator for test case generation."""
 
-    def __init__(self, data_dir: Path, output_dir: Path):
+    def __init__(self, data_dir: Path, output_dir: Path, db_url: str | None = None):
         self.data_dir = data_dir
         self.output_dir = output_dir
+        self.db_url = db_url or os.environ.get(
+            "DATABASE_URL",
+            "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+        )
 
-        # Initialize all generators
+        # Initialize sync generators
         self.generators = {
             "lookups": LookupGenerator(data_dir),
             "temporal": TemporalGenerator(data_dir),
@@ -56,8 +67,15 @@ class TestCaseOrchestrator:
             "complex": ComplexGenerator(data_dir),
         }
 
+        # Async generators require special handling
+        self.async_generators = ["entity_resolution"]
+
     def generate_category(self, category: str) -> Dict:
         """Generate test cases for a specific category."""
+        # Handle async generators (entity_resolution)
+        if category in self.async_generators:
+            return asyncio.run(self._generate_async_category(category))
+
         if category not in self.generators:
             raise ValueError(f"Unknown category: {category}")
 
@@ -66,22 +84,9 @@ class TestCaseOrchestrator:
 
         test_cases = generator.generate()
 
-        # Save to output file
+        # Save to output file using generator's save method (includes _meta block)
         output_path = self.output_dir / category / f"{category}.json"
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-
-        data = {
-            "metadata": {
-                "category": category,
-                "generator": generator.__class__.__name__,
-                "count": len(test_cases),
-                "generated_at": datetime.now().isoformat()
-            },
-            "test_cases": [tc.to_dict() for tc in test_cases]
-        }
-
-        with open(output_path, 'w') as f:
-            json.dump(data, f, indent=2)
+        generator.save_test_cases(test_cases, output_path)
 
         print(f"  Generated {len(test_cases)} test cases -> {output_path}")
 
@@ -91,23 +96,56 @@ class TestCaseOrchestrator:
             "output_path": str(output_path)
         }
 
-    def generate_all(self) -> Dict:
+    async def _generate_async_category(self, category: str) -> Dict:
+        """Generate test cases for async categories (entity_resolution)."""
+        if category == "entity_resolution":
+            print(f"\nGenerating {category} test cases...")
+            generator = EntityResolutionGenerator(self.db_url)
+            test_cases = await generator.generate()
+
+            output_path = self.output_dir / category / f"{category}.json"
+            generator.save_test_cases(test_cases, output_path)
+
+            return {
+                "category": category,
+                "count": len(test_cases),
+                "output_path": str(output_path)
+            }
+        else:
+            raise ValueError(f"Unknown async category: {category}")
+
+    def generate_all(self, include_entity_resolution: bool = False) -> Dict:
         """Generate test cases for all categories."""
         results = {}
         total_count = 0
 
+        # Generate sync categories
         for category in self.generators.keys():
             result = self.generate_category(category)
             results[category] = result
             total_count += result["count"]
+
+        # Generate async categories (entity_resolution)
+        if include_entity_resolution:
+            for category in self.async_generators:
+                try:
+                    result = self.generate_category(category)
+                    results[category] = result
+                    total_count += result["count"]
+                except Exception as e:
+                    print(f"  Warning: Could not generate {category}: {e}")
+                    print(f"  Ensure DATABASE_URL is set and database has entity data.")
+
+        # Updated target to include entity_resolution
+        target = 16000 if include_entity_resolution else 11000
 
         # Generate summary report
         summary = {
             "generated_at": datetime.now().isoformat(),
             "total_test_cases": total_count,
             "categories": results,
-            "target": 11000,
-            "coverage_pct": round(total_count / 11000 * 100, 1)
+            "target": target,
+            "coverage_pct": round(total_count / target * 100, 1)
         }
 
         summary_path = self.output_dir / "generation_summary.json"
@@ -272,7 +310,7 @@ def main():
     parser.add_argument(
         "--category",
         choices=["lookups", "temporal", "comparisons", "screening",
-                 "errors", "complex", "all"],
+                 "errors", "complex", "entity_resolution", "all"],
         default="all",
         help="Category to generate (default: all)"
     )
@@ -289,6 +327,22 @@ def main():
         type=Path,
         default=PROJECT_ROOT / "tests" / "fixtures" / "lseg" / "generated",
         help="Path to output directory"
+    )
+
+    parser.add_argument(
+        "--db-url",
+        type=str,
+        default=os.environ.get(
+            "DATABASE_URL",
+            "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+        ),
+        help="PostgreSQL connection URL for entity_resolution (default: from DATABASE_URL env)"
+    )
+
+    parser.add_argument(
+        "--include-entity-resolution",
+        action="store_true",
+        help="Include entity_resolution when using --category all (requires database)"
     )
 
     parser.add_argument(
@@ -315,11 +369,13 @@ def main():
     print(f"Output directory: {args.output_dir}")
 
     # Initialize orchestrator
-    orchestrator = TestCaseOrchestrator(args.data_dir, args.output_dir)
+    orchestrator = TestCaseOrchestrator(args.data_dir, args.output_dir, args.db_url)
 
     # Generate test cases
     if args.category == "all":
-        summary = orchestrator.generate_all()
+        summary = orchestrator.generate_all(
+            include_entity_resolution=args.include_entity_resolution
+        )
     else:
         result = orchestrator.generate_category(args.category)
         summary = {"categories": {args.category: result}}

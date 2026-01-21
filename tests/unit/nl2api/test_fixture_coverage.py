@@ -79,12 +79,37 @@ class CoverageRegistry:
         # ScreeningAgent coverage
         ("screening", "index_constituents", 0.3, ScreeningAgent),
         ("screening", "top_n", 0.5, ScreeningAgent),
+
+        # NOTE: entity_resolution coverage is tracked separately in
+        # test_entity_resolution_fixtures.py since it tests the EntityResolver
+        # component rather than domain agents.
     ]
+
+    # Entity resolution coverage thresholds (for use by test_entity_resolution_fixtures.py)
+    # These reflect expected baseline accuracy of the current resolver
+    ENTITY_RESOLUTION_COVERAGE = {
+        "exact_match": 0.15,        # Only 109 static mappings
+        "ticker_lookup": 0.10,      # Short ticker regex broken
+        "alias_match": 0.10,        # Limited alias coverage
+        "suffix_variations": 0.05,  # Missing SE, AG, GmbH
+        "fuzzy_misspellings": 0.05, # No DB fuzzy matching
+        "abbreviations": 0.20,      # Some hardcoded
+        "international": 0.02,      # Minimal coverage
+        "ambiguous": 0.00,          # Non-deterministic
+        "ticker_collisions": 0.00,  # No exchange context
+        "edge_case_names": 0.05,    # Pattern issues
+        "negative_cases": 0.40,     # Over-matches common words
+    }
 
     @classmethod
     def get_requirements_for_agent(cls, agent_class: type) -> list[tuple]:
         """Get coverage requirements for a specific agent."""
         return [r for r in cls.REQUIRED_COVERAGE if r[3] == agent_class]
+
+    @classmethod
+    def get_entity_resolution_threshold(cls, subcategory: str) -> float:
+        """Get expected coverage threshold for entity resolution subcategory."""
+        return cls.ENTITY_RESOLUTION_COVERAGE.get(subcategory, 0.0)
 
 
 # =============================================================================

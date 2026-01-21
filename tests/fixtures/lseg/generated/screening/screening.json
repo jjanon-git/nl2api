@@ -1,17 +1,25 @@
 {
+  "_meta": {
+    "name": "screening",
+    "capability": "nl2api",
+    "description": "Generated test cases for screening category",
+    "requires_nl_response": true,
+    "requires_expected_response": false,
+    "schema_version": "1.0",
+    "generated_at": "2026-01-21T19:54:11.778957+00:00",
+    "generator": "scripts/generators/screening_generator.py"
+  },
   "metadata": {
-    "category": "screening",
     "generator": "ScreeningGenerator",
-    "count": 265,
-    "generated_at": "2026-01-20T09:52:09.565411"
+    "count": 274
   },
   "test_cases": [
     {
-      "id": "screening_d28718ac",
-      "nl_query": "Which stocks are in the S&P 500?",
+      "id": "screening_ba10fb72",
+      "nl_query": "Show S&P 500 members",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LS&PCOMP|L",
             "fields": [
@@ -34,14 +42,16 @@
         "index_name": "S&P 500",
         "index_code": "S&PCOMP",
         "constituent_code": "LS&PCOMP"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_fed0db7b",
       "nl_query": "Which stocks are in the Dow Jones Industrial Average?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LDJINDUS|L",
             "fields": [
@@ -64,14 +74,16 @@
         "index_name": "Dow Jones Industrial Average",
         "index_code": "DJINDUS",
         "constituent_code": "LDJINDUS"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_127ec2e9",
-      "nl_query": "Show NASDAQ Composite members",
+      "id": "screening_7f75e513",
+      "nl_query": "Get the components of the NASDAQ Composite",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LNASDAQ|L",
             "fields": [
@@ -94,14 +106,16 @@
         "index_name": "NASDAQ Composite",
         "index_code": "NASCOMP",
         "constituent_code": "LNASDAQ"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_392a20a0",
-      "nl_query": "Show NASDAQ 100 members",
+      "id": "screening_2acd8a20",
+      "nl_query": "What companies are in the NASDAQ 100?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LNASDAQ|L",
             "fields": [
@@ -124,14 +138,16 @@
         "index_name": "NASDAQ 100",
         "index_code": ".NDX",
         "constituent_code": "LNASDAQ"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_0982cf41",
       "nl_query": "What companies are in the FTSE 100?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFTSE100|L",
             "fields": [
@@ -154,14 +170,16 @@
         "index_name": "FTSE 100",
         "index_code": "FTSE100",
         "constituent_code": "LFTSE100"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_e779ddb5",
       "nl_query": "What companies are in the FTSE 250?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFTSE250|L",
             "fields": [
@@ -184,14 +202,16 @@
         "index_name": "FTSE 250",
         "index_code": "FTSE250",
         "constituent_code": "LFTSE250"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_40f3fb1f",
-      "nl_query": "List all DAX 40 constituents",
+      "id": "screening_0bee27f9",
+      "nl_query": "Get the components of the DAX 40",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LDAXINDX|L",
             "fields": [
@@ -214,14 +234,16 @@
         "index_name": "DAX 40",
         "index_code": "DAXINDX",
         "constituent_code": "LDAXINDX"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_ba472ebb",
-      "nl_query": "Show CAC 40 members",
+      "id": "screening_1004230a",
+      "nl_query": "Which stocks are in the CAC 40?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFRCAC40|L",
             "fields": [
@@ -244,14 +266,16 @@
         "index_name": "CAC 40",
         "index_code": "FRCAC40",
         "constituent_code": "LFRCAC40"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_4881fd7a",
-      "nl_query": "Get the components of the Euro Stoxx 50",
+      "id": "screening_003bd232",
+      "nl_query": "Show Euro Stoxx 50 members",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LDJES50I|L",
             "fields": [
@@ -274,14 +298,16 @@
         "index_name": "Euro Stoxx 50",
         "index_code": "DJES50I",
         "constituent_code": "LDJES50I"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_c5a5228e",
-      "nl_query": "List all STOXX Europe 600 constituents",
+      "id": "screening_552b4e20",
+      "nl_query": "Get the components of the STOXX Europe 600",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LSTOXXEU|L",
             "fields": [
@@ -304,14 +330,16 @@
         "index_name": "STOXX Europe 600",
         "index_code": "SXXP",
         "constituent_code": "LSTOXXEU"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_e6e6abd1",
-      "nl_query": "Get the components of the Nikkei 225",
+      "id": "screening_574b6e25",
+      "nl_query": "What companies are in the Nikkei 225?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LSTOKYOSE|L",
             "fields": [
@@ -334,14 +362,16 @@
         "index_name": "Nikkei 225",
         "index_code": "JAPDOWA",
         "constituent_code": "LSTOKYOSE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_bf2d3194",
-      "nl_query": "Which stocks are in the Hang Seng Index?",
+      "id": "screening_e2d4b228",
+      "nl_query": "List all Hang Seng Index constituents",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LHNGKNGI|L",
             "fields": [
@@ -364,14 +394,16 @@
         "index_name": "Hang Seng Index",
         "index_code": "HNGKNGI",
         "constituent_code": "LHNGKNGI"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_27dc117d",
-      "nl_query": "Show S&P/ASX 200 members",
+      "id": "screening_698def88",
+      "nl_query": "Which stocks are in the S&P/ASX 200?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LASX200|L",
             "fields": [
@@ -394,14 +426,16 @@
         "index_name": "S&P/ASX 200",
         "index_code": ".AXJO",
         "constituent_code": "LASX200"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_625297e9",
-      "nl_query": "What are the top 5 companies by market cap?",
+      "id": "screening_be165ef0",
+      "nl_query": "List the 5 highest market cap stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.CompanyMarketCap, 5, nnumber), CURN=USD)",
             "fields": [
@@ -423,14 +457,16 @@
         "metric": "market cap",
         "n": 5,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_1c03b22e",
-      "nl_query": "Show the 5 largest US stocks by market cap",
+      "id": "screening_55ad40fd",
+      "nl_query": "Get top 5 stocks by market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.CompanyMarketCap, 5, nnumber), CURN=USD)",
             "fields": [
@@ -452,14 +488,16 @@
         "metric": "market cap",
         "n": 5,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_55ad40fd",
-      "nl_query": "Get top 5 stocks by market cap",
+      "id": "screening_1ce31153",
+      "nl_query": "What are the top 5 NYSE stocks by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.CompanyMarketCap, 5, nnumber), CURN=USD)",
             "fields": [
@@ -481,14 +519,16 @@
         "metric": "market cap",
         "n": 5,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_ba38948d",
       "nl_query": "Show the 5 largest NASDAQ stocks by market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.CompanyMarketCap, 5, nnumber), CURN=USD)",
             "fields": [
@@ -510,14 +550,16 @@
         "metric": "market cap",
         "n": 5,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_cba6f4a7",
-      "nl_query": "List the 10 highest market cap stocks",
+      "id": "screening_d00b7f29",
+      "nl_query": "Get top 10 stocks by market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
             "fields": [
@@ -539,14 +581,47 @@
         "metric": "market cap",
         "n": 10,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_6a0fa925",
-      "nl_query": "What are the top 10 NYSE stocks by market cap?",
+      "id": "screening_3d9fa13e",
+      "nl_query": "Show the 10 largest US stocks by market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.CompanyMarketCap"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "market_cap"
+      ],
+      "metadata": {
+        "metric": "market cap",
+        "n": 10,
+        "universe": "US stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_75f24ce8",
+      "nl_query": "Show the 10 largest NYSE stocks by market cap",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
             "fields": [
@@ -568,14 +643,16 @@
         "metric": "market cap",
         "n": 10,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_1b9795ba",
-      "nl_query": "Show the 10 largest NASDAQ stocks by market cap",
+      "id": "screening_324689b6",
+      "nl_query": "What are the top 10 NASDAQ stocks by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
             "fields": [
@@ -597,14 +674,16 @@
         "metric": "market cap",
         "n": 10,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_68ad104a",
       "nl_query": "Show the 20 largest companies by market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.CompanyMarketCap, 20, nnumber), CURN=USD)",
             "fields": [
@@ -626,14 +705,16 @@
         "metric": "market cap",
         "n": 20,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_af368859",
-      "nl_query": "What are the top 20 US stocks by market cap?",
+      "id": "screening_388b973a",
+      "nl_query": "Get top 20 stocks by market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.CompanyMarketCap, 20, nnumber), CURN=USD)",
             "fields": [
@@ -655,14 +736,16 @@
         "metric": "market cap",
         "n": 20,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_6ad789e3",
-      "nl_query": "Show the 20 largest NYSE stocks by market cap",
+      "id": "screening_8bb90400",
+      "nl_query": "What are the top 20 NYSE stocks by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.CompanyMarketCap, 20, nnumber), CURN=USD)",
             "fields": [
@@ -684,43 +767,16 @@
         "metric": "market cap",
         "n": 20,
         "universe": "NYSE stocks"
-      }
-    },
-    {
-      "id": "screening_fcf47ab3",
-      "nl_query": "Show the 20 largest NASDAQ stocks by market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.CompanyMarketCap, 20, nnumber), CURN=USD)",
-            "fields": [
-              "TR.CommonName",
-              "TR.CompanyMarketCap"
-            ]
-          }
-        }
-      ],
-      "complexity": 4,
-      "category": "screening",
-      "subcategory": "top_n",
-      "tags": [
-        "screening",
-        "top_n",
-        "market_cap"
-      ],
-      "metadata": {
-        "metric": "market cap",
-        "n": 20,
-        "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_caf7dff3",
       "nl_query": "List the 50 highest market cap stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.CompanyMarketCap, 50, nnumber), CURN=USD)",
             "fields": [
@@ -742,14 +798,16 @@
         "metric": "market cap",
         "n": 50,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_09211c6e",
       "nl_query": "What are the top 50 US stocks by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.CompanyMarketCap, 50, nnumber), CURN=USD)",
             "fields": [
@@ -771,16 +829,18 @@
         "metric": "market cap",
         "n": 50,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_06b943f8",
-      "nl_query": "Get top 50 stocks by market cap",
+      "id": "screening_19708ac7",
+      "nl_query": "What are the top 50 NASDAQ stocks by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.CompanyMarketCap, 50, nnumber), CURN=USD)",
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.CompanyMarketCap, 50, nnumber), CURN=USD)",
             "fields": [
               "TR.CommonName",
               "TR.CompanyMarketCap"
@@ -799,15 +859,17 @@
       "metadata": {
         "metric": "market cap",
         "n": 50,
-        "universe": "NYSE stocks"
-      }
+        "universe": "NASDAQ stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_9dc0c73d",
       "nl_query": "What are the top 5 companies by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.Revenue, 5, nnumber), CURN=USD)",
             "fields": [
@@ -829,14 +891,16 @@
         "metric": "revenue",
         "n": 5,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_020dfe7f",
-      "nl_query": "What are the top 5 US stocks by revenue?",
+      "id": "screening_73c9c167",
+      "nl_query": "List the 5 highest revenue stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.Revenue, 5, nnumber), CURN=USD)",
             "fields": [
@@ -858,14 +922,16 @@
         "metric": "revenue",
         "n": 5,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_73c9c167",
-      "nl_query": "List the 5 highest revenue stocks",
+      "id": "screening_0416306f",
+      "nl_query": "Show the 5 largest NYSE stocks by revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.Revenue, 5, nnumber), CURN=USD)",
             "fields": [
@@ -887,14 +953,16 @@
         "metric": "revenue",
         "n": 5,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_5569f7ad",
-      "nl_query": "Show the 5 largest NASDAQ stocks by revenue",
+      "id": "screening_bdce38c4",
+      "nl_query": "What are the top 5 NASDAQ stocks by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.Revenue, 5, nnumber), CURN=USD)",
             "fields": [
@@ -916,14 +984,16 @@
         "metric": "revenue",
         "n": 5,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_a89a6a96",
-      "nl_query": "List the 10 highest revenue stocks",
+      "id": "screening_0c75c946",
+      "nl_query": "Get top 10 stocks by revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
             "fields": [
@@ -945,14 +1015,16 @@
         "metric": "revenue",
         "n": 10,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_dd680df9",
       "nl_query": "Show the 10 largest US stocks by revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
             "fields": [
@@ -974,14 +1046,16 @@
         "metric": "revenue",
         "n": 10,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_9e357823",
       "nl_query": "What are the top 10 NYSE stocks by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
             "fields": [
@@ -1003,14 +1077,47 @@
         "metric": "revenue",
         "n": 10,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_abd62f1e",
+      "nl_query": "What are the top 10 NASDAQ stocks by revenue?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.Revenue"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "revenue"
+      ],
+      "metadata": {
+        "metric": "revenue",
+        "n": 10,
+        "universe": "NASDAQ stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_b6002c95",
       "nl_query": "Get top 20 stocks by revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.Revenue, 20, nnumber), CURN=USD)",
             "fields": [
@@ -1032,14 +1139,16 @@
         "metric": "revenue",
         "n": 20,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_1ed68f0a",
-      "nl_query": "Show the 20 largest US stocks by revenue",
+      "id": "screening_d684f1b1",
+      "nl_query": "What are the top 20 US stocks by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.Revenue, 20, nnumber), CURN=USD)",
             "fields": [
@@ -1061,14 +1170,16 @@
         "metric": "revenue",
         "n": 20,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_5641610c",
       "nl_query": "List the 20 highest revenue stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.Revenue, 20, nnumber), CURN=USD)",
             "fields": [
@@ -1090,14 +1201,16 @@
         "metric": "revenue",
         "n": 20,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_6174d505",
-      "nl_query": "What are the top 50 companies by revenue?",
+      "id": "screening_7dba9f15",
+      "nl_query": "List the 50 highest revenue stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.Revenue, 50, nnumber), CURN=USD)",
             "fields": [
@@ -1119,14 +1232,16 @@
         "metric": "revenue",
         "n": 50,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_deed821e",
       "nl_query": "What are the top 50 US stocks by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.Revenue, 50, nnumber), CURN=USD)",
             "fields": [
@@ -1148,43 +1263,16 @@
         "metric": "revenue",
         "n": 50,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_b29c1b04",
-      "nl_query": "Show the 50 largest NYSE stocks by revenue",
+      "id": "screening_843f64de",
+      "nl_query": "What are the top 50 NASDAQ stocks by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.Revenue, 50, nnumber), CURN=USD)",
-            "fields": [
-              "TR.CommonName",
-              "TR.Revenue"
-            ]
-          }
-        }
-      ],
-      "complexity": 4,
-      "category": "screening",
-      "subcategory": "top_n",
-      "tags": [
-        "screening",
-        "top_n",
-        "revenue"
-      ],
-      "metadata": {
-        "metric": "revenue",
-        "n": 50,
-        "universe": "NYSE stocks"
-      }
-    },
-    {
-      "id": "screening_7dba9f15",
-      "nl_query": "List the 50 highest revenue stocks",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.Revenue, 50, nnumber), CURN=USD)",
             "fields": [
@@ -1206,14 +1294,16 @@
         "metric": "revenue",
         "n": 50,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_4be7a26c",
-      "nl_query": "Get top 5 stocks by net income",
+      "id": "screening_13fb84ca",
+      "nl_query": "List the 5 highest net income stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.NetIncome, 5, nnumber), CURN=USD)",
             "fields": [
@@ -1235,14 +1325,16 @@
         "metric": "net income",
         "n": 5,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_13fb84ca",
-      "nl_query": "List the 5 highest net income stocks",
+      "id": "screening_4be7a26c",
+      "nl_query": "Get top 5 stocks by net income",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.NetIncome, 5, nnumber), CURN=USD)",
             "fields": [
@@ -1264,14 +1356,16 @@
         "metric": "net income",
         "n": 5,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_d39ca119",
       "nl_query": "What are the top 5 NYSE stocks by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.NetIncome, 5, nnumber), CURN=USD)",
             "fields": [
@@ -1293,14 +1387,47 @@
         "metric": "net income",
         "n": 5,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_fca98cbc",
+      "nl_query": "Show the 5 largest NASDAQ stocks by net income",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.NetIncome, 5, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.NetIncome"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "net_income"
+      ],
+      "metadata": {
+        "metric": "net income",
+        "n": 5,
+        "universe": "NASDAQ stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_3233606d",
       "nl_query": "Show the 10 largest companies by net income",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -1322,14 +1449,16 @@
         "metric": "net income",
         "n": 10,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_d766ed2c",
-      "nl_query": "What are the top 10 US stocks by net income?",
+      "id": "screening_28067cdf",
+      "nl_query": "List the 10 highest net income stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -1351,14 +1480,16 @@
         "metric": "net income",
         "n": 10,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_c5e26998",
-      "nl_query": "What are the top 10 NYSE stocks by net income?",
+      "id": "screening_ebbccc7d",
+      "nl_query": "Get top 10 stocks by net income",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -1380,14 +1511,16 @@
         "metric": "net income",
         "n": 10,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_ebbccc7d",
-      "nl_query": "Get top 10 stocks by net income",
+      "id": "screening_bdaed041",
+      "nl_query": "Show the 10 largest NASDAQ stocks by net income",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -1409,14 +1542,16 @@
         "metric": "net income",
         "n": 10,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_9f003595",
-      "nl_query": "List the 20 highest net income stocks",
+      "id": "screening_d79e01a7",
+      "nl_query": "What are the top 20 companies by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.NetIncome, 20, nnumber), CURN=USD)",
             "fields": [
@@ -1438,14 +1573,47 @@
         "metric": "net income",
         "n": 20,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_83553d2e",
-      "nl_query": "What are the top 20 NYSE stocks by net income?",
+      "id": "screening_f956ba51",
+      "nl_query": "Get top 20 stocks by net income",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.NetIncome, 20, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.NetIncome"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "net_income"
+      ],
+      "metadata": {
+        "metric": "net income",
+        "n": 20,
+        "universe": "US stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_c250c381",
+      "nl_query": "Show the 20 largest NYSE stocks by net income",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.NetIncome, 20, nnumber), CURN=USD)",
             "fields": [
@@ -1467,14 +1635,47 @@
         "metric": "net income",
         "n": 20,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_af473382",
-      "nl_query": "Get top 50 stocks by net income",
+      "id": "screening_2f2c928d",
+      "nl_query": "What are the top 20 NASDAQ stocks by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.NetIncome, 20, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.NetIncome"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "net_income"
+      ],
+      "metadata": {
+        "metric": "net income",
+        "n": 20,
+        "universe": "NASDAQ stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_0d3e29a8",
+      "nl_query": "List the 50 highest net income stocks",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.NetIncome, 50, nnumber), CURN=USD)",
             "fields": [
@@ -1496,14 +1697,16 @@
         "metric": "net income",
         "n": 50,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_0d3e29a8",
-      "nl_query": "List the 50 highest net income stocks",
+      "id": "screening_c1746b9b",
+      "nl_query": "What are the top 50 US stocks by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.NetIncome, 50, nnumber), CURN=USD)",
             "fields": [
@@ -1525,14 +1728,47 @@
         "metric": "net income",
         "n": 50,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_556ead66",
-      "nl_query": "List the 5 highest dividend yield stocks",
+      "id": "screening_af473382",
+      "nl_query": "Get top 50 stocks by net income",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.NetIncome, 50, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.NetIncome"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "net_income"
+      ],
+      "metadata": {
+        "metric": "net income",
+        "n": 50,
+        "universe": "NASDAQ stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_22bb5468",
+      "nl_query": "What are the top 5 companies by dividend yield?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.DividendYield, 5, nnumber), CURN=USD)",
             "fields": [
@@ -1554,14 +1790,16 @@
         "metric": "dividend yield",
         "n": 5,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_015151d7",
       "nl_query": "Get top 5 stocks by dividend yield",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.DividendYield, 5, nnumber), CURN=USD)",
             "fields": [
@@ -1583,14 +1821,16 @@
         "metric": "dividend yield",
         "n": 5,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_ff3fee37",
-      "nl_query": "What are the top 5 NASDAQ stocks by dividend yield?",
+      "id": "screening_556ead66",
+      "nl_query": "List the 5 highest dividend yield stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.DividendYield, 5, nnumber), CURN=USD)",
             "fields": [
@@ -1612,14 +1852,16 @@
         "metric": "dividend yield",
         "n": 5,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_5f2acf58",
-      "nl_query": "What are the top 10 companies by dividend yield?",
+      "id": "screening_c1b20cc3",
+      "nl_query": "Show the 10 largest companies by dividend yield",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.DividendYield, 10, nnumber), CURN=USD)",
             "fields": [
@@ -1641,14 +1883,16 @@
         "metric": "dividend yield",
         "n": 10,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_aa6d5ab3",
-      "nl_query": "Get top 10 stocks by dividend yield",
+      "id": "screening_716ca380",
+      "nl_query": "Show the 10 largest US stocks by dividend yield",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.DividendYield, 10, nnumber), CURN=USD)",
             "fields": [
@@ -1670,14 +1914,47 @@
         "metric": "dividend yield",
         "n": 10,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_cf28c89b",
+      "nl_query": "List the 10 highest dividend yield stocks",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.DividendYield, 10, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.DividendYield"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "dividend_yield"
+      ],
+      "metadata": {
+        "metric": "dividend yield",
+        "n": 10,
+        "universe": "NYSE stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_b3b627c2",
       "nl_query": "Show the 10 largest NASDAQ stocks by dividend yield",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.DividendYield, 10, nnumber), CURN=USD)",
             "fields": [
@@ -1699,14 +1976,16 @@
         "metric": "dividend yield",
         "n": 10,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_154d433d",
-      "nl_query": "List the 20 highest dividend yield stocks",
+      "id": "screening_26a07d3c",
+      "nl_query": "What are the top 20 companies by dividend yield?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.DividendYield, 20, nnumber), CURN=USD)",
             "fields": [
@@ -1728,14 +2007,16 @@
         "metric": "dividend yield",
         "n": 20,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_1ae1e75c",
-      "nl_query": "Show the 20 largest US stocks by dividend yield",
+      "id": "screening_ab80d9da",
+      "nl_query": "What are the top 20 US stocks by dividend yield?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.DividendYield, 20, nnumber), CURN=USD)",
             "fields": [
@@ -1757,14 +2038,16 @@
         "metric": "dividend yield",
         "n": 20,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_6ee9c139",
-      "nl_query": "Show the 20 largest NYSE stocks by dividend yield",
+      "id": "screening_154d433d",
+      "nl_query": "List the 20 highest dividend yield stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.DividendYield, 20, nnumber), CURN=USD)",
             "fields": [
@@ -1786,14 +2069,16 @@
         "metric": "dividend yield",
         "n": 20,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_56690f94",
-      "nl_query": "What are the top 20 NASDAQ stocks by dividend yield?",
+      "id": "screening_686e1364",
+      "nl_query": "Get top 20 stocks by dividend yield",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.DividendYield, 20, nnumber), CURN=USD)",
             "fields": [
@@ -1815,14 +2100,16 @@
         "metric": "dividend yield",
         "n": 20,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_41ce3e25",
       "nl_query": "Get top 50 stocks by dividend yield",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.DividendYield, 50, nnumber), CURN=USD)",
             "fields": [
@@ -1844,14 +2131,78 @@
         "metric": "dividend yield",
         "n": 50,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_af50b74e",
-      "nl_query": "What are the top 50 NASDAQ stocks by dividend yield?",
+      "id": "screening_91dc8c03",
+      "nl_query": "Show the 50 largest US stocks by dividend yield",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.DividendYield, 50, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.DividendYield"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "dividend_yield"
+      ],
+      "metadata": {
+        "metric": "dividend yield",
+        "n": 50,
+        "universe": "US stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_188a42f6",
+      "nl_query": "What are the top 50 NYSE stocks by dividend yield?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.DividendYield, 50, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.DividendYield"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "dividend_yield"
+      ],
+      "metadata": {
+        "metric": "dividend yield",
+        "n": 50,
+        "universe": "NYSE stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_e8a50c25",
+      "nl_query": "Show the 50 largest NASDAQ stocks by dividend yield",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.DividendYield, 50, nnumber), CURN=USD)",
             "fields": [
@@ -1873,14 +2224,16 @@
         "metric": "dividend yield",
         "n": 50,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_d65506b4",
-      "nl_query": "Get top 5 stocks by ROE",
+      "id": "screening_01f84950",
+      "nl_query": "What are the top 5 companies by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.ROE, 5, nnumber), CURN=USD)",
             "fields": [
@@ -1902,14 +2255,16 @@
         "metric": "ROE",
         "n": 5,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_edffa4ef",
-      "nl_query": "Show the 5 largest US stocks by ROE",
+      "id": "screening_7e199188",
+      "nl_query": "What are the top 5 US stocks by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.ROE, 5, nnumber), CURN=USD)",
             "fields": [
@@ -1931,14 +2286,16 @@
         "metric": "ROE",
         "n": 5,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_f1e30e92",
-      "nl_query": "What are the top 5 NYSE stocks by ROE?",
+      "id": "screening_29b1739a",
+      "nl_query": "Show the 5 largest NYSE stocks by ROE",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.ROE, 5, nnumber), CURN=USD)",
             "fields": [
@@ -1960,14 +2317,16 @@
         "metric": "ROE",
         "n": 5,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_b438b934",
-      "nl_query": "What are the top 5 NASDAQ stocks by ROE?",
+      "id": "screening_0cdc913f",
+      "nl_query": "Show the 5 largest NASDAQ stocks by ROE",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.ROE, 5, nnumber), CURN=USD)",
             "fields": [
@@ -1989,14 +2348,16 @@
         "metric": "ROE",
         "n": 5,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_04a4a44a",
-      "nl_query": "What are the top 10 companies by ROE?",
+      "id": "screening_d03053da",
+      "nl_query": "Get top 10 stocks by ROE",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.ROE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -2018,14 +2379,16 @@
         "metric": "ROE",
         "n": 10,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_d03053da",
-      "nl_query": "Get top 10 stocks by ROE",
+      "id": "screening_9a4e020b",
+      "nl_query": "List the 10 highest ROE stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.ROE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -2047,14 +2410,47 @@
         "metric": "ROE",
         "n": 10,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_9bd51e30",
-      "nl_query": "What are the top 20 companies by ROE?",
+      "id": "screening_b844ddfa",
+      "nl_query": "What are the top 10 NASDAQ stocks by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.ROE, 10, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.ROE"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "ROE"
+      ],
+      "metadata": {
+        "metric": "ROE",
+        "n": 10,
+        "universe": "NASDAQ stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_363d1c6b",
+      "nl_query": "Show the 20 largest companies by ROE",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.ROE, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2076,14 +2472,16 @@
         "metric": "ROE",
         "n": 20,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_13ef2cc7",
-      "nl_query": "Show the 20 largest US stocks by ROE",
+      "id": "screening_a1f4cef9",
+      "nl_query": "What are the top 20 US stocks by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.ROE, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2105,14 +2503,16 @@
         "metric": "ROE",
         "n": 20,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_c6f8c1f5",
-      "nl_query": "List the 20 highest ROE stocks",
+      "id": "screening_acdd61fc",
+      "nl_query": "Show the 20 largest NYSE stocks by ROE",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.ROE, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2134,14 +2534,16 @@
         "metric": "ROE",
         "n": 20,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_52b6eafc",
-      "nl_query": "What are the top 20 NASDAQ stocks by ROE?",
+      "id": "screening_947a456f",
+      "nl_query": "Get top 20 stocks by ROE",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.ROE, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2163,14 +2565,16 @@
         "metric": "ROE",
         "n": 20,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_10ef98df",
-      "nl_query": "Get top 50 stocks by ROE",
+      "id": "screening_701492f7",
+      "nl_query": "Show the 50 largest companies by ROE",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.ROE, 50, nnumber), CURN=USD)",
             "fields": [
@@ -2192,14 +2596,16 @@
         "metric": "ROE",
         "n": 50,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_67786875",
-      "nl_query": "List the 50 highest ROE stocks",
+      "id": "screening_10ef98df",
+      "nl_query": "Get top 50 stocks by ROE",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.ROE, 50, nnumber), CURN=USD)",
             "fields": [
@@ -2221,14 +2627,47 @@
         "metric": "ROE",
         "n": 50,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_e10350e8",
-      "nl_query": "Show the 50 largest NASDAQ stocks by ROE",
+      "id": "screening_ec97ed7d",
+      "nl_query": "Show the 50 largest NYSE stocks by ROE",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.ROE, 50, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.ROE"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "ROE"
+      ],
+      "metadata": {
+        "metric": "ROE",
+        "n": 50,
+        "universe": "NYSE stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_4393be6b",
+      "nl_query": "What are the top 50 NASDAQ stocks by ROE?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.ROE, 50, nnumber), CURN=USD)",
             "fields": [
@@ -2250,14 +2689,16 @@
         "metric": "ROE",
         "n": 50,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_f3d9a11b",
-      "nl_query": "Show the 5 largest companies by PE ratio",
+      "id": "screening_0d65a190",
+      "nl_query": "List the 5 highest PE ratio stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.PE, 5, nnumber), CURN=USD)",
             "fields": [
@@ -2279,14 +2720,16 @@
         "metric": "PE ratio",
         "n": 5,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_81653dea",
       "nl_query": "What are the top 5 US stocks by PE ratio?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.PE, 5, nnumber), CURN=USD)",
             "fields": [
@@ -2308,43 +2751,16 @@
         "metric": "PE ratio",
         "n": 5,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_6cd4f347",
-      "nl_query": "What are the top 5 NYSE stocks by PE ratio?",
+      "id": "screening_f36a3902",
+      "nl_query": "Get top 5 stocks by PE ratio",
       "expected_tool_calls": [
         {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.PE, 5, nnumber), CURN=USD)",
-            "fields": [
-              "TR.CommonName",
-              "TR.PE"
-            ]
-          }
-        }
-      ],
-      "complexity": 4,
-      "category": "screening",
-      "subcategory": "top_n",
-      "tags": [
-        "screening",
-        "top_n",
-        "PE_ratio"
-      ],
-      "metadata": {
-        "metric": "PE ratio",
-        "n": 5,
-        "universe": "NYSE stocks"
-      }
-    },
-    {
-      "id": "screening_557f64da",
-      "nl_query": "Show the 5 largest NASDAQ stocks by PE ratio",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.PE, 5, nnumber), CURN=USD)",
             "fields": [
@@ -2366,14 +2782,16 @@
         "metric": "PE ratio",
         "n": 5,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_7091585f",
-      "nl_query": "Get top 10 stocks by PE ratio",
+      "id": "screening_2ae53cdf",
+      "nl_query": "List the 10 highest PE ratio stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.PE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -2395,14 +2813,47 @@
         "metric": "PE ratio",
         "n": 10,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_7091585f",
+      "nl_query": "Get top 10 stocks by PE ratio",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.PE, 10, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.PE"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "PE_ratio"
+      ],
+      "metadata": {
+        "metric": "PE ratio",
+        "n": 10,
+        "universe": "US stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_6a65a91d",
       "nl_query": "Show the 10 largest NYSE stocks by PE ratio",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.PE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -2424,14 +2875,16 @@
         "metric": "PE ratio",
         "n": 10,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_3f9f9ede",
       "nl_query": "Show the 20 largest companies by PE ratio",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.PE, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2453,14 +2906,16 @@
         "metric": "PE ratio",
         "n": 20,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_93bd3a1e",
-      "nl_query": "List the 20 highest PE ratio stocks",
+      "id": "screening_c2e0ffc8",
+      "nl_query": "Get top 20 stocks by PE ratio",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.PE, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2482,14 +2937,16 @@
         "metric": "PE ratio",
         "n": 20,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_c5bf0912",
       "nl_query": "Show the 20 largest NYSE stocks by PE ratio",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.PE, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2511,14 +2968,47 @@
         "metric": "PE ratio",
         "n": 20,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_662aafc6",
+      "nl_query": "Show the 20 largest NASDAQ stocks by PE ratio",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.PE, 20, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.PE"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "PE_ratio"
+      ],
+      "metadata": {
+        "metric": "PE ratio",
+        "n": 20,
+        "universe": "NASDAQ stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_856660fc",
       "nl_query": "Show the 50 largest companies by PE ratio",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.PE, 50, nnumber), CURN=USD)",
             "fields": [
@@ -2540,14 +3030,16 @@
         "metric": "PE ratio",
         "n": 50,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_1ab1ab9b",
-      "nl_query": "List the 50 highest PE ratio stocks",
+      "id": "screening_e681e46a",
+      "nl_query": "Show the 50 largest US stocks by PE ratio",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.PE, 50, nnumber), CURN=USD)",
             "fields": [
@@ -2569,16 +3061,18 @@
         "metric": "PE ratio",
         "n": 50,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_656d5f52",
-      "nl_query": "Get top 50 stocks by PE ratio",
+      "id": "screening_1ab1ab9b",
+      "nl_query": "List the 50 highest PE ratio stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.PE, 50, nnumber), CURN=USD)",
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.PE, 50, nnumber), CURN=USD)",
             "fields": [
               "TR.CommonName",
               "TR.PE"
@@ -2597,15 +3091,17 @@
       "metadata": {
         "metric": "PE ratio",
         "n": 50,
-        "universe": "NASDAQ stocks"
-      }
+        "universe": "NYSE stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_79821325",
-      "nl_query": "Get top 5 stocks by YTD return",
+      "id": "screening_7a8e6289",
+      "nl_query": "Show the 5 largest companies by YTD return",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.TotalReturnYTD, 5, nnumber), CURN=USD)",
             "fields": [
@@ -2627,14 +3123,16 @@
         "metric": "YTD return",
         "n": 5,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_237c36e5",
       "nl_query": "Show the 5 largest US stocks by YTD return",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.TotalReturnYTD, 5, nnumber), CURN=USD)",
             "fields": [
@@ -2656,14 +3154,16 @@
         "metric": "YTD return",
         "n": 5,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_a5fe051f",
-      "nl_query": "List the 5 highest YTD return stocks",
+      "id": "screening_79821325",
+      "nl_query": "Get top 5 stocks by YTD return",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.TotalReturnYTD, 5, nnumber), CURN=USD)",
             "fields": [
@@ -2685,14 +3185,16 @@
         "metric": "YTD return",
         "n": 5,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_87e7bbfb",
-      "nl_query": "Show the 10 largest companies by YTD return",
+      "id": "screening_15f6e49c",
+      "nl_query": "What are the top 10 companies by YTD return?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.TotalReturnYTD, 10, nnumber), CURN=USD)",
             "fields": [
@@ -2714,14 +3216,16 @@
         "metric": "YTD return",
         "n": 10,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_cdcc93c4",
-      "nl_query": "List the 10 highest YTD return stocks",
+      "id": "screening_32857747",
+      "nl_query": "Get top 10 stocks by YTD return",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.TotalReturnYTD, 10, nnumber), CURN=USD)",
             "fields": [
@@ -2743,16 +3247,18 @@
         "metric": "YTD return",
         "n": 10,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_5a8e2e6b",
-      "nl_query": "What are the top 10 NASDAQ stocks by YTD return?",
+      "id": "screening_b0e129d6",
+      "nl_query": "What are the top 10 NYSE stocks by YTD return?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.TotalReturnYTD, 10, nnumber), CURN=USD)",
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.TotalReturnYTD, 10, nnumber), CURN=USD)",
             "fields": [
               "TR.CommonName",
               "TR.TotalReturnYTD"
@@ -2771,15 +3277,17 @@
       "metadata": {
         "metric": "YTD return",
         "n": 10,
-        "universe": "NASDAQ stocks"
-      }
+        "universe": "NYSE stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_cd6ab6cf",
       "nl_query": "What are the top 20 companies by YTD return?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.TotalReturnYTD, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2801,14 +3309,16 @@
         "metric": "YTD return",
         "n": 20,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_3deefe71",
-      "nl_query": "What are the top 20 US stocks by YTD return?",
+      "id": "screening_9803afb0",
+      "nl_query": "Get top 20 stocks by YTD return",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.TotalReturnYTD, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2830,14 +3340,16 @@
         "metric": "YTD return",
         "n": 20,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_b4b54115",
       "nl_query": "What are the top 20 NYSE stocks by YTD return?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.TotalReturnYTD, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2859,14 +3371,16 @@
         "metric": "YTD return",
         "n": 20,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_9803afb0",
-      "nl_query": "Get top 20 stocks by YTD return",
+      "id": "screening_4e1a71c4",
+      "nl_query": "List the 20 highest YTD return stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.TotalReturnYTD, 20, nnumber), CURN=USD)",
             "fields": [
@@ -2888,14 +3402,16 @@
         "metric": "YTD return",
         "n": 20,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_83dacd0c",
-      "nl_query": "Show the 50 largest companies by YTD return",
+      "id": "screening_d5a867e2",
+      "nl_query": "Get top 50 stocks by YTD return",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.TotalReturnYTD, 50, nnumber), CURN=USD)",
             "fields": [
@@ -2917,14 +3433,16 @@
         "metric": "YTD return",
         "n": 50,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_d5a867e2",
-      "nl_query": "Get top 50 stocks by YTD return",
+      "id": "screening_aa2ea81f",
+      "nl_query": "List the 50 highest YTD return stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.TotalReturnYTD, 50, nnumber), CURN=USD)",
             "fields": [
@@ -2946,14 +3464,47 @@
         "metric": "YTD return",
         "n": 50,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_af8453cd",
+      "nl_query": "What are the top 50 NYSE stocks by YTD return?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.TotalReturnYTD, 50, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.TotalReturnYTD"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "YTD_return"
+      ],
+      "metadata": {
+        "metric": "YTD return",
+        "n": 50,
+        "universe": "NYSE stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_d53a2777",
       "nl_query": "Show the 50 largest NASDAQ stocks by YTD return",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.TotalReturnYTD, 50, nnumber), CURN=USD)",
             "fields": [
@@ -2975,14 +3526,16 @@
         "metric": "YTD return",
         "n": 50,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_9f357b7b",
       "nl_query": "List the 5 highest growth rate stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.LTGMean, 5, nnumber), CURN=USD)",
             "fields": [
@@ -3004,14 +3557,16 @@
         "metric": "growth rate",
         "n": 5,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_6a2695e8",
       "nl_query": "Show the 5 largest US stocks by growth rate",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.LTGMean, 5, nnumber), CURN=USD)",
             "fields": [
@@ -3033,43 +3588,16 @@
         "metric": "growth rate",
         "n": 5,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_615e13ac",
-      "nl_query": "Show the 5 largest NYSE stocks by growth rate",
+      "id": "screening_46f41e65",
+      "nl_query": "Show the 5 largest NASDAQ stocks by growth rate",
       "expected_tool_calls": [
         {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.LTGMean, 5, nnumber), CURN=USD)",
-            "fields": [
-              "TR.CommonName",
-              "TR.LTGMean"
-            ]
-          }
-        }
-      ],
-      "complexity": 4,
-      "category": "screening",
-      "subcategory": "top_n",
-      "tags": [
-        "screening",
-        "top_n",
-        "growth_rate"
-      ],
-      "metadata": {
-        "metric": "growth rate",
-        "n": 5,
-        "universe": "NYSE stocks"
-      }
-    },
-    {
-      "id": "screening_0f2e03b5",
-      "nl_query": "What are the top 5 NASDAQ stocks by growth rate?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.LTGMean, 5, nnumber), CURN=USD)",
             "fields": [
@@ -3091,14 +3619,16 @@
         "metric": "growth rate",
         "n": 5,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_1bd7143f",
-      "nl_query": "List the 10 highest growth rate stocks",
+      "id": "screening_f6116b68",
+      "nl_query": "What are the top 10 companies by growth rate?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.LTGMean, 10, nnumber), CURN=USD)",
             "fields": [
@@ -3120,14 +3650,16 @@
         "metric": "growth rate",
         "n": 10,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_18f2d819",
-      "nl_query": "What are the top 10 US stocks by growth rate?",
+      "id": "screening_1bd7143f",
+      "nl_query": "List the 10 highest growth rate stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.LTGMean, 10, nnumber), CURN=USD)",
             "fields": [
@@ -3149,14 +3681,16 @@
         "metric": "growth rate",
         "n": 10,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_7e18217f",
-      "nl_query": "Show the 10 largest NYSE stocks by growth rate",
+      "id": "screening_4d6613fa",
+      "nl_query": "What are the top 10 NYSE stocks by growth rate?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.LTGMean, 10, nnumber), CURN=USD)",
             "fields": [
@@ -3178,14 +3712,16 @@
         "metric": "growth rate",
         "n": 10,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_dba2788d",
-      "nl_query": "What are the top 10 NASDAQ stocks by growth rate?",
+      "id": "screening_52803fa4",
+      "nl_query": "Get top 10 stocks by growth rate",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.LTGMean, 10, nnumber), CURN=USD)",
             "fields": [
@@ -3207,14 +3743,16 @@
         "metric": "growth rate",
         "n": 10,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_d0962aa4",
       "nl_query": "What are the top 20 companies by growth rate?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.LTGMean, 20, nnumber), CURN=USD)",
             "fields": [
@@ -3236,14 +3774,16 @@
         "metric": "growth rate",
         "n": 20,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_cdad0e7c",
-      "nl_query": "Show the 20 largest US stocks by growth rate",
+      "id": "screening_d431cfd4",
+      "nl_query": "Get top 20 stocks by growth rate",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.LTGMean, 20, nnumber), CURN=USD)",
             "fields": [
@@ -3265,14 +3805,16 @@
         "metric": "growth rate",
         "n": 20,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_95329eb4",
-      "nl_query": "List the 20 highest growth rate stocks",
+      "id": "screening_7e0adbfe",
+      "nl_query": "What are the top 20 NYSE stocks by growth rate?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.LTGMean, 20, nnumber), CURN=USD)",
             "fields": [
@@ -3294,14 +3836,47 @@
         "metric": "growth rate",
         "n": 20,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_d75eebec",
-      "nl_query": "What are the top 50 companies by growth rate?",
+      "id": "screening_25741374",
+      "nl_query": "What are the top 20 NASDAQ stocks by growth rate?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.LTGMean, 20, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.LTGMean"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "growth_rate"
+      ],
+      "metadata": {
+        "metric": "growth rate",
+        "n": 20,
+        "universe": "NASDAQ stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_827dd8f4",
+      "nl_query": "Show the 50 largest companies by growth rate",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.LTGMean, 50, nnumber), CURN=USD)",
             "fields": [
@@ -3323,14 +3898,16 @@
         "metric": "growth rate",
         "n": 50,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_eba52b0e",
-      "nl_query": "What are the top 50 US stocks by growth rate?",
+      "id": "screening_6bdb697c",
+      "nl_query": "Show the 50 largest US stocks by growth rate",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.LTGMean, 50, nnumber), CURN=USD)",
             "fields": [
@@ -3352,14 +3929,16 @@
         "metric": "growth rate",
         "n": 50,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_c68fee9c",
-      "nl_query": "What are the top 50 NYSE stocks by growth rate?",
+      "id": "screening_44ff8c04",
+      "nl_query": "List the 50 highest growth rate stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.LTGMean, 50, nnumber), CURN=USD)",
             "fields": [
@@ -3381,43 +3960,16 @@
         "metric": "growth rate",
         "n": 50,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_0678c769",
-      "nl_query": "What are the top 50 NASDAQ stocks by growth rate?",
+      "id": "screening_8f40e8a5",
+      "nl_query": "What are the top 5 companies by free cash flow?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.LTGMean, 50, nnumber), CURN=USD)",
-            "fields": [
-              "TR.CommonName",
-              "TR.LTGMean"
-            ]
-          }
-        }
-      ],
-      "complexity": 4,
-      "category": "screening",
-      "subcategory": "top_n",
-      "tags": [
-        "screening",
-        "top_n",
-        "growth_rate"
-      ],
-      "metadata": {
-        "metric": "growth rate",
-        "n": 50,
-        "universe": "NASDAQ stocks"
-      }
-    },
-    {
-      "id": "screening_2f2b7936",
-      "nl_query": "List the 5 highest free cash flow stocks",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.FreeCashFlow, 5, nnumber), CURN=USD)",
             "fields": [
@@ -3439,14 +3991,16 @@
         "metric": "free cash flow",
         "n": 5,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_49993030",
-      "nl_query": "Show the 5 largest US stocks by free cash flow",
+      "id": "screening_f1671f3b",
+      "nl_query": "What are the top 5 US stocks by free cash flow?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.FreeCashFlow, 5, nnumber), CURN=USD)",
             "fields": [
@@ -3468,14 +4022,16 @@
         "metric": "free cash flow",
         "n": 5,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_e06d64b1",
-      "nl_query": "Show the 5 largest NYSE stocks by free cash flow",
+      "id": "screening_f831e8e9",
+      "nl_query": "Get top 5 stocks by free cash flow",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.FreeCashFlow, 5, nnumber), CURN=USD)",
             "fields": [
@@ -3497,14 +4053,16 @@
         "metric": "free cash flow",
         "n": 5,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_f831e8e9",
-      "nl_query": "Get top 5 stocks by free cash flow",
+      "id": "screening_e34da11b",
+      "nl_query": "Show the 5 largest NASDAQ stocks by free cash flow",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.FreeCashFlow, 5, nnumber), CURN=USD)",
             "fields": [
@@ -3526,14 +4084,16 @@
         "metric": "free cash flow",
         "n": 5,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_1a67eb14",
-      "nl_query": "List the 10 highest free cash flow stocks",
+      "id": "screening_671e6f50",
+      "nl_query": "Get top 10 stocks by free cash flow",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.FreeCashFlow, 10, nnumber), CURN=USD)",
             "fields": [
@@ -3555,43 +4115,16 @@
         "metric": "free cash flow",
         "n": 10,
         "universe": "companies"
-      }
-    },
-    {
-      "id": "screening_5ca7bff3",
-      "nl_query": "What are the top 10 US stocks by free cash flow?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.FreeCashFlow, 10, nnumber), CURN=USD)",
-            "fields": [
-              "TR.CommonName",
-              "TR.FreeCashFlow"
-            ]
-          }
-        }
-      ],
-      "complexity": 4,
-      "category": "screening",
-      "subcategory": "top_n",
-      "tags": [
-        "screening",
-        "top_n",
-        "free_cash_flow"
-      ],
-      "metadata": {
-        "metric": "free cash flow",
-        "n": 10,
-        "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_70e50a5a",
       "nl_query": "What are the top 10 NYSE stocks by free cash flow?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.FreeCashFlow, 10, nnumber), CURN=USD)",
             "fields": [
@@ -3613,14 +4146,16 @@
         "metric": "free cash flow",
         "n": 10,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_36f9ac7d",
       "nl_query": "What are the top 10 NASDAQ stocks by free cash flow?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.FreeCashFlow, 10, nnumber), CURN=USD)",
             "fields": [
@@ -3642,14 +4177,16 @@
         "metric": "free cash flow",
         "n": 10,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_085efd68",
-      "nl_query": "Show the 20 largest companies by free cash flow",
+      "id": "screening_34d3d914",
+      "nl_query": "What are the top 20 companies by free cash flow?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.FreeCashFlow, 20, nnumber), CURN=USD)",
             "fields": [
@@ -3671,14 +4208,16 @@
         "metric": "free cash flow",
         "n": 20,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_818708da",
-      "nl_query": "What are the top 20 US stocks by free cash flow?",
+      "id": "screening_b2716297",
+      "nl_query": "Get top 20 stocks by free cash flow",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.FreeCashFlow, 20, nnumber), CURN=USD)",
             "fields": [
@@ -3700,14 +4239,16 @@
         "metric": "free cash flow",
         "n": 20,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_0b8792d5",
       "nl_query": "Show the 20 largest NYSE stocks by free cash flow",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.FreeCashFlow, 20, nnumber), CURN=USD)",
             "fields": [
@@ -3729,14 +4270,16 @@
         "metric": "free cash flow",
         "n": 20,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_b2716297",
-      "nl_query": "Get top 20 stocks by free cash flow",
+      "id": "screening_e7ce93ac",
+      "nl_query": "Show the 20 largest NASDAQ stocks by free cash flow",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.FreeCashFlow, 20, nnumber), CURN=USD)",
             "fields": [
@@ -3758,14 +4301,16 @@
         "metric": "free cash flow",
         "n": 20,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_918ac3cb",
-      "nl_query": "Get top 50 stocks by free cash flow",
+      "id": "screening_a8db47a1",
+      "nl_query": "What are the top 50 companies by free cash flow?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.FreeCashFlow, 50, nnumber), CURN=USD)",
             "fields": [
@@ -3787,14 +4332,16 @@
         "metric": "free cash flow",
         "n": 50,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_d655619b",
-      "nl_query": "Show the 50 largest US stocks by free cash flow",
+      "id": "screening_918ac3cb",
+      "nl_query": "Get top 50 stocks by free cash flow",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.FreeCashFlow, 50, nnumber), CURN=USD)",
             "fields": [
@@ -3816,14 +4363,16 @@
         "metric": "free cash flow",
         "n": 50,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_6b20243f",
-      "nl_query": "List the 50 highest free cash flow stocks",
+      "id": "screening_65daa48e",
+      "nl_query": "What are the top 50 NYSE stocks by free cash flow?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.FreeCashFlow, 50, nnumber), CURN=USD)",
             "fields": [
@@ -3845,43 +4394,16 @@
         "metric": "free cash flow",
         "n": 50,
         "universe": "NYSE stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_d4b6d6c4",
-      "nl_query": "What are the top 50 NASDAQ stocks by free cash flow?",
+      "id": "screening_8919cbc7",
+      "nl_query": "List the 5 highest EBITDA stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.FreeCashFlow, 50, nnumber), CURN=USD)",
-            "fields": [
-              "TR.CommonName",
-              "TR.FreeCashFlow"
-            ]
-          }
-        }
-      ],
-      "complexity": 4,
-      "category": "screening",
-      "subcategory": "top_n",
-      "tags": [
-        "screening",
-        "top_n",
-        "free_cash_flow"
-      ],
-      "metadata": {
-        "metric": "free cash flow",
-        "n": 50,
-        "universe": "NASDAQ stocks"
-      }
-    },
-    {
-      "id": "screening_976ce305",
-      "nl_query": "Show the 5 largest companies by EBITDA",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.EBITDA, 5, nnumber), CURN=USD)",
             "fields": [
@@ -3903,14 +4425,16 @@
         "metric": "EBITDA",
         "n": 5,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_2ca94da2",
-      "nl_query": "Show the 5 largest US stocks by EBITDA",
+      "id": "screening_33609a43",
+      "nl_query": "Get top 5 stocks by EBITDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.EBITDA, 5, nnumber), CURN=USD)",
             "fields": [
@@ -3932,72 +4456,16 @@
         "metric": "EBITDA",
         "n": 5,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_33609a43",
-      "nl_query": "Get top 5 stocks by EBITDA",
+      "id": "screening_16b4d5c4",
+      "nl_query": "Get top 10 stocks by EBITDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.EBITDA, 5, nnumber), CURN=USD)",
-            "fields": [
-              "TR.CommonName",
-              "TR.EBITDA"
-            ]
-          }
-        }
-      ],
-      "complexity": 4,
-      "category": "screening",
-      "subcategory": "top_n",
-      "tags": [
-        "screening",
-        "top_n",
-        "EBITDA"
-      ],
-      "metadata": {
-        "metric": "EBITDA",
-        "n": 5,
-        "universe": "NYSE stocks"
-      }
-    },
-    {
-      "id": "screening_fc8e6748",
-      "nl_query": "Show the 5 largest NASDAQ stocks by EBITDA",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.EBITDA, 5, nnumber), CURN=USD)",
-            "fields": [
-              "TR.CommonName",
-              "TR.EBITDA"
-            ]
-          }
-        }
-      ],
-      "complexity": 4,
-      "category": "screening",
-      "subcategory": "top_n",
-      "tags": [
-        "screening",
-        "top_n",
-        "EBITDA"
-      ],
-      "metadata": {
-        "metric": "EBITDA",
-        "n": 5,
-        "universe": "NASDAQ stocks"
-      }
-    },
-    {
-      "id": "screening_fb4ebfaa",
-      "nl_query": "What are the top 10 companies by EBITDA?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.EBITDA, 10, nnumber), CURN=USD)",
             "fields": [
@@ -4019,16 +4487,18 @@
         "metric": "EBITDA",
         "n": 10,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_16b4d5c4",
-      "nl_query": "Get top 10 stocks by EBITDA",
+      "id": "screening_8ca352c7",
+      "nl_query": "Show the 10 largest NYSE stocks by EBITDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.EBITDA, 10, nnumber), CURN=USD)",
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.EBITDA, 10, nnumber), CURN=USD)",
             "fields": [
               "TR.CommonName",
               "TR.EBITDA"
@@ -4047,15 +4517,17 @@
       "metadata": {
         "metric": "EBITDA",
         "n": 10,
-        "universe": "US stocks"
-      }
+        "universe": "NYSE stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_e7ab7b7f",
       "nl_query": "List the 10 highest EBITDA stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.EBITDA, 10, nnumber), CURN=USD)",
             "fields": [
@@ -4077,14 +4549,16 @@
         "metric": "EBITDA",
         "n": 10,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_6a3fe18c",
-      "nl_query": "Show the 20 largest companies by EBITDA",
+      "id": "screening_cfef6e49",
+      "nl_query": "List the 20 highest EBITDA stocks",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.EBITDA, 20, nnumber), CURN=USD)",
             "fields": [
@@ -4106,14 +4580,16 @@
         "metric": "EBITDA",
         "n": 20,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_ecb7f395",
-      "nl_query": "Get top 20 stocks by EBITDA",
+      "id": "screening_82f062f4",
+      "nl_query": "Show the 20 largest US stocks by EBITDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.EBITDA, 20, nnumber), CURN=USD)",
             "fields": [
@@ -4135,14 +4611,47 @@
         "metric": "EBITDA",
         "n": 20,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_cfef6e49",
-      "nl_query": "List the 20 highest EBITDA stocks",
+      "id": "screening_7ca90bee",
+      "nl_query": "What are the top 20 NYSE stocks by EBITDA?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.EBITDA, 20, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.EBITDA"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "EBITDA"
+      ],
+      "metadata": {
+        "metric": "EBITDA",
+        "n": 20,
+        "universe": "NYSE stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_58e244be",
+      "nl_query": "Show the 20 largest NASDAQ stocks by EBITDA",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.EBITDA, 20, nnumber), CURN=USD)",
             "fields": [
@@ -4164,14 +4673,16 @@
         "metric": "EBITDA",
         "n": 20,
         "universe": "NASDAQ stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_a6487d93",
-      "nl_query": "Get top 50 stocks by EBITDA",
+      "id": "screening_e561be08",
+      "nl_query": "Show the 50 largest companies by EBITDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TOP(TR.EBITDA, 50, nnumber), CURN=USD)",
             "fields": [
@@ -4193,14 +4704,16 @@
         "metric": "EBITDA",
         "n": 50,
         "universe": "companies"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_7fa0ff9a",
-      "nl_query": "Show the 50 largest US stocks by EBITDA",
+      "id": "screening_4dc8a263",
+      "nl_query": "What are the top 50 US stocks by EBITDA?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeCountryCode,\"US\"), TOP(TR.EBITDA, 50, nnumber), CURN=USD)",
             "fields": [
@@ -4222,14 +4735,78 @@
         "metric": "EBITDA",
         "n": 50,
         "universe": "US stocks"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_7ba9878b",
+      "nl_query": "Show the 50 largest NYSE stocks by EBITDA",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNYS\"), TOP(TR.EBITDA, 50, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.EBITDA"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "EBITDA"
+      ],
+      "metadata": {
+        "metric": "EBITDA",
+        "n": 50,
+        "universe": "NYSE stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "screening_d05af38f",
+      "nl_query": "Show the 50 largest NASDAQ stocks by EBITDA",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.ExchangeMarketIdCode,\"XNAS\"), TOP(TR.EBITDA, 50, nnumber), CURN=USD)",
+            "fields": [
+              "TR.CommonName",
+              "TR.EBITDA"
+            ]
+          }
+        }
+      ],
+      "complexity": 4,
+      "category": "screening",
+      "subcategory": "top_n",
+      "tags": [
+        "screening",
+        "top_n",
+        "EBITDA"
+      ],
+      "metadata": {
+        "metric": "EBITDA",
+        "n": 50,
+        "universe": "NASDAQ stocks"
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_958f5570",
       "nl_query": "Show companies where PE ratio under 15",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PE<=15, CURN=USD)",
             "fields": [
@@ -4251,14 +4828,16 @@
         "criteria_name": "low_pe",
         "filter": "TR.PE<=15",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_ab0f70c1",
-      "nl_query": "Which stocks have PE between 0 and 10?",
+      "id": "screening_24d42b12",
+      "nl_query": "Find stocks with PE between 0 and 10",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PE>0, TR.PE<=10, CURN=USD)",
             "fields": [
@@ -4280,14 +4859,16 @@
         "criteria_name": "low_pe_positive",
         "filter": "TR.PE>0, TR.PE<=10",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_a96d6333",
-      "nl_query": "Which stocks have price to book under 1.5?",
+      "id": "screening_a5b7bb85",
+      "nl_query": "Get stocks with price to book under 1.5",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PriceToBVPerShare<=1.5, CURN=USD)",
             "fields": [
@@ -4309,14 +4890,16 @@
         "criteria_name": "low_pb",
         "filter": "TR.PriceToBVPerShare<=1.5",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_58ad926c",
-      "nl_query": "Which stocks have price to sales under 2?",
+      "id": "screening_3ad84a5d",
+      "nl_query": "Find stocks with price to sales under 2",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PriceToSalesPerShare<=2, CURN=USD)",
             "fields": [
@@ -4338,14 +4921,16 @@
         "criteria_name": "low_ps",
         "filter": "TR.PriceToSalesPerShare<=2",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_ec9aceed",
-      "nl_query": "Get stocks with EV/EBITDA under 10",
+      "id": "screening_b299dd04",
+      "nl_query": "Which stocks have EV/EBITDA under 10?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.EVToEBITDA<=10, CURN=USD)",
             "fields": [
@@ -4367,14 +4952,16 @@
         "criteria_name": "low_ev_ebitda",
         "filter": "TR.EVToEBITDA<=10",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_f8f37d53",
-      "nl_query": "Get stocks with dividend yield over 4%",
+      "id": "screening_a3425dc8",
+      "nl_query": "Show companies where dividend yield over 4%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.DividendYield>=4, CURN=USD)",
             "fields": [
@@ -4396,14 +4983,16 @@
         "criteria_name": "high_dividend",
         "filter": "TR.DividendYield>=4",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_12f84fd1",
-      "nl_query": "Get stocks with dividend yield between 2-5%",
+      "id": "screening_9b4f1c8d",
+      "nl_query": "Show companies where dividend yield between 2-5%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.DividendYield>=2, TR.DividendYield<=5, CURN=USD)",
             "fields": [
@@ -4425,14 +5014,16 @@
         "criteria_name": "moderate_dividend",
         "filter": "TR.DividendYield>=2, TR.DividendYield<=5",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_5a84944c",
-      "nl_query": "Get stocks with PE ratio under 8",
+      "id": "screening_ef11cfa0",
+      "nl_query": "Which stocks have PE ratio under 8?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PE>0, TR.PE<=8, CURN=USD)",
             "fields": [
@@ -4454,14 +5045,16 @@
         "criteria_name": "very_low_pe",
         "filter": "TR.PE>0, TR.PE<=8",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_4c5b3259",
       "nl_query": "Show companies where PE between 10 and 20",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PE>=10, TR.PE<=20, CURN=USD)",
             "fields": [
@@ -4483,14 +5076,16 @@
         "criteria_name": "moderate_pe",
         "filter": "TR.PE>=10, TR.PE<=20",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_5ec8c542",
       "nl_query": "Show companies where PEG ratio under 1",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PEGRatio>0, TR.PEGRatio<=1, CURN=USD)",
             "fields": [
@@ -4512,14 +5107,16 @@
         "criteria_name": "low_peg",
         "filter": "TR.PEGRatio>0, TR.PEGRatio<=1",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_0a4905ef",
-      "nl_query": "Show companies where price to book under 1",
+      "id": "screening_187ebb20",
+      "nl_query": "Which stocks have price to book under 1?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PriceToBVPerShare<=1, CURN=USD)",
             "fields": [
@@ -4541,14 +5138,16 @@
         "criteria_name": "very_low_pb",
         "filter": "TR.PriceToBVPerShare<=1",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_1659cc3e",
-      "nl_query": "Show companies where price to cash flow under 10",
+      "id": "screening_d4ac8a00",
+      "nl_query": "Get stocks with price to cash flow under 10",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PriceToCashFlowPerShare<=10, CURN=USD)",
             "fields": [
@@ -4570,14 +5169,16 @@
         "criteria_name": "low_pcf",
         "filter": "TR.PriceToCashFlowPerShare<=10",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_3ca49d22",
-      "nl_query": "Find stocks with EV/Sales under 2",
+      "id": "screening_03cb2960",
+      "nl_query": "Get stocks with EV/Sales under 2",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.EVToSales<=2, CURN=USD)",
             "fields": [
@@ -4599,14 +5200,16 @@
         "criteria_name": "low_ev_sales",
         "filter": "TR.EVToSales<=2",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_a7fadd3b",
-      "nl_query": "Find stocks with free cash flow yield over 5%",
+      "id": "screening_e326939a",
+      "nl_query": "Show companies where free cash flow yield over 5%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.FreeCashFlowYield>=5, CURN=USD)",
             "fields": [
@@ -4628,14 +5231,16 @@
         "criteria_name": "high_fcf_yield",
         "filter": "TR.FreeCashFlowYield>=5",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_33739637",
-      "nl_query": "Which stocks have forward PE under 12?",
+      "id": "screening_c403372b",
+      "nl_query": "Show companies where forward PE under 12",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PEExclExtrItemsTTM>0, TR.PEExclExtrItemsTTM<=12, CURN=USD)",
             "fields": [
@@ -4657,14 +5262,16 @@
         "criteria_name": "low_forward_pe",
         "filter": "TR.PEExclExtrItemsTTM>0, TR.PEExclExtrItemsTTM<=12",
         "category": "valuation"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_3942ed35",
-      "nl_query": "Find stocks with ROE above 20%",
+      "id": "screening_5d8e949e",
+      "nl_query": "Show companies where ROE above 20%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.ROE>=20, CURN=USD)",
             "fields": [
@@ -4686,14 +5293,16 @@
         "criteria_name": "high_roe",
         "filter": "TR.ROE>=20",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_7ab12561",
-      "nl_query": "Which stocks have ROA above 10%?",
+      "id": "screening_71ca695c",
+      "nl_query": "Find stocks with ROA above 10%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.ROA>=10, CURN=USD)",
             "fields": [
@@ -4715,14 +5324,16 @@
         "criteria_name": "high_roa",
         "filter": "TR.ROA>=10",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_d3e9ffc7",
       "nl_query": "Find stocks with profit margin over 15%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.NetProfitMargin>=15, CURN=USD)",
             "fields": [
@@ -4744,14 +5355,16 @@
         "criteria_name": "high_margin",
         "filter": "TR.NetProfitMargin>=15",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_91a10ec2",
-      "nl_query": "Get stocks with gross margin over 40%",
+      "id": "screening_e9f1f255",
+      "nl_query": "Find stocks with gross margin over 40%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.GrossMargin>=40, CURN=USD)",
             "fields": [
@@ -4773,14 +5386,16 @@
         "criteria_name": "high_gross_margin",
         "filter": "TR.GrossMargin>=40",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_f6a16001",
-      "nl_query": "Show companies where positive net income",
+      "id": "screening_6c4a14d4",
+      "nl_query": "Which stocks have positive net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.NetIncome>0, CURN=USD)",
             "fields": [
@@ -4802,14 +5417,16 @@
         "criteria_name": "profitable",
         "filter": "TR.NetIncome>0",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_2586520d",
-      "nl_query": "Get stocks with ROE above 30%",
+      "id": "screening_95baad7e",
+      "nl_query": "Show companies where ROE above 30%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.ROE>=30, CURN=USD)",
             "fields": [
@@ -4831,14 +5448,16 @@
         "criteria_name": "very_high_roe",
         "filter": "TR.ROE>=30",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_8a1a3e37",
       "nl_query": "Which stocks have ROE between 12-25%?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.ROE>=12, TR.ROE<=25, CURN=USD)",
             "fields": [
@@ -4860,14 +5479,16 @@
         "criteria_name": "moderate_roe",
         "filter": "TR.ROE>=12, TR.ROE<=25",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_1e6253e6",
-      "nl_query": "Get stocks with ROIC above 15%",
+      "id": "screening_e104eb84",
+      "nl_query": "Which stocks have ROIC above 15%?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.ROIC>=15, CURN=USD)",
             "fields": [
@@ -4889,14 +5510,16 @@
         "criteria_name": "high_roic",
         "filter": "TR.ROIC>=15",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_25c489a9",
-      "nl_query": "Which stocks have operating margin over 20%?",
+      "id": "screening_f298ced8",
+      "nl_query": "Get stocks with operating margin over 20%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.OperatingMargin>=20, CURN=USD)",
             "fields": [
@@ -4918,14 +5541,16 @@
         "criteria_name": "high_operating_margin",
         "filter": "TR.OperatingMargin>=20",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_297a3b5c",
-      "nl_query": "Which stocks have gross margin over 60%?",
+      "id": "screening_69e23e46",
+      "nl_query": "Find stocks with gross margin over 60%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.GrossMargin>=60, CURN=USD)",
             "fields": [
@@ -4947,14 +5572,16 @@
         "criteria_name": "very_high_gross_margin",
         "filter": "TR.GrossMargin>=60",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_e8f29784",
-      "nl_query": "Get stocks with positive free cash flow",
+      "id": "screening_49a88d9b",
+      "nl_query": "Which stocks have positive free cash flow?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.FreeCashFlow>0, CURN=USD)",
             "fields": [
@@ -4976,14 +5603,16 @@
         "criteria_name": "positive_fcf",
         "filter": "TR.FreeCashFlow>0",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_a3c01a19",
-      "nl_query": "Get stocks with positive operating cash flow",
+      "id": "screening_f79bfdba",
+      "nl_query": "Which stocks have positive operating cash flow?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.CashFromOperatingActivities>0, CURN=USD)",
             "fields": [
@@ -5005,14 +5634,16 @@
         "criteria_name": "positive_operating_cf",
         "filter": "TR.CashFromOperatingActivities>0",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_d55fba71",
-      "nl_query": "Show companies where asset turnover over 1",
+      "id": "screening_68675a16",
+      "nl_query": "Which stocks have asset turnover over 1?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.AssetTurnover>=1, CURN=USD)",
             "fields": [
@@ -5034,14 +5665,16 @@
         "criteria_name": "high_asset_turnover",
         "filter": "TR.AssetTurnover>=1",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_ca718b73",
-      "nl_query": "Get stocks with EBITDA margin over 25%",
+      "id": "screening_0dcb2a6a",
+      "nl_query": "Find stocks with EBITDA margin over 25%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.EBITDAMargin>=25, CURN=USD)",
             "fields": [
@@ -5063,14 +5696,16 @@
         "criteria_name": "high_ebitda_margin",
         "filter": "TR.EBITDAMargin>=25",
         "category": "profitability"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_aebc7eef",
-      "nl_query": "Find stocks with revenue growth over 20%",
+      "id": "screening_e45cef3b",
+      "nl_query": "Get stocks with revenue growth over 20%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.RevenueGrowth>=20, CURN=USD)",
             "fields": [
@@ -5092,14 +5727,16 @@
         "criteria_name": "revenue_growth",
         "filter": "TR.RevenueGrowth>=20",
         "category": "growth"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_57a759dd",
-      "nl_query": "Which stocks have long-term growth over 15%?",
+      "id": "screening_647d5c82",
+      "nl_query": "Show companies where long-term growth over 15%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.LTGMean>=15, CURN=USD)",
             "fields": [
@@ -5121,14 +5758,16 @@
         "criteria_name": "eps_growth",
         "filter": "TR.LTGMean>=15",
         "category": "growth"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_9e58553d",
-      "nl_query": "Find stocks with high growth (25%+)",
+      "id": "screening_9ae45db9",
+      "nl_query": "Which stocks have high growth (25%+)?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.LTGMean>=25, CURN=USD)",
             "fields": [
@@ -5150,14 +5789,16 @@
         "criteria_name": "high_growth",
         "filter": "TR.LTGMean>=25",
         "category": "growth"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_1b9aecb6",
-      "nl_query": "Show companies where moderate growth (8-15%)",
+      "id": "screening_1805db17",
+      "nl_query": "Get stocks with moderate growth (8-15%)",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.LTGMean>=8, TR.LTGMean<=15, CURN=USD)",
             "fields": [
@@ -5179,14 +5820,16 @@
         "criteria_name": "moderate_growth",
         "filter": "TR.LTGMean>=8, TR.LTGMean<=15",
         "category": "growth"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_205e0d61",
-      "nl_query": "Show companies where revenue growth over 10%",
+      "id": "screening_c8449d28",
+      "nl_query": "Which stocks have revenue growth over 10%?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.RevenueGrowth>=10, CURN=USD)",
             "fields": [
@@ -5208,14 +5851,16 @@
         "criteria_name": "revenue_growth_10",
         "filter": "TR.RevenueGrowth>=10",
         "category": "growth"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_1e9b402a",
       "nl_query": "Get stocks with revenue growth over 30%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.RevenueGrowth>=30, CURN=USD)",
             "fields": [
@@ -5237,14 +5882,16 @@
         "criteria_name": "revenue_growth_30",
         "filter": "TR.RevenueGrowth>=30",
         "category": "growth"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_02ddedd1",
-      "nl_query": "Find stocks with EPS growth over 20%",
+      "id": "screening_a7bd9413",
+      "nl_query": "Get stocks with EPS growth over 20%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.EPSGrowth>=20, CURN=USD)",
             "fields": [
@@ -5266,14 +5913,16 @@
         "criteria_name": "eps_growth_20",
         "filter": "TR.EPSGrowth>=20",
         "category": "growth"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_edb2afe9",
       "nl_query": "Show companies where both revenue and EPS growing over 10%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.EPSGrowth>=10, TR.RevenueGrowth>=10, CURN=USD)",
             "fields": [
@@ -5295,14 +5944,16 @@
         "criteria_name": "earnings_momentum",
         "filter": "TR.EPSGrowth>=10, TR.RevenueGrowth>=10",
         "category": "growth"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_fad5a239",
       "nl_query": "Which stocks have accelerating revenue growth?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.RevenueGrowth>=15, TR.LTGMean>=20, CURN=USD)",
             "fields": [
@@ -5324,14 +5975,16 @@
         "criteria_name": "accelerating_growth",
         "filter": "TR.RevenueGrowth>=15, TR.LTGMean>=20",
         "category": "growth"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_aa0e8ff9",
-      "nl_query": "Show companies where market cap over $200B",
+      "id": "screening_cb517d6a",
+      "nl_query": "Get stocks with market cap over $200B",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.CompanyMarketCap(Scale=9)>=200, CURN=USD)",
             "fields": [
@@ -5353,14 +6006,16 @@
         "criteria_name": "mega_cap",
         "filter": "TR.CompanyMarketCap(Scale=9)>=200",
         "category": "size"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_e9d944e6",
-      "nl_query": "Get stocks with market cap over $10B",
+      "id": "screening_a897dff0",
+      "nl_query": "Show companies where market cap over $10B",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.CompanyMarketCap(Scale=9)>=10, CURN=USD)",
             "fields": [
@@ -5382,14 +6037,16 @@
         "criteria_name": "large_cap",
         "filter": "TR.CompanyMarketCap(Scale=9)>=10",
         "category": "size"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_3dbec04c",
-      "nl_query": "Show companies where market cap $2B-$10B",
+      "id": "screening_8e04896b",
+      "nl_query": "Get stocks with market cap $2B-$10B",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.CompanyMarketCap(Scale=9)>=2, TR.CompanyMarketCap(Scale=9)<=10, CURN=USD)",
             "fields": [
@@ -5411,14 +6068,16 @@
         "criteria_name": "mid_cap",
         "filter": "TR.CompanyMarketCap(Scale=9)>=2, TR.CompanyMarketCap(Scale=9)<=10",
         "category": "size"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_a73ac4ac",
-      "nl_query": "Find stocks with market cap $300M-$2B",
+      "id": "screening_eab7f254",
+      "nl_query": "Show companies where market cap $300M-$2B",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.CompanyMarketCap(Scale=9)>=0.3, TR.CompanyMarketCap(Scale=9)<=2, CURN=USD)",
             "fields": [
@@ -5440,14 +6099,16 @@
         "criteria_name": "small_cap",
         "filter": "TR.CompanyMarketCap(Scale=9)>=0.3, TR.CompanyMarketCap(Scale=9)<=2",
         "category": "size"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_c27d97e7",
-      "nl_query": "Find stocks with debt to equity under 0.5",
+      "id": "screening_14e1ebd6",
+      "nl_query": "Show companies where debt to equity under 0.5",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.DebtToEquity<=0.5, CURN=USD)",
             "fields": [
@@ -5469,14 +6130,16 @@
         "criteria_name": "low_debt",
         "filter": "TR.DebtToEquity<=0.5",
         "category": "leverage"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_6bd15e3a",
-      "nl_query": "Get stocks with debt to equity under 1",
+      "id": "screening_507ab635",
+      "nl_query": "Which stocks have debt to equity under 1?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.DebtToEquity<=1, CURN=USD)",
             "fields": [
@@ -5498,14 +6161,16 @@
         "criteria_name": "moderate_debt",
         "filter": "TR.DebtToEquity<=1",
         "category": "leverage"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_0f8dfa9d",
-      "nl_query": "Show companies where current ratio over 2",
+      "id": "screening_09a2e4f7",
+      "nl_query": "Get stocks with current ratio over 2",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.CurrentRatio>=2, CURN=USD)",
             "fields": [
@@ -5527,14 +6192,16 @@
         "criteria_name": "high_liquidity",
         "filter": "TR.CurrentRatio>=2",
         "category": "leverage"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_cad7b276",
-      "nl_query": "Get stocks with up 20%+ year to date",
+      "id": "screening_0a6c3fd7",
+      "nl_query": "Find stocks with up 20%+ year to date",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.TotalReturnYTD>=20, CURN=USD)",
             "fields": [
@@ -5556,14 +6223,16 @@
         "criteria_name": "ytd_gainers",
         "filter": "TR.TotalReturnYTD>=20",
         "category": "performance"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_38af4d37",
-      "nl_query": "Get stocks with within 5% of 52-week high",
+      "id": "screening_00c2daba",
+      "nl_query": "Find stocks with within 5% of 52-week high",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PriceClose>=TR.Price52WeekHigh*0.95, CURN=USD)",
             "fields": [
@@ -5585,14 +6254,16 @@
         "criteria_name": "52w_high",
         "filter": "TR.PriceClose>=TR.Price52WeekHigh*0.95",
         "category": "performance"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_4419f008",
-      "nl_query": "Show companies where down 20%+ in 3 months",
+      "id": "screening_d75cb7e9",
+      "nl_query": "Which stocks have down 20%+ in 3 months?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.TotalReturn3Mo<=-20, CURN=USD)",
             "fields": [
@@ -5614,14 +6285,16 @@
         "criteria_name": "beaten_down",
         "filter": "TR.TotalReturn3Mo<=-20",
         "category": "performance"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_5e0df31c",
-      "nl_query": "Show companies where beat earnings last quarter",
+      "id": "screening_b38d2f4d",
+      "nl_query": "Which stocks have beat earnings last quarter?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.EPSSurprisePct(Period=FQ0)>0, CURN=USD)",
             "fields": [
@@ -5643,14 +6316,16 @@
         "criteria_name": "earnings_beat",
         "filter": "TR.EPSSurprisePct(Period=FQ0)>0",
         "category": "estimates"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_8e7f0080",
-      "nl_query": "Find stocks with estimates rising",
+      "id": "screening_b182e9fc",
+      "nl_query": "Get stocks with estimates rising",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.MeanPctChg(Period=FY1,WP=30d)>5, CURN=USD)",
             "fields": [
@@ -5672,14 +6347,16 @@
         "criteria_name": "estimate_rising",
         "filter": "TR.MeanPctChg(Period=FY1,WP=30d)>5",
         "category": "estimates"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "screening_7177dfca",
-      "nl_query": "Show companies where strong buy rating",
+      "id": "screening_a1e47c9b",
+      "nl_query": "Get stocks with strong buy rating",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.RecMean<=1.5, TR.NumOfEst>=5, CURN=USD)",
             "fields": [
@@ -5701,14 +6378,16 @@
         "criteria_name": "strong_buy",
         "filter": "TR.RecMean<=1.5, TR.NumOfEst>=5",
         "category": "estimates"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_f3147e75",
       "nl_query": "Find low PE, pays dividend, low debt",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PE>0, TR.PE<=15, TR.DividendYield>=2, TR.DebtToEquity<=1, CURN=USD)",
             "fields": [
@@ -5734,14 +6413,16 @@
           "TR.DividendYield>=2",
           "TR.DebtToEquity<=1"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_00123c6d",
       "nl_query": "Find high ROE, low debt, good margins",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.ROE>=15, TR.DebtToEquity<=0.5, TR.NetProfitMargin>=10, CURN=USD)",
             "fields": [
@@ -5766,14 +6447,16 @@
           "TR.DebtToEquity<=0.5",
           "TR.NetProfitMargin>=10"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_026a751f",
       "nl_query": "Find PEG under 1.5 with growth over 10%",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PEGRatio>0, TR.PEGRatio<=1.5, TR.LTGMean>=10, CURN=USD)",
             "fields": [
@@ -5798,14 +6481,16 @@
           "TR.PEGRatio<=1.5",
           "TR.LTGMean>=10"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_90d28cce",
       "nl_query": "Find moderate yield, profitable, low debt",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.DividendYield>=2, TR.DividendYield<=5, TR.ROE>=12, TR.DebtToEquity<=1, CURN=USD)",
             "fields": [
@@ -5831,14 +6516,16 @@
           "TR.ROE>=12",
           "TR.DebtToEquity<=1"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_a329500a",
       "nl_query": "Find positive momentum with rising estimates",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.TotalReturn3Mo>=10, TR.TotalReturn1Mo>=0, TR.MeanPctChg(Period=FY1,WP=30d)>0, CURN=USD)",
             "fields": [
@@ -5863,14 +6550,16 @@
           "TR.TotalReturn1Mo>=0",
           "TR.MeanPctChg(Period=FY1,WP=30d)>0"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_b27ed35a",
       "nl_query": "Find beaten down but fundamentally sound",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.TotalReturn3Mo<=-15, TR.PE>0, TR.PE<=12, TR.ROE>=10, CURN=USD)",
             "fields": [
@@ -5896,14 +6585,16 @@
           "TR.PE<=12",
           "TR.ROE>=10"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_ebd2805e",
       "nl_query": "Find mega cap with excellent fundamentals",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.CompanyMarketCap(Scale=9)>=50, TR.ROE>=20, TR.NetProfitMargin>=15, TR.DebtToEquity<=0.8, CURN=USD)",
             "fields": [
@@ -5929,14 +6620,16 @@
           "TR.NetProfitMargin>=15",
           "TR.DebtToEquity<=0.8"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_923b9494",
       "nl_query": "Find very low PE, below book value, profitable",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PE>0, TR.PE<=8, TR.PriceToBVPerShare<=1, TR.NetIncome>0, CURN=USD)",
             "fields": [
@@ -5962,14 +6655,16 @@
           "TR.PriceToBVPerShare<=1",
           "TR.NetIncome>0"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_152598b6",
       "nl_query": "Find sustainable dividend with quality fundamentals",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.DividendYield>=2, TR.PayoutRatio<=60, TR.ROE>=15, TR.DebtToEquity<=1.5, CURN=USD)",
             "fields": [
@@ -5995,14 +6690,16 @@
           "TR.ROE>=15",
           "TR.DebtToEquity<=1.5"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_5c77ab7e",
       "nl_query": "Find high cash, strong liquidity, minimal debt",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.CashAndSTInvestments>0, TR.CurrentRatio>=2, TR.DebtToEquity<=0.3, CURN=USD)",
             "fields": [
@@ -6027,14 +6724,16 @@
           "TR.CurrentRatio>=2",
           "TR.DebtToEquity<=0.3"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_865922fb",
       "nl_query": "Find fast growing and profitable",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.RevenueGrowth>=25, TR.NetProfitMargin>=10, TR.ROE>=15, CURN=USD)",
             "fields": [
@@ -6059,14 +6758,16 @@
           "TR.NetProfitMargin>=10",
           "TR.ROE>=15"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_99be3394",
       "nl_query": "Find high FCF yield with strong returns",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.FreeCashFlowYield>=5, TR.FreeCashFlow>0, TR.ROE>=12, CURN=USD)",
             "fields": [
@@ -6091,14 +6792,16 @@
           "TR.FreeCashFlow>0",
           "TR.ROE>=12"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_5fff0677",
       "nl_query": "Find high quality metrics at reasonable valuation",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.ROE>=20, TR.PE<=20, TR.DebtToEquity<=0.8, TR.NetProfitMargin>=12, CURN=USD)",
             "fields": [
@@ -6124,14 +6827,16 @@
           "TR.DebtToEquity<=0.8",
           "TR.NetProfitMargin>=12"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_0f769f2c",
       "nl_query": "Find small cap value stocks with decent profitability",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.CompanyMarketCap(Scale=9)>=0.5, TR.CompanyMarketCap(Scale=9)<=3, TR.PE>0, TR.PE<=12, TR.ROE>=10, CURN=USD)",
             "fields": [
@@ -6158,14 +6863,16 @@
           "TR.PE<=12",
           "TR.ROE>=10"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_0b3bd002",
       "nl_query": "Find beaten down stocks with manageable balance sheet",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.TotalReturn1Y<=-25, TR.ROE>=-5, TR.CurrentRatio>=1.5, TR.DebtToEquity<=1, CURN=USD)",
             "fields": [
@@ -6191,14 +6898,16 @@
           "TR.CurrentRatio>=1.5",
           "TR.DebtToEquity<=1"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_7b55ba12",
       "nl_query": "Find high growth with positive momentum and rising estimates",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.LTGMean>=20, TR.TotalReturn3Mo>=5, TR.MeanPctChg(Period=FY1,WP=30d)>0, CURN=USD)",
             "fields": [
@@ -6223,14 +6932,16 @@
           "TR.TotalReturn3Mo>=5",
           "TR.MeanPctChg(Period=FY1,WP=30d)>0"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_2506cc6e",
       "nl_query": "Find low beta, dividend paying, quality fundamentals",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.Beta<=0.8, TR.DividendYield>=2, TR.ROE>=12, TR.DebtToEquity<=0.8, CURN=USD)",
             "fields": [
@@ -6256,14 +6967,16 @@
           "TR.ROE>=12",
           "TR.DebtToEquity<=0.8"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_061ec856",
       "nl_query": "Find high return on capital at reasonable price",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.ROIC>=15, TR.PE>0, TR.PE<=18, TR.DebtToEquity<=1, CURN=USD)",
             "fields": [
@@ -6289,14 +7002,16 @@
           "TR.PE<=18",
           "TR.DebtToEquity<=1"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_fb4e97d9",
       "nl_query": "Find rising estimates with analyst buy ratings",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.MeanPctChg(Period=FY1,WP=30d)>=5, TR.NumOfEst>=5, TR.RecMean<=2.5, CURN=USD)",
             "fields": [
@@ -6321,14 +7036,16 @@
           "TR.NumOfEst>=5",
           "TR.RecMean<=2.5"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_307fd3b5",
       "nl_query": "Find very large companies with strong growth",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.CompanyMarketCap(Scale=9)>=100, TR.LTGMean>=15, TR.RevenueGrowth>=10, CURN=USD)",
             "fields": [
@@ -6353,14 +7070,16 @@
           "TR.LTGMean>=15",
           "TR.RevenueGrowth>=10"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_6ebc2384",
       "nl_query": "Find low valuation with high yield and profitability",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), TR.PE>0, TR.PE<=12, TR.DividendYield>=3, TR.ROE>=10, CURN=USD)",
             "fields": [
@@ -6386,14 +7105,16 @@
           "TR.DividendYield>=3",
           "TR.ROE>=10"
         ]
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_c303aadc",
       "nl_query": "What are the top technology companies by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"57\"), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6415,14 +7136,16 @@
         "sector": "technology",
         "sector_code": "57",
         "metric": "market cap"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_53a9979c",
       "nl_query": "What are the top technology companies by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"57\"), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6444,14 +7167,16 @@
         "sector": "technology",
         "sector_code": "57",
         "metric": "revenue"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_0f319a6b",
       "nl_query": "What are the top technology companies by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"57\"), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6473,14 +7198,16 @@
         "sector": "technology",
         "sector_code": "57",
         "metric": "net income"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_afca00f4",
       "nl_query": "What are the top technology companies by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"57\"), TOP(TR.ROE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6502,14 +7229,16 @@
         "sector": "technology",
         "sector_code": "57",
         "metric": "ROE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_c701f0e5",
       "nl_query": "What are the top healthcare companies by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"55\"), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6531,14 +7260,16 @@
         "sector": "healthcare",
         "sector_code": "55",
         "metric": "market cap"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_3a5898d7",
       "nl_query": "What are the top healthcare companies by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"55\"), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6560,14 +7291,16 @@
         "sector": "healthcare",
         "sector_code": "55",
         "metric": "revenue"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_8dbf9ef5",
       "nl_query": "What are the top healthcare companies by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"55\"), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6589,14 +7322,16 @@
         "sector": "healthcare",
         "sector_code": "55",
         "metric": "net income"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_7d07a8ec",
       "nl_query": "What are the top healthcare companies by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"55\"), TOP(TR.ROE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6618,14 +7353,16 @@
         "sector": "healthcare",
         "sector_code": "55",
         "metric": "ROE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_008e4b55",
       "nl_query": "What are the top financials companies by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"55\"), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6647,14 +7384,16 @@
         "sector": "financials",
         "sector_code": "55",
         "metric": "market cap"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_51e257bb",
       "nl_query": "What are the top financials companies by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"55\"), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6676,14 +7415,16 @@
         "sector": "financials",
         "sector_code": "55",
         "metric": "revenue"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_f49a0997",
       "nl_query": "What are the top financials companies by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"55\"), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6705,14 +7446,16 @@
         "sector": "financials",
         "sector_code": "55",
         "metric": "net income"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_0c024972",
       "nl_query": "What are the top financials companies by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"55\"), TOP(TR.ROE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6734,14 +7477,16 @@
         "sector": "financials",
         "sector_code": "55",
         "metric": "ROE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_f2c19d99",
       "nl_query": "What are the top energy companies by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"50\"), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6763,14 +7508,16 @@
         "sector": "energy",
         "sector_code": "50",
         "metric": "market cap"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_1f35fa16",
       "nl_query": "What are the top energy companies by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"50\"), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6792,14 +7539,16 @@
         "sector": "energy",
         "sector_code": "50",
         "metric": "revenue"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_9b7d29a6",
       "nl_query": "What are the top energy companies by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"50\"), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6821,14 +7570,16 @@
         "sector": "energy",
         "sector_code": "50",
         "metric": "net income"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_6af8cd4e",
       "nl_query": "What are the top energy companies by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"50\"), TOP(TR.ROE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6850,14 +7601,16 @@
         "sector": "energy",
         "sector_code": "50",
         "metric": "ROE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_39721953",
       "nl_query": "What are the top consumer discretionary companies by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"54\"), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6879,14 +7632,16 @@
         "sector": "consumer discretionary",
         "sector_code": "54",
         "metric": "market cap"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_83ad0ade",
       "nl_query": "What are the top consumer discretionary companies by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"54\"), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6908,14 +7663,16 @@
         "sector": "consumer discretionary",
         "sector_code": "54",
         "metric": "revenue"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_18ade9ea",
       "nl_query": "What are the top consumer discretionary companies by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"54\"), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6937,14 +7694,16 @@
         "sector": "consumer discretionary",
         "sector_code": "54",
         "metric": "net income"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_20c6a15b",
       "nl_query": "What are the top consumer discretionary companies by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"54\"), TOP(TR.ROE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6966,14 +7725,16 @@
         "sector": "consumer discretionary",
         "sector_code": "54",
         "metric": "ROE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_fa7762bf",
       "nl_query": "What are the top consumer staples companies by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"53\"), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
             "fields": [
@@ -6995,14 +7756,16 @@
         "sector": "consumer staples",
         "sector_code": "53",
         "metric": "market cap"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_1503fa72",
       "nl_query": "What are the top consumer staples companies by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"53\"), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
             "fields": [
@@ -7024,14 +7787,16 @@
         "sector": "consumer staples",
         "sector_code": "53",
         "metric": "revenue"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_06010ce1",
       "nl_query": "What are the top consumer staples companies by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"53\"), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -7053,14 +7818,16 @@
         "sector": "consumer staples",
         "sector_code": "53",
         "metric": "net income"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_15e34694",
       "nl_query": "What are the top consumer staples companies by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"53\"), TOP(TR.ROE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -7082,14 +7849,16 @@
         "sector": "consumer staples",
         "sector_code": "53",
         "metric": "ROE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_ee2adebe",
       "nl_query": "What are the top industrials companies by market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"52\"), TOP(TR.CompanyMarketCap, 10, nnumber), CURN=USD)",
             "fields": [
@@ -7111,14 +7880,16 @@
         "sector": "industrials",
         "sector_code": "52",
         "metric": "market cap"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_012db63f",
       "nl_query": "What are the top industrials companies by revenue?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"52\"), TOP(TR.Revenue, 10, nnumber), CURN=USD)",
             "fields": [
@@ -7140,14 +7911,16 @@
         "sector": "industrials",
         "sector_code": "52",
         "metric": "revenue"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_8c960319",
       "nl_query": "What are the top industrials companies by net income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"52\"), TOP(TR.NetIncome, 10, nnumber), CURN=USD)",
             "fields": [
@@ -7169,14 +7942,16 @@
         "sector": "industrials",
         "sector_code": "52",
         "metric": "net income"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_dd476597",
       "nl_query": "What are the top industrials companies by ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,\"52\"), TOP(TR.ROE, 10, nnumber), CURN=USD)",
             "fields": [
@@ -7198,14 +7973,16 @@
         "sector": "industrials",
         "sector_code": "52",
         "metric": "ROE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_f650de11",
       "nl_query": "Which S&P 500 stocks have the highest dividend yield?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LS&PCOMP|L",
             "fields": [
@@ -7215,7 +7992,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7237,14 +8014,16 @@
         "index_name": "S&P 500",
         "index_code": "LS&PCOMP",
         "metric": "dividend yield"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_32d11053",
       "nl_query": "Which S&P 500 stocks have the highest PE ratio?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LS&PCOMP|L",
             "fields": [
@@ -7254,7 +8033,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7276,14 +8055,16 @@
         "index_name": "S&P 500",
         "index_code": "LS&PCOMP",
         "metric": "PE ratio"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_a29f2734",
       "nl_query": "Which S&P 500 stocks have the highest market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LS&PCOMP|L",
             "fields": [
@@ -7293,7 +8074,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7315,14 +8096,16 @@
         "index_name": "S&P 500",
         "index_code": "LS&PCOMP",
         "metric": "market cap"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_1f99230f",
       "nl_query": "Which S&P 500 stocks have the highest ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LS&PCOMP|L",
             "fields": [
@@ -7332,7 +8115,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7354,14 +8137,16 @@
         "index_name": "S&P 500",
         "index_code": "LS&PCOMP",
         "metric": "ROE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_3e0b4ed2",
       "nl_query": "Which FTSE 100 stocks have the highest dividend yield?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFTSE100|L",
             "fields": [
@@ -7371,7 +8156,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7393,14 +8178,16 @@
         "index_name": "FTSE 100",
         "index_code": "LFTSE100",
         "metric": "dividend yield"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_9f526a3d",
       "nl_query": "Which FTSE 100 stocks have the highest PE ratio?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFTSE100|L",
             "fields": [
@@ -7410,7 +8197,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7432,14 +8219,16 @@
         "index_name": "FTSE 100",
         "index_code": "LFTSE100",
         "metric": "PE ratio"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_431812ea",
       "nl_query": "Which FTSE 100 stocks have the highest market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFTSE100|L",
             "fields": [
@@ -7449,7 +8238,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7471,14 +8260,16 @@
         "index_name": "FTSE 100",
         "index_code": "LFTSE100",
         "metric": "market cap"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_f39ce3fe",
       "nl_query": "Which FTSE 100 stocks have the highest ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFTSE100|L",
             "fields": [
@@ -7488,7 +8279,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7510,14 +8301,16 @@
         "index_name": "FTSE 100",
         "index_code": "LFTSE100",
         "metric": "ROE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_6ba1ea77",
       "nl_query": "Which DAX stocks have the highest dividend yield?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LDAXINDX|L",
             "fields": [
@@ -7527,7 +8320,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7549,14 +8342,16 @@
         "index_name": "DAX",
         "index_code": "LDAXINDX",
         "metric": "dividend yield"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_6b93f0c3",
       "nl_query": "Which DAX stocks have the highest PE ratio?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LDAXINDX|L",
             "fields": [
@@ -7566,7 +8361,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7588,14 +8383,16 @@
         "index_name": "DAX",
         "index_code": "LDAXINDX",
         "metric": "PE ratio"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_129db53c",
       "nl_query": "Which DAX stocks have the highest market cap?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LDAXINDX|L",
             "fields": [
@@ -7605,7 +8402,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7627,14 +8424,16 @@
         "index_name": "DAX",
         "index_code": "LDAXINDX",
         "metric": "market cap"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_03a32a0c",
       "nl_query": "Which DAX stocks have the highest ROE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LDAXINDX|L",
             "fields": [
@@ -7644,7 +8443,7 @@
           }
         },
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "{{constituents}}",
             "fields": [
@@ -7666,14 +8465,16 @@
         "index_name": "DAX",
         "index_code": "LDAXINDX",
         "metric": "ROE"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_d48d9376",
       "nl_query": "What companies were in the S&P 500 in January 2020?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LS&PCOMP0120|L",
             "fields": [
@@ -7695,14 +8496,16 @@
       "metadata": {
         "index_name": "S&P 500",
         "date": "January 2020"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_7819c3fe",
       "nl_query": "What companies were in the S&P 500 in December 2019?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LS&PCOMP1219|L",
             "fields": [
@@ -7724,14 +8527,16 @@
       "metadata": {
         "index_name": "S&P 500",
         "date": "December 2019"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_5be9ea9e",
       "nl_query": "What companies were in the S&P 500 in June 2018?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LS&PCOMP0618|L",
             "fields": [
@@ -7753,14 +8558,16 @@
       "metadata": {
         "index_name": "S&P 500",
         "date": "June 2018"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_7fe4aba6",
       "nl_query": "What companies were in the S&P 500 in January 2015?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LS&PCOMP0115|L",
             "fields": [
@@ -7782,14 +8589,16 @@
       "metadata": {
         "index_name": "S&P 500",
         "date": "January 2015"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_11224b6a",
       "nl_query": "What companies were in the FTSE 100 in January 2020?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFTSE1000120|L",
             "fields": [
@@ -7811,14 +8620,16 @@
       "metadata": {
         "index_name": "FTSE 100",
         "date": "January 2020"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_982d0213",
       "nl_query": "What companies were in the FTSE 100 in December 2019?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFTSE1001219|L",
             "fields": [
@@ -7840,14 +8651,16 @@
       "metadata": {
         "index_name": "FTSE 100",
         "date": "December 2019"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_57c1e41b",
       "nl_query": "What companies were in the FTSE 100 in June 2018?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFTSE1000618|L",
             "fields": [
@@ -7869,14 +8682,16 @@
       "metadata": {
         "index_name": "FTSE 100",
         "date": "June 2018"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "screening_516d53e2",
       "nl_query": "What companies were in the FTSE 100 in January 2015?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "LFTSE1000115|L",
             "fields": [
@@ -7898,7 +8713,9 @@
       "metadata": {
         "index_name": "FTSE 100",
         "date": "January 2015"
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     }
   ]
 }

@@ -9,10 +9,17 @@ Usage:
     python -m src.evaluation.cli.main --help
 """
 
+import atexit
+
 import typer
 
+from src.common.telemetry import init_telemetry, shutdown_telemetry
 from src.evaluation.cli.commands.batch import batch_app
 from src.evaluation.cli.commands.run import run_command
+
+# Initialize OpenTelemetry at CLI startup
+init_telemetry(service_name="nl2api-evaluation")
+atexit.register(shutdown_telemetry)
 
 app = typer.Typer(
     name="eval",

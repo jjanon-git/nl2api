@@ -35,7 +35,7 @@ class LookupGenerator(BaseGenerator):
                          freq: Optional[str] = None, kind: int = 0) -> Dict:
         """Build a tool call dictionary."""
         call = {
-            "function": "get_data",
+            "tool_name": "get_data",
             "arguments": {
                 "tickers": ticker,
                 "fields": fields,

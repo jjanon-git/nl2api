@@ -51,7 +51,7 @@ class ScreeningGenerator(BaseGenerator):
                 nl_query = template.format(index=index_name)
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": f"{constituent_code}|L",
                         "fields": ["MNEM", "NAME"],
@@ -122,7 +122,7 @@ class ScreeningGenerator(BaseGenerator):
                     screen_exp = f"SCREEN({', '.join(screen_parts)})"
 
                     tool_call = {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": screen_exp,
                             "fields": ["TR.CommonName", metric["field"]]
@@ -169,7 +169,7 @@ class ScreeningGenerator(BaseGenerator):
                 screen_exp = f"SCREEN(U(IN(Equity(active,public,primary))), {criteria['filter']}, CURN=USD)"
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": screen_exp,
                         "fields": ["TR.CommonName", "TR.CompanyMarketCap"]
@@ -208,7 +208,7 @@ class ScreeningGenerator(BaseGenerator):
             screen_exp = f"SCREEN(U(IN(Equity(active,public,primary))), {', '.join(filters)}, CURN=USD)"
 
             tool_call = {
-                "function": "get_data",
+                "tool_name": "get_data",
                 "arguments": {
                     "tickers": screen_exp,
                     "fields": ["TR.CommonName", "TR.CompanyMarketCap"]
@@ -270,7 +270,7 @@ class ScreeningGenerator(BaseGenerator):
                 screen_exp = f'SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCEconSectorCode,"{code}"), TOP({metric["field"]}, 10, nnumber), CURN=USD)'
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": screen_exp,
                         "fields": ["TR.CommonName", metric["field"]]
@@ -320,7 +320,7 @@ class ScreeningGenerator(BaseGenerator):
                 # This requires a two-step approach in practice
                 tool_calls = [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": f"{index['code']}|L",
                             "fields": ["RIC"],
@@ -328,7 +328,7 @@ class ScreeningGenerator(BaseGenerator):
                         }
                     },
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": "{{constituents}}",
                             "fields": ["TR.CommonName", metric["field"]]
@@ -376,7 +376,7 @@ class ScreeningGenerator(BaseGenerator):
                 nl_query = f"What companies were in the {index['name']} in {date['nl']}?"
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": f"{index['base']}{date['code']}|L",
                         "fields": ["MNEM", "NAME"],

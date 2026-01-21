@@ -1,17 +1,25 @@
 {
+  "_meta": {
+    "name": "error",
+    "capability": "nl2api",
+    "description": "Generated test cases for error category",
+    "requires_nl_response": true,
+    "requires_expected_response": false,
+    "schema_version": "1.0",
+    "generated_at": "2026-01-21T19:54:11.784214+00:00",
+    "generator": "scripts/generators/error_generator.py"
+  },
   "metadata": {
-    "category": "errors",
     "generator": "ErrorGenerator",
-    "count": 215,
-    "generated_at": "2026-01-20T09:52:09.570409"
+    "count": 216
   },
   "test_cases": [
     {
-      "id": "errors_48bf7acd",
-      "nl_query": "What is INVALID123's stock price?",
+      "id": "errors_afb4c69e",
+      "nl_query": "Get data for INVALID123",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "INVALID123",
             "fields": [
@@ -39,49 +47,53 @@
           "error_subtype": "nonexistent",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
-    },
-    {
-      "id": "errors_c76b7bc7",
-      "nl_query": "Show me INVALID123 market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "INVALID123",
-            "fields": [
-              "MV"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent"
-      ],
-      "metadata": {
-        "ticker": "INVALID123",
-        "error_type": "nonexistent",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_fc177d86",
       "nl_query": "Get INVALID123 revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "INVALID123",
+            "fields": [
+              "MV"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent"
+      ],
+      "metadata": {
+        "ticker": "INVALID123",
+        "error_type": "nonexistent",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_c76b7bc7",
+      "nl_query": "Show me INVALID123 market cap",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "INVALID123",
             "fields": [
@@ -109,14 +121,16 @@
           "error_subtype": "nonexistent",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_afb4c69e",
-      "nl_query": "Get data for INVALID123",
+      "id": "errors_48bf7acd",
+      "nl_query": "What is INVALID123's stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "INVALID123",
             "fields": [
@@ -144,53 +158,20 @@
           "error_subtype": "nonexistent",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
-    },
-    {
-      "id": "errors_540e56e8",
-      "nl_query": "Get U:XXXXX revenue",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "U:XXXXX",
-            "fields": [
-              "P"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_us"
-      ],
-      "metadata": {
-        "ticker": "U:XXXXX",
-        "error_type": "nonexistent_us",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_us",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_1b402076",
       "nl_query": "What is U:XXXXX's stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:XXXXX",
             "fields": [
-              "MV"
+              "P"
             ],
             "start": "0D",
             "end": "0D",
@@ -214,53 +195,20 @@
           "error_subtype": "nonexistent_us",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
-    },
-    {
-      "id": "errors_c5a4ac55",
-      "nl_query": "Get data for U:XXXXX",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "U:XXXXX",
-            "fields": [
-              "TR.Revenue"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_us"
-      ],
-      "metadata": {
-        "ticker": "U:XXXXX",
-        "error_type": "nonexistent_us",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_us",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_1e7740da",
       "nl_query": "Show me U:XXXXX market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:XXXXX",
             "fields": [
-              "DY"
+              "MV"
             ],
             "start": "0D",
             "end": "0D",
@@ -284,18 +232,20 @@
           "error_subtype": "nonexistent_us",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_b6980621",
-      "nl_query": "Get ZZZZZZ revenue",
+      "id": "errors_540e56e8",
+      "nl_query": "Get U:XXXXX revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "ZZZZZZ",
+            "tickers": "U:XXXXX",
             "fields": [
-              "P"
+              "TR.Revenue"
             ],
             "start": "0D",
             "end": "0D",
@@ -309,28 +259,30 @@
       "tags": [
         "error",
         "invalid_ticker",
-        "nonexistent_uk"
+        "nonexistent_us"
       ],
       "metadata": {
-        "ticker": "ZZZZZZ",
-        "error_type": "nonexistent_uk",
+        "ticker": "U:XXXXX",
+        "error_type": "nonexistent_us",
         "expected_error": {
           "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_uk",
+          "error_subtype": "nonexistent_us",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_359aa172",
-      "nl_query": "Get data for ZZZZZZ",
+      "id": "errors_c5a4ac55",
+      "nl_query": "Get data for U:XXXXX",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "ZZZZZZ",
+            "tickers": "U:XXXXX",
             "fields": [
-              "WC01001"
+              "PE"
             ],
             "start": "0D",
             "end": "0D",
@@ -344,24 +296,100 @@
       "tags": [
         "error",
         "invalid_ticker",
-        "nonexistent_uk"
+        "nonexistent_us"
       ],
       "metadata": {
-        "ticker": "ZZZZZZ",
-        "error_type": "nonexistent_uk",
+        "ticker": "U:XXXXX",
+        "error_type": "nonexistent_us",
         "expected_error": {
           "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_uk",
+          "error_subtype": "nonexistent_us",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_34c9b6ec",
       "nl_query": "Show me ZZZZZZ market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "ZZZZZZ",
+            "fields": [
+              "P"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_uk"
+      ],
+      "metadata": {
+        "ticker": "ZZZZZZ",
+        "error_type": "nonexistent_uk",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_uk",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_b6980621",
+      "nl_query": "Get ZZZZZZ revenue",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "ZZZZZZ",
+            "fields": [
+              "MV"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_uk"
+      ],
+      "metadata": {
+        "ticker": "ZZZZZZ",
+        "error_type": "nonexistent_uk",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_uk",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_359aa172",
+      "nl_query": "Get data for ZZZZZZ",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "ZZZZZZ",
             "fields": [
@@ -389,88 +417,20 @@
           "error_subtype": "nonexistent_uk",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
-    },
-    {
-      "id": "errors_7aaf62ef",
-      "nl_query": "What is ZZZZZZ's stock price?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "ZZZZZZ",
-            "fields": [
-              "EPS"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_uk"
-      ],
-      "metadata": {
-        "ticker": "ZZZZZZ",
-        "error_type": "nonexistent_uk",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_uk",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_f9c036bc",
-      "nl_query": "Get 12345 revenue",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "12345",
-            "fields": [
-              "P"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "numeric"
-      ],
-      "metadata": {
-        "ticker": "12345",
-        "error_type": "numeric",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "numeric",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_91357bec",
       "nl_query": "Get data for 12345",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "12345",
             "fields": [
-              "MV"
+              "P"
             ],
             "start": "0D",
             "end": "0D",
@@ -494,53 +454,20 @@
           "error_subtype": "numeric",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
-    },
-    {
-      "id": "errors_64d3a5af",
-      "nl_query": "Show me 12345 market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "12345",
-            "fields": [
-              "WC01001"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "numeric"
-      ],
-      "metadata": {
-        "ticker": "12345",
-        "error_type": "numeric",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "numeric",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_d26d978f",
       "nl_query": "What is 12345's stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "12345",
             "fields": [
-              "TR.Revenue"
+              "MV"
             ],
             "start": "0D",
             "end": "0D",
@@ -564,18 +491,20 @@
           "error_subtype": "numeric",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_5feb07f0",
-      "nl_query": "Get U: revenue",
+      "id": "errors_64d3a5af",
+      "nl_query": "Show me 12345 market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "U:",
+            "tickers": "12345",
             "fields": [
-              "P"
+              "WC01001"
             ],
             "start": "0D",
             "end": "0D",
@@ -589,28 +518,30 @@
       "tags": [
         "error",
         "invalid_ticker",
-        "empty_prefix"
+        "numeric"
       ],
       "metadata": {
-        "ticker": "U:",
-        "error_type": "empty_prefix",
+        "ticker": "12345",
+        "error_type": "numeric",
         "expected_error": {
           "error_type": "invalid_ticker",
-          "error_subtype": "empty_prefix",
+          "error_subtype": "numeric",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_9be298b6",
-      "nl_query": "Show me U: market cap",
+      "id": "errors_f9c036bc",
+      "nl_query": "Get 12345 revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "U:",
+            "tickers": "12345",
             "fields": [
-              "MV"
+              "PE"
             ],
             "start": "0D",
             "end": "0D",
@@ -624,24 +555,100 @@
       "tags": [
         "error",
         "invalid_ticker",
-        "empty_prefix"
+        "numeric"
       ],
       "metadata": {
-        "ticker": "U:",
-        "error_type": "empty_prefix",
+        "ticker": "12345",
+        "error_type": "numeric",
         "expected_error": {
           "error_type": "invalid_ticker",
-          "error_subtype": "empty_prefix",
+          "error_subtype": "numeric",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_f1ea1897",
       "nl_query": "What is U:'s stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "U:",
+            "fields": [
+              "P"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "empty_prefix"
+      ],
+      "metadata": {
+        "ticker": "U:",
+        "error_type": "empty_prefix",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "empty_prefix",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_9d04da12",
+      "nl_query": "Get data for U:",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "U:",
+            "fields": [
+              "MV"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "empty_prefix"
+      ],
+      "metadata": {
+        "ticker": "U:",
+        "error_type": "empty_prefix",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "empty_prefix",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_5feb07f0",
+      "nl_query": "Get U: revenue",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:",
             "fields": [
@@ -669,14 +676,53 @@
           "error_subtype": "empty_prefix",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_7ab1ef29",
-      "nl_query": "What is 's stock price?",
+      "id": "errors_9be298b6",
+      "nl_query": "Show me U: market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "U:",
+            "fields": [
+              "EPS"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "empty_prefix"
+      ],
+      "metadata": {
+        "ticker": "U:",
+        "error_type": "empty_prefix",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "empty_prefix",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_a77ce4c2",
+      "nl_query": "Get data for ",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "",
             "fields": [
@@ -704,14 +750,53 @@
           "error_subtype": "empty",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_c0b3167c",
       "nl_query": "Get  revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "",
+            "fields": [
+              "MV"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "empty"
+      ],
+      "metadata": {
+        "ticker": "",
+        "error_type": "empty",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "empty",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_7ab1ef29",
+      "nl_query": "What is 's stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "",
             "fields": [
@@ -739,49 +824,16 @@
           "error_subtype": "empty",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
-    },
-    {
-      "id": "errors_aaea9522",
-      "nl_query": "Show me  market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "",
-            "fields": [
-              "EPS"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "empty"
-      ],
-      "metadata": {
-        "ticker": "",
-        "error_type": "empty",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "empty",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_4af89528",
       "nl_query": "Show me A A A market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "A A A",
             "fields": [
@@ -809,53 +861,20 @@
           "error_subtype": "spaces",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
-    },
-    {
-      "id": "errors_7a760298",
-      "nl_query": "Get data for A A A",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "A A A",
-            "fields": [
-              "WC01001"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "spaces"
-      ],
-      "metadata": {
-        "ticker": "A A A",
-        "error_type": "spaces",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "spaces",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_78498a40",
       "nl_query": "Get A A A revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "A A A",
             "fields": [
-              "DY"
+              "MV"
             ],
             "start": "0D",
             "end": "0D",
@@ -879,18 +898,20 @@
           "error_subtype": "spaces",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_baae18a0",
       "nl_query": "What is A A A's stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "A A A",
             "fields": [
-              "WC08301"
+              "PE"
             ],
             "start": "0D",
             "end": "0D",
@@ -914,18 +935,20 @@
           "error_subtype": "spaces",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_ebe00f0d",
-      "nl_query": "Get data for AAPL@",
+      "id": "errors_7a760298",
+      "nl_query": "Get data for A A A",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "AAPL@",
+            "tickers": "A A A",
             "fields": [
-              "P"
+              "EPS"
             ],
             "start": "0D",
             "end": "0D",
@@ -939,28 +962,30 @@
       "tags": [
         "error",
         "invalid_ticker",
-        "special_char"
+        "spaces"
       ],
       "metadata": {
-        "ticker": "AAPL@",
-        "error_type": "special_char",
+        "ticker": "A A A",
+        "error_type": "spaces",
         "expected_error": {
           "error_type": "invalid_ticker",
-          "error_subtype": "special_char",
+          "error_subtype": "spaces",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_7d64eef5",
       "nl_query": "Get AAPL@ revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "AAPL@",
             "fields": [
-              "MV"
+              "P"
             ],
             "start": "0D",
             "end": "0D",
@@ -984,18 +1009,57 @@
           "error_subtype": "special_char",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_941e4536",
+      "nl_query": "What is AAPL@'s stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "AAPL@",
+            "fields": [
+              "TR.Revenue"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "special_char"
+      ],
+      "metadata": {
+        "ticker": "AAPL@",
+        "error_type": "special_char",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "special_char",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_2bc88a99",
       "nl_query": "Show me AAPL@ market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "AAPL@",
             "fields": [
-              "TR.Revenue"
+              "PE"
             ],
             "start": "0D",
             "end": "0D",
@@ -1019,14 +1083,53 @@
           "error_subtype": "special_char",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_ebe00f0d",
+      "nl_query": "Get data for AAPL@",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "AAPL@",
+            "fields": [
+              "DY"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "special_char"
+      ],
+      "metadata": {
+        "ticker": "AAPL@",
+        "error_type": "special_char",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "special_char",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_76df5174",
       "nl_query": "Get data for U:ENRN",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:ENRN",
             "fields": [
@@ -1054,88 +1157,20 @@
           "error_subtype": "delisted_bankrupt",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
-    },
-    {
-      "id": "errors_1e8f6df9",
-      "nl_query": "What is U:ENRN's stock price?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "U:ENRN",
-            "fields": [
-              "MV"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "delisted_bankrupt"
-      ],
-      "metadata": {
-        "ticker": "U:ENRN",
-        "error_type": "delisted_bankrupt",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "delisted_bankrupt",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_84a74c4a",
-      "nl_query": "Show me U:ENRN market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "U:ENRN",
-            "fields": [
-              "WC01001"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "delisted_bankrupt"
-      ],
-      "metadata": {
-        "ticker": "U:ENRN",
-        "error_type": "delisted_bankrupt",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "delisted_bankrupt",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_36e63a5a",
       "nl_query": "Get U:ENRN revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:ENRN",
             "fields": [
-              "PE"
+              "MV"
             ],
             "start": "0D",
             "end": "0D",
@@ -1159,18 +1194,20 @@
           "error_subtype": "delisted_bankrupt",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_314fae5d",
-      "nl_query": "What is U:LEH's stock price?",
+      "id": "errors_84a74c4a",
+      "nl_query": "Show me U:ENRN market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "U:LEH",
+            "tickers": "U:ENRN",
             "fields": [
-              "P"
+              "WC01001"
             ],
             "start": "0D",
             "end": "0D",
@@ -1187,25 +1224,64 @@
         "delisted_bankrupt"
       ],
       "metadata": {
-        "ticker": "U:LEH",
+        "ticker": "U:ENRN",
         "error_type": "delisted_bankrupt",
         "expected_error": {
           "error_type": "invalid_ticker",
           "error_subtype": "delisted_bankrupt",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_1e8f6df9",
+      "nl_query": "What is U:ENRN's stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "U:ENRN",
+            "fields": [
+              "TR.Revenue"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "delisted_bankrupt"
+      ],
+      "metadata": {
+        "ticker": "U:ENRN",
+        "error_type": "delisted_bankrupt",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "delisted_bankrupt",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_6088662e",
       "nl_query": "Get U:LEH revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:LEH",
             "fields": [
-              "WC01001"
+              "P"
             ],
             "start": "0D",
             "end": "0D",
@@ -1229,14 +1305,53 @@
           "error_subtype": "delisted_bankrupt",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_a02fc84e",
       "nl_query": "Show me U:LEH market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "U:LEH",
+            "fields": [
+              "MV"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "delisted_bankrupt"
+      ],
+      "metadata": {
+        "ticker": "U:LEH",
+        "error_type": "delisted_bankrupt",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "delisted_bankrupt",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_314fae5d",
+      "nl_query": "What is U:LEH's stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:LEH",
             "fields": [
@@ -1264,18 +1379,20 @@
           "error_subtype": "delisted_bankrupt",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_8bad25ad",
       "nl_query": "Get data for U:LEH",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:LEH",
             "fields": [
-              "EPS"
+              "WC08301"
             ],
             "start": "0D",
             "end": "0D",
@@ -1299,156 +1416,18 @@
           "error_subtype": "delisted_bankrupt",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
-    },
-    {
-      "id": "errors_8bab8087",
-      "nl_query": "Get data for ABCDEFG",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "ABCDEFG",
-            "fields": [
-              "P"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "too_long"
-      ],
-      "metadata": {
-        "ticker": "ABCDEFG",
-        "error_type": "too_long",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "too_long",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_d90457b0",
-      "nl_query": "What is ABCDEFG's stock price?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "ABCDEFG",
-            "fields": [
-              "MV"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "too_long"
-      ],
-      "metadata": {
-        "ticker": "ABCDEFG",
-        "error_type": "too_long",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "too_long",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_11d611fc",
       "nl_query": "Get ABCDEFG revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "ABCDEFG",
-            "fields": [
-              "DY"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "too_long"
-      ],
-      "metadata": {
-        "ticker": "ABCDEFG",
-        "error_type": "too_long",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "too_long",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_7c1bab02",
-      "nl_query": "Show me ABCDEFG market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "ABCDEFG",
-            "fields": [
-              "EPS"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "too_long"
-      ],
-      "metadata": {
-        "ticker": "ABCDEFG",
-        "error_type": "too_long",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "too_long",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_25244672",
-      "nl_query": "Get X revenue",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "X",
             "fields": [
               "P"
             ],
@@ -1464,26 +1443,28 @@
       "tags": [
         "error",
         "invalid_ticker",
-        "single_char"
+        "too_long"
       ],
       "metadata": {
-        "ticker": "X",
-        "error_type": "single_char",
+        "ticker": "ABCDEFG",
+        "error_type": "too_long",
         "expected_error": {
           "error_type": "invalid_ticker",
-          "error_subtype": "single_char",
+          "error_subtype": "too_long",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_620c3d20",
-      "nl_query": "Get data for X",
+      "id": "errors_d90457b0",
+      "nl_query": "What is ABCDEFG's stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "X",
+            "tickers": "ABCDEFG",
             "fields": [
               "MV"
             ],
@@ -1499,28 +1480,30 @@
       "tags": [
         "error",
         "invalid_ticker",
-        "single_char"
+        "too_long"
       ],
       "metadata": {
-        "ticker": "X",
-        "error_type": "single_char",
+        "ticker": "ABCDEFG",
+        "error_type": "too_long",
         "expected_error": {
           "error_type": "invalid_ticker",
-          "error_subtype": "single_char",
+          "error_subtype": "too_long",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_539ea4eb",
-      "nl_query": "What is X's stock price?",
+      "id": "errors_8bab8087",
+      "nl_query": "Get data for ABCDEFG",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "X",
+            "tickers": "ABCDEFG",
             "fields": [
-              "TR.Revenue"
+              "WC01001"
             ],
             "start": "0D",
             "end": "0D",
@@ -1534,28 +1517,30 @@
       "tags": [
         "error",
         "invalid_ticker",
-        "single_char"
+        "too_long"
       ],
       "metadata": {
-        "ticker": "X",
-        "error_type": "single_char",
+        "ticker": "ABCDEFG",
+        "error_type": "too_long",
         "expected_error": {
           "error_type": "invalid_ticker",
-          "error_subtype": "single_char",
+          "error_subtype": "too_long",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_a3e3f398",
       "nl_query": "Show me X market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "X",
             "fields": [
-              "PE"
+              "P"
             ],
             "start": "0D",
             "end": "0D",
@@ -1579,18 +1564,20 @@
           "error_subtype": "single_char",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_9c1ded87",
-      "nl_query": "Show me D:XXXXX market cap",
+      "id": "errors_620c3d20",
+      "nl_query": "Get data for X",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
-            "tickers": "D:XXXXX",
+            "tickers": "X",
             "fields": [
-              "P"
+              "MV"
             ],
             "start": "0D",
             "end": "0D",
@@ -1604,28 +1591,67 @@
       "tags": [
         "error",
         "invalid_ticker",
-        "nonexistent_de"
+        "single_char"
       ],
       "metadata": {
-        "ticker": "D:XXXXX",
-        "error_type": "nonexistent_de",
+        "ticker": "X",
+        "error_type": "single_char",
         "expected_error": {
           "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_de",
+          "error_subtype": "single_char",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_25244672",
+      "nl_query": "Get X revenue",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "X",
+            "fields": [
+              "WC01001"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "single_char"
+      ],
+      "metadata": {
+        "ticker": "X",
+        "error_type": "single_char",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "single_char",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_898a22c3",
       "nl_query": "Get D:XXXXX revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "D:XXXXX",
             "fields": [
-              "MV"
+              "P"
             ],
             "start": "0D",
             "end": "0D",
@@ -1649,18 +1675,20 @@
           "error_subtype": "nonexistent_de",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_6650cbf0",
       "nl_query": "What is D:XXXXX's stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "D:XXXXX",
             "fields": [
-              "TR.Revenue"
+              "WC01001"
             ],
             "start": "0D",
             "end": "0D",
@@ -1684,786 +1712,55 @@
           "error_subtype": "nonexistent_de",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_9c1ded87",
+      "nl_query": "Show me D:XXXXX market cap",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "D:XXXXX",
+            "fields": [
+              "PE"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_de"
+      ],
+      "metadata": {
+        "ticker": "D:XXXXX",
+        "error_type": "nonexistent_de",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_de",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_79ea1732",
       "nl_query": "Get data for D:XXXXX",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "D:XXXXX",
-            "fields": [
-              "PE"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_de"
-      ],
-      "metadata": {
-        "ticker": "D:XXXXX",
-        "error_type": "nonexistent_de",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_de",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_f491ff5c",
-      "nl_query": "Get J:9999 revenue",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "J:9999",
-            "fields": [
-              "P"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_jp"
-      ],
-      "metadata": {
-        "ticker": "J:9999",
-        "error_type": "nonexistent_jp",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_jp",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_817885cb",
-      "nl_query": "What is J:9999's stock price?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "J:9999",
-            "fields": [
-              "MV"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_jp"
-      ],
-      "metadata": {
-        "ticker": "J:9999",
-        "error_type": "nonexistent_jp",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_jp",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_7827a46c",
-      "nl_query": "Show me J:9999 market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "J:9999",
-            "fields": [
-              "WC01001"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_jp"
-      ],
-      "metadata": {
-        "ticker": "J:9999",
-        "error_type": "nonexistent_jp",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_jp",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_298aedda",
-      "nl_query": "Get data for J:9999",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "J:9999",
-            "fields": [
-              "TR.Revenue"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_jp"
-      ],
-      "metadata": {
-        "ticker": "J:9999",
-        "error_type": "nonexistent_jp",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_jp",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_2628da99",
-      "nl_query": "Show me H:0000 market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "H:0000",
-            "fields": [
-              "P"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_hk"
-      ],
-      "metadata": {
-        "ticker": "H:0000",
-        "error_type": "nonexistent_hk",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_hk",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_c7d7bd5f",
-      "nl_query": "Get data for H:0000",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "H:0000",
-            "fields": [
-              "WC01001"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_hk"
-      ],
-      "metadata": {
-        "ticker": "H:0000",
-        "error_type": "nonexistent_hk",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_hk",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_ea062f58",
-      "nl_query": "Get H:0000 revenue",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "H:0000",
-            "fields": [
-              "TR.Revenue"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_hk"
-      ],
-      "metadata": {
-        "ticker": "H:0000",
-        "error_type": "nonexistent_hk",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_hk",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_a7eb20a2",
-      "nl_query": "Get data for F:ZZZZZ",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "F:ZZZZZ",
-            "fields": [
-              "P"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_fr"
-      ],
-      "metadata": {
-        "ticker": "F:ZZZZZ",
-        "error_type": "nonexistent_fr",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_fr",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_683e44d0",
-      "nl_query": "Get F:ZZZZZ revenue",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "F:ZZZZZ",
-            "fields": [
-              "TR.Revenue"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_fr"
-      ],
-      "metadata": {
-        "ticker": "F:ZZZZZ",
-        "error_type": "nonexistent_fr",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_fr",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_c0e58d17",
-      "nl_query": "Show me F:ZZZZZ market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "F:ZZZZZ",
-            "fields": [
-              "PE"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_fr"
-      ],
-      "metadata": {
-        "ticker": "F:ZZZZZ",
-        "error_type": "nonexistent_fr",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_fr",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_d19fddc6",
-      "nl_query": "What is F:ZZZZZ's stock price?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "F:ZZZZZ",
-            "fields": [
-              "WC08301"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "nonexistent_fr"
-      ],
-      "metadata": {
-        "ticker": "F:ZZZZZ",
-        "error_type": "nonexistent_fr",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "nonexistent_fr",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_7c8a7bc7",
-      "nl_query": "Get AAPL;DROP revenue",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "AAPL;DROP",
-            "fields": [
-              "P"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "sql_injection"
-      ],
-      "metadata": {
-        "ticker": "AAPL;DROP",
-        "error_type": "sql_injection",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "sql_injection",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_6922175e",
-      "nl_query": "Get data for AAPL;DROP",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "AAPL;DROP",
-            "fields": [
-              "MV"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "sql_injection"
-      ],
-      "metadata": {
-        "ticker": "AAPL;DROP",
-        "error_type": "sql_injection",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "sql_injection",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_67a8136d",
-      "nl_query": "What is AAPL;DROP's stock price?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "AAPL;DROP",
-            "fields": [
-              "TR.Revenue"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "sql_injection"
-      ],
-      "metadata": {
-        "ticker": "AAPL;DROP",
-        "error_type": "sql_injection",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "sql_injection",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_8e88e58d",
-      "nl_query": "Show me <script> market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "<script>",
-            "fields": [
-              "P"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "xss_attempt"
-      ],
-      "metadata": {
-        "ticker": "<script>",
-        "error_type": "xss_attempt",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "xss_attempt",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_de6e6f80",
-      "nl_query": "Get data for <script>",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "<script>",
-            "fields": [
-              "MV"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "xss_attempt"
-      ],
-      "metadata": {
-        "ticker": "<script>",
-        "error_type": "xss_attempt",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "xss_attempt",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_5cfcabde",
-      "nl_query": "Get <script> revenue",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "<script>",
-            "fields": [
-              "PE"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "xss_attempt"
-      ],
-      "metadata": {
-        "ticker": "<script>",
-        "error_type": "xss_attempt",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "xss_attempt",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_42da1064",
-      "nl_query": "What is <script>'s stock price?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "<script>",
-            "fields": [
-              "WC08301"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "xss_attempt"
-      ],
-      "metadata": {
-        "ticker": "<script>",
-        "error_type": "xss_attempt",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "xss_attempt",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_a9cd06e5",
-      "nl_query": "Get data for NULL",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "NULL",
-            "fields": [
-              "P"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "reserved_word"
-      ],
-      "metadata": {
-        "ticker": "NULL",
-        "error_type": "reserved_word",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "reserved_word",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_44e27d52",
-      "nl_query": "What is NULL's stock price?",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "NULL",
-            "fields": [
-              "MV"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "reserved_word"
-      ],
-      "metadata": {
-        "ticker": "NULL",
-        "error_type": "reserved_word",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "reserved_word",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_85406b60",
-      "nl_query": "Show me NULL market cap",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "NULL",
-            "fields": [
-              "DY"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "reserved_word"
-      ],
-      "metadata": {
-        "ticker": "NULL",
-        "error_type": "reserved_word",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "reserved_word",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_22fda2bf",
-      "nl_query": "Get NULL revenue",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "NULL",
             "fields": [
               "EPS"
             ],
@@ -2479,6 +1776,783 @@
       "tags": [
         "error",
         "invalid_ticker",
+        "nonexistent_de"
+      ],
+      "metadata": {
+        "ticker": "D:XXXXX",
+        "error_type": "nonexistent_de",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_de",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_817885cb",
+      "nl_query": "What is J:9999's stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "J:9999",
+            "fields": [
+              "P"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_jp"
+      ],
+      "metadata": {
+        "ticker": "J:9999",
+        "error_type": "nonexistent_jp",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_jp",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_298aedda",
+      "nl_query": "Get data for J:9999",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "J:9999",
+            "fields": [
+              "WC01001"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_jp"
+      ],
+      "metadata": {
+        "ticker": "J:9999",
+        "error_type": "nonexistent_jp",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_jp",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_7827a46c",
+      "nl_query": "Show me J:9999 market cap",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "J:9999",
+            "fields": [
+              "PE"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_jp"
+      ],
+      "metadata": {
+        "ticker": "J:9999",
+        "error_type": "nonexistent_jp",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_jp",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_f491ff5c",
+      "nl_query": "Get J:9999 revenue",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "J:9999",
+            "fields": [
+              "WC08301"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_jp"
+      ],
+      "metadata": {
+        "ticker": "J:9999",
+        "error_type": "nonexistent_jp",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_jp",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_ea062f58",
+      "nl_query": "Get H:0000 revenue",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "H:0000",
+            "fields": [
+              "P"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_hk"
+      ],
+      "metadata": {
+        "ticker": "H:0000",
+        "error_type": "nonexistent_hk",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_hk",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_2a5445a3",
+      "nl_query": "What is H:0000's stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "H:0000",
+            "fields": [
+              "MV"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_hk"
+      ],
+      "metadata": {
+        "ticker": "H:0000",
+        "error_type": "nonexistent_hk",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_hk",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_c7d7bd5f",
+      "nl_query": "Get data for H:0000",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "H:0000",
+            "fields": [
+              "DY"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_hk"
+      ],
+      "metadata": {
+        "ticker": "H:0000",
+        "error_type": "nonexistent_hk",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_hk",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_2628da99",
+      "nl_query": "Show me H:0000 market cap",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "H:0000",
+            "fields": [
+              "WC08301"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_hk"
+      ],
+      "metadata": {
+        "ticker": "H:0000",
+        "error_type": "nonexistent_hk",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_hk",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_d19fddc6",
+      "nl_query": "What is F:ZZZZZ's stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "F:ZZZZZ",
+            "fields": [
+              "P"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_fr"
+      ],
+      "metadata": {
+        "ticker": "F:ZZZZZ",
+        "error_type": "nonexistent_fr",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_fr",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_c0e58d17",
+      "nl_query": "Show me F:ZZZZZ market cap",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "F:ZZZZZ",
+            "fields": [
+              "MV"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_fr"
+      ],
+      "metadata": {
+        "ticker": "F:ZZZZZ",
+        "error_type": "nonexistent_fr",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_fr",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_683e44d0",
+      "nl_query": "Get F:ZZZZZ revenue",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "F:ZZZZZ",
+            "fields": [
+              "DY"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_fr"
+      ],
+      "metadata": {
+        "ticker": "F:ZZZZZ",
+        "error_type": "nonexistent_fr",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_fr",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_a7eb20a2",
+      "nl_query": "Get data for F:ZZZZZ",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "F:ZZZZZ",
+            "fields": [
+              "WC08301"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "nonexistent_fr"
+      ],
+      "metadata": {
+        "ticker": "F:ZZZZZ",
+        "error_type": "nonexistent_fr",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "nonexistent_fr",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_7c8a7bc7",
+      "nl_query": "Get AAPL;DROP revenue",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "AAPL;DROP",
+            "fields": [
+              "P"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "sql_injection"
+      ],
+      "metadata": {
+        "ticker": "AAPL;DROP",
+        "error_type": "sql_injection",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "sql_injection",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_f54d8820",
+      "nl_query": "Show me AAPL;DROP market cap",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "AAPL;DROP",
+            "fields": [
+              "MV"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "sql_injection"
+      ],
+      "metadata": {
+        "ticker": "AAPL;DROP",
+        "error_type": "sql_injection",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "sql_injection",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_6922175e",
+      "nl_query": "Get data for AAPL;DROP",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "AAPL;DROP",
+            "fields": [
+              "WC01001"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "sql_injection"
+      ],
+      "metadata": {
+        "ticker": "AAPL;DROP",
+        "error_type": "sql_injection",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "sql_injection",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_67a8136d",
+      "nl_query": "What is AAPL;DROP's stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "AAPL;DROP",
+            "fields": [
+              "DY"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "sql_injection"
+      ],
+      "metadata": {
+        "ticker": "AAPL;DROP",
+        "error_type": "sql_injection",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "sql_injection",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_5cfcabde",
+      "nl_query": "Get <script> revenue",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "<script>",
+            "fields": [
+              "P"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "xss_attempt"
+      ],
+      "metadata": {
+        "ticker": "<script>",
+        "error_type": "xss_attempt",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "xss_attempt",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_42da1064",
+      "nl_query": "What is <script>'s stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "<script>",
+            "fields": [
+              "MV"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "xss_attempt"
+      ],
+      "metadata": {
+        "ticker": "<script>",
+        "error_type": "xss_attempt",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "xss_attempt",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_de6e6f80",
+      "nl_query": "Get data for <script>",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "<script>",
+            "fields": [
+              "WC01001"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "xss_attempt"
+      ],
+      "metadata": {
+        "ticker": "<script>",
+        "error_type": "xss_attempt",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "xss_attempt",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_8e88e58d",
+      "nl_query": "Show me <script> market cap",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "<script>",
+            "fields": [
+              "TR.Revenue"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "xss_attempt"
+      ],
+      "metadata": {
+        "ticker": "<script>",
+        "error_type": "xss_attempt",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "xss_attempt",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_44e27d52",
+      "nl_query": "What is NULL's stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "NULL",
+            "fields": [
+              "P"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
         "reserved_word"
       ],
       "metadata": {
@@ -2489,14 +2563,127 @@
           "error_subtype": "reserved_word",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_b6f5dcc0",
-      "nl_query": "What is undefined's stock price?",
+      "id": "errors_22fda2bf",
+      "nl_query": "Get NULL revenue",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "NULL",
+            "fields": [
+              "MV"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "reserved_word"
+      ],
+      "metadata": {
+        "ticker": "NULL",
+        "error_type": "reserved_word",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "reserved_word",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_85406b60",
+      "nl_query": "Show me NULL market cap",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "NULL",
+            "fields": [
+              "WC01001"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "reserved_word"
+      ],
+      "metadata": {
+        "ticker": "NULL",
+        "error_type": "reserved_word",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "reserved_word",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_a9cd06e5",
+      "nl_query": "Get data for NULL",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "NULL",
+            "fields": [
+              "WC08301"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "reserved_word"
+      ],
+      "metadata": {
+        "ticker": "NULL",
+        "error_type": "reserved_word",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "reserved_word",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_f3b6c81a",
+      "nl_query": "Get undefined revenue",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "undefined",
             "fields": [
@@ -2524,14 +2711,16 @@
           "error_subtype": "reserved_word2",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_f3b6c81a",
-      "nl_query": "Get undefined revenue",
+      "id": "errors_83a6488b",
+      "nl_query": "Get data for undefined",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "undefined",
             "fields": [
@@ -2559,14 +2748,53 @@
           "error_subtype": "reserved_word2",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_90dbab98",
       "nl_query": "Show me undefined market cap",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
+          "arguments": {
+            "tickers": "undefined",
+            "fields": [
+              "WC01001"
+            ],
+            "start": "0D",
+            "end": "0D",
+            "kind": 0
+          }
+        }
+      ],
+      "complexity": 1,
+      "category": "errors",
+      "subcategory": "invalid_ticker",
+      "tags": [
+        "error",
+        "invalid_ticker",
+        "reserved_word2"
+      ],
+      "metadata": {
+        "ticker": "undefined",
+        "error_type": "reserved_word2",
+        "expected_error": {
+          "error_type": "invalid_ticker",
+          "error_subtype": "reserved_word2",
+          "message_pattern": "Instrument not found|Invalid ticker|No data available"
+        }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
+    },
+    {
+      "id": "errors_b6f5dcc0",
+      "nl_query": "What is undefined's stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "undefined",
             "fields": [
@@ -2594,49 +2822,16 @@
           "error_subtype": "reserved_word2",
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_83a6488b",
-      "nl_query": "Get data for undefined",
+      "id": "errors_2d6bb2af",
+      "nl_query": "Show me INVALID_FIELD for @AAPL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
-          "arguments": {
-            "tickers": "undefined",
-            "fields": [
-              "WC08301"
-            ],
-            "start": "0D",
-            "end": "0D",
-            "kind": 0
-          }
-        }
-      ],
-      "complexity": 1,
-      "category": "errors",
-      "subcategory": "invalid_ticker",
-      "tags": [
-        "error",
-        "invalid_ticker",
-        "reserved_word2"
-      ],
-      "metadata": {
-        "ticker": "undefined",
-        "error_type": "reserved_word2",
-        "expected_error": {
-          "error_type": "invalid_ticker",
-          "error_subtype": "reserved_word2",
-          "message_pattern": "Instrument not found|Invalid ticker|No data available"
-        }
-      }
-    },
-    {
-      "id": "errors_beac45fc",
-      "nl_query": "Get @AAPL's INVALID_FIELD",
-      "expected_tool_calls": [
-        {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -2665,14 +2860,16 @@
           "error_subtype": "nonexistent",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_8baee653",
-      "nl_query": "Get @AAPL's WC99999",
+      "id": "errors_2900f7cf",
+      "nl_query": "What is @AAPL's WC99999?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -2701,14 +2898,16 @@
           "error_subtype": "invalid_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_6b6ce622",
-      "nl_query": "Show me TR.InvalidField for @AAPL",
+      "id": "errors_8f45fd61",
+      "nl_query": "Get @AAPL's TR.InvalidField",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -2737,14 +2936,16 @@
           "error_subtype": "invalid_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_32fd87b0",
-      "nl_query": "Get @AAPL's 123456",
+      "id": "errors_744bf2b0",
+      "nl_query": "Show me 123456 for @AAPL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -2773,14 +2974,16 @@
           "error_subtype": "numeric",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_d8b4450e",
       "nl_query": "Show me  for @AAPL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -2809,14 +3012,16 @@
           "error_subtype": "empty",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_fe538b24",
-      "nl_query": "Get @AAPL's P E",
+      "id": "errors_406c8de5",
+      "nl_query": "Show me P E for @AAPL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -2845,14 +3050,16 @@
           "error_subtype": "spaces",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_54f36813",
-      "nl_query": "What is @AAPL's PE@RATIO?",
+      "id": "errors_1c693ffa",
+      "nl_query": "Get @AAPL's PE@RATIO",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -2881,14 +3088,16 @@
           "error_subtype": "special_char",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_8bd6b7bb",
-      "nl_query": "What is @AAPL's WC0?",
+      "id": "errors_83a170d1",
+      "nl_query": "Get @AAPL's WC0",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -2917,14 +3126,16 @@
           "error_subtype": "short_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_1c1aa67a",
       "nl_query": "What is @AAPL's WC1234567890?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -2953,14 +3164,16 @@
           "error_subtype": "long_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_c66b69f2",
       "nl_query": "Get @AAPL's TR.",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -2989,14 +3202,16 @@
           "error_subtype": "incomplete_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_0b11b62c",
-      "nl_query": "What is @AAPL's TR.123?",
+      "id": "errors_617e5af9",
+      "nl_query": "Show me TR.123 for @AAPL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -3025,14 +3240,16 @@
           "error_subtype": "numeric_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_ea81309f",
-      "nl_query": "Show me NULL for @AAPL",
+      "id": "errors_18a1f3f9",
+      "nl_query": "What is @AAPL's NULL?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -3061,14 +3278,16 @@
           "error_subtype": "reserved_word",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_6ea02fc3",
-      "nl_query": "Show me SELECT for @AAPL",
+      "id": "errors_b0c7ef2e",
+      "nl_query": "Get @AAPL's SELECT",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -3097,14 +3316,16 @@
           "error_subtype": "sql_keyword",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_92b936b0",
       "nl_query": "Show me DROP TABLE for @AAPL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -3133,14 +3354,16 @@
           "error_subtype": "injection",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_3ef1b4e3",
-      "nl_query": "Get @AAPL's *",
+      "id": "errors_cb0989aa",
+      "nl_query": "Show me * for @AAPL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -3169,14 +3392,16 @@
           "error_subtype": "wildcard",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_441e49f4",
-      "nl_query": "Get @AAPL's P,MV",
+      "id": "errors_98bc13d8",
+      "nl_query": "Show me P,MV for @AAPL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -3205,14 +3430,16 @@
           "error_subtype": "multiple_fields",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_5495361b",
-      "nl_query": "What is @AAPL's WC01001.Q?",
+      "id": "errors_6c36d9b1",
+      "nl_query": "Get @AAPL's WC01001.Q",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -3241,14 +3468,16 @@
           "error_subtype": "period_suffix",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_e576c4f5",
-      "nl_query": "Show me TR.Revenue.FY for @AAPL",
+      "id": "errors_cf532255",
+      "nl_query": "Get @AAPL's TR.Revenue.FY",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -3277,14 +3506,16 @@
           "error_subtype": "extra_period",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_25491179",
-      "nl_query": "What is U:MSFT's INVALID_FIELD?",
+      "id": "errors_20e47212",
+      "nl_query": "Show me INVALID_FIELD for U:MSFT",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3313,14 +3544,16 @@
           "error_subtype": "nonexistent",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_83d4b3f3",
       "nl_query": "What is U:MSFT's WC99999?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3349,14 +3582,16 @@
           "error_subtype": "invalid_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_836bcf6e",
-      "nl_query": "Show me TR.InvalidField for U:MSFT",
+      "id": "errors_11a1e470",
+      "nl_query": "What is U:MSFT's TR.InvalidField?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3385,14 +3620,16 @@
           "error_subtype": "invalid_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_593f9df0",
-      "nl_query": "What is U:MSFT's 123456?",
+      "id": "errors_015bf52e",
+      "nl_query": "Show me 123456 for U:MSFT",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3421,14 +3658,16 @@
           "error_subtype": "numeric",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_310457f8",
-      "nl_query": "Get U:MSFT's ",
+      "id": "errors_23b8f4df",
+      "nl_query": "What is U:MSFT's ?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3457,14 +3696,16 @@
           "error_subtype": "empty",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_d2697830",
-      "nl_query": "Show me P E for U:MSFT",
+      "id": "errors_5894ca1d",
+      "nl_query": "Get U:MSFT's P E",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3493,14 +3734,16 @@
           "error_subtype": "spaces",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_8913dd3e",
       "nl_query": "Show me PE@RATIO for U:MSFT",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3529,14 +3772,16 @@
           "error_subtype": "special_char",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_37888ea5",
-      "nl_query": "Show me WC0 for U:MSFT",
+      "id": "errors_6b3ea2cf",
+      "nl_query": "What is U:MSFT's WC0?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3565,14 +3810,16 @@
           "error_subtype": "short_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_e93f92bc",
-      "nl_query": "Show me WC1234567890 for U:MSFT",
+      "id": "errors_04ebb47c",
+      "nl_query": "Get U:MSFT's WC1234567890",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3601,14 +3848,16 @@
           "error_subtype": "long_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_e347a4b2",
       "nl_query": "Get U:MSFT's TR.",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3637,14 +3886,16 @@
           "error_subtype": "incomplete_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_00b6d1d8",
-      "nl_query": "Get U:MSFT's TR.123",
+      "id": "errors_73b3b0ae",
+      "nl_query": "Show me TR.123 for U:MSFT",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3673,14 +3924,16 @@
           "error_subtype": "numeric_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_aee693f9",
-      "nl_query": "Show me NULL for U:MSFT",
+      "id": "errors_cceb999a",
+      "nl_query": "Get U:MSFT's NULL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3709,14 +3962,16 @@
           "error_subtype": "reserved_word",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_a99d2395",
       "nl_query": "What is U:MSFT's SELECT?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3745,14 +4000,16 @@
           "error_subtype": "sql_keyword",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_46f34ede",
       "nl_query": "Show me DROP TABLE for U:MSFT",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3781,14 +4038,16 @@
           "error_subtype": "injection",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_9f0d71b5",
-      "nl_query": "What is U:MSFT's *?",
+      "id": "errors_ad3741bc",
+      "nl_query": "Get U:MSFT's *",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3817,14 +4076,16 @@
           "error_subtype": "wildcard",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_0542f27f",
-      "nl_query": "Get U:MSFT's P,MV",
+      "id": "errors_e42547fe",
+      "nl_query": "Show me P,MV for U:MSFT",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3853,14 +4114,16 @@
           "error_subtype": "multiple_fields",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_051bb767",
-      "nl_query": "What is U:MSFT's WC01001.Q?",
+      "id": "errors_dd33a53d",
+      "nl_query": "Show me WC01001.Q for U:MSFT",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3889,14 +4152,16 @@
           "error_subtype": "period_suffix",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_79faa522",
       "nl_query": "What is U:MSFT's TR.Revenue.FY?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -3925,14 +4190,16 @@
           "error_subtype": "extra_period",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_8e5a77a3",
       "nl_query": "Show me INVALID_FIELD for U:GOOGL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -3961,14 +4228,16 @@
           "error_subtype": "nonexistent",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_3b9a9563",
       "nl_query": "Get U:GOOGL's WC99999",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -3997,14 +4266,16 @@
           "error_subtype": "invalid_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_35348c6c",
-      "nl_query": "Get U:GOOGL's TR.InvalidField",
+      "id": "errors_b6655aef",
+      "nl_query": "Show me TR.InvalidField for U:GOOGL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4033,14 +4304,16 @@
           "error_subtype": "invalid_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_b360d588",
-      "nl_query": "What is U:GOOGL's 123456?",
+      "id": "errors_6235b4e5",
+      "nl_query": "Show me 123456 for U:GOOGL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4069,14 +4342,16 @@
           "error_subtype": "numeric",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_49ed91cf",
-      "nl_query": "Show me  for U:GOOGL",
+      "id": "errors_b537de6f",
+      "nl_query": "Get U:GOOGL's ",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4105,14 +4380,16 @@
           "error_subtype": "empty",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_34014a4c",
-      "nl_query": "Show me P E for U:GOOGL",
+      "id": "errors_50f735aa",
+      "nl_query": "What is U:GOOGL's P E?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4141,14 +4418,16 @@
           "error_subtype": "spaces",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_ac54df38",
       "nl_query": "Get U:GOOGL's PE@RATIO",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4177,14 +4456,16 @@
           "error_subtype": "special_char",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_dd6996fe",
       "nl_query": "Get U:GOOGL's WC0",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4213,14 +4494,16 @@
           "error_subtype": "short_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_5b38c522",
       "nl_query": "Show me WC1234567890 for U:GOOGL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4249,14 +4532,16 @@
           "error_subtype": "long_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_ef9b5049",
       "nl_query": "What is U:GOOGL's TR.?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4285,14 +4570,16 @@
           "error_subtype": "incomplete_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_833c803d",
-      "nl_query": "What is U:GOOGL's TR.123?",
+      "id": "errors_e52bce77",
+      "nl_query": "Show me TR.123 for U:GOOGL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4321,14 +4608,16 @@
           "error_subtype": "numeric_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_7bb90677",
       "nl_query": "What is U:GOOGL's NULL?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4357,14 +4646,16 @@
           "error_subtype": "reserved_word",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_ab4820a9",
       "nl_query": "Show me SELECT for U:GOOGL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4393,14 +4684,16 @@
           "error_subtype": "sql_keyword",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_a830c43a",
-      "nl_query": "What is U:GOOGL's DROP TABLE?",
+      "id": "errors_256a332c",
+      "nl_query": "Get U:GOOGL's DROP TABLE",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4429,14 +4722,16 @@
           "error_subtype": "injection",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_aa58bcd6",
-      "nl_query": "Get U:GOOGL's *",
+      "id": "errors_ab06d887",
+      "nl_query": "Show me * for U:GOOGL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4465,14 +4760,16 @@
           "error_subtype": "wildcard",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_8cfa7e7c",
-      "nl_query": "Show me P,MV for U:GOOGL",
+      "id": "errors_93722d97",
+      "nl_query": "What is U:GOOGL's P,MV?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4501,14 +4798,16 @@
           "error_subtype": "multiple_fields",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_fc437e8f",
       "nl_query": "Get U:GOOGL's WC01001.Q",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4537,14 +4836,16 @@
           "error_subtype": "period_suffix",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_642778a4",
-      "nl_query": "What is U:GOOGL's TR.Revenue.FY?",
+      "id": "errors_fafac051",
+      "nl_query": "Show me TR.Revenue.FY for U:GOOGL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -4573,14 +4874,16 @@
           "error_subtype": "extra_period",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_dfaec019",
-      "nl_query": "What is U:AMZN's INVALID_FIELD?",
+      "id": "errors_dcdf1097",
+      "nl_query": "Show me INVALID_FIELD for U:AMZN",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4609,14 +4912,16 @@
           "error_subtype": "nonexistent",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_41d6c570",
       "nl_query": "Show me WC99999 for U:AMZN",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4645,14 +4950,16 @@
           "error_subtype": "invalid_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_b32c714f",
-      "nl_query": "Show me TR.InvalidField for U:AMZN",
+      "id": "errors_ca402de3",
+      "nl_query": "Get U:AMZN's TR.InvalidField",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4681,14 +4988,16 @@
           "error_subtype": "invalid_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_90924b76",
-      "nl_query": "Show me 123456 for U:AMZN",
+      "id": "errors_a76c0510",
+      "nl_query": "Get U:AMZN's 123456",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4717,14 +5026,16 @@
           "error_subtype": "numeric",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_a8f76134",
-      "nl_query": "What is U:AMZN's ?",
+      "id": "errors_a34a9bd1",
+      "nl_query": "Get U:AMZN's ",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4753,14 +5064,16 @@
           "error_subtype": "empty",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_ae785dd7",
       "nl_query": "What is U:AMZN's P E?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4789,14 +5102,16 @@
           "error_subtype": "spaces",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_57504dea",
-      "nl_query": "Show me PE@RATIO for U:AMZN",
+      "id": "errors_2670c491",
+      "nl_query": "What is U:AMZN's PE@RATIO?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4825,14 +5140,16 @@
           "error_subtype": "special_char",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_2c4130ef",
       "nl_query": "Get U:AMZN's WC0",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4861,14 +5178,16 @@
           "error_subtype": "short_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_74cc2132",
-      "nl_query": "What is U:AMZN's WC1234567890?",
+      "id": "errors_2d4b68ad",
+      "nl_query": "Get U:AMZN's WC1234567890",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4897,14 +5216,16 @@
           "error_subtype": "long_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_2a998c7a",
       "nl_query": "Get U:AMZN's TR.",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4933,14 +5254,16 @@
           "error_subtype": "incomplete_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_e6195a23",
-      "nl_query": "Show me TR.123 for U:AMZN",
+      "id": "errors_fdd501ea",
+      "nl_query": "What is U:AMZN's TR.123?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -4969,14 +5292,16 @@
           "error_subtype": "numeric_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_abafe766",
       "nl_query": "Get U:AMZN's NULL",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -5005,14 +5330,16 @@
           "error_subtype": "reserved_word",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_8676a1b3",
       "nl_query": "Show me SELECT for U:AMZN",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -5041,14 +5368,16 @@
           "error_subtype": "sql_keyword",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_25d321a2",
       "nl_query": "What is U:AMZN's DROP TABLE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -5077,14 +5406,16 @@
           "error_subtype": "injection",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_f2460762",
-      "nl_query": "Get U:AMZN's *",
+      "id": "errors_85710870",
+      "nl_query": "What is U:AMZN's *?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -5113,14 +5444,16 @@
           "error_subtype": "wildcard",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_82444846",
-      "nl_query": "Get U:AMZN's P,MV",
+      "id": "errors_c9a9953e",
+      "nl_query": "What is U:AMZN's P,MV?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -5149,14 +5482,16 @@
           "error_subtype": "multiple_fields",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_42a5eff7",
-      "nl_query": "Get U:AMZN's WC01001.Q",
+      "id": "errors_4280a683",
+      "nl_query": "Show me WC01001.Q for U:AMZN",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -5185,14 +5520,16 @@
           "error_subtype": "period_suffix",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_31bb91bc",
       "nl_query": "Show me TR.Revenue.FY for U:AMZN",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -5221,14 +5558,16 @@
           "error_subtype": "extra_period",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_a4f9af41",
       "nl_query": "Get U:META's INVALID_FIELD",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5257,14 +5596,16 @@
           "error_subtype": "nonexistent",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_ee63ea6d",
-      "nl_query": "Get U:META's WC99999",
+      "id": "errors_1371d56c",
+      "nl_query": "What is U:META's WC99999?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5293,14 +5634,16 @@
           "error_subtype": "invalid_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_8ef0fe80",
-      "nl_query": "What is U:META's TR.InvalidField?",
+      "id": "errors_cd745dfe",
+      "nl_query": "Show me TR.InvalidField for U:META",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5329,14 +5672,16 @@
           "error_subtype": "invalid_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_637c3d28",
-      "nl_query": "Show me 123456 for U:META",
+      "id": "errors_a1dc770f",
+      "nl_query": "Get U:META's 123456",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5365,14 +5710,16 @@
           "error_subtype": "numeric",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_a5341696",
-      "nl_query": "Get U:META's ",
+      "id": "errors_1a04448c",
+      "nl_query": "Show me  for U:META",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5401,14 +5748,16 @@
           "error_subtype": "empty",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_05eae7e3",
-      "nl_query": "Get U:META's P E",
+      "id": "errors_8d0e3abf",
+      "nl_query": "What is U:META's P E?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5437,14 +5786,16 @@
           "error_subtype": "spaces",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_bf74828e",
-      "nl_query": "What is U:META's PE@RATIO?",
+      "id": "errors_ff438b5d",
+      "nl_query": "Show me PE@RATIO for U:META",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5473,14 +5824,16 @@
           "error_subtype": "special_char",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_060ee411",
       "nl_query": "Show me WC0 for U:META",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5509,14 +5862,16 @@
           "error_subtype": "short_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_a5dd7d27",
-      "nl_query": "Get U:META's WC1234567890",
+      "id": "errors_92fbf612",
+      "nl_query": "Show me WC1234567890 for U:META",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5545,14 +5900,16 @@
           "error_subtype": "long_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_cce867c3",
       "nl_query": "What is U:META's TR.?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5581,14 +5938,16 @@
           "error_subtype": "incomplete_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_d397bdf5",
-      "nl_query": "What is U:META's TR.123?",
+      "id": "errors_bafc217e",
+      "nl_query": "Show me TR.123 for U:META",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5617,14 +5976,16 @@
           "error_subtype": "numeric_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_99657b0c",
-      "nl_query": "What is U:META's NULL?",
+      "id": "errors_2ec546af",
+      "nl_query": "Show me NULL for U:META",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5653,14 +6014,16 @@
           "error_subtype": "reserved_word",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_5bcb05be",
-      "nl_query": "Get U:META's SELECT",
+      "id": "errors_74c29e81",
+      "nl_query": "What is U:META's SELECT?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5689,14 +6052,16 @@
           "error_subtype": "sql_keyword",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_eeeee6e7",
       "nl_query": "What is U:META's DROP TABLE?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5725,14 +6090,16 @@
           "error_subtype": "injection",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_b1e6fe3e",
-      "nl_query": "What is U:META's *?",
+      "id": "errors_d8e99029",
+      "nl_query": "Get U:META's *",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5761,14 +6128,16 @@
           "error_subtype": "wildcard",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_5232c21d",
       "nl_query": "What is U:META's P,MV?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5797,14 +6166,16 @@
           "error_subtype": "multiple_fields",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_9ac46f84",
-      "nl_query": "Get U:META's WC01001.Q",
+      "id": "errors_ba9fe1c9",
+      "nl_query": "Show me WC01001.Q for U:META",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5833,14 +6204,16 @@
           "error_subtype": "period_suffix",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_248c6cc8",
-      "nl_query": "What is U:META's TR.Revenue.FY?",
+      "id": "errors_6ad3860a",
+      "nl_query": "Get U:META's TR.Revenue.FY",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:META",
             "fields": [
@@ -5869,14 +6242,16 @@
           "error_subtype": "extra_period",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_b2a17a34",
-      "nl_query": "Get U:NVDA's INVALID_FIELD",
+      "id": "errors_63237a7d",
+      "nl_query": "What is U:NVDA's INVALID_FIELD?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -5905,14 +6280,16 @@
           "error_subtype": "nonexistent",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_c71da992",
-      "nl_query": "What is U:NVDA's WC99999?",
+      "id": "errors_b8135f1c",
+      "nl_query": "Show me WC99999 for U:NVDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -5941,14 +6318,16 @@
           "error_subtype": "invalid_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_163e6e07",
-      "nl_query": "Get U:NVDA's TR.InvalidField",
+      "id": "errors_c599a837",
+      "nl_query": "Show me TR.InvalidField for U:NVDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -5977,14 +6356,16 @@
           "error_subtype": "invalid_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_bcbeea09",
-      "nl_query": "Get U:NVDA's 123456",
+      "id": "errors_4eea1f1c",
+      "nl_query": "What is U:NVDA's 123456?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6013,14 +6394,16 @@
           "error_subtype": "numeric",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_a0218f09",
-      "nl_query": "Get U:NVDA's ",
+      "id": "errors_0a12914d",
+      "nl_query": "What is U:NVDA's ?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6049,14 +6432,16 @@
           "error_subtype": "empty",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_be3433e7",
-      "nl_query": "Show me P E for U:NVDA",
+      "id": "errors_ab060a17",
+      "nl_query": "What is U:NVDA's P E?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6085,14 +6470,16 @@
           "error_subtype": "spaces",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_1c9ff7b1",
-      "nl_query": "Get U:NVDA's PE@RATIO",
+      "id": "errors_a2f0b380",
+      "nl_query": "Show me PE@RATIO for U:NVDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6121,14 +6508,16 @@
           "error_subtype": "special_char",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_2812a64e",
       "nl_query": "What is U:NVDA's WC0?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6157,14 +6546,16 @@
           "error_subtype": "short_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_d4396761",
-      "nl_query": "Show me WC1234567890 for U:NVDA",
+      "id": "errors_c855c206",
+      "nl_query": "Get U:NVDA's WC1234567890",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6193,14 +6584,16 @@
           "error_subtype": "long_wc",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_db3eb980",
-      "nl_query": "Get U:NVDA's TR.",
+      "id": "errors_16c90892",
+      "nl_query": "What is U:NVDA's TR.?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6229,14 +6622,16 @@
           "error_subtype": "incomplete_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_d2a04b75",
-      "nl_query": "Get U:NVDA's TR.123",
+      "id": "errors_31bf6e12",
+      "nl_query": "Show me TR.123 for U:NVDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6265,14 +6660,16 @@
           "error_subtype": "numeric_tr",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_d596bc16",
       "nl_query": "Show me NULL for U:NVDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6301,14 +6698,16 @@
           "error_subtype": "reserved_word",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_a6f9256d",
       "nl_query": "What is U:NVDA's SELECT?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6337,14 +6736,16 @@
           "error_subtype": "sql_keyword",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_fcdab14e",
-      "nl_query": "Show me DROP TABLE for U:NVDA",
+      "id": "errors_d163da2e",
+      "nl_query": "Get U:NVDA's DROP TABLE",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6373,14 +6774,16 @@
           "error_subtype": "injection",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_d6a1a0bd",
       "nl_query": "Show me * for U:NVDA",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6409,14 +6812,16 @@
           "error_subtype": "wildcard",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_72bd112e",
-      "nl_query": "Show me P,MV for U:NVDA",
+      "id": "errors_154dfa37",
+      "nl_query": "Get U:NVDA's P,MV",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6445,14 +6850,16 @@
           "error_subtype": "multiple_fields",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_aa60ed14",
       "nl_query": "What is U:NVDA's WC01001.Q?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6481,14 +6888,16 @@
           "error_subtype": "period_suffix",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
-      "id": "errors_79777e34",
-      "nl_query": "Show me TR.Revenue.FY for U:NVDA",
+      "id": "errors_60696a9d",
+      "nl_query": "Get U:NVDA's TR.Revenue.FY",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:NVDA",
             "fields": [
@@ -6517,14 +6926,16 @@
           "error_subtype": "extra_period",
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_fc18e911",
       "nl_query": "What was AAPL's stock price on January 2030?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -6550,14 +6961,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_1f8146c5",
       "nl_query": "What was AAPL's stock price on December 2050?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -6583,14 +6996,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_4230b01c",
       "nl_query": "What was AAPL's stock price on June 2100?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -6616,14 +7031,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_0a1942d6",
       "nl_query": "What was MSFT's stock price on January 2030?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -6649,14 +7066,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_fb949ec3",
       "nl_query": "What was MSFT's stock price on December 2050?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -6682,14 +7101,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_d9158538",
       "nl_query": "What was MSFT's stock price on June 2100?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -6715,14 +7136,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_d1b27533",
       "nl_query": "What was GOOGL's stock price on January 2030?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -6748,14 +7171,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_ac331be8",
       "nl_query": "What was GOOGL's stock price on December 2050?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -6781,14 +7206,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_b932f84f",
       "nl_query": "What was GOOGL's stock price on June 2100?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GOOGL",
             "fields": [
@@ -6814,14 +7241,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_d32bc5a0",
       "nl_query": "What was AMZN's stock price on January 2030?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -6847,14 +7276,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_d3e6e3bb",
       "nl_query": "What was AMZN's stock price on December 2050?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -6880,14 +7311,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_d30e613a",
       "nl_query": "What was AMZN's stock price on June 2100?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:AMZN",
             "fields": [
@@ -6913,14 +7346,16 @@
           "error_type": "future_date",
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_0b08aedb",
       "nl_query": "What is JPMorgan's inventory?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:JPM",
             "fields": [
@@ -6949,14 +7384,16 @@
           "reason": "Banks don't have inventory",
           "message_pattern": "Not applicable|No data|N/A"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_cbd28978",
       "nl_query": "What is Tesla's premiums earned?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:TSLA",
             "fields": [
@@ -6985,14 +7422,16 @@
           "reason": "Tesla is not an insurance company",
           "message_pattern": "Not applicable|No data|N/A"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_2291082f",
       "nl_query": "What is Procter & Gamble's net interest income?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:PG",
             "fields": [
@@ -7021,14 +7460,16 @@
           "reason": "P&G is not a bank",
           "message_pattern": "Not applicable|No data|N/A"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_34a62db1",
       "nl_query": "What is SpaceX's stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "SPACEX",
             "fields": [
@@ -7054,14 +7495,16 @@
           "error_type": "private_company",
           "message_pattern": "No public filings|Instrument not found|Private company"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_ad3152f1",
       "nl_query": "What is Stripe's stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "STRIPE",
             "fields": [
@@ -7087,14 +7530,16 @@
           "error_type": "private_company",
           "message_pattern": "No public filings|Instrument not found|Private company"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_beaa6440",
       "nl_query": "What is Databricks's stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "DATABRICKS",
             "fields": [
@@ -7120,14 +7565,16 @@
           "error_type": "private_company",
           "message_pattern": "No public filings|Instrument not found|Private company"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_dd79b4ee",
       "nl_query": "Get AAPL price from 2024-12-31 to 2024-01-01",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -7155,14 +7602,16 @@
           "error_subtype": "reversed",
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_5ef025fe",
       "nl_query": "Get AAPL price from 1800-01-01 to 1800-12-31",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -7190,14 +7639,16 @@
           "error_subtype": "too_old",
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_af8f058b",
       "nl_query": "Get AAPL price from invalid to 0D",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "@AAPL",
             "fields": [
@@ -7225,14 +7676,16 @@
           "error_subtype": "invalid_format",
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_c8a13bfc",
       "nl_query": "Get MSFT price from 2024-12-31 to 2024-01-01",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -7260,14 +7713,16 @@
           "error_subtype": "reversed",
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_94d62518",
       "nl_query": "Get MSFT price from 1800-01-01 to 1800-12-31",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -7295,14 +7750,16 @@
           "error_subtype": "too_old",
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_8d990fca",
       "nl_query": "Get MSFT price from invalid to 0D",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MSFT",
             "fields": [
@@ -7330,14 +7787,16 @@
           "error_subtype": "invalid_format",
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_113c8133",
       "nl_query": "What is Enron Corp's current stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:ENRN",
             "fields": [
@@ -7368,14 +7827,16 @@
           "reason": "bankruptcy",
           "message_pattern": "Delisted|No current data|Historical data only"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_421aa307",
       "nl_query": "What is Lehman Brothers's current stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:LEH",
             "fields": [
@@ -7406,14 +7867,16 @@
           "reason": "bankruptcy",
           "message_pattern": "Delisted|No current data|Historical data only"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_6f37bac0",
       "nl_query": "What is Washington Mutual's current stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:WM",
             "fields": [
@@ -7444,14 +7907,16 @@
           "reason": "bankruptcy",
           "message_pattern": "Delisted|No current data|Historical data only"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_b1baf439",
       "nl_query": "What is General Motors (old)'s current stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:GM",
             "fields": [
@@ -7482,14 +7947,16 @@
           "reason": "bankruptcy",
           "message_pattern": "Delisted|No current data|Historical data only"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_444f1e0e",
       "nl_query": "What is Time Warner's current stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:TWX",
             "fields": [
@@ -7520,14 +7987,16 @@
           "reason": "acquisition",
           "message_pattern": "Delisted|No current data|Historical data only"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_9066ae90",
       "nl_query": "What is Monsanto's current stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:MON",
             "fields": [
@@ -7558,14 +8027,16 @@
           "reason": "acquisition",
           "message_pattern": "Delisted|No current data|Historical data only"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_a7210b83",
       "nl_query": "What is Celgene's current stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:CELG",
             "fields": [
@@ -7596,14 +8067,16 @@
           "reason": "acquisition",
           "message_pattern": "Delisted|No current data|Historical data only"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     },
     {
       "id": "errors_52a9bac6",
       "nl_query": "What is Tiffany & Co's current stock price?",
       "expected_tool_calls": [
         {
-          "function": "get_data",
+          "tool_name": "get_data",
           "arguments": {
             "tickers": "U:TIF",
             "fields": [
@@ -7634,7 +8107,9 @@
           "reason": "acquisition",
           "message_pattern": "Delisted|No current data|Historical data only"
         }
-      }
+      },
+      "expected_response": null,
+      "expected_nl_response": null
     }
   ]
 }

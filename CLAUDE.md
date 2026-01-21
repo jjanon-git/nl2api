@@ -248,6 +248,21 @@ class CoverageRegistry:
 2. Tests auto-discover and include new data
 3. Add coverage requirements to `CoverageRegistry` if needed
 
+### Adding New Test Case Generators
+
+When adding a new fixture generator, follow this checklist:
+
+1. [ ] Generator created in `scripts/generators/` (extend `BaseGenerator` or create standalone)
+2. [ ] Output includes `_meta` block with `TestCaseSetConfig` fields
+3. [ ] Generator registered in `scripts/generators/__init__.py`
+4. [ ] Generator added to `scripts/generate_test_cases.py`
+5. [ ] Category added to `FixtureLoader.CATEGORIES` in `tests/unit/nl2api/fixture_loader.py`
+6. [ ] Coverage thresholds added to `CoverageRegistry.REQUIRED_COVERAGE` in `test_fixture_coverage.py`
+7. [ ] Test file created in `tests/unit/nl2api/test_{category}_fixtures.py`
+8. [ ] **Documentation updated in `docs/evaluation-data.md`**
+
+This checklist prevents documentation and test infrastructure from being overlooked.
+
 ## Accuracy Testing
 
 Accuracy tests use **real LLM calls** to measure system output quality (vs unit tests which mock LLMs).
@@ -812,10 +827,13 @@ These gaps should be addressed as the project matures. If you encounter a situat
 | `CONTRACTS.py` | All data models - read this first |
 | `src/nl2api/orchestrator.py` | NL2API main entry point |
 | `src/nl2api/agents/*.py` | Domain agent implementations |
+| `src/nl2api/resolution/resolver.py` | Entity resolution implementation |
 | `src/evaluation/core/evaluators.py` | Evaluation pipeline stages (Syntax, Logic, etc.) |
 | `src/evaluation/batch/runner.py` | Batch evaluation runner |
 | `src/evaluation/batch/metrics.py` | OTEL metrics for evaluation |
+| `scripts/generators/entity_resolution_generator.py` | Entity resolution test case generator |
 | `tests/unit/nl2api/test_fixture_coverage.py` | Dynamic test infrastructure |
 | `tests/unit/nl2api/fixture_loader.py` | Fixture loading utility |
 | `tests/accuracy/core/evaluator.py` | Accuracy testing evaluator |
 | `docs/accuracy-testing.md` | Accuracy testing pattern documentation |
+| `docs/evaluation-data.md` | Evaluation data and fixture documentation |

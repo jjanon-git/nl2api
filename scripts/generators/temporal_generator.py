@@ -23,7 +23,7 @@ class TemporalGenerator(BaseGenerator):
                          freq: Optional[str] = None) -> Dict:
         """Build a tool call with temporal parameters."""
         call = {
-            "function": "get_data",
+            "tool_name": "get_data",
             "arguments": {
                 "tickers": ticker,
                 "fields": fields,
@@ -278,7 +278,7 @@ class TemporalGenerator(BaseGenerator):
 
                     # This would map to a period-specific query
                     tool_call = {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": ticker_symbol,
                             "fields": [metric["field"]],

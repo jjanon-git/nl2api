@@ -1,38 +1,38 @@
 {
-  "generated_at": "2026-01-20T09:52:09.643323",
-  "total_test_cases": 12887,
+  "generated_at": "2026-01-21T11:54:11.859345",
+  "total_test_cases": 12651,
   "categories": {
     "lookups": {
       "category": "lookups",
-      "count": 3745,
-      "output_path": "/Users/sid/projects/evalPlatform/tests/fixtures/lseg/generated/lookups/lookups.json"
+      "count": 3715,
+      "output_path": "/Users/sid/projects/nl2api/tests/fixtures/lseg/generated/lookups/lookups.json"
     },
     "temporal": {
       "category": "temporal",
-      "count": 2727,
-      "output_path": "/Users/sid/projects/evalPlatform/tests/fixtures/lseg/generated/temporal/temporal.json"
+      "count": 2500,
+      "output_path": "/Users/sid/projects/nl2api/tests/fixtures/lseg/generated/temporal/temporal.json"
     },
     "comparisons": {
       "category": "comparisons",
       "count": 3658,
-      "output_path": "/Users/sid/projects/evalPlatform/tests/fixtures/lseg/generated/comparisons/comparisons.json"
+      "output_path": "/Users/sid/projects/nl2api/tests/fixtures/lseg/generated/comparisons/comparisons.json"
     },
     "screening": {
       "category": "screening",
-      "count": 265,
-      "output_path": "/Users/sid/projects/evalPlatform/tests/fixtures/lseg/generated/screening/screening.json"
+      "count": 274,
+      "output_path": "/Users/sid/projects/nl2api/tests/fixtures/lseg/generated/screening/screening.json"
     },
     "errors": {
       "category": "errors",
-      "count": 215,
-      "output_path": "/Users/sid/projects/evalPlatform/tests/fixtures/lseg/generated/errors/errors.json"
+      "count": 216,
+      "output_path": "/Users/sid/projects/nl2api/tests/fixtures/lseg/generated/errors/errors.json"
     },
     "complex": {
       "category": "complex",
-      "count": 2277,
-      "output_path": "/Users/sid/projects/evalPlatform/tests/fixtures/lseg/generated/complex/complex.json"
+      "count": 2288,
+      "output_path": "/Users/sid/projects/nl2api/tests/fixtures/lseg/generated/complex/complex.json"
     }
   },
   "target": 11000,
-  "coverage_pct": 117.2
+  "coverage_pct": 115.0
 }

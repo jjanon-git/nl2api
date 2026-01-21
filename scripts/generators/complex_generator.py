@@ -85,7 +85,7 @@ class ComplexGenerator(BaseGenerator):
                 # Create 2-step workflow
                 steps = [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": index_symbol,
                             "fields": ["RIC"],
@@ -94,7 +94,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": f"Get {index_name} constituents"
                     },
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": "{{constituents}}",
                             "fields": [metric],
@@ -154,7 +154,7 @@ class ComplexGenerator(BaseGenerator):
                 # Create 2-step workflow
                 steps = [
                     {
-                        "function": "screen",
+                        "tool_name": "screen",
                         "arguments": {
                             "expression": f"SCREEN(U(IN(Equity(active,public,primary))), {screen_filter}, TOP(100))",
                             "output_fields": ["TR.CommonName", "RIC"]
@@ -162,7 +162,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": f"Screen for {screen_name}"
                     },
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "instruments": "{{screened_securities}}",
                             "fields": pkg_fields
@@ -215,7 +215,7 @@ class ComplexGenerator(BaseGenerator):
                 # Create 3-step workflow
                 steps = [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "instruments": [ticker],
                             "fields": [metric_field, "TR.TRBCIndustryCode", "TR.TRBCIndustry"]
@@ -223,7 +223,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": f"Get {company}'s {metric_name} and industry code"
                     },
                     {
-                        "function": "screen",
+                        "tool_name": "screen",
                         "arguments": {
                             "expression": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCIndustryCode, '{{industry_code}}'), TOP(50))",
                             "output_fields": ["TR.CommonName", "RIC", metric_field]
@@ -231,7 +231,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": "Get industry peers with same metric"
                     },
                     {
-                        "function": "calculate",
+                        "tool_name": "calculate",
                         "arguments": {
                             "operation": "statistics",
                             "field": metric_field,
@@ -286,7 +286,7 @@ class ComplexGenerator(BaseGenerator):
                 # Create 3-step workflow
                 steps = [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": ticker,
                             "fields": historical_fields,
@@ -298,7 +298,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": f"Get {historical_years}-year historical data (Datastream)"
                     },
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "instruments": [ric],
                             "fields": current_fields
@@ -306,7 +306,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": "Get current values (Refinitiv)"
                     },
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "instruments": [ric],
                             "fields": forward_fields
@@ -361,7 +361,7 @@ class ComplexGenerator(BaseGenerator):
 
             steps = [
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": ticker,
                         "fields": step1.get("fields", []),
@@ -373,7 +373,7 @@ class ComplexGenerator(BaseGenerator):
                     "description": "Get 5-year historical cash flows (Datastream)"
                 },
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ric],
                         "fields": step2.get("fields", [])
@@ -381,7 +381,7 @@ class ComplexGenerator(BaseGenerator):
                     "description": "Get growth assumptions from estimates (Refinitiv)"
                 },
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ric],
                         "fields": step3.get("fields", [])
@@ -430,7 +430,7 @@ class ComplexGenerator(BaseGenerator):
 
             steps = [
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ticker],
                         "fields": step1.get("fields", [])
@@ -438,7 +438,7 @@ class ComplexGenerator(BaseGenerator):
                     "description": f"Get {company}'s valuation multiples and industry"
                 },
                 {
-                    "function": "screen",
+                    "tool_name": "screen",
                     "arguments": {
                         "expression": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCIndustryCode, '{{industry_code}}'), TOP(TR.CompanyMarketCap, 10))",
                         "output_fields": ["TR.CommonName", "RIC"]
@@ -446,7 +446,7 @@ class ComplexGenerator(BaseGenerator):
                     "description": "Find top 10 industry peers by market cap"
                 },
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": "{{peer_rics}}",
                         "fields": step3.get("fields", [])
@@ -510,7 +510,7 @@ class ComplexGenerator(BaseGenerator):
 
                 steps = [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": ticker,
                             "fields": fields,
@@ -525,7 +525,7 @@ class ComplexGenerator(BaseGenerator):
                 # Add calculation step for Z-score and F-score
                 if analysis_name in ["altman_z_score", "piotroski_f_score"]:
                     steps.append({
-                        "function": "calculate",
+                        "tool_name": "calculate",
                         "arguments": {
                             "operation": analysis_name,
                             "formula": analysis_config.get("formula", "")
@@ -586,7 +586,7 @@ class ComplexGenerator(BaseGenerator):
 
                 steps = [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "instruments": holdings,
                             "fields": fields
@@ -599,7 +599,7 @@ class ComplexGenerator(BaseGenerator):
                 calculations = analysis_config.get("calculations", [])
                 if calculations:
                     steps.append({
-                        "function": "calculate",
+                        "tool_name": "calculate",
                         "arguments": {
                             "operations": calculations
                         },
@@ -658,7 +658,7 @@ class ComplexGenerator(BaseGenerator):
 
                 steps = [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "instruments": [ticker],
                             "fields": step1_fields
@@ -671,7 +671,7 @@ class ComplexGenerator(BaseGenerator):
                 if step2_fields:
                     step2_params = analysis_config.get("step2_parameters", {})
                     steps.append({
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": ticker,
                             "fields": step2_fields,
@@ -738,7 +738,7 @@ class ComplexGenerator(BaseGenerator):
                 if has_wc_fields or has_ds_fields:
                     ds_fields = [f for f in fields if f.startswith("WC") or f in ["P", "MV", "PE", "PTBV", "DY", "EV", "EVEBID"]]
                     steps.append({
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": ticker,
                             "fields": ds_fields,
@@ -752,7 +752,7 @@ class ComplexGenerator(BaseGenerator):
                 if has_tr_fields:
                     tr_fields = [f for f in fields if f.startswith("TR.")]
                     steps.append({
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "instruments": [ric],
                             "fields": tr_fields
@@ -762,7 +762,7 @@ class ComplexGenerator(BaseGenerator):
 
                 # Add calculation step
                 steps.append({
-                    "function": "calculate",
+                    "tool_name": "calculate",
                     "arguments": {
                         "operation": calc_name,
                         "formula": formula
@@ -818,7 +818,7 @@ class ComplexGenerator(BaseGenerator):
                 # Step 1: Get universe constituents
                 if universe_symbol:
                     steps.append({
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": universe_symbol,
                             "fields": ["RIC"],
@@ -828,7 +828,7 @@ class ComplexGenerator(BaseGenerator):
                     })
                 elif universe_screen:
                     steps.append({
-                        "function": "screen",
+                        "tool_name": "screen",
                         "arguments": {
                             "expression": f"SCREEN(U(IN(Equity(active,public,primary))), {universe_screen}, TOP(100))",
                             "output_fields": ["TR.CommonName", "RIC"]
@@ -838,7 +838,7 @@ class ComplexGenerator(BaseGenerator):
 
                 # Step 2: Get metric for all securities
                 steps.append({
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": "{{securities}}",
                         "fields": [metric_field, "TR.CommonName"]
@@ -848,7 +848,7 @@ class ComplexGenerator(BaseGenerator):
 
                 # Step 3: Sort and rank
                 steps.append({
-                    "function": "sort_and_select",
+                    "tool_name": "sort_and_select",
                     "arguments": {
                         "field": metric_field,
                         "order": direction,
@@ -910,7 +910,7 @@ class ComplexGenerator(BaseGenerator):
 
                     steps = [
                         {
-                            "function": "get_data",
+                            "tool_name": "get_data",
                             "arguments": {
                                 "tickers": ticker,
                                 "fields": [field],
@@ -922,7 +922,7 @@ class ComplexGenerator(BaseGenerator):
                             "description": f"Get {period}-year {metric} history"
                         },
                         {
-                            "function": "calculate",
+                            "tool_name": "calculate",
                             "arguments": {
                                 "operation": "cagr",
                                 "period_years": period
@@ -965,7 +965,7 @@ class ComplexGenerator(BaseGenerator):
 
                 steps = [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": ticker,
                             "fields": ["P"],
@@ -976,7 +976,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": "Get current price"
                     },
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": f"MAV#({ticker},{ma_period}D)",
                             "fields": ["P"],
@@ -987,7 +987,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": f"Get {ma_period}-day moving average"
                     },
                     {
-                        "function": "calculate",
+                        "tool_name": "calculate",
                         "arguments": {
                             "operation": "compare",
                             "comparison": "above_below"
@@ -1041,7 +1041,7 @@ class ComplexGenerator(BaseGenerator):
 
                     steps = [
                         {
-                            "function": "get_data",
+                            "tool_name": "get_data",
                             "arguments": {
                                 "tickers": ticker,
                                 "fields": ["RI"],
@@ -1052,7 +1052,7 @@ class ComplexGenerator(BaseGenerator):
                             "description": f"Get {company} total return index"
                         },
                         {
-                            "function": "get_data",
+                            "tool_name": "get_data",
                             "arguments": {
                                 "tickers": benchmark_sym,
                                 "fields": ["RI"],
@@ -1063,7 +1063,7 @@ class ComplexGenerator(BaseGenerator):
                             "description": f"Get {benchmark} total return index"
                         },
                         {
-                            "function": "calculate",
+                            "tool_name": "calculate",
                             "arguments": {
                                 "operation": "relative_return",
                                 "metric": "alpha"
@@ -1109,7 +1109,7 @@ class ComplexGenerator(BaseGenerator):
             nl_query = f"Get PE ratio for {ticker}"
             steps = [
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ticker],
                         "fields": ["TR.PE", "TR.EVToSales", "TR.PriceToSalesPerShare"]
@@ -1140,7 +1140,7 @@ class ComplexGenerator(BaseGenerator):
             nl_query = f"Calculate debt-to-equity ratio for {ticker}"
             steps = [
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ticker],
                         "fields": ["TR.DebtToEquity", "TR.TotalDebtOutstanding", "TR.TotalEquity"]
@@ -1174,7 +1174,7 @@ class ComplexGenerator(BaseGenerator):
             nl_query = f"Get annual revenue for {ticker} aligned with fiscal year"
             steps = [
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ticker],
                         "fields": ["TR.Revenue", "TR.FiscalYearEnd", "TR.ReportDate"]
@@ -1209,7 +1209,7 @@ class ComplexGenerator(BaseGenerator):
             nl_query = f"Compare {adr} ADR to {ordinary} ordinary shares valuation"
             steps = [
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": [adr],
                         "fields": ["TR.PriceClose", "TR.SharesOutstanding", "TR.CompanyMarketCap"]
@@ -1217,7 +1217,7 @@ class ComplexGenerator(BaseGenerator):
                     "description": "Get ADR data"
                 },
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ordinary],
                         "fields": ["TR.PriceClose", "TR.SharesOutstanding", "TR.CompanyMarketCap"]
@@ -1254,7 +1254,7 @@ class ComplexGenerator(BaseGenerator):
             nl_query = f"Get 10-year revenue history for {ticker}"
             steps = [
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": ticker,
                         "fields": ["WC01001"],
@@ -1294,7 +1294,7 @@ class ComplexGenerator(BaseGenerator):
             nl_query = f"Get complete financial history for {ticker}"
             steps = [
                 {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": ticker,
                         "fields": ["WC01001", "WC01751", "WC08301"],
@@ -1331,7 +1331,7 @@ class ComplexGenerator(BaseGenerator):
                 "nl": "Find stocks with PE under 1 and revenue over $1 trillion",
                 "description": "Screen that returns no results",
                 "steps": [{
-                    "function": "screen",
+                    "tool_name": "screen",
                     "arguments": {
                         "expression": "SCREEN(U(IN(Equity(active,public,primary))), TR.PE>0, TR.PE<=1, TR.Revenue(Scale=12)>=1)",
                         "output_fields": ["TR.CommonName", "RIC"]
@@ -1344,7 +1344,7 @@ class ComplexGenerator(BaseGenerator):
                 "nl": "Get price for INVALIDTICKER123",
                 "description": "Non-existent ticker",
                 "steps": [{
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": "INVALIDTICKER123",
                         "fields": ["P"],
@@ -1360,7 +1360,7 @@ class ComplexGenerator(BaseGenerator):
                 "nl": "Get Apple's stock price on December 31, 2030",
                 "description": "Future date request",
                 "steps": [{
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": "@AAPL",
                         "fields": ["P"],
@@ -1376,7 +1376,7 @@ class ComplexGenerator(BaseGenerator):
                 "nl": "Get Microsoft's revenue in 1975",
                 "description": "Date before company existed",
                 "steps": [{
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": "U:MSFT",
                         "fields": ["WC01001"],
@@ -1393,7 +1393,7 @@ class ComplexGenerator(BaseGenerator):
                 "nl": "Get TR.Revenue using Datastream API",
                 "description": "Wrong field format for API",
                 "steps": [{
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": "@AAPL",
                         "fields": ["TR.Revenue"],
@@ -1437,7 +1437,7 @@ class ComplexGenerator(BaseGenerator):
                 "nl": "Get the prices of all S&P 500 constituents",
                 "steps": [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": "LS&PCOMP|L",
                             "fields": ["RIC"],
@@ -1446,7 +1446,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": "Get S&P 500 constituents"
                     },
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": "{{constituents}}",
                             "fields": ["P"],
@@ -1463,7 +1463,7 @@ class ComplexGenerator(BaseGenerator):
                 "nl": "Calculate the average PE ratio of FTSE 100 companies",
                 "steps": [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": "LFTSE100|L",
                             "fields": ["RIC"],
@@ -1472,7 +1472,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": "Get FTSE 100 constituents"
                     },
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": "{{constituents}}",
                             "fields": ["PE"],
@@ -1483,7 +1483,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": "Get PE ratios"
                     },
                     {
-                        "function": "calculate",
+                        "tool_name": "calculate",
                         "arguments": {
                             "operation": "mean",
                             "field": "PE"
@@ -1497,7 +1497,7 @@ class ComplexGenerator(BaseGenerator):
                 "nl": "Find the best performing stock in the DAX over the past year",
                 "steps": [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": "LDAXINDX|L",
                             "fields": ["RIC"],
@@ -1506,7 +1506,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": "Get DAX constituents"
                     },
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": "{{constituents_pch}}",
                             "fields": ["P"],
@@ -1517,7 +1517,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": "Get 1-year returns using PCH#"
                     },
                     {
-                        "function": "sort_and_select",
+                        "tool_name": "sort_and_select",
                         "arguments": {
                             "operation": "max",
                             "count": 1
@@ -1531,7 +1531,7 @@ class ComplexGenerator(BaseGenerator):
                 "nl": "Get the top 10 highest dividend yielding stocks in the FTSE 100",
                 "steps": [
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": "LFTSE100|L",
                             "fields": ["RIC"],
@@ -1540,7 +1540,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": "Get FTSE 100 constituents"
                     },
                     {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": "{{constituents}}",
                             "fields": ["DY"],
@@ -1551,7 +1551,7 @@ class ComplexGenerator(BaseGenerator):
                         "description": "Get dividend yields"
                     },
                     {
-                        "function": "sort_and_select",
+                        "tool_name": "sort_and_select",
                         "arguments": {
                             "operation": "top",
                             "count": 10,
@@ -1595,7 +1595,7 @@ class ComplexGenerator(BaseGenerator):
             nl_query = f"Get components for {company}'s DuPont ROE analysis"
 
             tool_call = {
-                "function": "get_data",
+                "tool_name": "get_data",
                 "arguments": {
                     "tickers": ticker,
                     "fields": [
@@ -1658,7 +1658,7 @@ class ComplexGenerator(BaseGenerator):
                 nl_query = f"Get {model['name']} inputs for {company}"
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": ticker,
                         "fields": model["fields"],
@@ -1743,7 +1743,7 @@ class ComplexGenerator(BaseGenerator):
                 nl_query = f"Get {package['name']} for {company}"
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ticker],
                         "fields": package["fields"]
@@ -1826,7 +1826,7 @@ class ComplexGenerator(BaseGenerator):
                 nl_query = query["nl_template"].format(company=company)
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ticker],
                         "fields": query["fields"]
@@ -1867,7 +1867,7 @@ class ComplexGenerator(BaseGenerator):
             nl_query = f"Full financial health check for {company}"
 
             tool_call = {
-                "function": "get_data",
+                "tool_name": "get_data",
                 "arguments": {
                     "tickers": ticker,
                     "fields": [
@@ -1928,7 +1928,7 @@ class ComplexGenerator(BaseGenerator):
             nl_query = f"Perform peer analysis: get all key metrics for {group['name']}"
 
             tool_call = {
-                "function": "get_data",
+                "tool_name": "get_data",
                 "arguments": {
                     "tickers": ",".join(group["tickers"]),
                     "fields": [

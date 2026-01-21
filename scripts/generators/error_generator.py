@@ -64,7 +64,7 @@ class ErrorGenerator(BaseGenerator):
                 nl_query = template.format(ticker=invalid["ticker"])
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": invalid["ticker"],
                         "fields": [field],
@@ -141,7 +141,7 @@ class ErrorGenerator(BaseGenerator):
                 )
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": ticker,
                         "fields": [invalid["field"]],
@@ -199,7 +199,7 @@ class ErrorGenerator(BaseGenerator):
                     nl_query = f"What was {company_name}'s stock price on {future['nl']}?"
 
                     tool_call = {
-                        "function": "get_data",
+                        "tool_name": "get_data",
                         "arguments": {
                             "tickers": ticker,
                             "fields": [field],
@@ -266,7 +266,7 @@ class ErrorGenerator(BaseGenerator):
             nl_query = f"What is {mismatch['name']}'s {mismatch['field_name']}?"
 
             tool_call = {
-                "function": "get_data",
+                "tool_name": "get_data",
                 "arguments": {
                     "tickers": mismatch["ticker"],
                     "fields": [mismatch["field"]],
@@ -319,7 +319,7 @@ class ErrorGenerator(BaseGenerator):
                 nl_query = f"What is {company['name']}'s stock price?"
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": company["ticker"],
                         "fields": [field],
@@ -370,7 +370,7 @@ class ErrorGenerator(BaseGenerator):
                 nl_query = f"Get {ticker.replace('U:', '').replace('@', '')} price from {date_range['start']} to {date_range['end']}"
 
                 tool_call = {
-                    "function": "get_data",
+                    "tool_name": "get_data",
                     "arguments": {
                         "tickers": ticker,
                         "fields": ["P"],
@@ -415,7 +415,7 @@ class ErrorGenerator(BaseGenerator):
             nl_query = f"What is {stock['name']}'s current stock price?"
 
             tool_call = {
-                "function": "get_data",
+                "tool_name": "get_data",
                 "arguments": {
                     "tickers": stock["symbol"],
                     "fields": ["P"],

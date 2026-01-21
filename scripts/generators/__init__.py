@@ -11,6 +11,7 @@ Generators:
 - screening_generator: Screening query generation
 - error_generator: Error scenario generation
 - complex_generator: Multi-step workflow generation
+- entity_resolution_generator: Entity name/ticker to RIC resolution tests
 """
 
 from .lookup_generator import LookupGenerator
@@ -19,6 +20,7 @@ from .comparison_generator import ComparisonGenerator
 from .screening_generator import ScreeningGenerator
 from .error_generator import ErrorGenerator
 from .complex_generator import ComplexGenerator
+from .entity_resolution_generator import EntityResolutionGenerator
 
 __all__ = [
     'LookupGenerator',
@@ -26,5 +28,6 @@ __all__ = [
     'ComparisonGenerator',
     'ScreeningGenerator',
     'ErrorGenerator',
-    'ComplexGenerator'
+    'ComplexGenerator',
+    'EntityResolutionGenerator',
 ]

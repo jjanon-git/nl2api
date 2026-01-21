@@ -1,26 +1,39 @@
 """
 Base Generator class with common functionality for all test case generators.
+
+All generators should produce output aligned with CONTRACTS.py TestCase and
+TestCaseSetConfig models. Key requirements:
+- Use "tool_name" (not "function") in tool calls
+- Include _meta block with TestCaseSetConfig fields
+- Include expected_response and expected_nl_response fields (can be null)
 """
 
 import json
 import random
 import hashlib
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 
 
 @dataclass
 class TestCase:
-    """Represents a single test case."""
+    """
+    Represents a single test case.
+
+    Aligned with CONTRACTS.py TestCase model.
+    """
     id: str
     nl_query: str
-    expected_tool_calls: List[Dict[str, Any]]
+    expected_tool_calls: List[Dict[str, Any]]  # Must use "tool_name", not "function"
     complexity: int
     category: str
     subcategory: str
     tags: List[str]
     metadata: Dict[str, Any]
+    expected_response: Optional[Dict[str, Any]] = None  # Structured API response data
+    expected_nl_response: Optional[str] = None  # Human-readable response sentence
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
@@ -169,8 +182,26 @@ class BaseGenerator:
                          subcategory: str,
                          complexity: int,
                          tags: List[str],
-                         metadata: Optional[Dict[str, Any]] = None) -> Optional[TestCase]:
-        """Create a test case if it doesn't already exist."""
+                         metadata: Optional[Dict[str, Any]] = None,
+                         expected_response: Optional[Dict[str, Any]] = None,
+                         expected_nl_response: Optional[str] = None) -> Optional[TestCase]:
+        """
+        Create a test case if it doesn't already exist.
+
+        Args:
+            nl_query: Natural language query
+            tool_calls: Expected tool calls (must use "tool_name" key, not "function")
+            category: Test category (e.g., "lookups", "temporal")
+            subcategory: Test subcategory
+            complexity: Complexity level (1-5)
+            tags: List of tags for filtering
+            metadata: Additional metadata
+            expected_response: Expected structured data response (can be None)
+            expected_nl_response: Expected natural language response (can be None)
+
+        Returns:
+            TestCase if created, None if duplicate
+        """
         test_id = self._generate_id(nl_query, category)
 
         if test_id in self.generated_ids:
@@ -186,18 +217,75 @@ class BaseGenerator:
             category=category,
             subcategory=subcategory,
             tags=tags,
-            metadata=metadata or {}
+            metadata=metadata or {},
+            expected_response=expected_response,
+            expected_nl_response=expected_nl_response,
         )
 
     def generate(self) -> List[TestCase]:
         """Generate test cases. Override in subclasses."""
         raise NotImplementedError("Subclasses must implement generate()")
 
+    def _get_capability(self) -> str:
+        """
+        Get the capability name for this generator.
+        Override in subclasses if different from 'nl2api'.
+        """
+        return "nl2api"
+
+    def _get_category_name(self) -> str:
+        """
+        Get the category name for this generator.
+        Override in subclasses.
+        """
+        return self.__class__.__name__.replace("Generator", "").lower()
+
+    def _requires_nl_response(self) -> bool:
+        """
+        Whether this generator's test cases require expected_nl_response.
+        Override in subclasses if False (e.g., entity_resolution).
+        """
+        return True
+
+    def _requires_expected_response(self) -> bool:
+        """
+        Whether this generator's test cases require expected_response.
+        Override in subclasses if True.
+        """
+        return False
+
+    def _create_meta_block(self, test_cases: List[TestCase]) -> Dict[str, Any]:
+        """
+        Create the _meta block for TestCaseSetConfig.
+
+        This block defines per-dataset field requirements and generation metadata.
+        """
+        return {
+            "name": self._get_category_name(),
+            "capability": self._get_capability(),
+            "description": f"Generated test cases for {self._get_category_name()} category",
+            "requires_nl_response": self._requires_nl_response(),
+            "requires_expected_response": self._requires_expected_response(),
+            "schema_version": "1.0",
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generator": f"scripts/generators/{self.__class__.__module__.split('.')[-1]}.py",
+        }
+
     def save_test_cases(self, test_cases: List[TestCase], output_path: Path):
-        """Save test cases to a JSON file."""
+        """
+        Save test cases to a JSON file with _meta block.
+
+        Output format aligned with CONTRACTS.py TestCaseSetConfig:
+        {
+            "_meta": { ... TestCaseSetConfig fields ... },
+            "metadata": { ... legacy metadata ... },
+            "test_cases": [ ... ]
+        }
+        """
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         data = {
+            "_meta": self._create_meta_block(test_cases),
             "metadata": {
                 "generator": self.__class__.__name__,
                 "count": len(test_cases)
