@@ -193,7 +193,7 @@ Model: [model name]
 
 ## Project Overview
 
-**NL2API** is a Natural Language to API translation system for LSEG financial data APIs. It translates natural language queries into structured API calls for Datastream, Estimates, Fundamentals, and other LSEG data services. Includes an evaluation framework for testing at scale (~400k test cases).
+**NL2API** is a Natural Language to API translation system for LSEG financial data APIs. It translates natural language queries into structured API calls for Datastream, Estimates, Fundamentals, and other LSEG data services. Includes an evaluation framework for testing at scale (~19k test cases).
 
 ## Quick Commands
 
@@ -327,7 +327,7 @@ nl2api/
 │   │   ├── core/                     # Evaluator, config, thresholds
 │   │   ├── agents/                   # Per-agent accuracy tests
 │   │   └── domains/                  # Per-domain accuracy tests
-│   └── fixtures/lseg/generated/      # 12,887 test fixtures
+│   └── fixtures/lseg/generated/      # ~19k test fixtures
 └── docker-compose.yml                # PostgreSQL + pgvector + Redis + OTEL
 ```
 
@@ -634,7 +634,7 @@ Different capabilities have different field requirements. Each fixture file decl
 ### Regenerating Fixtures
 
 ```bash
-# Regenerate all fixtures (12,887 test cases)
+# Regenerate all fixtures (~19k test cases)
 python scripts/generate_test_cases.py --all
 
 # Regenerate specific category
