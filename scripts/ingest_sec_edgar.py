@@ -329,7 +329,7 @@ async def upsert_sec_entities(
                     if existing["data_source"] == "gleif":
                         stats["matched_gleif"] += 1
                 else:
-                    # Insert new entity
+                    # Insert new entity (no ON CONFLICT needed - we already checked)
                     entity_id = uuid.uuid4()
                     await conn.execute(
                         """
@@ -342,12 +342,6 @@ async def upsert_sec_entities(
                             'company', 'active', true,
                             'US', 'sec_edgar', 1.0
                         )
-                        ON CONFLICT (cik) DO UPDATE SET
-                            ticker = COALESCE(EXCLUDED.ticker, entities.ticker),
-                            ric = COALESCE(EXCLUDED.ric, entities.ric),
-                            exchange = COALESCE(EXCLUDED.exchange, entities.exchange),
-                            is_public = true,
-                            updated_at = NOW()
                         """,
                         entity_id,
                         cik,

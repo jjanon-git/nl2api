@@ -147,9 +147,14 @@ Week 8+:   P2.x based on metrics and business priority
 ## Detailed Implementation Plans
 
 See individual implementation plan files:
-- [P0.1 Observability](./plans/P0.1-observability.md)
-- [P0.2 Entity Resolution](./plans/P0.2-entity-resolution.md)
-- [P0.3 Request Metrics](./plans/P0.3-request-metrics.md)
+- [P0.1 Observability](./observability.md)
+- [P0.2 Entity Resolution](./entity-resolution-p0.md)
+- [P0.3 Request Metrics](./request-metrics.md)
+
+Related plans:
+- [Entity Resolution Expansion](./entity-resolution-expansion.md)
+- [MCP Migration](./mcp-migration.md)
+- [RAG Implementation](./rag-implementation.md)
 
 ---
 
