@@ -15,33 +15,120 @@ This file tracks all planned work, technical debt, and in-flight items for the N
 
 ---
 
-## In Progress
+## Capabilities Evaluation Matrix
 
-### Entity Resolution Expansion (P0.2)
-**Started:** 2026-01-20
-**Status:** Partially Complete
-**Docs:** [docs/plans/entity-resolution-expansion.md](docs/plans/entity-resolution-expansion.md)
+**Every capability needs evaluation.** This matrix tracks what we can measure.
 
-Database-backed entity resolution with 2M+ entities via GLEIF/SEC EDGAR.
+| Capability | Description | Fixtures | Eval Mode | Baseline | Status |
+|------------|-------------|----------|-----------|----------|--------|
+| **Entity Resolution** | Map company names → RICs | 3,109 | `resolver` | **99.5%** | ✅ Evaluated |
+| **Query Routing** | Route query → correct domain agent | 0 | `orchestrator` | — | ❌ No fixtures |
+| **Tool Selection** | Select correct tool within agent | 2,288 (complex) | `orchestrator` | — | ❌ Not loaded/run |
+| **Entity Extraction** | Extract company names from NL query | 0 | — | — | ❌ No fixtures |
+| **DatastreamAgent** | Price, time series, calculated fields | 3,715 (lookups) + 2,500 (temporal) | `orchestrator` | — | ❌ Not loaded/run |
+| **EstimatesAgent** | I/B/E/S forecasts, recommendations | 0 | `orchestrator` | — | ❌ No fixtures |
+| **FundamentalsAgent** | WC codes, TR codes, financials | 0 | `orchestrator` | — | ❌ No fixtures |
+| **OfficersAgent** | Executives, compensation, governance | 0 | `orchestrator` | — | ❌ No fixtures |
+| **ScreeningAgent** | SCREEN expressions, rankings | 274 | `orchestrator` | — | ❌ Not loaded/run |
+| **Comparison Queries** | Compare multiple entities | 3,658 | `orchestrator` | — | ❌ Not loaded/run |
+| **NL Response Gen** | Generate human-readable response | 0 | `orchestrator` | — | ❌ No fixtures (blocked by temporal) |
+| **RAG Retrieval** | Retrieve relevant context | 0 | — | — | ❌ No fixtures |
+| **Clarification Flow** | Handle ambiguous queries | 0 | — | — | ❌ No fixtures |
 
-**Completed:**
-- [x] Database schema (007_entities.sql migration)
-- [x] GLEIF ingestion script (scripts/ingest_gleif.py)
-- [x] SEC EDGAR ingestion script (scripts/ingest_sec_edgar.py)
-- [x] Alias generation
-- [x] Fuzzy matching (rapidfuzz)
-- [x] OpenFIGI integration
-- [x] Static mappings expansion (109 companies)
+### Legend
+- ✅ **Evaluated** - Has fixtures, baseline established, tracking over time
+- ⚠️ **Needs improvement** - Evaluated but accuracy below target
+- ❌ **No fixtures** - Capability exists but no evaluation data
+- ❌ **Not loaded/run** - Fixtures exist but not in database / not evaluated
 
-**Remaining:**
-- [ ] Run full GLEIF ingestion (~2M entities)
-- [ ] Run SEC EDGAR ingestion (~8.5K US companies)
-- [ ] Update resolver to use database as primary source
-- [ ] Performance benchmarking
+### Priority Actions
+1. **Load all fixtures** into database (not just entity_resolution)
+2. **Run orchestrator evaluation** to get baselines for tool selection, agents
+3. **Create fixtures** for missing capabilities (routing, extraction, RAG, per-agent)
+
+---
+
+## Architecture Overview
+
+```
+User Query
+    │
+    ▼
+┌─────────────────────┐
+│  Entity Resolution  │ ──► Database (2.9M entities) + fuzzy matching
+│      ~10ms          │     99.5% accuracy on test fixtures
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│   FM-First Router   │ ──► LLM call with agents as tools
+│     ~300ms          │     Cache: Redis L1 + pgvector L2
+│    ~100 tokens      │
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ Ambiguity Detection │ ──► Rule-based patterns
+│      ~5ms           │
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│  Context Retrieval  │ ──► RAG (pgvector) or MCP
+│     ~50ms           │     Dual-mode: local/mcp/hybrid
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│    Domain Agent     │ ──► Rule-based OR LLM tool-calling
+│    ~500ms           │     5 agents: datastream, estimates,
+│   ~1000 tokens      │     fundamentals, officers, screening
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│     Tool Calls      │ ──► Returned to caller
+└─────────────────────┘
+
+Total: ~850ms, ~1100 tokens per request
+```
+
+---
+
+## Up Next (Recommended Order)
+
+| # | Item | Rationale |
+|---|------|-----------|
+| 1 | **Routing Validation Benchmark** | Can't improve what we can't measure. Must establish routing accuracy baseline. |
+| 2 | **Haiku Routing Spike** | Potential 10x cost reduction if Haiku matches Sonnet for routing. Low effort to test. |
+| 3 | **Temporal Data Handling** | Blocks live API integration which blocks NL response generation testing. |
 
 ---
 
 ## High Priority (P0)
+
+### Codebase Audit: Remove Early Development Hacks
+**Created:** 2026-01-21
+**Status:** Not Started
+
+Audit the codebase for patterns similar to the static mappings that were just removed:
+- Small hardcoded lists that should be database-backed
+- Fallback logic that masks real issues
+- Redundant code paths that add complexity without value
+- Dead code or unused parameters
+
+**Example just removed:** Static company_mappings.json (109 companies) that was:
+- Redundant with 2.9M entity database
+- Causing fuzzy matching to only search 280 names
+- Adding complexity with ticker_mappings + common_mappings code paths
+
+**Areas to audit:**
+- [ ] `src/nl2api/agents/` - Hardcoded patterns, fallback lists
+- [ ] `src/nl2api/rag/` - Static retrieval configs
+- [ ] `src/evaluation/` - Hardcoded thresholds or test data
+- [ ] `scripts/` - One-off hacks that became permanent
+
+---
 
 ### Temporal Evaluation Data Handling
 **Created:** 2026-01-21
@@ -76,39 +163,42 @@ Connect evaluation pipeline to real LSEG APIs to:
 
 ## Medium Priority (P1)
 
-### Token Optimization (P1.1)
+### Routing Validation Benchmark (P1.1)
 **Created:** 2026-01-20
 **Status:** Not Started
-**Docs:** [docs/plans/roadmap.md](docs/plans/roadmap.md)
+**Priority:** TOP - Must establish baseline before optimization
+
+FM-first router not validated against fixtures. Create benchmark suite to measure routing accuracy.
+
+**Why first:** Can't improve what we can't measure. Routing accuracy drives all downstream capabilities.
+
+---
+
+### Haiku Routing Spike (P1.2)
+**Created:** 2026-01-21
+**Status:** Not Started
+**Duration:** 1 week
+**Hypothesis:** Haiku may be sufficient at 1/10th cost
+
+Test if Claude 3.5 Haiku performs comparably to Sonnet for query routing.
+
+**Why promoted from Research:** High potential ROI, low implementation risk, depends on P1.1 benchmark.
+
+---
+
+### Token Optimization (P1.3)
+**Created:** 2026-01-20
+**Status:** Not Started
 
 Static prompts waste 800-1200 tokens per agent. Compress prompts dynamically based on query type.
 
 ---
 
-### Smart RAG Context Selection (P1.2)
+### Smart RAG Context Selection (P1.4)
 **Created:** 2026-01-20
 **Status:** Not Started
-**Docs:** [docs/plans/roadmap.md](docs/plans/roadmap.md)
 
 Fixed retrieval parameters don't adapt to query type. Implement query-type-aware weighting and reranking.
-
----
-
-### Rule-Based Coverage Expansion (P1.3)
-**Created:** 2026-01-20
-**Status:** Not Started
-**Docs:** [docs/plans/roadmap.md](docs/plans/roadmap.md)
-
-Only 15-50% of queries are handled by rules. Expand pattern coverage for common query types.
-
----
-
-### Routing Validation Benchmark (P1.4)
-**Created:** 2026-01-20
-**Status:** Not Started
-**Docs:** [docs/plans/roadmap.md](docs/plans/roadmap.md)
-
-FM-first router not validated against fixtures. Create benchmark suite to measure routing accuracy.
 
 ---
 
@@ -157,6 +247,17 @@ Missing integration tests for:
 ---
 
 ## Low Priority (P2)
+
+### Rule-Based Coverage Expansion (P2.0)
+**Created:** 2026-01-20
+**Status:** Not Started
+**Demoted from:** P1.3
+
+Only 15-50% of queries are handled by rules. Expand pattern coverage for common query types.
+
+**Why demoted:** Lower ROI than routing optimization. Rules are fallback; LLM handles most queries anyway.
+
+---
 
 ### pyproject.toml Repository URL
 **Created:** 2026-01-21
@@ -256,13 +357,6 @@ Migrate from pgvector to Azure AI Search for production scale.
 
 ## Research Spikes
 
-### Routing Model Comparison
-**Duration:** 1 week
-**Hypothesis:** Haiku may be sufficient at 1/10th cost
-**Status:** Not Started
-
----
-
 ### Fine-Tuning Feasibility
 **Duration:** 2-3 weeks
 **Hypothesis:** Domain-specific model outperforms general LLM
@@ -288,6 +382,7 @@ Migrate from pgvector to Azure AI Search for production scale.
 
 ### 2026-01-21
 
+- [x] **Entity Resolution (P0.2): 99.5% accuracy** - Database-backed resolution with 2.9M entities, pg_trgm fuzzy matching, multi-stage lookup (aliases → primary_name → ticker → fuzzy). See [edge cases doc](docs/plans/entity-resolution-edge-cases.md) for remaining 0.5%.
 - [x] Public Release Audit (P0): LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, GitHub templates
 - [x] pyproject.toml metadata for PyPI
 - [x] MCP experimental notice + tracking in docs/status.md
@@ -300,6 +395,7 @@ Migrate from pgvector to Azure AI Search for production scale.
 - [x] Tool selection eval data: 15,760 test cases loaded into PostgreSQL
 - [x] OTEL metrics fix: Switched to Prometheus scrape pattern (port 8889)
 - [x] Observability verification: Traces → Jaeger ✓, Metrics → Prometheus ✓, Scorecards → PostgreSQL ✓
+- [x] Removed static mappings: Deleted company_mappings.json (109 companies), mappings.py, and fuzzy matching against static list - simplifies resolver to use database + OpenFIGI only
 
 ### 2026-01-20
 

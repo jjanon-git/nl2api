@@ -1,6 +1,9 @@
 # NL2API Improvement Proposal
 
-**Status:** Approved - Implementation In Progress
+> **⚠️ ARCHIVED:** This document has been superseded by [BACKLOG.md](/BACKLOG.md).
+> All priorities and status tracking now live in the backlog. This file is preserved for historical reference.
+
+**Status:** ARCHIVED (2026-01-21)
 
 ---
 
