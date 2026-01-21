@@ -125,6 +125,63 @@ def create_entity_resolver_generator(resolver: EntityResolver):
     return generate_resolver_response
 
 
+def create_routing_generator(router):
+    """
+    Create a response generator that uses the LLM router for routing evaluation.
+
+    This generator tests only the routing component by calling router.route()
+    and comparing the selected domain against expected domain.
+
+    Args:
+        router: Router instance (LLMToolRouter or similar)
+
+    Returns:
+        Async function that generates SystemResponse from TestCase
+    """
+
+    async def generate_routing_response(test_case: TestCase) -> SystemResponse:
+        """
+        Generate response by running the real router.
+
+        Returns a tool call with the routed domain as the tool_name.
+        """
+        import time
+
+        start_time = time.perf_counter()
+
+        try:
+            # Call the router to get routing decision
+            result = await router.route(test_case.nl_query)
+
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
+
+            # Convert router result to tool call format for comparison
+            # Tool name is "route_to_{domain}" to match expected format
+            # Use empty arguments - we only compare the domain (tool_name)
+            # Actual confidence/reasoning is stored in metadata for analysis
+            tool_calls = [{
+                "tool_name": f"route_to_{result.domain}",
+                "arguments": {}
+            }]
+
+            return SystemResponse(
+                raw_output=json.dumps(tool_calls),
+                nl_response=None,
+                latency_ms=latency_ms,
+            )
+
+        except Exception as e:
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
+            return SystemResponse(
+                raw_output=json.dumps([]),
+                nl_response=None,
+                latency_ms=latency_ms,
+                error=str(e),
+            )
+
+    return generate_routing_response
+
+
 def create_nl2api_generator(orchestrator):
     """
     Create a response generator that uses the full NL2API orchestrator.

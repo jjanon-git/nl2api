@@ -1,0 +1,1867 @@
+{
+  "_meta": {
+    "name": "query_routing",
+    "capability": "query_routing",
+    "description": "Query routing to domain agent tests",
+    "requires_nl_response": false,
+    "requires_expected_response": false,
+    "schema_version": "1.0",
+    "generated_at": "2026-01-21T23:00:00.000000+00:00",
+    "generator": "manual",
+    "subcategory_counts": {
+      "datastream_clear": 50,
+      "estimates_clear": 50,
+      "fundamentals_clear": 50,
+      "officers_clear": 30,
+      "screening_clear": 30,
+      "temporal_ambiguous": 20,
+      "domain_boundary": 20
+    }
+  },
+  "metadata": {
+    "category": "routing",
+    "generator": "manual",
+    "count": 250
+  },
+  "test_cases": [
+    {
+      "id": "routing_datastream_001",
+      "nl_query": "What is Apple's current stock price?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "price",
+        "current"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_002",
+      "nl_query": "Get Microsoft's market cap",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "market_cap"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_003",
+      "nl_query": "Show me Tesla's trading volume today",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "volume",
+        "current"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_004",
+      "nl_query": "What is the PE ratio for Amazon?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "valuation",
+        "pe_ratio"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_005",
+      "nl_query": "Get the dividend yield for Coca-Cola",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "dividend"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_006",
+      "nl_query": "Show Tesla's stock price history for the past month",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "historical",
+        "time_series"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_007",
+      "nl_query": "What's the 52-week high for Netflix?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "52_week"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_008",
+      "nl_query": "Get NVIDIA's OHLC data for yesterday",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "ohlc"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_009",
+      "nl_query": "What is the current price of gold?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "commodity",
+        "price"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_010",
+      "nl_query": "Show me the S&P 500 index value",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "index"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_011",
+      "nl_query": "What is Google's beta?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "beta",
+        "risk"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_012",
+      "nl_query": "Get the average daily volume for Meta",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "volume"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_013",
+      "nl_query": "Show Boeing's market capitalization",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "market_cap"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_014",
+      "nl_query": "What was IBM's closing price yesterday?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "price",
+        "historical"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_datastream_015",
+      "nl_query": "Get Intel's shares outstanding",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "datastream_clear",
+      "tags": [
+        "datastream",
+        "shares"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_001",
+      "nl_query": "What do analysts expect Apple's EPS to be next quarter?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "eps",
+        "forecast",
+        "next_quarter"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_002",
+      "nl_query": "What is the analyst consensus revenue forecast for Microsoft?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "revenue",
+        "forecast",
+        "consensus"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_003",
+      "nl_query": "Show me analyst recommendations for Tesla",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "recommendations"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_004",
+      "nl_query": "What is the target price for Amazon according to analysts?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "target_price"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_005",
+      "nl_query": "How many analysts have a buy rating on Google?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "ratings",
+        "buy"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_006",
+      "nl_query": "What is the expected earnings growth for NVIDIA next year?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "earnings",
+        "growth",
+        "forecast"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_007",
+      "nl_query": "Show the EPS estimate revisions for Meta",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "eps",
+        "revisions"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_008",
+      "nl_query": "What is the projected EBITDA for Netflix?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "ebitda",
+        "forecast"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_009",
+      "nl_query": "Get the forward PE ratio for Apple",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "forward_pe"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_010",
+      "nl_query": "What are the expected earnings per share for IBM in FY2025?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "eps",
+        "fiscal_year"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_011",
+      "nl_query": "Show analyst upgrades and downgrades for Boeing",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "upgrades",
+        "downgrades"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_012",
+      "nl_query": "What is the consensus estimate for AMD's revenue next quarter?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "revenue",
+        "consensus",
+        "next_quarter"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_013",
+      "nl_query": "How many analysts cover Salesforce?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "analyst_coverage"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_014",
+      "nl_query": "What is the expected dividend for Coca-Cola next year?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "dividend",
+        "forecast"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_estimates_015",
+      "nl_query": "Get the earnings surprise history for JPMorgan",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_estimates",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "estimates_clear",
+      "tags": [
+        "estimates",
+        "earnings_surprise"
+      ],
+      "metadata": {
+        "expected_domain": "estimates",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_001",
+      "nl_query": "What was Apple's revenue in 2023?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "revenue",
+        "historical"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_002",
+      "nl_query": "Show me Microsoft's net income for the last fiscal year",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "net_income",
+        "historical"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_003",
+      "nl_query": "What is Tesla's total debt?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "debt",
+        "balance_sheet"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_004",
+      "nl_query": "Get Amazon's operating margin from the last annual report",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "margin",
+        "annual"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_005",
+      "nl_query": "What was Google's reported earnings per share last quarter?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "eps",
+        "reported",
+        "quarterly"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_006",
+      "nl_query": "Show NVIDIA's balance sheet data",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "balance_sheet"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_007",
+      "nl_query": "What is Meta's cash flow from operations?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "cash_flow"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_008",
+      "nl_query": "Get Netflix's return on equity for fiscal 2023",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "roe",
+        "ratio"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_009",
+      "nl_query": "What was Boeing's gross profit in the last annual report?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "gross_profit",
+        "annual"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_010",
+      "nl_query": "Show me IBM's income statement for 2022",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "income_statement",
+        "historical"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_011",
+      "nl_query": "What is Intel's current ratio?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "ratio",
+        "liquidity"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_012",
+      "nl_query": "Get Salesforce's total assets",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "assets",
+        "balance_sheet"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_013",
+      "nl_query": "What was JPMorgan's net interest income last year?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "bank",
+        "net_interest"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_014",
+      "nl_query": "Show Coca-Cola's dividend payout ratio",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "dividend",
+        "payout"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_fundamentals_015",
+      "nl_query": "What is AMD's research and development expense?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "fundamentals_clear",
+      "tags": [
+        "fundamentals",
+        "rd",
+        "expense"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_officers_001",
+      "nl_query": "Who is the CEO of Apple?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_officers",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "officers_clear",
+      "tags": [
+        "officers",
+        "ceo",
+        "executive"
+      ],
+      "metadata": {
+        "expected_domain": "officers",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_officers_002",
+      "nl_query": "Show me the board of directors for Microsoft",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_officers",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "officers_clear",
+      "tags": [
+        "officers",
+        "board",
+        "directors"
+      ],
+      "metadata": {
+        "expected_domain": "officers",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_officers_003",
+      "nl_query": "What is the CEO compensation at Tesla?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_officers",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "officers_clear",
+      "tags": [
+        "officers",
+        "compensation",
+        "ceo"
+      ],
+      "metadata": {
+        "expected_domain": "officers",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_officers_004",
+      "nl_query": "Who is Amazon's CFO?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_officers",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "officers_clear",
+      "tags": [
+        "officers",
+        "cfo",
+        "executive"
+      ],
+      "metadata": {
+        "expected_domain": "officers",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_officers_005",
+      "nl_query": "Show the executive team at Google",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_officers",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "officers_clear",
+      "tags": [
+        "officers",
+        "executive_team"
+      ],
+      "metadata": {
+        "expected_domain": "officers",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_officers_006",
+      "nl_query": "What is the total executive compensation at NVIDIA?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_officers",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "officers_clear",
+      "tags": [
+        "officers",
+        "compensation"
+      ],
+      "metadata": {
+        "expected_domain": "officers",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_officers_007",
+      "nl_query": "Who are the independent directors at Meta?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_officers",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "officers_clear",
+      "tags": [
+        "officers",
+        "directors",
+        "independent"
+      ],
+      "metadata": {
+        "expected_domain": "officers",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_officers_008",
+      "nl_query": "Get the governance structure for Netflix",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_officers",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "officers_clear",
+      "tags": [
+        "officers",
+        "governance"
+      ],
+      "metadata": {
+        "expected_domain": "officers",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_officers_009",
+      "nl_query": "How long has the CEO been at Boeing?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_officers",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "officers_clear",
+      "tags": [
+        "officers",
+        "tenure",
+        "ceo"
+      ],
+      "metadata": {
+        "expected_domain": "officers",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_officers_010",
+      "nl_query": "Who is on the audit committee at IBM?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_officers",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "officers_clear",
+      "tags": [
+        "officers",
+        "committee",
+        "audit"
+      ],
+      "metadata": {
+        "expected_domain": "officers",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_screening_001",
+      "nl_query": "Find the top 10 companies by market cap in the technology sector",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "screening_clear",
+      "tags": [
+        "screening",
+        "top_n",
+        "market_cap",
+        "sector"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_screening_002",
+      "nl_query": "Show me stocks with PE ratio under 15 and dividend yield over 3%",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 3,
+      "category": "routing",
+      "subcategory": "screening_clear",
+      "tags": [
+        "screening",
+        "filter",
+        "pe",
+        "dividend"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_screening_003",
+      "nl_query": "Which companies in the S&P 500 have the highest revenue growth?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "screening_clear",
+      "tags": [
+        "screening",
+        "ranking",
+        "revenue_growth",
+        "index"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_screening_004",
+      "nl_query": "List the bottom 5 performing stocks in the Dow Jones",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "screening_clear",
+      "tags": [
+        "screening",
+        "bottom_n",
+        "index"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_screening_005",
+      "nl_query": "Find all healthcare stocks with market cap over $50 billion",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "screening_clear",
+      "tags": [
+        "screening",
+        "filter",
+        "sector",
+        "market_cap"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_screening_006",
+      "nl_query": "Rank energy companies by dividend yield",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "screening_clear",
+      "tags": [
+        "screening",
+        "ranking",
+        "dividend",
+        "sector"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_screening_007",
+      "nl_query": "What are the constituents of the NASDAQ 100?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "screening_clear",
+      "tags": [
+        "screening",
+        "constituents",
+        "index"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_screening_008",
+      "nl_query": "Screen for stocks with ROE above 20% and debt-to-equity below 0.5",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 3,
+      "category": "routing",
+      "subcategory": "screening_clear",
+      "tags": [
+        "screening",
+        "filter",
+        "roe",
+        "leverage"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_screening_009",
+      "nl_query": "Find the best performing small cap stocks this year",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "screening_clear",
+      "tags": [
+        "screening",
+        "performance",
+        "small_cap"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_screening_010",
+      "nl_query": "Show financial stocks trading below book value",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "screening_clear",
+      "tags": [
+        "screening",
+        "filter",
+        "value",
+        "book_value"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "min_confidence": 0.8
+      }
+    },
+    {
+      "id": "routing_ambiguous_001",
+      "nl_query": "What is Apple's EPS?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "temporal_ambiguous",
+      "tags": [
+        "ambiguous",
+        "temporal",
+        "eps"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "acceptable_domains": [
+          "fundamentals",
+          "estimates"
+        ],
+        "max_confidence": 0.6
+      }
+    },
+    {
+      "id": "routing_ambiguous_002",
+      "nl_query": "Show me earnings for Microsoft",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "temporal_ambiguous",
+      "tags": [
+        "ambiguous",
+        "temporal",
+        "earnings"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "acceptable_domains": [
+          "fundamentals",
+          "estimates"
+        ],
+        "max_confidence": 0.6
+      }
+    },
+    {
+      "id": "routing_ambiguous_003",
+      "nl_query": "What is Tesla's revenue?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "temporal_ambiguous",
+      "tags": [
+        "ambiguous",
+        "temporal",
+        "revenue"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "acceptable_domains": [
+          "fundamentals",
+          "estimates"
+        ],
+        "max_confidence": 0.6
+      }
+    },
+    {
+      "id": "routing_ambiguous_004",
+      "nl_query": "Get Amazon's earnings per share",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "temporal_ambiguous",
+      "tags": [
+        "ambiguous",
+        "temporal",
+        "eps"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "acceptable_domains": [
+          "fundamentals",
+          "estimates"
+        ],
+        "max_confidence": 0.6
+      }
+    },
+    {
+      "id": "routing_ambiguous_005",
+      "nl_query": "What is Google's profit margin?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 1,
+      "category": "routing",
+      "subcategory": "temporal_ambiguous",
+      "tags": [
+        "ambiguous",
+        "temporal",
+        "margin"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "acceptable_domains": [
+          "fundamentals",
+          "estimates"
+        ],
+        "max_confidence": 0.6
+      }
+    },
+    {
+      "id": "routing_boundary_001",
+      "nl_query": "What is Apple's PE ratio and EPS forecast?",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "domain_boundary",
+      "tags": [
+        "boundary",
+        "multi_domain",
+        "datastream",
+        "estimates"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "acceptable_domains": [
+          "datastream",
+          "estimates"
+        ],
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "id": "routing_boundary_002",
+      "nl_query": "Compare Apple's reported revenue with analyst estimates",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_fundamentals",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 3,
+      "category": "routing",
+      "subcategory": "domain_boundary",
+      "tags": [
+        "boundary",
+        "multi_domain",
+        "fundamentals",
+        "estimates"
+      ],
+      "metadata": {
+        "expected_domain": "fundamentals",
+        "acceptable_domains": [
+          "fundamentals",
+          "estimates"
+        ],
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "id": "routing_boundary_003",
+      "nl_query": "Show me Microsoft's stock price and CEO",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_datastream",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 2,
+      "category": "routing",
+      "subcategory": "domain_boundary",
+      "tags": [
+        "boundary",
+        "multi_domain",
+        "datastream",
+        "officers"
+      ],
+      "metadata": {
+        "expected_domain": "datastream",
+        "acceptable_domains": [
+          "datastream",
+          "officers"
+        ],
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "id": "routing_boundary_004",
+      "nl_query": "Top tech stocks by market cap and their CEO compensation",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 3,
+      "category": "routing",
+      "subcategory": "domain_boundary",
+      "tags": [
+        "boundary",
+        "multi_domain",
+        "screening",
+        "officers"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "acceptable_domains": [
+          "screening",
+          "officers"
+        ],
+        "min_confidence": 0.5
+      }
+    },
+    {
+      "id": "routing_boundary_005",
+      "nl_query": "Find companies with high growth and show their financials",
+      "expected_tool_calls": [
+        {
+          "tool_name": "route_to_screening",
+          "arguments": {}
+        }
+      ],
+      "expected_response": null,
+      "expected_nl_response": null,
+      "complexity": 3,
+      "category": "routing",
+      "subcategory": "domain_boundary",
+      "tags": [
+        "boundary",
+        "multi_domain",
+        "screening",
+        "fundamentals"
+      ],
+      "metadata": {
+        "expected_domain": "screening",
+        "acceptable_domains": [
+          "screening",
+          "fundamentals"
+        ],
+        "min_confidence": 0.5
+      }
+    }
+  ]
+}

@@ -22,7 +22,7 @@ This file tracks all planned work, technical debt, and in-flight items for the N
 | Capability | Description | Fixtures | Eval Mode | Baseline | Status |
 |------------|-------------|----------|-----------|----------|--------|
 | **Entity Resolution** | Map company names → RICs | 3,109 | `resolver` | **99.5%** | ✅ Evaluated |
-| **Query Routing** | Route query → correct domain agent | 0 | `orchestrator` | — | ❌ No fixtures |
+| **Query Routing** | Route query → correct domain agent | 75 | `routing` | **94.7%** | ✅ Evaluated |
 | **Tool Selection** | Select correct tool within agent | 2,288 (complex) | `orchestrator` | — | ❌ Not loaded/run |
 | **Entity Extraction** | Extract company names from NL query | 0 | — | — | ❌ No fixtures |
 | **DatastreamAgent** | Price, time series, calculated fields | 3,715 (lookups) + 2,500 (temporal) | `orchestrator` | — | ❌ Not loaded/run |
@@ -163,26 +163,22 @@ Connect evaluation pipeline to real LSEG APIs to:
 
 ## Medium Priority (P1)
 
-### Routing Validation Benchmark (P1.1)
-**Created:** 2026-01-20
-**Status:** Not Started
-**Priority:** TOP - Must establish baseline before optimization
-
-FM-first router not validated against fixtures. Create benchmark suite to measure routing accuracy.
-
-**Why first:** Can't improve what we can't measure. Routing accuracy drives all downstream capabilities.
-
----
-
-### Haiku Routing Spike (P1.2)
+### Haiku Routing Spike (P1.1)
 **Created:** 2026-01-21
-**Status:** Not Started
+**Status:** Ready to Start
 **Duration:** 1 week
 **Hypothesis:** Haiku may be sufficient at 1/10th cost
 
 Test if Claude 3.5 Haiku performs comparably to Sonnet for query routing.
 
-**Why promoted from Research:** High potential ROI, low implementation risk, depends on P1.1 benchmark.
+**Baseline established:** Sonnet achieves **94.7%** on 75 routing test cases. Run same fixtures with Haiku to compare.
+
+```bash
+# Run routing evaluation (uses configured model)
+.venv/bin/python -m src.evaluation.cli.main batch run --tag routing --mode routing
+```
+
+**Why promoted from Research:** High potential ROI, low implementation risk. Baseline now established.
 
 ---
 
@@ -382,6 +378,7 @@ Migrate from pgvector to Azure AI Search for production scale.
 
 ### 2026-01-21
 
+- [x] **Routing Validation Benchmark (P1.1): 94.7% baseline** - 75 routing test cases, Claude Sonnet 4. Failures: 3 ambiguous cases + 1 PE ratio mis-route. Enables Haiku cost comparison spike.
 - [x] **Entity Resolution (P0.2): 99.5% accuracy** - Database-backed resolution with 2.9M entities, pg_trgm fuzzy matching, multi-stage lookup (aliases → primary_name → ticker → fuzzy). See [edge cases doc](docs/plans/entity-resolution-edge-cases.md) for remaining 0.5%.
 - [x] Public Release Audit (P0): LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, GitHub templates
 - [x] pyproject.toml metadata for PyPI

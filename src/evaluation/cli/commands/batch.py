@@ -71,7 +71,7 @@ def batch_run(
         str,
         typer.Option(
             "--mode", "-m",
-            help="Response mode: resolver (real), orchestrator (full), simulated"
+            help="Response mode: resolver, orchestrator, routing, or simulated"
         ),
     ] = "resolver",
     verbose: Annotated[
@@ -90,12 +90,14 @@ def batch_run(
       Results are persisted and tracked over time.
     - orchestrator: Uses full NL2API orchestrator (requires LLM API key).
       End-to-end accuracy measurement.
+    - routing: Uses LLM router for routing evaluation (requires LLM API key).
+      Tests query → domain routing accuracy.
     - simulated: Always returns correct answers (for pipeline testing only).
       Should NOT be used for accuracy tracking - use unit tests instead.
     """
-    if mode not in ("resolver", "orchestrator", "simulated"):
+    if mode not in ("resolver", "orchestrator", "simulated", "routing"):
         console.print(f"[red]Error:[/red] Invalid mode '{mode}'.")
-        console.print("Use 'resolver', 'orchestrator', or 'simulated'.")
+        console.print("Use 'resolver', 'orchestrator', 'simulated', or 'routing'.")
         raise typer.Exit(1)
 
     asyncio.run(_batch_run_async(
@@ -128,6 +130,7 @@ async def _batch_run_async(
     from src.evaluation.batch.response_generators import (
         create_entity_resolver_generator,
         create_nl2api_generator,
+        create_routing_generator,
         simulate_correct_response,
     )
 
@@ -163,6 +166,56 @@ async def _batch_run_async(
             orchestrator = NL2APIOrchestrator()
             response_generator = create_nl2api_generator(orchestrator)
             console.print("[green]Using full NL2API orchestrator (requires LLM API key).[/green]\n")
+        elif mode == "routing":
+            # Use LLM router for routing evaluation
+            from src.nl2api.routing.llm_router import LLMToolRouter
+            from src.nl2api.routing.protocols import ToolProvider, RoutingToolDefinition
+            from src.nl2api.llm.factory import create_llm_provider
+            from src.nl2api.config import NL2APIConfig
+
+            # Create stub tool providers for the 5 domains
+            class StubToolProvider(ToolProvider):
+                def __init__(self, name: str, description: str, capabilities: tuple[str, ...]):
+                    self._name = name
+                    self._description = description
+                    self._capabilities = capabilities
+
+                @property
+                def provider_name(self) -> str:
+                    return self._name
+
+                @property
+                def provider_description(self) -> str:
+                    return self._description
+
+                @property
+                def capabilities(self) -> tuple[str, ...]:
+                    return self._capabilities
+
+                def get_routing_tools(self) -> list[RoutingToolDefinition]:
+                    return [RoutingToolDefinition(
+                        name=f"route_to_{self._name}",
+                        description=self._description,
+                        domain=self._name,
+                    )]
+
+            tool_providers = [
+                StubToolProvider("datastream", "Stock prices, market data, trading volume, historical prices", ("prices", "volume", "market_cap")),
+                StubToolProvider("estimates", "Analyst forecasts, EPS estimates, revenue projections, price targets", ("eps_forecast", "recommendations", "price_targets")),
+                StubToolProvider("fundamentals", "Financial statements, balance sheet, income statement, reported data", ("revenue", "net_income", "balance_sheet")),
+                StubToolProvider("officers", "Executives, board members, CEO, CFO, compensation", ("ceo", "board", "compensation")),
+                StubToolProvider("screening", "Stock screening, rankings, top N queries, filtering", ("top_n", "ranking", "screening")),
+            ]
+
+            cfg = NL2APIConfig()
+            llm = create_llm_provider(
+                provider=cfg.llm_provider,
+                api_key=cfg.get_llm_api_key(),
+                model=cfg.llm_model,
+            )
+            router = LLMToolRouter(llm=llm, tool_providers=tool_providers)
+            response_generator = create_routing_generator(router)
+            console.print(f"[green]Using LLM router ({cfg.llm_provider}/{cfg.llm_model}).[/green]\n")
 
         runner_config = BatchRunnerConfig(
             max_concurrency=concurrency,
