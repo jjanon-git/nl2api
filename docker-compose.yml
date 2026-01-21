@@ -17,7 +17,8 @@ services:
       # Persist data
       - postgres_data:/var/lib/postgresql/data
       # Auto-run migrations on first start
-      - ./src/storage/postgres/migrations:/docker-entrypoint-initdb.d:ro
+      # Note: pg_trgm extension (for fuzzy matching) is included in pgvector image
+      - ./src/common/storage/postgres/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U nl2api -d nl2api"]
       interval: 5s

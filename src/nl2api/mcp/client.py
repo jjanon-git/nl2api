@@ -1,11 +1,18 @@
 """
-MCP Client Implementation
+MCP Client Implementation - EXPERIMENTAL
+
+.. warning::
+    This module is experimental and not yet fully implemented.
+    The API is subject to change. See status.md for roadmap.
 
 Provides a client for interacting with MCP (Model Context Protocol) servers.
 Supports tool discovery, tool execution, and resource retrieval.
 
 This implementation is designed to work with future LSEG MCP servers while
 maintaining compatibility with the existing agent-based architecture.
+
+Status: Experimental - tool execution not yet implemented
+Tracking: See docs/status.md "Future Work" section
 """
 
 from __future__ import annotations

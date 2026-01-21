@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import warnings
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -238,6 +239,9 @@ class BaseDomainAgent(ABC):
         """
         Check if this agent can handle the given query.
 
+        .. deprecated:: 0.1.0
+            Will be removed in v2.0. Use LLMToolRouter for query routing instead.
+
         Uses keyword matching and optional LLM classification.
 
         Args:
@@ -246,5 +250,11 @@ class BaseDomainAgent(ABC):
         Returns:
             Confidence score (0.0 to 1.0)
         """
+        warnings.warn(
+            "can_handle() is deprecated and will be removed in v2.0. "
+            "Use LLMToolRouter for query routing instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         # Subclasses should override with domain-specific logic
         return 0.0

@@ -4,6 +4,25 @@ version = "0.1.0"
 description = "Natural Language to API translation system for LSEG financial data APIs"
 readme = "README.md"
 requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [
+    {name = "Siddharth Sriram"}
+]
+keywords = ["nlp", "api", "lseg", "financial-data", "natural-language", "llm"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/nl2api"
+Repository = "https://github.com/YOUR_USERNAME/nl2api.git"
+Issues = "https://github.com/YOUR_USERNAME/nl2api/issues"
 dependencies = [
     "pydantic>=2.0.0",
     "typer>=0.9.0",

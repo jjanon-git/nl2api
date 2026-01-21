@@ -243,6 +243,14 @@ python scripts/run_estimates_eval.py --limit 50
 | **Economic Indicators Indexing** | ✅ | Bulk indexing support for 8,700+ synthetic indicators (scale-ready) |
 | **Request Metrics (P0.3)** | ✅ | Accuracy measurement, emitters, OTEL integration |
 
+### Experimental Features
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **MCP Client** | Experimental | Model Context Protocol client for future MCP server integration. Tool discovery implemented, tool execution pending. See `src/nl2api/mcp/`. |
+| **Evaluation Stage 3** | Planned | Live API execution verification. Currently passes through. |
+| **Evaluation Stage 4** | Planned | LLM-as-Judge semantic comparison. Currently passes through. |
+
 ### Next Steps (TODO)
 
 ### Production Integration
@@ -251,6 +259,7 @@ python scripts/run_estimates_eval.py --limit 50
 |------|----------|-------------|
 | **Azure AI Search** | MEDIUM | Migrate from pgvector to Azure AI Search for production scale |
 | **Production Deployment** | MEDIUM | Azure infrastructure, monitoring, alerting |
+| **MCP Tool Execution** | LOW | Complete MCP client implementation for tool execution |
 
 ### Agent Improvements
 
