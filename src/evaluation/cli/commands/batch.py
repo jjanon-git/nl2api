@@ -214,8 +214,8 @@ async def _batch_run_async(
             ]
 
             cfg = NL2APIConfig()
-            # Use --model override if provided, otherwise use config default
-            llm_model = model if model else cfg.llm_model
+            # Use --model override if provided, otherwise use routing_model from config
+            llm_model = model if model else cfg.routing_model
             llm = create_llm_provider(
                 provider=cfg.llm_provider,
                 api_key=cfg.get_llm_api_key(),

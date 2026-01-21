@@ -218,9 +218,9 @@ class NL2APIConfig(BaseSettings):
         default=True,
         description="Enable FM-first routing (uses LLM for domain classification)",
     )
-    routing_model: str | None = Field(
-        default=None,
-        description="Model for routing (e.g., 'claude-3-haiku' for cost savings). None = use main llm_model",
+    routing_model: str = Field(
+        default="claude-3-5-haiku-20241022",
+        description="Model for routing. Haiku recommended (94.1% accuracy at 1/10th cost vs Sonnet)",
     )
     routing_cache_enabled: bool = Field(
         default=True,
@@ -323,6 +323,17 @@ class NL2APIConfig(BaseSettings):
     mcp_screening_uri: str | None = Field(
         default=None,
         description="MCP server URI for Screening API",
+    )
+    mcp_entity_resolution_uri: str | None = Field(
+        default=None,
+        description="MCP server URI for Entity Resolution (e.g., 'http://localhost:8080')",
+    )
+    mcp_entity_resolution_enabled: bool = Field(
+        default=False,
+        description=(
+            "Use MCP server for entity resolution instead of local resolver. "
+            "When enabled, calls mcp_entity_resolution_uri for entity lookups."
+        ),
     )
 
     # Telemetry Settings (OpenTelemetry)
