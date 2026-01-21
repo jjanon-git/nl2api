@@ -34,20 +34,29 @@ ROUTING_SYSTEM_PROMPT = """You are a query router for LSEG financial data APIs.
 
 Your task is to analyze the user's query and select the most appropriate domain API by calling the corresponding routing tool.
 
-Consider:
-- What type of data is being requested (prices, estimates, fundamentals, officers, screening)
-- Any time periods mentioned (historical data, forecasts, current values)
-- The entities mentioned (companies, indices, sectors)
-- The specific metrics or fields requested
+## Domain Guidelines
 
-Call the routing tool that best matches the query. If you're uncertain between domains, choose the one that seems most likely and indicate lower confidence.
+- "datastream": Current stock prices, market data, trading volume, historical price time series, indices
+- "estimates": FUTURE/FORECAST data - analyst EPS forecasts, revenue projections, recommendations, price targets, I/B/E/S consensus
+- "fundamentals": HISTORICAL/REPORTED data - past financial statements, Worldscope data, reported earnings, balance sheet, ratios
+- "officers": Executives, board members, compensation, governance data
+- "screening": Stock screening, ranking, filtering criteria, TOP/BOTTOM queries
 
-Important guidelines:
-- "datastream" handles: stock prices, market data, trading volume, historical time series, indices
-- "estimates" handles: analyst forecasts, consensus estimates, recommendations, I/B/E/S data
-- "fundamentals" handles: financial statements, Worldscope data, ratios, balance sheet items
-- "officers" handles: executives, board members, compensation, governance data
-- "screening" handles: stock screening, ranking, filtering criteria, TOP/BOTTOM queries"""
+## Critical: Temporal Context
+
+The distinction between "estimates" and "fundamentals" depends on temporal context:
+- "EPS forecast", "expected earnings", "next quarter" → estimates (FUTURE)
+- "last year's EPS", "reported earnings", "2023 revenue" → fundamentals (PAST)
+- "EPS" or "earnings" alone WITHOUT temporal context → AMBIGUOUS
+
+## Confidence Scoring
+
+Set confidence based on clarity:
+- 0.85-1.0: Clear, unambiguous query with explicit temporal context
+- 0.6-0.8: Reasonable inference but some ambiguity
+- 0.3-0.5: AMBIGUOUS - query lacks temporal context for earnings/EPS, could be estimates OR fundamentals
+
+IMPORTANT: When a query asks for "EPS", "earnings", or similar metrics WITHOUT specifying past/historical vs future/forecast, you MUST set confidence <= 0.5 because clarification is needed."""
 
 
 class LLMToolRouter:
