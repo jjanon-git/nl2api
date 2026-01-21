@@ -177,21 +177,19 @@ class RichProgressTracker:
                 Progress,
                 SpinnerColumn,
                 TaskProgressColumn,
-                TextColumn,
                 TimeElapsedColumn,
                 TimeRemainingColumn,
             )
 
             columns = [
                 SpinnerColumn(),
-                TextColumn("[bold blue]{task.description}"),
                 BarColumn(bar_width=40),
                 TaskProgressColumn(),
                 MofNCompleteColumn(),
             ]
 
-            if show_speed:
-                columns.append(TextColumn("[green]{task.speed:,.0f}/s"))
+            # Note: Speed column disabled - rich's built-in speed tracking
+            # can cause issues when speed is initially None
 
             if show_eta:
                 columns.append(TimeRemainingColumn())
