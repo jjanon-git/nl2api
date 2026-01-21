@@ -2,7 +2,7 @@
 
 ## Overview
 
-The RAG infrastructure is **architecturally complete** but **functionally empty** - no data is loaded into the `rag_documents` table.
+The RAG infrastructure is **complete** with field codes indexed and ready for use.
 
 ## Current State
 
@@ -15,16 +15,35 @@ The RAG infrastructure is **architecturally complete** but **functionally empty*
 | Hybrid Retriever (vector + keyword) | `src/nl2api/rag/retriever.py` | ✅ Complete |
 | Orchestrator integration | `src/nl2api/orchestrator.py` | ✅ Complete |
 | Agent context injection | `src/nl2api/agents/base.py:153-158` | ✅ Complete |
-| Reference documents | `docs/api-reference/*_REFERENCE.md` | ✅ Available |
+| Reference documents | `docs/api-reference/*.md` | ✅ Available |
+| Indexing script | `scripts/index_field_codes.py` | ✅ Complete |
+| Domain parsers (all 5) | `src/nl2api/rag/indexer.py` | ✅ Complete |
+| Field codes indexed | `rag_documents` table | ✅ 463 docs |
+
+### Indexed Field Codes (as of 2026-01-20)
+
+| Domain | Field Codes | With Embeddings |
+|--------|-------------|-----------------|
+| datastream | 101 | 0 |
+| estimates | 79 | 0 |
+| fundamentals | 202 | 0 |
+| officers | 33 | 0 |
+| screening | 48 | 0 |
+| **Total** | **463** | **0** |
 
 ### What's Missing
 
-| Gap | Impact |
-|-----|--------|
-| No data in `rag_documents` table | RAG returns empty results |
-| No embedder initialized | Can't generate embeddings |
-| No indexing script | No way to load reference docs |
-| Parsers only for Estimates domain | Other domains not parsed |
+| Gap | Impact | Priority |
+|-----|--------|----------|
+| No embeddings generated | Vector search unavailable (keyword search works) | Medium |
+
+## Implementation Progress
+
+| Phase | Status | Description |
+|-------|--------|-------------|
+| Phase 1 | ✅ Complete | Index field codes from all reference documents |
+| Phase 2 | ✅ Complete | Wire RAG into agent context with keyword fallback |
+| Phase 3 | 🔄 In Progress | Validate with integration tests |
 
 ## Implementation Plan
 
@@ -36,11 +55,11 @@ scripts/index_field_codes.py
 ```
 
 Parse all 5 reference documents:
-- `docs/api-reference/DATASTREAM_REFERENCE.md` (600+ field codes)
-- `docs/api-reference/FUNDAMENTALS_REFERENCE.md` (400+ field codes)
-- `docs/api-reference/ESTIMATES_REFERENCE.md`
-- `docs/api-reference/OFFICERS_DIRECTORS_REFERENCE.md`
-- `docs/api-reference/SCREENING_REFERENCE.md`
+- `docs/api-reference/datastream.md` (600+ field codes)
+- `docs/api-reference/fundamentals.md` (400+ field codes)
+- `docs/api-reference/estimates.md`
+- `docs/api-reference/officers-directors.md`
+- `docs/api-reference/screening.md`
 
 **1.2 Add domain-specific parsers**
 

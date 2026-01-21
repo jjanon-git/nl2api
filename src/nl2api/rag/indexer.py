@@ -43,6 +43,18 @@ class FieldCodeDocument:
 
 
 @dataclass
+class EconomicIndicatorDocument:
+    """An economic indicator document to be indexed."""
+
+    mnemonic: str
+    description: str
+    country: str
+    indicator_type: str
+    natural_language_hints: list[str]
+    metadata: dict[str, Any] | None = None
+
+
+@dataclass
 class QueryExampleDocument:
     """A query example document to be indexed."""
 
@@ -134,7 +146,7 @@ class RAGIndexer:
                     DocumentType.FIELD_CODE.value,
                     doc.domain,
                     doc.field_code,
-                    doc.metadata or {},
+                    json.dumps(doc.metadata or {}),
                     embedding,
                 )
             else:
@@ -150,7 +162,7 @@ class RAGIndexer:
                     DocumentType.FIELD_CODE.value,
                     doc.domain,
                     doc.field_code,
-                    doc.metadata or {},
+                    json.dumps(doc.metadata or {}),
                 )
 
         logger.debug(f"Indexed field code: {doc.field_code}")
@@ -253,7 +265,7 @@ class RAGIndexer:
                                     DocumentType.FIELD_CODE.value,
                                     doc.domain,
                                     doc.field_code,
-                                    doc.metadata or {},
+                                    json.dumps(doc.metadata or {}),
                                     embedding,
                                 )
                             else:
@@ -269,7 +281,7 @@ class RAGIndexer:
                                     DocumentType.FIELD_CODE.value,
                                     doc.domain,
                                     doc.field_code,
-                                    doc.metadata or {},
+                                    json.dumps(doc.metadata or {}),
                                 )
 
                         doc_ids.append(doc_id)
@@ -339,47 +351,204 @@ class RAGIndexer:
             ))
 
         async with self._pool.acquire() as conn:
-            # Create temp staging table
-            await conn.execute("""
-                CREATE TEMP TABLE staging_rag_documents (
-                    id TEXT,
-                    content TEXT,
-                    document_type TEXT,
-                    domain TEXT,
-                    field_code TEXT,
-                    metadata JSONB,
-                    embedding TEXT
-                ) ON COMMIT DROP
-            """)
+            async with conn.transaction():
+                # Create temp staging table
+                await conn.execute("""
+                    CREATE TEMP TABLE staging_rag_documents (
+                        id TEXT,
+                        content TEXT,
+                        document_type TEXT,
+                        domain TEXT,
+                        field_code TEXT,
+                        metadata JSONB,
+                        embedding TEXT
+                    ) ON COMMIT DROP
+                """)
 
-            # COPY records to staging table
-            await conn.copy_records_to_table(
-                "staging_rag_documents",
-                records=records,
-                columns=["id", "content", "document_type", "domain", "field_code", "metadata", "embedding"],
-            )
+                # COPY records to staging table
+                await conn.copy_records_to_table(
+                    "staging_rag_documents",
+                    records=records,
+                    columns=["id", "content", "document_type", "domain", "field_code", "metadata", "embedding"],
+                )
 
-            # UPSERT from staging to main table
-            await conn.execute("""
-                INSERT INTO rag_documents (id, content, document_type, domain, field_code, metadata, embedding)
-                SELECT
-                    s.id::uuid,
-                    s.content,
-                    s.document_type,
-                    s.domain,
-                    s.field_code,
-                    s.metadata,
-                    s.embedding::vector
-                FROM staging_rag_documents s
-                ON CONFLICT (domain, field_code) WHERE document_type = 'field_code' AND field_code IS NOT NULL
-                DO UPDATE SET
-                    content = EXCLUDED.content,
-                    metadata = EXCLUDED.metadata,
-                    embedding = EXCLUDED.embedding,
-                    updated_at = NOW()
-            """)
+                # UPSERT from staging to main table
+                await conn.execute("""
+                    INSERT INTO rag_documents (id, content, document_type, domain, field_code, metadata, embedding)
+                    SELECT
+                        s.id::uuid,
+                        s.content,
+                        s.document_type,
+                        s.domain,
+                        s.field_code,
+                        s.metadata,
+                        s.embedding::vector
+                    FROM staging_rag_documents s
+                    ON CONFLICT (domain, field_code) WHERE document_type = 'field_code' AND field_code IS NOT NULL
+                    DO UPDATE SET
+                        content = EXCLUDED.content,
+                        metadata = EXCLUDED.metadata,
+                        embedding = EXCLUDED.embedding,
+                        updated_at = NOW()
+                """)
 
         logger.debug(f"Bulk inserted {len(docs)} field codes")
+        return doc_ids
+
+    async def index_economic_indicators_batch(
+        self,
+        docs: list[EconomicIndicatorDocument],
+        generate_embeddings: bool = True,
+        batch_size: int = 50,
+        checkpoint_id: str | None = None,
+        progress_callback: ProgressCallback | None = None,
+    ) -> list[str]:
+        """
+        Index multiple economic indicator documents in batch.
+
+        Uses bulk insert with COPY protocol.
+        Supports checkpoint/resume.
+
+        Args:
+            docs: List of economic indicator documents
+            generate_embeddings: Whether to generate embeddings
+            batch_size: Batch size for embedding generation
+            checkpoint_id: Optional checkpoint ID
+            progress_callback: Optional progress callback
+
+        Returns:
+            List of document IDs
+        """
+        if not docs:
+            return []
+
+        # Create or resume checkpoint
+        checkpoint: IndexingCheckpoint | None = None
+        start_offset = 0
+
+        if checkpoint_id:
+            checkpoint = await self._checkpoint_manager.get_checkpoint(checkpoint_id)
+            if checkpoint and checkpoint.is_resumable:
+                start_offset = checkpoint.last_offset
+                logger.info(
+                    f"Resuming indexing from offset {start_offset} "
+                    f"({checkpoint.processed_items}/{checkpoint.total_items} done)"
+                )
+        elif len(docs) > batch_size * 2:
+            checkpoint = await self._checkpoint_manager.create_checkpoint(
+                total_items=len(docs),
+                domain="economic_indicators",
+                batch_size=batch_size,
+            )
+            checkpoint_id = checkpoint.job_id
+            logger.info(f"Created checkpoint {checkpoint_id} for {len(docs)} documents")
+
+        doc_ids = []
+        processed = start_offset
+
+        try:
+            for i in range(start_offset, len(docs), batch_size):
+                batch = docs[i : i + batch_size]
+
+                # Generate embeddings in batch
+                embeddings = None
+                if generate_embeddings and self._embedder:
+                    contents = []
+                    for doc in batch:
+                        content = f"{doc.description} ({doc.country}, {doc.indicator_type})"
+                        if doc.natural_language_hints:
+                            content += " | Keywords: " + ", ".join(doc.natural_language_hints)
+                        contents.append(content)
+                    embeddings = await self._embedder.embed_batch(contents)
+
+                # Bulk insert
+                batch_doc_ids = [str(uuid.uuid4()) for _ in batch]
+                records = []
+                for j, doc in enumerate(batch):
+                    content = f"{doc.description} ({doc.country}, {doc.indicator_type})"
+                    if doc.natural_language_hints:
+                        content += " | Keywords: " + ", ".join(doc.natural_language_hints)
+
+                    embedding_str = None
+                    if embeddings:
+                        embedding_str = "[" + ",".join(str(x) for x in embeddings[j]) + "]"
+
+                    records.append((
+                        batch_doc_ids[j],
+                        content,
+                        DocumentType.ECONOMIC_INDICATOR.value,
+                        "datastream",  # Economic indicators are primarily Datastream
+                        doc.mnemonic,
+                        json.dumps({
+                            "country": doc.country,
+                            "indicator_type": doc.indicator_type,
+                            **(doc.metadata or {})
+                        }),
+                        embedding_str,
+                    ))
+
+                async with self._pool.acquire() as conn:
+                    async with conn.transaction():
+                        # Create temp staging table
+                        await conn.execute("""
+                            CREATE TEMP TABLE staging_econ_indicators (
+                                id TEXT,
+                                content TEXT,
+                                document_type TEXT,
+                                domain TEXT,
+                                field_code TEXT,
+                                metadata JSONB,
+                                embedding TEXT
+                            ) ON COMMIT DROP
+                        """)
+
+                        # COPY records
+                        await conn.copy_records_to_table(
+                            "staging_econ_indicators",
+                            records=records,
+                            columns=["id", "content", "document_type", "domain", "field_code", "metadata", "embedding"],
+                        )
+
+                        # UPSERT
+                        await conn.execute("""
+                            INSERT INTO rag_documents (id, content, document_type, domain, field_code, metadata, embedding)
+                            SELECT
+                                s.id::uuid,
+                                s.content,
+                                s.document_type,
+                                s.domain,
+                                s.field_code,
+                                s.metadata,
+                                s.embedding::vector
+                            FROM staging_econ_indicators s
+                            ON CONFLICT (domain, field_code) WHERE document_type = 'economic_indicator' AND field_code IS NOT NULL
+                            DO UPDATE SET
+                                content = EXCLUDED.content,
+                                metadata = EXCLUDED.metadata,
+                                embedding = EXCLUDED.embedding,
+                                updated_at = NOW()
+                        """)
+
+                doc_ids.extend(batch_doc_ids)
+                processed = i + len(batch)
+                logger.info(f"Indexed batch of {len(batch)} economic indicators ({processed}/{len(docs)})")
+
+                if checkpoint_id:
+                    await self._checkpoint_manager.update_progress(
+                        checkpoint_id, processed, processed
+                    )
+
+                if progress_callback:
+                    progress_callback(processed, len(docs))
+
+            if checkpoint_id:
+                await self._checkpoint_manager.mark_completed(checkpoint_id)
+
+        except Exception as e:
+            if checkpoint_id:
+                await self._checkpoint_manager.mark_failed(checkpoint_id, str(e))
+            raise
+
         return doc_ids
 
     async def index_query_example(
@@ -418,7 +587,7 @@ class RAGIndexer:
                     doc.domain,
                     doc.query,
                     doc.api_call,
-                    {"complexity_level": doc.complexity_level, **(doc.metadata or {})},
+                    json.dumps({"complexity_level": doc.complexity_level, **(doc.metadata or {})}),
                     embedding,
                 )
             else:
@@ -433,7 +602,7 @@ class RAGIndexer:
                     doc.domain,
                     doc.query,
                     doc.api_call,
-                    {"complexity_level": doc.complexity_level, **(doc.metadata or {})},
+                    json.dumps({"complexity_level": doc.complexity_level, **(doc.metadata or {})}),
                 )
 
         logger.debug(f"Indexed query example: {doc.query[:50]}...")
@@ -486,7 +655,7 @@ class RAGIndexer:
 
 def parse_estimates_reference(content: str) -> list[FieldCodeDocument]:
     """
-    Parse ESTIMATES_REFERENCE.md to extract field codes.
+    Parse estimates.md to extract field codes.
 
     Args:
         content: Markdown content of the reference file
@@ -517,7 +686,7 @@ def parse_estimates_reference(content: str) -> list[FieldCodeDocument]:
             description=description,
             domain="estimates",
             natural_language_hints=keywords,
-            metadata={"source": "ESTIMATES_REFERENCE.md"},
+            metadata={"source": "estimates.md"},
         ))
 
     return docs
@@ -525,7 +694,7 @@ def parse_estimates_reference(content: str) -> list[FieldCodeDocument]:
 
 def parse_datastream_reference(content: str) -> list[FieldCodeDocument]:
     """
-    Parse DATASTREAM_REFERENCE.md to extract field codes.
+    Parse datastream.md to extract field codes.
 
     Args:
         content: Markdown content of the reference file
@@ -560,7 +729,7 @@ def parse_datastream_reference(content: str) -> list[FieldCodeDocument]:
             description=description,
             domain="datastream",
             natural_language_hints=keywords,
-            metadata={"source": "DATASTREAM_REFERENCE.md"},
+            metadata={"source": "datastream.md"},
         ))
 
     return docs
@@ -568,7 +737,7 @@ def parse_datastream_reference(content: str) -> list[FieldCodeDocument]:
 
 def parse_fundamentals_reference(content: str) -> list[FieldCodeDocument]:
     """
-    Parse FUNDAMENTALS_REFERENCE.md to extract field codes.
+    Parse fundamentals.md to extract field codes.
 
     Args:
         content: Markdown content of the reference file
@@ -599,7 +768,7 @@ def parse_fundamentals_reference(content: str) -> list[FieldCodeDocument]:
             description=description,
             domain="fundamentals",
             natural_language_hints=keywords,
-            metadata={"source": "FUNDAMENTALS_REFERENCE.md"},
+            metadata={"source": "fundamentals.md"},
         ))
 
     return docs
@@ -607,7 +776,7 @@ def parse_fundamentals_reference(content: str) -> list[FieldCodeDocument]:
 
 def parse_officers_reference(content: str) -> list[FieldCodeDocument]:
     """
-    Parse OFFICERS_DIRECTORS_REFERENCE.md to extract field codes.
+    Parse officers-directors.md to extract field codes.
 
     Args:
         content: Markdown content of the reference file
@@ -641,7 +810,7 @@ def parse_officers_reference(content: str) -> list[FieldCodeDocument]:
             description=description,
             domain="officers",
             natural_language_hints=keywords,
-            metadata={"source": "OFFICERS_DIRECTORS_REFERENCE.md"},
+            metadata={"source": "officers-directors.md"},
         ))
 
     return docs
@@ -649,7 +818,7 @@ def parse_officers_reference(content: str) -> list[FieldCodeDocument]:
 
 def parse_screening_reference(content: str) -> list[FieldCodeDocument]:
     """
-    Parse SCREENING_REFERENCE.md to extract field codes and SCREEN syntax.
+    Parse screening.md to extract field codes and SCREEN syntax.
 
     Args:
         content: Markdown content of the reference file
@@ -680,7 +849,7 @@ def parse_screening_reference(content: str) -> list[FieldCodeDocument]:
             description=description,
             domain="screening",
             natural_language_hints=keywords,
-            metadata={"source": "SCREENING_REFERENCE.md"},
+            metadata={"source": "screening.md"},
         ))
 
     return docs
@@ -688,7 +857,7 @@ def parse_screening_reference(content: str) -> list[FieldCodeDocument]:
 
 def parse_query_examples(content: str) -> list[QueryExampleDocument]:
     """
-    Parse ESTIMATES_REFERENCE.md to extract query examples.
+    Parse estimates.md to extract query examples.
 
     Args:
         content: Markdown content of the reference file
@@ -725,7 +894,7 @@ def parse_query_examples(content: str) -> list[QueryExampleDocument]:
             api_call=api_call,
             domain="estimates",
             complexity_level=complexity,
-            metadata={"source": "ESTIMATES_REFERENCE.md"},
+            metadata={"source": "estimates.md"},
         ))
 
     return docs

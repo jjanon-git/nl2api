@@ -457,7 +457,7 @@ class TestParseEstimatesReference:
         docs = parse_estimates_reference(content)
 
         assert docs[0].metadata is not None
-        assert docs[0].metadata["source"] == "ESTIMATES_REFERENCE.md"
+        assert docs[0].metadata["source"] == "estimates.md"
 
 
 class TestParseQueryExamples:
@@ -523,7 +523,7 @@ get_data(RICs=["AAPL.O"], fields=["TR.EPSMean"])
         docs = parse_query_examples(content)
 
         assert docs[0].metadata is not None
-        assert docs[0].metadata["source"] == "ESTIMATES_REFERENCE.md"
+        assert docs[0].metadata["source"] == "estimates.md"
 
 
 class TestFieldCodeDocument:

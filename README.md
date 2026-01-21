@@ -144,7 +144,7 @@ To add new test fixtures:
 ## Documentation
 
 - **CLAUDE.md** - Quick reference for AI assistants
-- **docs/ARCHITECTURE.md** - Full system design and API specifications
-- **docs/STATUS.md** - Current implementation status and next steps
-- **docs/ACCURACY_TESTING.md** - Accuracy testing pattern and configuration
+- **docs/architecture.md** - Full system design and API specifications
+- **docs/status.md** - Current implementation status and next steps
+- **docs/accuracy-testing.md** - Accuracy testing pattern and configuration
 - **docs/api-reference/** - LSEG API reference docs (Datastream, Estimates, Fundamentals, Officers, Screening)
