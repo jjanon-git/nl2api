@@ -43,7 +43,10 @@ from src.common.telemetry.metrics import (
 from src.common.telemetry.tracing import (
     trace_async,
     trace_sync,
+    trace_span,
+    trace_span_safe,
     add_span_attributes,
+    add_span_event,
     record_exception,
 )
 
@@ -65,6 +68,9 @@ __all__ = [
     # Tracing
     "trace_async",
     "trace_sync",
+    "trace_span",
+    "trace_span_safe",
     "add_span_attributes",
+    "add_span_event",
     "record_exception",
 ]

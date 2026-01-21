@@ -28,6 +28,7 @@ from src.nl2api.models import ClarificationQuestion, NL2APIResponse
 from src.nl2api.llm.protocols import LLMMessage, LLMProvider, MessageRole
 from src.nl2api.mcp.context import ContextProvider, DualModeContextRetriever
 from src.nl2api.observability import RequestMetrics, emit_metrics
+from src.common.telemetry import trace_span, record_exception
 from src.nl2api.rag.protocols import RAGRetriever
 from src.nl2api.resolution.protocols import EntityResolver
 from src.nl2api.routing.protocols import QueryRouter, RouterResult
@@ -142,179 +143,262 @@ class NL2APIOrchestrator:
         # Initialize metrics collection
         metrics = RequestMetrics(query=query, session_id=session_id)
 
-        try:
-            # Step 0: Get or create conversation session
-            session_uuid = UUID(session_id) if session_id else None
-            session = await self._conversation_manager.get_or_create_session(
-                session_id=session_uuid,
-            )
-            metrics.session_id = str(session.id)
-            logger.info(f"Using session: {session.id}")
+        # Root span for entire request
+        with trace_span("nl2api.process", {"query_length": len(query)}) as root_span:
+            try:
+                # Step 0: Get or create conversation session
+                with trace_span("session.get_or_create") as session_span:
+                    session_uuid = UUID(session_id) if session_id else None
+                    session = await self._conversation_manager.get_or_create_session(
+                        session_id=session_uuid,
+                    )
+                    metrics.session_id = str(session.id)
+                    session_span.set_attribute("session.id", str(session.id))
+                    session_span.set_attribute("session.turns", session.total_turns)
+                    logger.info(f"Using session: {session.id}")
 
-            # Step 1: Expand query if this is a follow-up
-            effective_query = query
-            expansion_result = None
-            if session.total_turns > 0:
-                expansion_result = self._conversation_manager.expand_query(
-                    query, session
-                )
-                if expansion_result.was_expanded:
-                    effective_query = expansion_result.expanded_query
-                    metrics.query_expanded = True
-                    metrics.query_expansion_reason = "follow_up"
-                    logger.info(
-                        f"Expanded query: '{query}' -> '{effective_query}'"
+                # Step 1: Expand query if this is a follow-up
+                with trace_span("query.expansion") as expansion_span:
+                    effective_query = query
+                    expansion_result = None
+                    if session.total_turns > 0:
+                        expansion_result = self._conversation_manager.expand_query(
+                            query, session
+                        )
+                        if expansion_result.was_expanded:
+                            effective_query = expansion_result.expanded_query
+                            metrics.query_expanded = True
+                            metrics.query_expansion_reason = "follow_up"
+                            expansion_span.set_attribute("query.expanded", True)
+                            expansion_span.set_attribute("query.expanded_length", len(effective_query))
+                            logger.info(
+                                f"Expanded query: '{query}' -> '{effective_query}'"
+                            )
+                        else:
+                            expansion_span.set_attribute("query.expanded", False)
+                    else:
+                        expansion_span.set_attribute("query.expanded", False)
+
+                # Step 2: Classify query to determine domain
+                with trace_span("routing") as routing_span:
+                    routing_start = time.perf_counter()
+                    domain, confidence = await self._classify_query(effective_query)
+                    routing_latency = int((time.perf_counter() - routing_start) * 1000)
+
+                    # Get routing details from last router result
+                    routing_cached = getattr(self, '_last_router_result_cached', False)
+                    routing_model = getattr(self, '_last_router_result_model', None)
+
+                    routing_span.set_attribute("routing.domain", domain)
+                    routing_span.set_attribute("routing.confidence", confidence)
+                    routing_span.set_attribute("routing.cached", routing_cached)
+                    routing_span.set_attribute("routing.latency_ms", routing_latency)
+                    if routing_model:
+                        routing_span.set_attribute("routing.model", routing_model)
+
+                    metrics.set_routing_result(
+                        domain=domain,
+                        confidence=confidence,
+                        cached=routing_cached,
+                        model=routing_model,
+                        latency_ms=routing_latency,
+                    )
+                    logger.info(f"Query classified to domain: {domain} (confidence={confidence:.2f})")
+
+                # Check if confidence is too low
+                if confidence < self._routing_confidence_threshold or domain not in self._agents:
+                    metrics.set_clarification("domain")
+                    metrics.finalize(int((time.perf_counter() - start_time) * 1000))
+                    root_span.set_attribute("clarification.type", "domain")
+                    root_span.set_attribute("total_latency_ms", int((time.perf_counter() - start_time) * 1000))
+                    await self._emit_metrics_safe(metrics)
+
+                    return NL2APIResponse(
+                        needs_clarification=True,
+                        clarification_questions=(
+                            ClarificationQuestion(
+                                question="I'm not sure which API domain to use for this query. Could you specify what type of data you're looking for?",
+                                options=tuple(self._agents.keys()),
+                                category="domain",
+                            ),
+                        ),
+                        session_id=str(session.id),
+                        turn_number=session.total_turns + 1,
+                        processing_time_ms=int((time.perf_counter() - start_time) * 1000),
                     )
 
-            # Step 2: Classify query to determine domain
-            routing_start = time.perf_counter()
-            domain, confidence = await self._classify_query(effective_query)
-            routing_latency = int((time.perf_counter() - routing_start) * 1000)
+                # Step 3: Resolve entities (company names to RICs)
+                with trace_span("entity.resolution") as entity_span:
+                    entity_start = time.perf_counter()
+                    resolved_entities = {}
+                    if self._entity_resolver:
+                        resolved_entities = await self._entity_resolver.resolve(effective_query)
+                        logger.info(f"Resolved entities: {resolved_entities}")
 
-            # Get routing details from last router result
-            routing_cached = getattr(self, '_last_router_result_cached', False)
-            routing_model = getattr(self, '_last_router_result_model', None)
+                    entity_latency = int((time.perf_counter() - entity_start) * 1000)
 
-            metrics.set_routing_result(
-                domain=domain,
-                confidence=confidence,
-                cached=routing_cached,
-                model=routing_model,
-                latency_ms=routing_latency,
-            )
-            logger.info(f"Query classified to domain: {domain} (confidence={confidence:.2f})")
+                    # Also include entities from conversation context
+                    context_entities = session.get_all_entities()
+                    merged_entities = {**context_entities, **resolved_entities}
 
-            # Check if confidence is too low
-            if confidence < self._routing_confidence_threshold or domain not in self._agents:
-                metrics.set_clarification("domain")
-                metrics.finalize(int((time.perf_counter() - start_time) * 1000))
-                await self._emit_metrics_safe(metrics)
+                    entity_span.set_attribute("entities.count", len(resolved_entities))
+                    entity_span.set_attribute("entities.names", list(resolved_entities.keys()))
+                    entity_span.set_attribute("entities.latency_ms", entity_latency)
 
-                return NL2APIResponse(
-                    needs_clarification=True,
-                    clarification_questions=(
-                        ClarificationQuestion(
-                            question="I'm not sure which API domain to use for this query. Could you specify what type of data you're looking for?",
-                            options=tuple(self._agents.keys()),
-                            category="domain",
-                        ),
-                    ),
-                    session_id=str(session.id),
-                    turn_number=session.total_turns + 1,
-                    processing_time_ms=int((time.perf_counter() - start_time) * 1000),
-                )
+                    metrics.set_entity_resolution(
+                        extracted=list(resolved_entities.keys()),
+                        resolved=resolved_entities,
+                        method="static" if resolved_entities else "none",
+                        latency_ms=entity_latency,
+                    )
 
-            # Step 3: Resolve entities (company names to RICs)
-            entity_start = time.perf_counter()
-            resolved_entities = {}
-            if self._entity_resolver:
-                resolved_entities = await self._entity_resolver.resolve(effective_query)
-                logger.info(f"Resolved entities: {resolved_entities}")
+                # Step 4: Check for ambiguity before proceeding
+                with trace_span("ambiguity.detection") as ambiguity_span:
+                    ambiguity_analysis = await self._ambiguity_detector.analyze(
+                        effective_query,
+                        resolved_entities=merged_entities,
+                    )
+                    ambiguity_span.set_attribute("ambiguity.is_ambiguous", ambiguity_analysis.is_ambiguous)
+                    if ambiguity_analysis.is_ambiguous:
+                        ambiguity_span.set_attribute("ambiguity.types", list(ambiguity_analysis.ambiguity_types))
+                        logger.info(f"Query is ambiguous: {ambiguity_analysis.ambiguity_types}")
+                        metrics.set_clarification("ambiguity")
+                        metrics.finalize(int((time.perf_counter() - start_time) * 1000))
+                        root_span.set_attribute("clarification.type", "ambiguity")
+                        root_span.set_attribute("total_latency_ms", int((time.perf_counter() - start_time) * 1000))
+                        await self._emit_metrics_safe(metrics)
 
-            entity_latency = int((time.perf_counter() - entity_start) * 1000)
+                        return NL2APIResponse(
+                            needs_clarification=True,
+                            clarification_questions=ambiguity_analysis.clarification_questions,
+                            domain=domain,
+                            resolved_entities=merged_entities,
+                            session_id=str(session.id),
+                            turn_number=session.total_turns + 1,
+                            processing_time_ms=int((time.perf_counter() - start_time) * 1000),
+                        )
 
-            # Also include entities from conversation context
-            context_entities = session.get_all_entities()
-            merged_entities = {**context_entities, **resolved_entities}
+                # Step 5: Retrieve context (dual-mode: RAG or MCP)
+                with trace_span("context.retrieval") as context_span:
+                    context_start = time.perf_counter()
+                    field_codes, query_examples = await self._retrieve_context(
+                        query=effective_query,
+                        domain=domain,
+                    )
+                    context_latency = int((time.perf_counter() - context_start) * 1000)
 
-            metrics.set_entity_resolution(
-                extracted=list(resolved_entities.keys()),
-                resolved=resolved_entities,
-                method="static" if resolved_entities else "none",
-                latency_ms=entity_latency,
-            )
+                    context_span.set_attribute("context.field_codes", len(field_codes))
+                    context_span.set_attribute("context.examples", len(query_examples))
+                    context_span.set_attribute("context.mode", getattr(self, '_context_mode', 'local'))
+                    context_span.set_attribute("context.latency_ms", context_latency)
 
-            # Step 4: Check for ambiguity before proceeding
-            ambiguity_analysis = await self._ambiguity_detector.analyze(
-                effective_query,
-                resolved_entities=merged_entities,
-            )
-            if ambiguity_analysis.is_ambiguous:
-                logger.info(f"Query is ambiguous: {ambiguity_analysis.ambiguity_types}")
-                metrics.set_clarification("ambiguity")
-                metrics.finalize(int((time.perf_counter() - start_time) * 1000))
-                await self._emit_metrics_safe(metrics)
+                    metrics.set_context_retrieval(
+                        mode=getattr(self, '_context_mode', 'local'),
+                        field_codes_count=len(field_codes),
+                        examples_count=len(query_examples),
+                        latency_ms=context_latency,
+                    )
 
-                return NL2APIResponse(
-                    needs_clarification=True,
-                    clarification_questions=ambiguity_analysis.clarification_questions,
-                    domain=domain,
+                # Step 6: Build context for agent including conversation history
+                history_prompt = self._conversation_manager.build_history_prompt(session)
+                context = AgentContext(
+                    query=effective_query,
                     resolved_entities=merged_entities,
+                    field_codes=field_codes,
+                    query_examples=query_examples,
+                    conversation_history=history_prompt,
                     session_id=str(session.id),
-                    turn_number=session.total_turns + 1,
-                    processing_time_ms=int((time.perf_counter() - start_time) * 1000),
                 )
 
-            # Step 5: Retrieve context (dual-mode: RAG or MCP)
-            context_start = time.perf_counter()
-            field_codes, query_examples = await self._retrieve_context(
-                query=effective_query,
-                domain=domain,
-            )
-            context_latency = int((time.perf_counter() - context_start) * 1000)
+                # Step 7: Invoke domain agent
+                with trace_span("agent.process", {"agent": domain}) as agent_span:
+                    agent_start = time.perf_counter()
+                    agent = self._agents[domain]
+                    result = await agent.process(context)
+                    agent_latency = int((time.perf_counter() - agent_start) * 1000)
 
-            metrics.set_context_retrieval(
-                mode=getattr(self, '_context_mode', 'local'),
-                field_codes_count=len(field_codes),
-                examples_count=len(query_examples),
-                latency_ms=context_latency,
-            )
+                    agent_span.set_attribute("agent.used_llm", result.used_llm)
+                    agent_span.set_attribute("agent.tool_calls", len(result.tool_calls))
+                    agent_span.set_attribute("agent.latency_ms", agent_latency)
+                    if result.rule_matched:
+                        agent_span.set_attribute("agent.rule_matched", result.rule_matched)
+                    if result.tokens_used:
+                        agent_span.set_attribute("agent.tokens", result.tokens_used)
 
-            # Step 6: Build context for agent including conversation history
-            history_prompt = self._conversation_manager.build_history_prompt(session)
-            context = AgentContext(
-                query=effective_query,
-                resolved_entities=merged_entities,
-                field_codes=field_codes,
-                query_examples=query_examples,
-                conversation_history=history_prompt,
-                session_id=str(session.id),
-            )
+                    metrics.set_agent_result(
+                        domain=domain,
+                        used_llm=result.used_llm,
+                        rule_matched=result.rule_matched,
+                        llm_model=result.llm_model,
+                        tokens_prompt=result.tokens_prompt,
+                        tokens_completion=result.tokens_completion,
+                        latency_ms=agent_latency,
+                    )
 
-            # Step 7: Invoke domain agent
-            agent_start = time.perf_counter()
-            agent = self._agents[domain]
-            result = await agent.process(context)
-            agent_latency = int((time.perf_counter() - agent_start) * 1000)
+                # Step 8: Build response and save conversation turn
+                processing_time_ms = int((time.perf_counter() - start_time) * 1000)
+                turn_number = session.total_turns + 1
 
-            metrics.set_agent_result(
-                domain=domain,
-                used_llm=result.used_llm,
-                rule_matched=result.rule_matched,
-                llm_model=result.llm_model,
-                tokens_prompt=result.tokens_prompt,
-                tokens_completion=result.tokens_completion,
-                latency_ms=agent_latency,
-            )
+                if result.needs_clarification:
+                    metrics.set_clarification("agent")
+                    metrics.finalize(processing_time_ms)
+                    root_span.set_attribute("clarification.type", "agent")
+                    root_span.set_attribute("total_latency_ms", processing_time_ms)
+                    await self._emit_metrics_safe(metrics)
 
-            # Step 8: Build response and save conversation turn
-            processing_time_ms = int((time.perf_counter() - start_time) * 1000)
-            turn_number = session.total_turns + 1
+                    # Save turn with clarification request
+                    turn = ConversationTurn(
+                        turn_number=turn_number,
+                        user_query=query,
+                        expanded_query=effective_query if effective_query != query else None,
+                        needs_clarification=True,
+                        clarification_questions=tuple(result.clarification_questions),
+                        domain=domain,
+                        resolved_entities=merged_entities,
+                        processing_time_ms=processing_time_ms,
+                    )
+                    await self._conversation_manager.add_turn(session, turn)
 
-            if result.needs_clarification:
-                metrics.set_clarification("agent")
+                    return NL2APIResponse(
+                        needs_clarification=True,
+                        clarification_questions=tuple(
+                            ClarificationQuestion(question=q)
+                            for q in result.clarification_questions
+                        ),
+                        domain=domain,
+                        resolved_entities=merged_entities,
+                        session_id=str(session.id),
+                        turn_number=turn_number,
+                        raw_llm_response=result.raw_llm_response,
+                        tokens_used=result.tokens_used,
+                        processing_time_ms=processing_time_ms,
+                    )
+
+                # Set successful output metrics
+                metrics.set_tool_calls(result.tool_calls)
                 metrics.finalize(processing_time_ms)
+                root_span.set_attribute("success", True)
+                root_span.set_attribute("tool_calls.count", len(result.tool_calls))
+                root_span.set_attribute("total_latency_ms", processing_time_ms)
                 await self._emit_metrics_safe(metrics)
 
-                # Save turn with clarification request
+                # Save successful turn
                 turn = ConversationTurn(
                     turn_number=turn_number,
                     user_query=query,
                     expanded_query=effective_query if effective_query != query else None,
-                    needs_clarification=True,
-                    clarification_questions=tuple(result.clarification_questions),
+                    tool_calls=result.tool_calls,
                     domain=domain,
+                    confidence=result.confidence,
                     resolved_entities=merged_entities,
                     processing_time_ms=processing_time_ms,
                 )
                 await self._conversation_manager.add_turn(session, turn)
 
                 return NL2APIResponse(
-                    needs_clarification=True,
-                    clarification_questions=tuple(
-                        ClarificationQuestion(question=q)
-                        for q in result.clarification_questions
-                    ),
+                    tool_calls=result.tool_calls,
+                    confidence=result.confidence,
+                    reasoning=result.reasoning,
                     domain=domain,
                     resolved_entities=merged_entities,
                     session_id=str(session.id),
@@ -324,55 +408,28 @@ class NL2APIOrchestrator:
                     processing_time_ms=processing_time_ms,
                 )
 
-            # Set successful output metrics
-            metrics.set_tool_calls(result.tool_calls)
-            metrics.finalize(processing_time_ms)
-            await self._emit_metrics_safe(metrics)
+            except Exception as e:
+                logger.error(f"Error processing query: {e}", exc_info=True)
+                processing_time_ms = int((time.perf_counter() - start_time) * 1000)
 
-            # Save successful turn
-            turn = ConversationTurn(
-                turn_number=turn_number,
-                user_query=query,
-                expanded_query=effective_query if effective_query != query else None,
-                tool_calls=result.tool_calls,
-                domain=domain,
-                confidence=result.confidence,
-                resolved_entities=merged_entities,
-                processing_time_ms=processing_time_ms,
-            )
-            await self._conversation_manager.add_turn(session, turn)
+                # Record error in metrics and span
+                record_exception(e)
+                root_span.set_attribute("success", False)
+                root_span.set_attribute("error.type", type(e).__name__)
+                root_span.set_attribute("total_latency_ms", processing_time_ms)
+                metrics.set_error(e)
+                metrics.finalize(processing_time_ms)
+                await self._emit_metrics_safe(metrics)
 
-            return NL2APIResponse(
-                tool_calls=result.tool_calls,
-                confidence=result.confidence,
-                reasoning=result.reasoning,
-                domain=domain,
-                resolved_entities=merged_entities,
-                session_id=str(session.id),
-                turn_number=turn_number,
-                raw_llm_response=result.raw_llm_response,
-                tokens_used=result.tokens_used,
-                processing_time_ms=processing_time_ms,
-            )
-
-        except Exception as e:
-            logger.error(f"Error processing query: {e}", exc_info=True)
-            processing_time_ms = int((time.perf_counter() - start_time) * 1000)
-
-            # Record error in metrics
-            metrics.set_error(e)
-            metrics.finalize(processing_time_ms)
-            await self._emit_metrics_safe(metrics)
-
-            return NL2APIResponse(
-                needs_clarification=True,
-                clarification_questions=(
-                    ClarificationQuestion(
-                        question="Sorry, I encountered an error processing your request. Please try again.",
+                return NL2APIResponse(
+                    needs_clarification=True,
+                    clarification_questions=(
+                        ClarificationQuestion(
+                            question="Sorry, I encountered an error processing your request. Please try again.",
+                        ),
                     ),
-                ),
-                processing_time_ms=processing_time_ms,
-            )
+                    processing_time_ms=processing_time_ms,
+                )
 
     async def _emit_metrics_safe(self, metrics: RequestMetrics) -> None:
         """Emit metrics without raising exceptions."""
