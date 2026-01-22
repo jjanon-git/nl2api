@@ -37,12 +37,21 @@ async def read_message() -> dict | None:
         # Read line from stdin (blocking operation wrapped in executor)
         line = await loop.run_in_executor(None, sys.stdin.readline)
 
+        logger.debug(f"Read line from stdin: {repr(line)[:100]}")
+
         if not line:
+            logger.debug("Empty line received (EOF)")
             return None
 
-        return json.loads(line.strip())
+        stripped = line.strip()
+        if not stripped:
+            # Empty line (just whitespace), skip and read next
+            logger.debug("Whitespace-only line, reading next")
+            return await read_message()
+
+        return json.loads(stripped)
     except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON received: {e}")
+        logger.error(f"Invalid JSON received: {e}, line was: {repr(line)[:100]}")
         return None
     except Exception as e:
         logger.error(f"Error reading message: {e}")
@@ -99,8 +108,9 @@ async def run_stdio_server(server: "EntityResolutionMCPServer") -> None:
             # Handle the message
             response = await server.handle_message(message)
 
-            # Write response
-            write_message(response)
+            # Write response (unless it's a notification with no response)
+            if response is not None:
+                write_message(response)
 
     except KeyboardInterrupt:
         logger.info("Keyboard interrupt, shutting down")

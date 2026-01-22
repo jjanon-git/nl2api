@@ -74,7 +74,7 @@ def create_app(
     # Import FastAPI here to make it an optional dependency
     try:
         from fastapi import FastAPI, HTTPException, Request
-        from fastapi.responses import JSONResponse, StreamingResponse
+        from fastapi.responses import JSONResponse, Response, StreamingResponse
     except ImportError as e:
         raise ImportError(
             "FastAPI is required for SSE transport. "
@@ -224,11 +224,16 @@ def create_app(
             responses = []
             for message in body:
                 response = await server.handle_message(message)
-                responses.append(response)
+                # Filter out None responses (notifications don't expect responses)
+                if response is not None:
+                    responses.append(response)
             return JSONResponse(content=responses)
 
         # Handle single request
         response = await server.handle_message(body)
+        # Notifications return None - respond with 204 No Content
+        if response is None:
+            return Response(status_code=204)
         return JSONResponse(content=response)
 
     @app.get("/sse")

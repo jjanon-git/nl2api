@@ -276,7 +276,7 @@ class EntityResolutionMCPServer:
         self,
         message: dict[str, Any],
         client_ctx: Optional[ClientContext] = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | None:
         """
         Handle an incoming JSON-RPC message.
 
@@ -285,11 +285,14 @@ class EntityResolutionMCPServer:
             client_ctx: Client context for observability (optional, falls back to context var)
 
         Returns:
-            JSON-RPC response message
+            JSON-RPC response message, or None for notifications
         """
         method = message.get("method", "")
         params = message.get("params", {})
         request_id = message.get("id")
+
+        # JSON-RPC notifications have no id and expect no response
+        is_notification = request_id is None
 
         # Create request-specific context if we have a base context
         ctx = client_ctx or get_client_context()
@@ -299,6 +302,7 @@ class EntityResolutionMCPServer:
         with tracer.start_as_current_span("mcp.handle_message") as span:
             span.set_attribute("jsonrpc.method", method)
             span.set_attribute("jsonrpc.id", str(request_id))
+            span.set_attribute("jsonrpc.is_notification", is_notification)
             self._add_client_context_to_span(span, ctx)
 
             try:
@@ -307,8 +311,9 @@ class EntityResolutionMCPServer:
                     result = self.server_info
 
                 elif method == "initialized":
-                    # Client acknowledgment, no response needed
-                    return {"jsonrpc": "2.0", "id": request_id, "result": {}}
+                    # Client acknowledgment - this is a notification, no response
+                    logger.debug("Received 'initialized' notification from client")
+                    return None
 
                 elif method == "tools/list":
                     result = {"tools": await self.list_tools()}

@@ -794,16 +794,16 @@ class TestJsonRpcMessageHandling:
 
     @pytest.mark.asyncio
     async def test_handle_initialized_message(self, server: MagicMock) -> None:
-        """Test initialized acknowledgment message."""
+        """Test initialized notification (no id, no response per JSON-RPC spec)."""
+        # 'initialized' is a notification in MCP - it has no id and expects no response
         response = await server.handle_message({
             "jsonrpc": "2.0",
-            "id": 1,
             "method": "initialized",
+            # Note: no 'id' field - this is a notification
         })
 
-        assert response["jsonrpc"] == "2.0"
-        assert response["id"] == 1
-        assert response["result"] == {}
+        # Notifications return None (no response should be sent)
+        assert response is None
 
     @pytest.mark.asyncio
     async def test_handle_shutdown_message(self, server: MagicMock) -> None:
