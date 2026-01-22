@@ -908,9 +908,20 @@ metrics.record_batch_complete(batch_job, duration_seconds)
 | Component | Required Telemetry |
 |-----------|-------------------|
 | Server | Spans with `server.name`, `jsonrpc.method`, `jsonrpc.id` |
-| Client Context | `client.session_id`, `client.transport`, `client.id` (if provided), `client.name` (if provided) |
+| Client Context | `client.session_id`, `client.transport`, `client.id` (REQUIRED for SSE), `client.name` |
 | Tool calls | `tool.name`, `tool.success` |
 | Resource reads | `resource.uri`, `resource.success` |
+
+**Client ID is MANDATORY for HTTP/SSE transport** (default: `require_client_id=True`). This enables:
+- Per-client rate limiting and throttling
+- Brownout protection (shed load by client priority)
+- Usage tracking and billing
+- Debugging client-specific issues
+
+Clients must send `X-Client-ID` header on all requests (except exempt paths like `/health`).
+Requests without `X-Client-ID` receive 401 with `{"error": "missing_client_id"}`.
+
+**Exempt paths** (no client_id required): `/health`, `/`, `/docs`, `/openapi.json`
 
 **Client differentiation implementation:**
 1. Create a `ClientContext` dataclass with session ID, client ID, transport type
@@ -918,6 +929,7 @@ metrics.record_batch_complete(batch_job, duration_seconds)
 3. For HTTP/SSE: Extract client info from headers (`X-Client-ID`, `X-Client-Name`, `User-Agent`)
 4. For stdio: Generate session ID at startup (single client per process)
 5. Add context attributes to all spans via helper method
+6. Enforce `require_client_id` in middleware (reject 401 if missing)
 
 ```python
 from src.mcp_servers.entity_resolution.context import (
@@ -926,7 +938,11 @@ from src.mcp_servers.entity_resolution.context import (
     set_client_context,
 )
 
-# In middleware or startup
+# In middleware - enforce client_id for non-exempt paths
+if config.require_client_id and request.url.path not in EXEMPT_PATHS:
+    if not request.headers.get("X-Client-ID"):
+        return JSONResponse(status_code=401, content={"error": "missing_client_id"})
+
 ctx = create_sse_context(client_id=request.headers.get("X-Client-ID"))
 set_client_context(ctx)
 

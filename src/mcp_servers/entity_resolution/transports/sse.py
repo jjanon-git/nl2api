@@ -23,6 +23,10 @@ from typing import Any, AsyncGenerator, Optional
 from pydantic import BaseModel
 
 from src.mcp_servers.entity_resolution.config import EntityServerConfig
+from src.mcp_servers.entity_resolution.context import (
+    create_sse_context,
+    set_client_context,
+)
 from src.mcp_servers.entity_resolution.server import EntityResolutionMCPServer
 
 logger = logging.getLogger(__name__)
@@ -105,6 +109,46 @@ def create_app(
         version=_config.server_version,
         lifespan=lifespan,
     )
+
+    # Paths exempt from client_id requirement (health checks, server info)
+    EXEMPT_PATHS = {"/health", "/", "/docs", "/openapi.json"}
+
+    @app.middleware("http")
+    async def client_context_middleware(request: Request, call_next: Any) -> Any:
+        """
+        Extract client identification from headers and set context.
+
+        Supported headers:
+        - X-Client-ID: Unique client identifier (REQUIRED unless path is exempt)
+        - X-Client-Name: Human-readable client name
+        - User-Agent: Fallback for client name detection
+
+        Returns 401 if X-Client-ID is missing and require_client_id is True.
+        """
+        client_id = request.headers.get("X-Client-ID")
+        client_name = request.headers.get("X-Client-Name")
+        user_agent = request.headers.get("User-Agent")
+
+        # Enforce client_id for non-exempt paths
+        if _config.require_client_id and request.url.path not in EXEMPT_PATHS:
+            if not client_id or not client_id.strip():
+                return JSONResponse(
+                    status_code=401,
+                    content={
+                        "error": "missing_client_id",
+                        "message": "X-Client-ID header is required",
+                    },
+                )
+
+        ctx = create_sse_context(
+            client_id=client_id,
+            client_name=client_name,
+            user_agent=user_agent,
+        )
+        set_client_context(ctx)
+
+        response = await call_next(request)
+        return response
 
     @app.get("/health")
     async def health_check() -> JSONResponse:

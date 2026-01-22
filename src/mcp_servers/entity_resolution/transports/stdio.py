@@ -13,6 +13,11 @@ import logging
 import sys
 from typing import TYPE_CHECKING
 
+from src.mcp_servers.entity_resolution.context import (
+    create_stdio_context,
+    set_client_context,
+)
+
 if TYPE_CHECKING:
     from src.mcp_servers.entity_resolution.server import EntityResolutionMCPServer
 
@@ -70,6 +75,12 @@ async def run_stdio_server(server: "EntityResolutionMCPServer") -> None:
         server: The MCP server instance to run
     """
     logger.info("Starting stdio transport")
+
+    # Set up client context for this stdio session
+    # (single client per process, session persists for duration)
+    ctx = create_stdio_context()
+    set_client_context(ctx)
+    logger.info(f"Client context: session_id={ctx.session_id}, transport=stdio")
 
     try:
         # Initialize server

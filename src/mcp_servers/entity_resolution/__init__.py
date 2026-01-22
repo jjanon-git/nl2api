@@ -6,6 +6,7 @@ Supports stdio and HTTP/SSE transports for Claude Desktop and production deploym
 """
 
 from src.mcp_servers.entity_resolution.config import EntityServerConfig
+from src.mcp_servers.entity_resolution.context import ClientContext
 from src.mcp_servers.entity_resolution.server import EntityResolutionMCPServer
 
-__all__ = ["EntityResolutionMCPServer", "EntityServerConfig"]
+__all__ = ["EntityResolutionMCPServer", "EntityServerConfig", "ClientContext"]

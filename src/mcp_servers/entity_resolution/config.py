@@ -49,6 +49,10 @@ class EntityServerConfig(BaseSettings):
         default=8080,
         description="Port for SSE transport",
     )
+    require_client_id: bool = Field(
+        default=True,
+        description="Require X-Client-ID header for SSE transport (for throttling/brownout)",
+    )
 
     # Database Configuration
     postgres_url: str = Field(

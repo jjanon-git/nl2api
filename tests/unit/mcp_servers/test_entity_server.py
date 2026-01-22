@@ -555,6 +555,146 @@ class TestServerIntegration:
 
 
 # =============================================================================
+# Client Context Tests
+# =============================================================================
+
+
+class TestClientContext:
+    """Tests for client context and observability."""
+
+    def test_client_context_default_values(self) -> None:
+        """Test ClientContext has sensible defaults."""
+        from src.mcp_servers.entity_resolution.context import ClientContext
+
+        ctx = ClientContext()
+
+        assert ctx.session_id is not None
+        assert len(ctx.session_id) == 36  # UUID format
+        assert ctx.client_id is None
+        assert ctx.client_name is None
+        assert ctx.transport == "unknown"
+        assert ctx.request_id is None
+
+    def test_client_context_with_request(self) -> None:
+        """Test creating a context with a specific request ID."""
+        from src.mcp_servers.entity_resolution.context import ClientContext
+
+        ctx = ClientContext(
+            session_id="test-session",
+            client_name="test-client",
+            transport="sse",
+        )
+
+        req_ctx = ctx.with_request("req-123")
+
+        # Should preserve session but add request ID
+        assert req_ctx.session_id == "test-session"
+        assert req_ctx.client_name == "test-client"
+        assert req_ctx.transport == "sse"
+        assert req_ctx.request_id == "req-123"
+
+        # Original should be unchanged
+        assert ctx.request_id is None
+
+    def test_client_context_to_span_attributes(self) -> None:
+        """Test converting context to OTEL span attributes."""
+        from src.mcp_servers.entity_resolution.context import ClientContext
+
+        ctx = ClientContext(
+            session_id="sess-456",
+            client_id="client-789",
+            client_name="test-client",
+            transport="sse",
+            request_id="req-123",
+        )
+
+        attrs = ctx.to_span_attributes()
+
+        assert attrs["client.session_id"] == "sess-456"
+        assert attrs["client.id"] == "client-789"
+        assert attrs["client.name"] == "test-client"
+        assert attrs["client.transport"] == "sse"
+        assert attrs["request.correlation_id"] == "req-123"
+
+    def test_client_context_to_span_attributes_minimal(self) -> None:
+        """Test span attributes with minimal context (no optional fields)."""
+        from src.mcp_servers.entity_resolution.context import ClientContext
+
+        ctx = ClientContext(session_id="sess-123", transport="stdio")
+
+        attrs = ctx.to_span_attributes()
+
+        assert attrs["client.session_id"] == "sess-123"
+        assert attrs["client.transport"] == "stdio"
+        assert "client.id" not in attrs
+        assert "client.name" not in attrs
+        assert "request.correlation_id" not in attrs
+
+    def test_create_sse_context(self) -> None:
+        """Test creating SSE context from headers."""
+        from src.mcp_servers.entity_resolution.context import create_sse_context
+
+        ctx = create_sse_context(
+            client_id="my-client-id",
+            client_name="my-client",
+            user_agent=None,
+        )
+
+        assert ctx.transport == "sse"
+        assert ctx.client_id == "my-client-id"
+        assert ctx.client_name == "my-client"
+        assert ctx.session_id is not None
+
+    def test_create_sse_context_from_user_agent(self) -> None:
+        """Test inferring client name from User-Agent."""
+        from src.mcp_servers.entity_resolution.context import create_sse_context
+
+        ctx = create_sse_context(
+            client_id=None,
+            client_name=None,
+            user_agent="Claude-Desktop/1.0",
+        )
+
+        assert ctx.client_name == "claude-desktop"
+
+    def test_create_stdio_context(self) -> None:
+        """Test creating stdio context."""
+        from src.mcp_servers.entity_resolution.context import create_stdio_context
+
+        ctx = create_stdio_context()
+
+        assert ctx.transport == "stdio"
+        assert ctx.client_name == "stdio-client"
+        assert ctx.session_id is not None
+
+    def test_context_var_get_set(self) -> None:
+        """Test getting and setting context via context vars."""
+        from src.mcp_servers.entity_resolution.context import (
+            ClientContext,
+            clear_client_context,
+            get_client_context,
+            set_client_context,
+        )
+
+        # Initially None
+        clear_client_context()
+        assert get_client_context() is None
+
+        # Set context
+        ctx = ClientContext(session_id="test", transport="test")
+        set_client_context(ctx)
+
+        # Should be retrievable
+        retrieved = get_client_context()
+        assert retrieved is not None
+        assert retrieved.session_id == "test"
+
+        # Clear
+        clear_client_context()
+        assert get_client_context() is None
+
+
+# =============================================================================
 # Server Initialization and Lifecycle Tests
 # =============================================================================
 
@@ -988,3 +1128,373 @@ class TestToolHandlerEdgeCases:
         assert result["extracted_entities"] == []
         assert result["resolved"] == {}
         assert result["unresolved"] == []
+
+
+# =============================================================================
+# Client ID Enforcement Tests
+# =============================================================================
+
+
+class TestClientIdEnforcement:
+    """Tests for mandatory client_id enforcement in SSE transport."""
+
+    def test_config_require_client_id_default_true(self) -> None:
+        """Test require_client_id defaults to True."""
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+        )
+        assert config.require_client_id is True
+
+    def test_config_require_client_id_can_be_disabled(self) -> None:
+        """Test require_client_id can be set to False."""
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            require_client_id=False,
+        )
+        assert config.require_client_id is False
+
+    def test_exempt_paths_allow_requests_without_client_id(self) -> None:
+        """Test exempt paths (health, root) don't require client_id."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            # Health check should work without client_id
+            response = client.get("/health")
+            # May fail due to no DB, but should not be 401
+            assert response.status_code != 401
+
+            # Root should work without client_id
+            response = client.get("/")
+            assert response.status_code != 401
+
+    def test_api_endpoints_require_client_id(self) -> None:
+        """Test API endpoints return 401 without X-Client-ID header."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            # API resolve without client_id should fail
+            response = client.post(
+                "/api/resolve",
+                json={"entity": "Apple"},
+            )
+            assert response.status_code == 401
+            assert response.json()["error"] == "missing_client_id"
+
+    def test_api_endpoints_work_with_client_id(self) -> None:
+        """Test API endpoints work with X-Client-ID header."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            # API resolve with client_id should not get 401
+            response = client.post(
+                "/api/resolve",
+                json={"entity": "Apple"},
+                headers={"X-Client-ID": "test-client-123"},
+            )
+            # May fail due to no DB, but should not be 401
+            assert response.status_code != 401
+
+    def test_api_endpoints_work_when_enforcement_disabled(self) -> None:
+        """Test API endpoints work without client_id when enforcement disabled."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=False,
+        )
+        app = create_app(config)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            # API resolve without client_id should not get 401
+            response = client.post(
+                "/api/resolve",
+                json={"entity": "Apple"},
+            )
+            # May fail due to no DB, but should not be 401
+            assert response.status_code != 401
+
+    def test_empty_client_id_rejected(self) -> None:
+        """Test empty string X-Client-ID is rejected."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            response = client.post(
+                "/api/resolve",
+                json={"entity": "Apple"},
+                headers={"X-Client-ID": ""},
+            )
+            assert response.status_code == 401
+            assert response.json()["error"] == "missing_client_id"
+
+    def test_whitespace_client_id_rejected(self) -> None:
+        """Test whitespace-only X-Client-ID is rejected."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            response = client.post(
+                "/api/resolve",
+                json={"entity": "Apple"},
+                headers={"X-Client-ID": "   "},
+            )
+            assert response.status_code == 401
+            assert response.json()["error"] == "missing_client_id"
+
+    def test_mcp_endpoint_requires_client_id(self) -> None:
+        """Test /mcp endpoint requires X-Client-ID."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            # Without client_id
+            response = client.post(
+                "/mcp",
+                json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
+            )
+            assert response.status_code == 401
+
+            # With client_id
+            response = client.post(
+                "/mcp",
+                json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"},
+                headers={"X-Client-ID": "test-client"},
+            )
+            assert response.status_code != 401
+
+    def test_sse_endpoint_requires_client_id(self) -> None:
+        """Test /sse endpoint requires X-Client-ID (rejection case only).
+
+        Note: We only test the rejection case (401) because the success case
+        starts an infinite SSE stream that hangs the test. The middleware check
+        happens before the streaming starts, so testing 401 is sufficient to
+        verify the enforcement works.
+        """
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            # Without client_id - should get 401
+            response = client.get("/sse")
+            assert response.status_code == 401
+            assert response.json()["error"] == "missing_client_id"
+
+    def test_batch_endpoint_requires_client_id(self) -> None:
+        """Test /api/resolve/batch endpoint requires X-Client-ID."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            # Without client_id
+            response = client.post(
+                "/api/resolve/batch",
+                json={"entities": ["Apple", "Microsoft"]},
+            )
+            assert response.status_code == 401
+
+            # With client_id
+            response = client.post(
+                "/api/resolve/batch",
+                json={"entities": ["Apple", "Microsoft"]},
+                headers={"X-Client-ID": "test-client"},
+            )
+            assert response.status_code != 401
+
+    def test_extract_endpoint_requires_client_id(self) -> None:
+        """Test /api/extract endpoint requires X-Client-ID."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            # Without client_id
+            response = client.post(
+                "/api/extract",
+                json={"query": "Compare Apple and Microsoft"},
+            )
+            assert response.status_code == 401
+
+            # With client_id
+            response = client.post(
+                "/api/extract",
+                json={"query": "Compare Apple and Microsoft"},
+                headers={"X-Client-ID": "test-client"},
+            )
+            assert response.status_code != 401
+
+    def test_config_from_environment_variable(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Test require_client_id can be set via environment variable."""
+        monkeypatch.setenv("ENTITY_MCP_REQUIRE_CLIENT_ID", "false")
+
+        # Create fresh config to pick up env var
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+        )
+        assert config.require_client_id is False
+
+        # Also test true
+        monkeypatch.setenv("ENTITY_MCP_REQUIRE_CLIENT_ID", "true")
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+        )
+        assert config.require_client_id is True
+
+    def test_client_context_propagation(self) -> None:
+        """Test client_id is properly propagated to context."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.context import get_client_context
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        # Add a test endpoint that returns the context
+        from fastapi import FastAPI
+        from fastapi.responses import JSONResponse
+
+        @app.get("/test/context")
+        async def get_context() -> JSONResponse:
+            ctx = get_client_context()
+            if ctx:
+                return JSONResponse(content={
+                    "client_id": ctx.client_id,
+                    "client_name": ctx.client_name,
+                    "transport": ctx.transport,
+                    "session_id": ctx.session_id,
+                })
+            return JSONResponse(content={"error": "no context"}, status_code=500)
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            response = client.get(
+                "/test/context",
+                headers={
+                    "X-Client-ID": "my-app-123",
+                    "X-Client-Name": "My Application",
+                },
+            )
+            # /test/context is not in exempt paths, so needs client_id
+            # But we're providing it, so should work
+            assert response.status_code == 200
+            data = response.json()
+            assert data["client_id"] == "my-app-123"
+            assert data["client_name"] == "My Application"
+            assert data["transport"] == "sse"
+            assert data["session_id"] is not None
+
+    def test_long_client_id_accepted(self) -> None:
+        """Test very long client_id values are accepted."""
+        pytest.importorskip("fastapi", reason="FastAPI not installed")
+        from fastapi.testclient import TestClient
+
+        from src.mcp_servers.entity_resolution.transports.sse import create_app
+
+        config = EntityServerConfig(
+            postgres_url="postgresql://test:test@localhost:5432/test",
+            redis_enabled=False,
+            require_client_id=True,
+        )
+        app = create_app(config)
+
+        long_client_id = "a" * 1000  # 1000 character client_id
+
+        with TestClient(app, raise_server_exceptions=False) as client:
+            response = client.post(
+                "/api/resolve",
+                json={"entity": "Apple"},
+                headers={"X-Client-ID": long_client_id},
+            )
+            # Should not be rejected for being too long
+            assert response.status_code != 401
