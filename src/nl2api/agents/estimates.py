@@ -236,18 +236,22 @@ Tool call: get_data(RICs=["AMZN.O"], fields=["TR.EPSSurprisePct(Period=FQ0)"])
 Generate the most appropriate get_data tool call for the user's query."""
 
     def get_tools(self) -> list[LLMToolDefinition]:
-        """Return the tools available for this domain."""
+        """Return the tools available for this domain.
+
+        Note: Uses canonical format (get_data with tickers) for fixture compatibility.
+        The execution layer would convert to API-specific format when calling real APIs.
+        """
         return [
             LLMToolDefinition(
-                name=ToolRegistry.ESTIMATES_GET_DATA,
+                name=ToolRegistry.GET_DATA,  # Canonical name, not domain-specific
                 description="Retrieve financial estimates data from the LSEG I/B/E/S database",
                 parameters={
                     "type": "object",
                     "properties": {
-                        "RICs": {
+                        "tickers": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "List of Reuters Instrument Codes (e.g., ['AAPL.O', 'MSFT.O'])",
+                            "description": "List of Reuters Instrument Codes in RIC format (e.g., ['AAPL.O', 'MSFT.O'])",
                         },
                         "fields": {
                             "type": "array",
@@ -264,7 +268,7 @@ Generate the most appropriate get_data tool call for the user's query."""
                             },
                         },
                     },
-                    "required": ["RICs", "fields"],
+                    "required": ["tickers", "fields"],
                 },
             ),
         ]
@@ -353,11 +357,11 @@ Generate the most appropriate get_data tool call for the user's query."""
         if not fields:
             return None
 
-        # Build tool call
+        # Build tool call (canonical format)
         tool_call = ToolCall(
-            tool_name=ToolRegistry.ESTIMATES_GET_DATA,
+            tool_name=ToolRegistry.GET_DATA,
             arguments={
-                "RICs": rics,
+                "tickers": rics,
                 "fields": fields,
             },
         )

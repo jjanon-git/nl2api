@@ -247,48 +247,63 @@ def create_nl2api_generator(orchestrator):
     return generate_orchestrator_response
 
 
-def create_tool_only_generator(agent, resolved_entities: dict[str, str] | None = None):
+def create_tool_only_generator(
+    agent,
+    resolved_entities: dict[str, str] | None = None,
+    entity_resolver=None,
+):
     """
     Create a response generator that tests a single agent directly.
 
-    This generator bypasses routing and entity resolution to test
-    a specific agent's tool generation capabilities in isolation.
+    This generator bypasses routing to test a specific agent's tool generation
+    capabilities. Entity resolution can be handled in three ways:
+    1. Pre-resolved entities passed directly (resolved_entities parameter)
+    2. Live resolution using entity_resolver (recommended for accuracy testing)
+    3. Entities from test case metadata (fallback)
 
     Args:
         agent: Agent instance to test (e.g., DatastreamAgent, EstimatesAgent)
         resolved_entities: Pre-resolved entity mapping {company_name: RIC}
-                          If None, uses entities from test case metadata
+        entity_resolver: Optional resolver to resolve entities from queries live
 
     Returns:
         Async function that generates SystemResponse from TestCase
     """
+    from src.nl2api.agents.protocols import AgentContext
 
     async def generate_tool_only_response(test_case: TestCase) -> SystemResponse:
         """
         Generate response by running a single agent directly.
 
-        Uses pre-resolved entities from test case metadata (stored in expected_response)
-        or the provided resolved_entities mapping.
+        Resolution priority:
+        1. Use provided resolved_entities if given
+        2. Use entity_resolver to resolve from query if provided
+        3. Look for resolved_entities in test case metadata
         """
         import time
 
         start_time = time.perf_counter()
 
         try:
-            # Get resolved entities from test case metadata or provided mapping
+            # Priority 1: Use provided resolved_entities
             entities = resolved_entities
+
+            # Priority 2: Resolve entities live using resolver
+            if entities is None and entity_resolver is not None:
+                entities = await entity_resolver.resolve(test_case.nl_query)
+
+            # Priority 3: Look in test case metadata
             if entities is None and test_case.expected_response:
-                # Look for resolved_entities in the expected_response metadata
                 entities = test_case.expected_response.get("resolved_entities", {})
 
-            # Build context for the agent
-            context = {
-                "query": test_case.nl_query,
-                "resolved_entities": entities or {},
-            }
+            # Build AgentContext for the agent (matches process() signature)
+            context = AgentContext(
+                query=test_case.nl_query,
+                resolved_entities=entities or {},
+            )
 
-            # Call the agent's process method
-            result = await agent.process(test_case.nl_query, context)
+            # Call the agent's process method with AgentContext
+            result = await agent.process(context)
 
             latency_ms = int((time.perf_counter() - start_time) * 1000)
 
@@ -300,16 +315,16 @@ def create_tool_only_generator(agent, resolved_entities: dict[str, str] | None =
                     for tc in result.tool_calls
                 ]
 
-            # Extract token usage if available
-            input_tokens = getattr(result, 'input_tokens', None)
-            output_tokens = getattr(result, 'output_tokens', None)
+            # Extract token usage from AgentResult
+            input_tokens = getattr(result, 'tokens_prompt', None)
+            output_tokens = getattr(result, 'tokens_completion', None)
 
             return SystemResponse(
                 raw_output=json.dumps(tool_calls),
-                nl_response=getattr(result, 'nl_response', None),
+                nl_response=None,  # AgentResult doesn't have nl_response
                 latency_ms=latency_ms,
-                input_tokens=input_tokens,
-                output_tokens=output_tokens,
+                input_tokens=input_tokens if input_tokens and input_tokens > 0 else None,
+                output_tokens=output_tokens if output_tokens and output_tokens > 0 else None,
             )
 
         except Exception as e:

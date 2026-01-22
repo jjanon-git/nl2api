@@ -1197,6 +1197,88 @@ curl -X POST /api/v1/runs -d '{"client_id": "...", "test_suite_id": "..."}'
 
 ---
 
+## 15. Agent Output Format: Canonical vs API-Specific
+
+### 15.1 Problem Statement
+
+The NL2API system has multiple domain agents (Datastream, Estimates, Fundamentals, Officers, Screening) that generate tool calls. These tool calls need to:
+1. **Be comparable against test fixtures** during evaluation
+2. **Be executable against real APIs** when deployed
+
+Different LSEG APIs have different conventions:
+- **Datastream** uses `@AAPL` ticker format and `datastream_get_data` tool name
+- **Refinitiv/TR** uses `AAPL.O` RIC format and `refinitiv_get_data` tool name
+- **Test fixtures** use a universal format for portability
+
+### 15.2 Architecture Decision: Canonical Output Format
+
+**Decision:** All agents output **canonical format**. API-specific formatting is deferred to the execution layer.
+
+| Layer | Tool Name | Ticker Format | Example |
+|-------|-----------|---------------|---------|
+| Agent Output | `get_data` | RIC (`AAPL.O`) | `{"tool_name": "get_data", "arguments": {"tickers": ["AAPL.O"]}}` |
+| Test Fixtures | `get_data` | RIC (`AAPL.O`) | Same as agent output |
+| Execution Layer | API-specific | API-specific | `@AAPL` for Datastream, `AAPL.O` for TR |
+
+### 15.3 Canonical Format Specification
+
+**Tool Names:**
+- All agents use `ToolRegistry.GET_DATA` = `"get_data"`
+- The `ToolRegistry.normalize()` method maps legacy names to canonical:
+  - `datastream_get_data` → `get_data`
+  - `estimates_get_data` → `get_data`
+  - `refinitiv_get_data` → `get_data`
+
+**Ticker/Instrument Format:**
+- RIC format: `{symbol}.{exchange}` (e.g., `AAPL.O` for NASDAQ, `MSFT.N` for NYSE)
+- SCREEN expressions (for Screening agent): String containing `SCREEN(...)` syntax
+
+**Argument Key:**
+- Use `tickers` as the canonical key (not `instruments`, `RICs`, or other variants)
+- Type: `list[str]` for data queries, `str` for SCREEN expressions
+
+### 15.4 Benefits
+
+| Benefit | Explanation |
+|---------|-------------|
+| **Fixture Portability** | Test fixtures work across all agents without translation |
+| **Evaluation Simplicity** | Direct comparison between agent output and expected output |
+| **Future-Proofing** | Execution layer can add new API targets without changing agents |
+| **Testing Isolation** | Agent logic tested independently of API quirks |
+
+### 15.5 Implementation Notes
+
+**Agent Implementation:**
+```python
+# Example: DatastreamAgent._try_rule_based_extraction()
+tool_call = ToolCall(
+    tool_name=ToolRegistry.GET_DATA,  # Canonical, not datastream-specific
+    arguments={
+        "tickers": tickers,  # RIC format (e.g., ["AAPL.O"])
+        "fields": fields,    # Field codes (e.g., ["P", "MV"])
+    },
+)
+```
+
+**Execution Layer (Future):**
+```python
+# Execution would convert canonical → API-specific
+def execute_for_datastream(tool_call: ToolCall) -> APIResponse:
+    # Convert RIC to Datastream format
+    ds_tickers = [ric_to_datastream(t) for t in tool_call.arguments["tickers"]]
+    # AAPL.O → @AAPL, BARC.L → BARC
+    ...
+```
+
+### 15.6 Migration Notes
+
+- All agents updated to canonical format (January 2026)
+- Unit tests updated to expect canonical output
+- Legacy tool names still supported via `ToolRegistry.normalize()` for backwards compatibility
+- Fixtures already use canonical format
+
+---
+
 ## Appendix A: Decision Log
 
 | Decision | Options Considered | Choice | Rationale |
@@ -1205,6 +1287,7 @@ curl -X POST /api/v1/runs -d '{"client_id": "...", "test_suite_id": "..."}'
 | Results Store | Cosmos DB, Table Storage | Table Storage | Cost-effective for write-heavy, simple queries |
 | Gold Store | Blob + Cosmos, AI Search | AI Search | Vector search for deduplication, filtering |
 | AST Comparison | String diff, jsondiff, custom | Custom AST | Full control over type coercion, permutation |
+| **Agent Output Format** | API-specific, Canonical | **Canonical** | Fixture portability, evaluation simplicity, testing isolation (see §15) |
 
 ---
 

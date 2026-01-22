@@ -368,18 +368,22 @@ Tool call: refinitiv_get_data(instruments=["NVDA.O"], fields=["TR.ROE", "TR.ROA"
 Generate the most appropriate refinitiv_get_data tool call for the user's query."""
 
     def get_tools(self) -> list[LLMToolDefinition]:
-        """Return the tools available for this domain."""
+        """Return the tools available for this domain.
+
+        Note: Uses canonical format (get_data with tickers) for fixture compatibility.
+        The execution layer would convert to API-specific format when calling real APIs.
+        """
         return [
             LLMToolDefinition(
-                name=ToolRegistry.FUNDAMENTALS_GET_DATA,
+                name=ToolRegistry.GET_DATA,  # Canonical name, not domain-specific
                 description="Retrieve fundamental financial data from Refinitiv",
                 parameters={
                     "type": "object",
                     "properties": {
-                        "instruments": {
+                        "tickers": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "List of Reuters Instrument Codes (e.g., ['AAPL.O', 'MSFT.O'])",
+                            "description": "List of Reuters Instrument Codes in RIC format (e.g., ['AAPL.O', 'MSFT.O'])",
                         },
                         "fields": {
                             "type": "array",
@@ -409,7 +413,7 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
                             },
                         },
                     },
-                    "required": ["instruments", "fields"],
+                    "required": ["tickers", "fields"],
                 },
             ),
         ]
@@ -497,16 +501,16 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
         # Detect time parameters
         params = self._detect_parameters(query)
 
-        # Build tool call
+        # Build tool call (canonical format)
         arguments: dict[str, Any] = {
-            "instruments": instruments,
+            "tickers": instruments,  # Use canonical 'tickers' key
             "fields": fields,
         }
         if params:
             arguments["parameters"] = params
 
         tool_call = ToolCall(
-            tool_name=ToolRegistry.FUNDAMENTALS_GET_DATA,
+            tool_name=ToolRegistry.GET_DATA,
             arguments=arguments,
         )
 

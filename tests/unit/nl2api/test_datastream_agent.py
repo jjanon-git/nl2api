@@ -28,8 +28,8 @@ class MockLLMProvider:
         tool_calls=[
             LLMToolCall(
                 id="tc_123",
-                name="datastream_get_data",
-                arguments={"tickers": "@AAPL", "fields": ["P"]},
+                name="get_data",
+                arguments={"tickers": ["AAPL.O"], "fields": ["P"]},
             )
         ],
     ))
@@ -211,33 +211,40 @@ class TestDatastreamAgentTimeRangeDetection:
         assert params is None
 
 
-class TestDatastreamAgentTickerConversion:
-    """Test suite for ticker conversion."""
+class TestDatastreamAgentTickerExtraction:
+    """Test suite for ticker extraction (canonical RIC format)."""
 
     def setup_method(self) -> None:
         """Set up test fixtures."""
         self.mock_llm = MockLLMProvider()
         self.agent = DatastreamAgent(llm=self.mock_llm)
 
-    def test_nasdaq_ric_conversion(self) -> None:
-        """Test NASDAQ RIC to Datastream conversion."""
-        ticker = self.agent._ric_to_datastream("AAPL.O")
-        assert ticker == "@AAPL"
+    def test_extracts_rics_from_resolved_entities(self) -> None:
+        """Test that tickers are extracted in RIC format from resolved entities."""
+        tickers = self.agent._extract_tickers(
+            "What is Apple's price?",
+            {"Apple": "AAPL.O"}
+        )
+        assert "AAPL.O" in tickers
 
-    def test_nyse_ric_conversion(self) -> None:
-        """Test NYSE RIC to Datastream conversion."""
-        ticker = self.agent._ric_to_datastream("IBM.N")
-        assert ticker == "@IBM"
+    def test_extracts_multiple_rics(self) -> None:
+        """Test extraction of multiple RICs."""
+        tickers = self.agent._extract_tickers(
+            "Compare Apple and Microsoft",
+            {"Apple": "AAPL.O", "Microsoft": "MSFT.O"}
+        )
+        assert "AAPL.O" in tickers
+        assert "MSFT.O" in tickers
 
-    def test_london_ric_conversion(self) -> None:
-        """Test London RIC to Datastream conversion."""
-        ticker = self.agent._ric_to_datastream("BARC.L")
-        assert ticker == "BARC"
+    def test_returns_empty_without_entities(self) -> None:
+        """Test returns empty list when no entities provided."""
+        tickers = self.agent._extract_tickers("What is the price?", {})
+        assert tickers == []
 
-    def test_unknown_format_unchanged(self) -> None:
-        """Test unknown format is unchanged."""
-        ticker = self.agent._ric_to_datastream("CUSTOM")
-        assert ticker == "CUSTOM"
+    def test_returns_empty_with_none_entities(self) -> None:
+        """Test returns empty list when entities is None."""
+        tickers = self.agent._extract_tickers("What is the price?", None)
+        assert tickers == []
 
 
 class TestDatastreamAgentRuleBasedExtraction:
@@ -261,8 +268,8 @@ class TestDatastreamAgentRuleBasedExtraction:
         assert result is not None
         assert len(result.tool_calls) == 1
         tc = result.tool_calls[0]
-        assert tc.tool_name == "datastream_get_data"
-        assert tc.arguments["tickers"] == "@AAPL"
+        assert tc.tool_name == "get_data"  # Canonical format
+        assert "AAPL.O" in tc.arguments["tickers"]  # RIC format
         assert "P" in tc.arguments["fields"]
 
     @pytest.mark.asyncio
@@ -277,7 +284,7 @@ class TestDatastreamAgentRuleBasedExtraction:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.arguments["tickers"] == "@MSFT"
+        assert "MSFT.O" in tc.arguments["tickers"]  # RIC format
         assert "P" in tc.arguments["fields"]
         assert tc.arguments.get("start") == "-30D"
         assert tc.arguments.get("end") == "0D"
@@ -320,7 +327,7 @@ class TestDatastreamAgentRuleBasedExtraction:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.arguments["tickers"] == "@AAPL"
+        assert "AAPL.O" in tc.arguments["tickers"]  # RIC format
         assert "PE" in tc.arguments["fields"]
 
 
@@ -390,6 +397,6 @@ class TestDatastreamAgentProperties:
         """Test tools definition."""
         tools = self.agent.get_tools()
         assert len(tools) == 1
-        assert tools[0].name == "datastream_get_data"
+        assert tools[0].name == "get_data"  # Canonical format
         assert "tickers" in tools[0].parameters["properties"]
         assert "fields" in tools[0].parameters["properties"]

@@ -257,26 +257,33 @@ Tool call: refinitiv_get_data(
 Generate the most appropriate refinitiv_get_data tool call for the user's query."""
 
     def get_tools(self) -> list[LLMToolDefinition]:
-        """Return the tools available for this domain."""
+        """Return the tools available for this domain.
+
+        Note: Uses canonical format (get_data with tickers) for fixture compatibility.
+        The execution layer would convert to API-specific format when calling real APIs.
+        """
         return [
             LLMToolDefinition(
-                name=ToolRegistry.SCREENING_GET_DATA,
+                name=ToolRegistry.GET_DATA,  # Canonical name, not domain-specific
                 description="Execute a screening query against the Refinitiv database",
                 parameters={
                     "type": "object",
                     "properties": {
-                        "instruments": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                            "description": "List containing the SCREEN expression",
+                        "tickers": {
+                            "type": "string",
+                            "description": "SCREEN expression or list code (e.g., 'LS&PCOMP|L' for index constituents)",
                         },
                         "fields": {
                             "type": "array",
                             "items": {"type": "string"},
-                            "description": "List of TR field codes to return",
+                            "description": "List of field codes to return",
+                        },
+                        "kind": {
+                            "type": "integer",
+                            "description": "Query kind (0 for list retrieval)",
                         },
                     },
-                    "required": ["instruments", "fields"],
+                    "required": ["tickers", "fields"],
                 },
             ),
         ]
@@ -393,11 +400,11 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
         # Build SCREEN expression
         screen_expr = "SCREEN(" + ",".join(screen_parts) + ")"
 
-        # Build tool call
+        # Build tool call (canonical format)
         tool_call = ToolCall(
-            tool_name=ToolRegistry.SCREENING_GET_DATA,
+            tool_name=ToolRegistry.GET_DATA,
             arguments={
-                "instruments": [screen_expr],
+                "tickers": screen_expr,  # Use canonical 'tickers' key
                 "fields": display_fields,
             },
         )

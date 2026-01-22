@@ -104,9 +104,17 @@ async def load_fixtures_to_db(
                 # For entity_resolution, we also store metadata for the response generator
                 metadata = tc.get("metadata", {})
                 expected_response = tc.get("expected_response")
-                # If no expected_response but has metadata, use metadata (backward compat)
-                if expected_response is None and metadata:
+
+                # Merge metadata into expected_response to preserve input_entity etc.
+                # This is critical for entity_resolution tests where input_entity
+                # lives in metadata but is needed by the response generator.
+                if expected_response is None:
                     expected_response = metadata
+                elif metadata:
+                    # Merge metadata into expected_response (metadata takes precedence
+                    # for any duplicate keys since it has the evaluation-specific data)
+                    expected_response = {**expected_response, **metadata}
+
                 expected_response_json = (
                     json.dumps(expected_response) if expected_response else None
                 )

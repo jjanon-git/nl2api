@@ -300,17 +300,22 @@ Tool call: get_data(tickers=["U:TSLA"], fields=["PB", "PA"])
 Generate the most appropriate get_data tool call for the user's query."""
 
     def get_tools(self) -> list[LLMToolDefinition]:
-        """Return the tools available for this domain."""
+        """Return the tools available for this domain.
+
+        Note: Uses canonical tool name (get_data) and RIC format for tickers.
+        API-specific formatting (e.g., @AAPL for Datastream) happens at execution time.
+        """
         return [
             LLMToolDefinition(
-                name=ToolRegistry.DATASTREAM_GET_DATA,
-                description="Retrieve market data from LSEG Datastream",
+                name=ToolRegistry.GET_DATA,  # Canonical name, not datastream-specific
+                description="Retrieve market data (prices, valuations, dividends, fundamentals)",
                 parameters={
                     "type": "object",
                     "properties": {
                         "tickers": {
-                            "type": "string",
-                            "description": "Datastream ticker(s), use @ prefix for US stocks (e.g., '@AAPL')",
+                            "type": "array",
+                            "items": {"type": "string"},
+                            "description": "List of RIC tickers - e.g., ['AAPL.O', 'MSFT.O'] for NASDAQ, ['VOD.L'] for London",
                         },
                         "fields": {
                             "type": "array",
@@ -319,7 +324,7 @@ Generate the most appropriate get_data tool call for the user's query."""
                         },
                         "start": {
                             "type": "string",
-                            "description": "Start date for time series (e.g., '-1Y', '-30D')",
+                            "description": "Start date for time series (e.g., '-1Y', '-30D', '0D')",
                         },
                         "end": {
                             "type": "string",
@@ -416,10 +421,10 @@ Generate the most appropriate get_data tool call for the user's query."""
         # Detect time range
         time_params = self._detect_time_range(query)
 
-        # Build tool call - tickers as single string for simple case
-        ticker_value = tickers[0] if len(tickers) == 1 else tickers
+        # Build tool call (canonical format - tickers as array)
+        # Use RIC format directly (canonical), not API-specific format
         arguments: dict[str, Any] = {
-            "tickers": ticker_value,
+            "tickers": tickers,  # Keep as list for canonical format
             "fields": fields,
         }
 
@@ -427,7 +432,7 @@ Generate the most appropriate get_data tool call for the user's query."""
             arguments.update(time_params)
 
         tool_call = ToolCall(
-            tool_name=ToolRegistry.DATASTREAM_GET_DATA,
+            tool_name=ToolRegistry.GET_DATA,  # Canonical name
             arguments=arguments,
         )
 
@@ -443,26 +448,17 @@ Generate the most appropriate get_data tool call for the user's query."""
         query: str,
         resolved_entities: dict[str, str],
     ) -> list[str]:
-        """Extract tickers from resolved entities."""
+        """Extract tickers from resolved entities.
+
+        Returns RICs in canonical format (e.g., AAPL.O, MSFT.N).
+        API-specific conversion (e.g., @AAPL for Datastream) happens at execution time.
+        """
         tickers = []
         if resolved_entities:
             for name, ric in resolved_entities.items():
-                # Convert RIC to Datastream format if needed
-                ticker = self._ric_to_datastream(ric)
-                tickers.append(ticker)
+                # Keep RIC format as-is (canonical)
+                tickers.append(ric)
         return tickers
-
-    def _ric_to_datastream(self, ric: str) -> str:
-        """Convert a RIC code to Datastream ticker format."""
-        # Common conversions - use @ prefix for US stocks
-        if ric.endswith(".O"):  # NASDAQ
-            return f"@{ric[:-2]}"
-        elif ric.endswith(".N"):  # NYSE
-            return f"@{ric[:-2]}"
-        elif ric.endswith(".L"):  # London
-            return ric[:-2]  # No prefix for UK
-
-        return ric
 
     def _detect_fields(self, query: str) -> list[str]:
         """Detect the fields to request based on the query."""

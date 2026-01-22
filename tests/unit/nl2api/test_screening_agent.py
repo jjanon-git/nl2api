@@ -28,9 +28,9 @@ class MockLLMProvider:
         tool_calls=[
             LLMToolCall(
                 id="tc_123",
-                name="refinitiv_get_data",
+                name="get_data",
                 arguments={
-                    "instruments": ["SCREEN(U(IN(Equity(active,public,primary))),CURN=USD)"],
+                    "tickers": "SCREEN(U(IN(Equity(active,public,primary))),CURN=USD)",
                     "fields": ["TR.CommonName"],
                 },
             )
@@ -307,10 +307,8 @@ class TestScreeningAgentRuleBasedExtraction:
         assert result is not None
         assert len(result.tool_calls) == 1
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv_get_data"
-        instruments = tc.arguments["instruments"]
-        assert len(instruments) == 1
-        screen_expr = instruments[0]
+        assert tc.tool_name == "get_data"
+        screen_expr = tc.arguments["tickers"]  # Now a string, not a list
         assert "SCREEN(" in screen_expr
         assert "0#.SPX" in screen_expr  # S&P 500
         assert "TOP(TR.CompanyMarketCap,10,nnumber)" in screen_expr
@@ -328,8 +326,7 @@ class TestScreeningAgentRuleBasedExtraction:
 
         assert result is not None
         tc = result.tool_calls[0]
-        instruments = tc.arguments["instruments"]
-        screen_expr = instruments[0]
+        screen_expr = tc.arguments["tickers"]  # Now a string, not a list
         assert "TR.HQCountryCode=US" in screen_expr
         assert "IN(TR.TRBCEconSectorCode,57)" in screen_expr
         assert "TR.DividendYield>2" in screen_expr
@@ -346,8 +343,7 @@ class TestScreeningAgentRuleBasedExtraction:
 
         assert result is not None
         tc = result.tool_calls[0]
-        instruments = tc.arguments["instruments"]
-        screen_expr = instruments[0]
+        screen_expr = tc.arguments["tickers"]  # Now a string, not a list
         assert "TR.PE<15" in screen_expr
         assert "TR.ROE>15" in screen_expr
 
@@ -363,8 +359,7 @@ class TestScreeningAgentRuleBasedExtraction:
 
         assert result is not None
         tc = result.tool_calls[0]
-        instruments = tc.arguments["instruments"]
-        screen_expr = instruments[0]
+        screen_expr = tc.arguments["tickers"]  # Now a string, not a list
         assert "TR.RevenueGrowth>20" in screen_expr
         assert "TR.FreeCashFlow>0" in screen_expr
 
@@ -440,14 +435,14 @@ class TestScreeningAgentProperties:
         prompt = self.agent.get_system_prompt()
         assert "SCREEN" in prompt
         assert "TOP" in prompt
-        assert "refinitiv_get_data" in prompt
+        assert "get_data" in prompt
 
     def test_tools_definition(self) -> None:
         """Test tools definition."""
         tools = self.agent.get_tools()
         assert len(tools) == 1
-        assert tools[0].name == "refinitiv_get_data"
-        assert "instruments" in tools[0].parameters["properties"]
+        assert tools[0].name == "get_data"
+        assert "tickers" in tools[0].parameters["properties"]
         assert "fields" in tools[0].parameters["properties"]
 
 
@@ -472,8 +467,8 @@ class TestScreeningAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv_get_data"
-        screen_expr = tc.arguments["instruments"][0]
+        assert tc.tool_name == "get_data"
+        screen_expr = tc.arguments["tickers"]  # Now a string, not a list
         # Should have S&P 500 filter
         assert "0#.SPX" in screen_expr
         # Should have TOP clause for market cap
@@ -492,7 +487,7 @@ class TestScreeningAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        screen_expr = tc.arguments["instruments"][0]
+        screen_expr = tc.arguments["tickers"]  # Now a string, not a list
         assert "TR.HQCountryCode=US" in screen_expr
         assert "IN(TR.TRBCEconSectorCode,57)" in screen_expr
         assert "TR.DividendYield>2" in screen_expr
@@ -510,7 +505,7 @@ class TestScreeningAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        screen_expr = tc.arguments["instruments"][0]
+        screen_expr = tc.arguments["tickers"]  # Now a string, not a list
         assert "TR.RevenueGrowth>20" in screen_expr
         assert "TR.FreeCashFlow>0" in screen_expr
 
@@ -527,7 +522,7 @@ class TestScreeningAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        screen_expr = tc.arguments["instruments"][0]
+        screen_expr = tc.arguments["tickers"]  # Now a string, not a list
         assert "TR.PE<15" in screen_expr
         assert "TR.ROE>15" in screen_expr
 
@@ -544,7 +539,7 @@ class TestScreeningAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        screen_expr = tc.arguments["instruments"][0]
+        screen_expr = tc.arguments["tickers"]  # Now a string, not a list
         # Should have S&P 500 filter
         assert "0#.SPX" in screen_expr
         # Should have earnings surprise filter

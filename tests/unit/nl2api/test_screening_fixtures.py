@@ -209,17 +209,15 @@ class TestScreeningAgentTopN:
             result = agent._try_rule_based_extraction(context)
 
             if result and result.tool_calls:
-                # Check the instruments field (ScreeningAgent uses instruments, not tickers)
+                # Check the tickers field (canonical format - string for SCREEN expressions)
                 tool_call = result.tool_calls[0]
-                instruments = tool_call.arguments.get("instruments", [])
+                screen_expr = tool_call.arguments.get("tickers", "")
 
-                if instruments and len(instruments) > 0:
-                    screen_expr = instruments[0] if isinstance(instruments, list) else instruments
-                    if isinstance(screen_expr, str) and screen_expr.startswith("SCREEN"):
-                        built_count += 1
-                        # Verify it contains TOP()
-                        assert "TOP(" in screen_expr, \
-                            f"SCREEN missing TOP() for: {case.nl_query}"
+                if screen_expr and isinstance(screen_expr, str) and screen_expr.startswith("SCREEN"):
+                    built_count += 1
+                    # Verify it contains TOP()
+                    assert "TOP(" in screen_expr, \
+                        f"SCREEN missing TOP() for: {case.nl_query}"
 
         rate = built_count / len(top_n_cases) if top_n_cases else 0
         print(f"\nSCREEN expression build rate: {rate:.2%}")
@@ -426,9 +424,8 @@ class TestScreeningAgentStatistics:
             result = agent._try_rule_based_extraction(context)
 
             if result and result.tool_calls:
-                # ScreeningAgent uses 'instruments' not 'tickers'
-                instruments = result.tool_calls[0].arguments.get("instruments", [])
-                screen_expr = instruments[0] if instruments else ""
+                # ScreeningAgent uses canonical 'tickers' (string for SCREEN expressions)
+                screen_expr = result.tool_calls[0].arguments.get("tickers", "")
                 if isinstance(screen_expr, str):
                     for component in components_found:
                         if component in screen_expr:
@@ -456,8 +453,7 @@ class TestScreeningExpressionFormat:
             result = agent._try_rule_based_extraction(context)
 
             if result and result.tool_calls:
-                instruments = result.tool_calls[0].arguments.get("instruments", [])
-                screen_expr = instruments[0] if instruments else ""
+                screen_expr = result.tool_calls[0].arguments.get("tickers", "")
                 if isinstance(screen_expr, str) and screen_expr.startswith("SCREEN"):
                     # Verify parentheses are balanced
                     open_parens = screen_expr.count("(")
@@ -483,8 +479,7 @@ class TestScreeningExpressionFormat:
             if not result or not result.tool_calls:
                 continue
 
-            instruments = result.tool_calls[0].arguments.get("instruments", [])
-            actual_screen = instruments[0] if instruments else ""
+            actual_screen = result.tool_calls[0].arguments.get("tickers", "")
 
             # Get expected SCREEN expression
             expected_tc = case.expected_tool_calls[0] if case.expected_tool_calls else None

@@ -13,7 +13,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from CONTRACTS import ToolCall
+from CONTRACTS import ToolCall, ToolRegistry
 
 
 @dataclass
@@ -53,16 +53,29 @@ class ASTComparator:
     - Type coercion (string "5" matches int 5)
     - Numeric tolerance for float comparison
     - Nested object/array comparison
+    - Tool name normalization (datastream_get_data -> get_data)
     """
 
-    def __init__(self, numeric_tolerance: float = 0.0001):
+    def __init__(
+        self,
+        numeric_tolerance: float = 0.0001,
+        normalize_tool_names: bool = True,
+    ):
         """
         Initialize comparator.
 
         Args:
             numeric_tolerance: Relative tolerance for numeric comparisons (default 0.01%)
+            normalize_tool_names: Whether to normalize tool names before comparison
         """
         self.numeric_tolerance = numeric_tolerance
+        self.normalize_tool_names = normalize_tool_names
+
+    def _get_normalized_tool_name(self, tool_name: str) -> str:
+        """Normalize tool name for comparison."""
+        if not self.normalize_tool_names:
+            return tool_name
+        return ToolRegistry.normalize(tool_name)
 
     def compare(
         self,
@@ -100,8 +113,10 @@ class ASTComparator:
                 if i in matched_actual_indices:
                     continue
 
-                # Check tool name match
-                if exp_call.tool_name != act_call.tool_name:
+                # Check tool name match (with optional normalization)
+                exp_name = self._get_normalized_tool_name(exp_call.tool_name)
+                act_name = self._get_normalized_tool_name(act_call.tool_name)
+                if exp_name != act_name:
                     continue
 
                 # Compare arguments

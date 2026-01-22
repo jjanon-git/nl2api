@@ -28,9 +28,9 @@ class MockLLMProvider:
         tool_calls=[
             LLMToolCall(
                 id="tc_123",
-                name="refinitiv_get_data",
+                name="get_data",
                 arguments={
-                    "instruments": ["AAPL.O"],
+                    "tickers": ["AAPL.O"],
                     "fields": ["TR.CEOName"],
                 },
             )
@@ -257,8 +257,8 @@ class TestOfficersAgentRuleBasedExtraction:
         assert result is not None
         assert len(result.tool_calls) == 1
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv_get_data"
-        assert tc.arguments["instruments"] == ["AAPL.O"]
+        assert tc.tool_name == "get_data"
+        assert tc.arguments["tickers"] == ["AAPL.O"]
         assert "TR.CEOName" in tc.arguments["fields"]
 
     @pytest.mark.asyncio
@@ -273,7 +273,7 @@ class TestOfficersAgentRuleBasedExtraction:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.arguments["instruments"] == ["TSLA.O"]
+        assert tc.arguments["tickers"] == ["TSLA.O"]
         assert "TR.CEOName" in tc.arguments["fields"]
         assert "TR.ODOfficerTotalComp" in tc.arguments["fields"]
         assert tc.arguments["parameters"]["OfficerType"] == "CEO"
@@ -290,7 +290,7 @@ class TestOfficersAgentRuleBasedExtraction:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.arguments["instruments"] == ["MSFT.O"]
+        assert tc.arguments["tickers"] == ["MSFT.O"]
         assert "TR.BoardSize" in tc.arguments["fields"]
         assert "TR.IndependentBoardMembers" in tc.arguments["fields"]
 
@@ -306,7 +306,7 @@ class TestOfficersAgentRuleBasedExtraction:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.arguments["instruments"] == ["NVDA.O"]
+        assert tc.arguments["tickers"] == ["NVDA.O"]
         assert "TR.OfficerName" in tc.arguments["fields"]
         assert "TR.OfficerTitle" in tc.arguments["fields"]
         assert tc.arguments["parameters"]["OfficerType"] == "Executive"
@@ -334,7 +334,7 @@ class TestOfficersAgentRuleBasedExtraction:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.arguments["instruments"] == ["AAPL.O"]
+        assert tc.arguments["tickers"] == ["AAPL.O"]
         assert "TR.CEOName" in tc.arguments["fields"]
 
 
@@ -397,15 +397,15 @@ class TestOfficersAgentProperties:
         prompt = self.agent.get_system_prompt()
         assert "Officers" in prompt
         assert "TR.CEOName" in prompt
-        assert "refinitiv_get_data" in prompt
+        assert "get_data" in prompt
         assert "AAPL.O" in prompt
 
     def test_tools_definition(self) -> None:
         """Test tools definition."""
         tools = self.agent.get_tools()
         assert len(tools) == 1
-        assert tools[0].name == "refinitiv_get_data"
-        assert "instruments" in tools[0].parameters["properties"]
+        assert tools[0].name == "get_data"
+        assert "tickers" in tools[0].parameters["properties"]
         assert "fields" in tools[0].parameters["properties"]
 
 
@@ -430,8 +430,8 @@ class TestOfficersAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv_get_data"
-        assert tc.arguments["instruments"] == ["AAPL.O"]
+        assert tc.tool_name == "get_data"
+        assert tc.arguments["tickers"] == ["AAPL.O"]
         assert tc.arguments["fields"] == ["TR.CEOName"]
 
     @pytest.mark.asyncio
@@ -447,8 +447,8 @@ class TestOfficersAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv_get_data"
-        assert tc.arguments["instruments"] == ["TSLA.O"]
+        assert tc.tool_name == "get_data"
+        assert tc.arguments["tickers"] == ["TSLA.O"]
         assert "TR.CEOName" in tc.arguments["fields"]
         assert "TR.ODOfficerTotalComp" in tc.arguments["fields"]
         assert tc.arguments["parameters"]["OfficerType"] == "CEO"
@@ -466,8 +466,8 @@ class TestOfficersAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv_get_data"
-        assert tc.arguments["instruments"] == ["MSFT.O"]
+        assert tc.tool_name == "get_data"
+        assert tc.arguments["tickers"] == ["MSFT.O"]
         assert "TR.BoardSize" in tc.arguments["fields"]
         assert "TR.IndependentBoardMembers" in tc.arguments["fields"]
 
@@ -484,8 +484,8 @@ class TestOfficersAgentFixtureCompatibility:
 
         assert result is not None
         tc = result.tool_calls[0]
-        assert tc.tool_name == "refinitiv_get_data"
-        assert tc.arguments["instruments"] == ["NVDA.O"]
+        assert tc.tool_name == "get_data"
+        assert tc.arguments["tickers"] == ["NVDA.O"]
         assert "TR.OfficerName" in tc.arguments["fields"]
         assert "TR.OfficerTitle" in tc.arguments["fields"]
         assert tc.arguments["parameters"]["OfficerType"] == "Executive"

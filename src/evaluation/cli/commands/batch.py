@@ -20,6 +20,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from datetime import UTC, date
 from pathlib import Path
 from typing import Annotated
 
@@ -208,7 +209,7 @@ async def _batch_run_async(
     semantics_enabled: bool = False,
     semantics_model: str | None = None,
     semantics_threshold: float = 0.7,
-    evaluation_date: "date | None" = None,
+    evaluation_date: date | None = None,
     temporal_mode: str = "structural",
 ) -> None:
     """Async implementation of batch run command."""
@@ -254,16 +255,35 @@ async def _batch_run_async(
             response_generator = create_entity_resolver_generator(resolver)
         elif mode == "orchestrator":
             # Use full NL2API orchestrator
+            from src.nl2api.agents import AGENT_REGISTRY
+            from src.nl2api.config import NL2APIConfig
+            from src.nl2api.llm.factory import create_llm_provider
             from src.nl2api.orchestrator import NL2APIOrchestrator
-            orchestrator = NL2APIOrchestrator()
+
+            cfg = NL2APIConfig()
+            llm_model = model if model else cfg.llm_model
+            llm = create_llm_provider(
+                provider=cfg.llm_provider,
+                api_key=cfg.get_llm_api_key(),
+                model=llm_model,
+            )
+
+            # Create all domain agents
+            agents = {name: cls(llm=llm) for name, cls in AGENT_REGISTRY.items()}
+
+            orchestrator = NL2APIOrchestrator(llm=llm, agents=agents)
             response_generator = create_nl2api_generator(orchestrator)
-            console.print("[green]Using full NL2API orchestrator (requires LLM API key).[/green]\n")
+            console.print(f"[green]Using full NL2API orchestrator ({cfg.llm_provider}/{llm_model}).[/green]\n")
+
+            # Override client_version with model for cost tracking
+            if client_version is None:
+                client_version = llm_model
         elif mode == "routing":
             # Use LLM router for routing evaluation
-            from src.nl2api.routing.llm_router import LLMToolRouter
-            from src.nl2api.routing.protocols import ToolProvider, RoutingToolDefinition
-            from src.nl2api.llm.factory import create_llm_provider
             from src.nl2api.config import NL2APIConfig
+            from src.nl2api.llm.factory import create_llm_provider
+            from src.nl2api.routing.llm_router import LLMToolRouter
+            from src.nl2api.routing.protocols import RoutingToolDefinition, ToolProvider
 
             # Create stub tool providers for the 5 domains
             class StubToolProvider(ToolProvider):
@@ -312,20 +332,38 @@ async def _batch_run_async(
             console.print(f"[green]Using LLM router ({cfg.llm_provider}/{llm_model}).[/green]\n")
         elif mode == "tool_only":
             # Use single agent for isolated tool generation testing
+            # Includes entity resolution so agent gets proper RICs
+            from src.common.storage.postgres.client import get_pool
             from src.nl2api.agents import get_agent_by_name
-            from src.nl2api.llm.factory import create_llm_provider
             from src.nl2api.config import NL2APIConfig
+            from src.nl2api.llm.factory import create_llm_provider
+            from src.nl2api.resolution.resolver import ExternalEntityResolver
 
             cfg = NL2APIConfig()
-            llm_model = model if model else cfg.model
+            llm_model = model if model else cfg.llm_model
             llm = create_llm_provider(
                 provider=cfg.llm_provider,
                 api_key=cfg.get_llm_api_key(),
                 model=llm_model,
             )
             agent = get_agent_by_name(agent_name, llm=llm)
-            response_generator = create_tool_only_generator(agent)
-            console.print(f"[green]Using {agent_name} agent ({cfg.llm_provider}/{llm_model}).[/green]\n")
+
+            # Create entity resolver for live resolution
+            try:
+                db_pool = await get_pool()
+                resolver = ExternalEntityResolver(db_pool=db_pool)
+                console.print("[dim]Entity resolver: database (2.9M entities)[/dim]")
+            except RuntimeError:
+                resolver = ExternalEntityResolver()
+                console.print("[dim]Entity resolver: static mappings only[/dim]")
+
+            response_generator = create_tool_only_generator(
+                agent, entity_resolver=resolver
+            )
+            console.print(
+                f"[green]Using {agent_name} agent "
+                f"({cfg.llm_provider}/{llm_model}).[/green]\n"
+            )
 
             # Override client_version with model for cost tracking
             if client_version is None:
@@ -355,7 +393,7 @@ async def _batch_run_async(
         )
 
         if semantics_enabled:
-            console.print(f"[cyan]Semantics stage enabled[/cyan]")
+            console.print("[cyan]Semantics stage enabled[/cyan]")
             if semantics_model:
                 console.print(f"  Model: {semantics_model}")
             else:
@@ -363,7 +401,7 @@ async def _batch_run_async(
             console.print(f"  Pass threshold: {semantics_threshold:.2f}\n")
 
         if evaluation_date or temporal_mode != "structural":
-            console.print(f"[cyan]Temporal evaluation[/cyan]")
+            console.print("[cyan]Temporal evaluation[/cyan]")
             if evaluation_date:
                 console.print(f"  Reference date: {evaluation_date}")
             else:
@@ -739,7 +777,7 @@ async def _batch_compare_async(
     end: str | None,
 ) -> None:
     """Async implementation of batch compare command."""
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     from src.common.storage import StorageConfig, close_repositories, create_repositories
 
@@ -751,9 +789,9 @@ async def _batch_compare_async(
         start_date = None
         end_date = None
         if start:
-            start_date = datetime.strptime(start, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            start_date = datetime.strptime(start, "%Y-%m-%d").replace(tzinfo=UTC)
         if end:
-            end_date = datetime.strptime(end, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            end_date = datetime.strptime(end, "%Y-%m-%d").replace(tzinfo=UTC)
 
         # Get comparison data
         summaries = await scorecard_repo.get_comparison_summary(clients, start_date, end_date)
