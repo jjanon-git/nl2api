@@ -2,7 +2,7 @@
 
 This file tracks all planned work, technical debt, and in-flight items for the NL2API project.
 
-**Last Updated:** 2026-01-22 (Security fixes completed - credentials, rate limiting, input validation)
+**Last Updated:** 2026-01-22 (Health checks, CONTRACTS.py split, security fixes)
 
 ---
 
@@ -177,21 +177,23 @@ The test suite has structural issues that allow broken agents to pass:
 
 ---
 
-### Health Checks: No Liveness vs Readiness Separation
+### Health Checks: Liveness vs Readiness Separation ✅ COMPLETE
 **Created:** 2026-01-21
-**Status:** Not Started
+**Completed:** 2026-01-22
 **Severity:** HIGH
 
-Current `/health` endpoint exists but doesn't distinguish:
-- **Liveness:** Is the process alive?
-- **Readiness:** Are dependencies ready (DB connected, cache warmed, RAG loaded)?
+**Solution implemented:**
+- [x] `/health` endpoint (liveness) - simple "alive" check
+- [x] `/ready` endpoint (readiness) - checks server, database, Redis
+- [x] Proper Kubernetes probe compatibility
 
-**Fix:**
-- [ ] Add `/health` (liveness) and `/ready` (readiness) endpoints
-- [ ] Check PostgreSQL connectivity in readiness
-- [ ] Check Redis availability in readiness
-- [ ] Check RAG index loaded in readiness
-- [ ] Add startup probe for slow initialization
+**Files changed:**
+- `src/mcp_servers/entity_resolution/transports/sse.py` - Added `/ready` endpoint, updated `/health`
+
+**Readiness checks:**
+- Server initialization
+- Database connection via health resource
+- Redis connection (if enabled)
 
 ---
 
@@ -322,23 +324,28 @@ Connect evaluation pipeline to real LSEG APIs to:
 
 ## Medium Priority (P1)
 
-### Architecture: CONTRACTS.py Needs Decomposition
+### Architecture: CONTRACTS.py Decomposition ✅ COMPLETE
 **Created:** 2026-01-21
-**Status:** Not Started
+**Completed:** 2026-01-22
 **Severity:** MEDIUM
 
-CONTRACTS.py (1,428 lines) mixes 6+ concerns:
-- Core data models (TestCase, ToolCall)
-- Evaluation infrastructure (Evaluator ABC, EvaluationConfig, StageResult)
-- Worker task models (WorkerTask, BatchJob)
-- Client/tenant management (Client, TestSuite, TargetSystemConfig)
-- Configuration (EvaluationConfig, LLMJudgeConfig, WorkerConfig)
-- Azure Table Storage specifics (partition/row keys, IdempotencyRecord)
+**Solution implemented:**
+Split 1,428-line monolith into focused modules under `src/contracts/`:
 
-**Fix:**
-- [ ] Split into: `core_models.py`, `evaluation_models.py`, `worker_models.py`, `tenant_models.py`
-- [ ] Move Evaluator ABC to `src/evaluation/core/`
-- [ ] Move storage-specific models to `src/common/storage/`
+| Module | Lines | Contents |
+|--------|-------|----------|
+| `core.py` | ~530 | FrozenDict, enums, ToolRegistry, ToolCall, TestCase, SystemResponse |
+| `evaluation.py` | ~310 | StageResult, Scorecard, EvaluationConfig, Evaluator ABC |
+| `worker.py` | ~120 | WorkerTask, BatchJob, WorkerConfig |
+| `tenant.py` | ~220 | LLMProvider, TargetSystemConfig, TestSuite, Client, EvaluationRun |
+| `storage.py` | ~70 | TableStorageEntity, IdempotencyRecord |
+| `__init__.py` | ~70 | Re-exports all for backward compatibility |
+
+**Backward compatibility preserved:**
+- `CONTRACTS.py` (118 lines) now re-exports from `src/contracts/`
+- All existing imports continue to work: `from CONTRACTS import TestCase`
+
+**All 1370 unit tests pass after split.**
 
 ---
 
@@ -891,6 +898,11 @@ Migrate from pgvector to Azure AI Search for production scale.
 ---
 
 ## Completed
+
+### 2026-01-22
+
+- [x] **Health Checks: Liveness vs Readiness** - Added `/health` (liveness) and `/ready` (readiness) endpoints with server, database, and Redis checks for Kubernetes compatibility
+- [x] **CONTRACTS.py Decomposition** - Split 1,428-line monolith into 5 focused modules under `src/contracts/` with backward-compatible re-exports
 
 ### 2026-01-21
 

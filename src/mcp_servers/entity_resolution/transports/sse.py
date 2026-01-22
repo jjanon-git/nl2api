@@ -132,7 +132,7 @@ def create_app(
     )
 
     # Paths exempt from client_id requirement and rate limiting
-    EXEMPT_PATHS = {"/health", "/", "/docs", "/openapi.json"}
+    EXEMPT_PATHS = {"/health", "/ready", "/", "/docs", "/openapi.json"}
 
     # Initialize rate limiter (Redis-backed if available, otherwise in-memory)
     rate_limit_config = DEFAULT_RATE_LIMIT_CONFIG
@@ -182,33 +182,98 @@ def create_app(
         return response
 
     @app.get("/health")
-    async def health_check() -> JSONResponse:
+    async def liveness_check() -> JSONResponse:
         """
-        Health check endpoint for load balancers.
+        Liveness probe endpoint.
 
-        Returns 200 if healthy, 503 if unhealthy.
+        Kubernetes uses this to determine if the container should be restarted.
+        Returns 200 if the process is alive and responsive.
+
+        This is intentionally simple - just checks if the process can respond.
+        Use /ready for dependency checks.
         """
-        server = get_server()
+        return JSONResponse(
+            content={
+                "status": "alive",
+                "checks": {
+                    "process": "ok",
+                },
+            },
+            status_code=200,
+        )
 
+    @app.get("/ready")
+    async def readiness_check() -> JSONResponse:
+        """
+        Readiness probe endpoint.
+
+        Kubernetes uses this to determine if the pod should receive traffic.
+        Returns 200 only when all dependencies are ready.
+
+        Checks:
+        - Server initialized
+        - Database connection (if configured)
+        - Redis connection (if configured)
+        """
+        checks: dict[str, str] = {}
+        all_ready = True
+
+        # Check 1: Server initialized
         try:
-            health = await server.read_resource("entity://health")
-            status = health.get("status", "unknown")
-
-            if status == "healthy":
-                return JSONResponse(content=health, status_code=200)
-            elif status == "degraded":
-                return JSONResponse(content=health, status_code=200)
-            else:
-                return JSONResponse(content=health, status_code=503)
-        except Exception as e:
-            logger.error(f"Health check failed: {e}")
+            server = get_server()
+            checks["server"] = "ok"
+        except RuntimeError:
+            checks["server"] = "not_initialized"
+            all_ready = False
             return JSONResponse(
                 content={
-                    "status": "unhealthy",
-                    "message": str(e),
+                    "status": "not_ready",
+                    "checks": checks,
                 },
                 status_code=503,
             )
+
+        # Check 2: Database connection
+        try:
+            health = await server.read_resource("entity://health")
+            db_status = health.get("database", {})
+            if isinstance(db_status, dict) and db_status.get("connected"):
+                checks["database"] = "ok"
+            elif health.get("status") == "healthy":
+                # Older health format - assume DB is OK if overall healthy
+                checks["database"] = "ok"
+            else:
+                checks["database"] = "not_connected"
+                all_ready = False
+        except Exception as e:
+            checks["database"] = f"error: {str(e)[:50]}"
+            all_ready = False
+
+        # Check 3: Redis connection (if available)
+        try:
+            stats = await server.read_resource("entity://stats")
+            cache_info = stats.get("cache", {})
+            if cache_info.get("enabled"):
+                if cache_info.get("connected", True):  # Default to True if not specified
+                    checks["redis"] = "ok"
+                else:
+                    checks["redis"] = "not_connected"
+                    all_ready = False
+            else:
+                checks["redis"] = "disabled"
+        except Exception:
+            checks["redis"] = "unknown"
+
+        status = "ready" if all_ready else "not_ready"
+        status_code = 200 if all_ready else 503
+
+        return JSONResponse(
+            content={
+                "status": status,
+                "checks": checks,
+            },
+            status_code=status_code,
+        )
 
     @app.get("/")
     async def root() -> dict[str, Any]:
@@ -221,6 +286,7 @@ def create_app(
             "protocolVersion": server.server_info["protocolVersion"],
             "endpoints": {
                 "health": "/health",
+                "ready": "/ready",
                 "mcp": "/mcp",
                 "sse": "/sse",
             },

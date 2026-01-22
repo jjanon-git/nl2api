@@ -1,71 +1,71 @@
 """
-NL2API Contracts - Pydantic v2 Schemas
+NL2API Contracts Package
 
-BACKWARD COMPATIBILITY WRAPPER
+This package contains all data contracts for the NL2API system.
+Split into focused modules:
 
-This module re-exports all contracts from src/contracts/ for backward compatibility.
-New code should import from src/contracts directly:
+- core: Fundamental types, enums, and test case models
+- evaluation: Scorecard, stage results, and evaluator configuration
+- worker: Batch jobs, worker tasks, and worker configuration
+- tenant: Multi-tenant models (clients, test suites, runs)
+- storage: Azure Table Storage helpers
 
-    # Preferred (new code)
-    from src.contracts import TestCase, Scorecard
-    from src.contracts.core import ToolCall
-    from src.contracts.evaluation import EvaluationConfig
-
-    # Still works (backward compatible)
-    from CONTRACTS import TestCase, Scorecard
-
-The contracts have been split into focused modules:
-- src/contracts/core.py: Fundamental types, enums, test case models
-- src/contracts/evaluation.py: Scorecard, stage results, evaluator config
-- src/contracts/worker.py: Batch jobs, worker tasks, worker config
-- src/contracts/tenant.py: Multi-tenant models (clients, test suites, runs)
-- src/contracts/storage.py: Azure Table Storage helpers
+For backward compatibility, all models can be imported from this package:
+    from src.contracts import TestCase, Scorecard, BatchJob
 """
 
-# Re-export everything from the contracts package
-from src.contracts import (
-    # Utility
-    FrozenDict,
-    _generate_id,
-    _now_utc,
-    # Enums
+# Core models
+from src.contracts.core import (
     CircuitState,
     ClientType,
     ErrorCode,
     EvalMode,
     EvaluationStage,
-    LLMProvider,
-    RunStatus,
+    FrozenDict,
+    SystemResponse,
     TaskPriority,
     TaskStatus,
+    TemporalContext,
     TemporalStability,
     TemporalValidationMode,
-    TestCaseStatus,
-    # Registry
-    ToolRegistry,
-    # Core Models
-    SystemResponse,
-    TemporalContext,
     TestCase,
     TestCaseMetadata,
     TestCaseSetConfig,
+    TestCaseStatus,
     ToolCall,
-    # Evaluation
+    ToolRegistry,
+    _generate_id,
+    _now_utc,
+)
+
+# Evaluation models
+from src.contracts.evaluation import (
     Evaluator,
     EvaluationConfig,
     LLMJudgeConfig,
     Scorecard,
     StageResult,
-    # Worker
+)
+
+# Worker models
+from src.contracts.worker import (
     BatchJob,
     WorkerConfig,
     WorkerTask,
-    # Management
+)
+
+# Tenant models
+from src.contracts.tenant import (
     Client,
     EvaluationRun,
+    LLMProvider,
+    RunStatus,
     TargetSystemConfig,
     TestSuite,
-    # Storage
+)
+
+# Storage models
+from src.contracts.storage import (
     IdempotencyRecord,
     TableStorageEntity,
 )
