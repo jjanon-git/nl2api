@@ -52,7 +52,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(accuracy_tests_correct) / sum(accuracy_tests_total)",
+          "expr": "100 * sum(nl2api_accuracy_tests_correct) / sum(nl2api_accuracy_tests_total)",
           "refId": "A"
         }
       ],
@@ -92,7 +92,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(accuracy_tests_total)",
+          "expr": "sum(nl2api_accuracy_tests_total)",
           "refId": "A"
         }
       ],
@@ -132,7 +132,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(accuracy_tests_correct)",
+          "expr": "sum(nl2api_accuracy_tests_correct)",
           "legendFormat": "Correct",
           "refId": "A"
         }
@@ -175,7 +175,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(accuracy_tests_low_confidence) / sum(accuracy_tests_total)",
+          "expr": "100 * sum(nl2api_accuracy_tests_low_confidence) / sum(nl2api_accuracy_tests_total)",
           "refId": "A"
         }
       ],
@@ -236,12 +236,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (expected_domain) (accuracy_tests_correct)",
+          "expr": "sum by (expected_domain) (nl2api_accuracy_tests_correct)",
           "legendFormat": "{{expected_domain}} (correct)",
           "refId": "A"
         },
         {
-          "expr": "sum by (expected_domain) (accuracy_tests_incorrect)",
+          "expr": "sum by (expected_domain) (nl2api_accuracy_tests_incorrect)",
           "legendFormat": "{{expected_domain}} (incorrect)",
           "refId": "B"
         }
@@ -278,7 +278,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum by (expected_domain) (accuracy_tests_correct) / sum by (expected_domain) (accuracy_tests_total)",
+          "expr": "100 * sum by (expected_domain) (nl2api_accuracy_tests_correct) / sum by (expected_domain) (nl2api_accuracy_tests_total)",
           "format": "table",
           "instant": true,
           "refId": "A"
@@ -352,7 +352,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum by (tier) (accuracy_tests_correct) / sum by (tier) (accuracy_tests_total)",
+          "expr": "100 * sum by (tier) (nl2api_accuracy_tests_correct) / sum by (tier) (nl2api_accuracy_tests_total)",
           "legendFormat": "{{tier}}",
           "refId": "A"
         }
@@ -385,7 +385,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (tier, le) (rate(accuracy_batch_duration_seconds_bucket[1h])))",
+          "expr": "histogram_quantile(0.95, sum by (tier, le) (rate(nl2api_accuracy_batch_duration_seconds_bucket[1h])))",
           "legendFormat": "{{tier}} p95",
           "refId": "A"
         }
@@ -446,17 +446,17 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(accuracy_query_latency_ms_bucket[5m])))",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(nl2api_accuracy_query_latency_ms_bucket[5m])))",
           "legendFormat": "p50",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(accuracy_query_latency_ms_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(nl2api_accuracy_query_latency_ms_bucket[5m])))",
           "legendFormat": "p95",
           "refId": "B"
         },
         {
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(accuracy_query_latency_ms_bucket[5m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(nl2api_accuracy_query_latency_ms_bucket[5m])))",
           "legendFormat": "p99",
           "refId": "C"
         }
@@ -511,12 +511,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(accuracy_query_confidence_bucket[5m])))",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(nl2api_accuracy_query_confidence_bucket[5m])))",
           "legendFormat": "p50 confidence",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.25, sum by (le) (rate(accuracy_query_confidence_bucket[5m])))",
+          "expr": "histogram_quantile(0.25, sum by (le) (rate(nl2api_accuracy_query_confidence_bucket[5m])))",
           "legendFormat": "p25 confidence",
           "refId": "B"
         }
@@ -580,7 +580,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "accuracy_batch_rate",
+          "expr": "nl2api_accuracy_batch_rate",
           "legendFormat": "{{tier}} - {{model}}",
           "refId": "A"
         }
@@ -633,17 +633,17 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(increase(eval_batch_tests_total[1h]))",
+          "expr": "sum(increase(nl2api_eval_batch_tests_total[1h]))",
           "legendFormat": "Tests Run",
           "refId": "A"
         },
         {
-          "expr": "sum(increase(eval_batch_tests_passed[1h]))",
+          "expr": "sum(increase(nl2api_eval_batch_tests_passed[1h]))",
           "legendFormat": "Passed",
           "refId": "B"
         },
         {
-          "expr": "sum(increase(eval_batch_tests_failed[1h]))",
+          "expr": "sum(increase(nl2api_eval_batch_tests_failed[1h]))",
           "legendFormat": "Failed",
           "refId": "C"
         }

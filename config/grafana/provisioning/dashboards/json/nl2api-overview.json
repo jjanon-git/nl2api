@@ -226,7 +226,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(increase(eval_batch_tests_passed[24h])) / sum(increase(eval_batch_tests_total[24h]))",
+          "expr": "100 * sum(increase(nl2api_eval_batch_tests_passed[24h])) / sum(increase(nl2api_eval_batch_tests_total[24h]))",
           "refId": "A"
         }
       ],
@@ -266,7 +266,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(increase(eval_batch_tests_total[24h]))",
+          "expr": "sum(increase(nl2api_eval_batch_tests_total[24h]))",
           "refId": "A"
         }
       ],
@@ -317,12 +317,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.5, sum(rate(eval_test_score_bucket[1h])) by (le))",
+          "expr": "histogram_quantile(0.5, sum(rate(nl2api_eval_test_score_bucket[1h])) by (le))",
           "legendFormat": "P50 Score",
           "refId": "A"
         },
         {
-          "expr": "histogram_quantile(0.95, sum(rate(eval_test_score_bucket[1h])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(nl2api_eval_test_score_bucket[1h])) by (le))",
           "legendFormat": "P95 Score",
           "refId": "B"
         }
