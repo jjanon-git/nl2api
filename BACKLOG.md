@@ -102,9 +102,9 @@ Total: ~850ms, ~1100 tokens per request
 
 | # | Item | Rationale |
 |---|------|-----------|
-| 1 | **Test Quality Improvements** | Critical - current tests don't validate correctness |
-| 2 | **Live API Integration** | Unblocked by temporal handling, enables real accuracy testing |
-| 3 | **Multi-Client Eval Phase 1** | Scheduled evaluation, regression detection |
+| 1 | **Distributed Evaluation Infrastructure** | Enables horizontal scaling, blocks Multi-Client Phase 1 |
+| 2 | **Multi-Client Eval Phase 1** | Blocked by #1 - plan ready, ~10-15 days |
+| 3 | **Test Quality Improvements** | Critical - current tests don't validate correctness |
 | 4 | **Orchestrator Refactor** | Tech debt - 803 line god class |
 
 ---
@@ -270,18 +270,21 @@ eval matrix run --component datastream --llm claude-3-5-sonnet-20241022 --limit 
 eval matrix compare --runs <id1>,<id2>
 ```
 
-**Phase 1 (Continuous):**
-- [ ] Scheduled evaluation runner (cron-based)
-- [ ] Regression detection with statistical significance
+**Phase 1 (Continuous + MCP Passthrough):**
+- [ ] Background daemon for scheduled evaluations
+- [ ] MCP tool call logging middleware (external client tracking)
+- [ ] MCP passthrough evaluator (evaluate logged tool calls)
+- [ ] Regression detection with Slack alerting
 - [ ] Model version change detection + auto-re-evaluation
-- [ ] Alerting on accuracy/latency/cost regressions
+
+**Plan:** [docs/plans/jiggly-cuddling-cosmos.md](~/.claude/plans/jiggly-cuddling-cosmos.md) (ready, ~10-15 days)
+
+**Blocking:** Distributed Evaluation Infrastructure - Phase 1 daemon design will be replaced by workers + task queue
 
 **Phase 2 (Multi-API):**
 - [ ] API abstraction layer (support multiple data providers)
 - [ ] Mock execution with recorded responses
 - [ ] Cost tracking per API call
-
-**Blocking:** Nothing - can start now
 
 ---
 
