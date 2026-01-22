@@ -148,25 +148,25 @@ class NL2APIConfig(BaseSettings):
     )
 
     # Embedding Settings
-    embedding_provider: Literal["openai"] = Field(
-        default="openai",
-        description="Embedding provider for RAG",
+    embedding_provider: Literal["local", "openai"] = Field(
+        default="local",
+        description="Embedding provider: 'local' (sentence-transformers) or 'openai'",
     )
     embedding_model: str = Field(
-        default="text-embedding-3-small",
-        description="Embedding model name",
+        default="all-MiniLM-L6-v2",
+        description="Embedding model name (local: all-MiniLM-L6-v2, openai: text-embedding-3-small)",
     )
     embedding_dimension: int = Field(
-        default=1536,
-        description="Embedding dimension",
+        default=384,
+        description="Embedding dimension (local: 384, openai: 1536)",
     )
     embedding_max_concurrent: int = Field(
         default=5,
-        description="Maximum concurrent embedding requests",
+        description="Maximum concurrent embedding requests (openai only)",
     )
     embedding_requests_per_minute: int = Field(
         default=3000,
-        description="Rate limit for embedding requests per minute",
+        description="Rate limit for embedding requests per minute (openai only)",
     )
 
     # RAG Indexing Settings

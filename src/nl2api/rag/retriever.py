@@ -417,156 +417,19 @@ class HybridRAGRetriever:
         )
 
 
-class OpenAIEmbedder:
-    """
-    Embedder using OpenAI's text-embedding models.
+# Re-export embedders for backwards compatibility
+# Prefer using src.nl2api.rag.embedders directly
+from src.nl2api.rag.embedders import (
+    Embedder,
+    LocalEmbedder,
+    OpenAIEmbedder,
+    create_embedder,
+)
 
-    Features:
-    - Concurrency control via semaphore
-    - Automatic retry with exponential backoff for rate limits
-    - Token tracking for rate limit awareness
-    """
-
-    def __init__(
-        self,
-        api_key: str,
-        model: str = "text-embedding-3-small",
-        max_concurrent: int = 5,
-        requests_per_minute: int = 3000,
-    ):
-        """
-        Initialize the OpenAI embedder.
-
-        Args:
-            api_key: OpenAI API key
-            model: Embedding model name
-            max_concurrent: Maximum concurrent requests
-            requests_per_minute: Rate limit (for logging/monitoring)
-        """
-        try:
-            import openai
-        except ImportError:
-            raise ImportError(
-                "openai package required. Install with: pip install openai"
-            )
-
-        self._model = model
-        self._client = openai.AsyncOpenAI(api_key=api_key)
-        self._max_concurrent = max_concurrent
-        self._requests_per_minute = requests_per_minute
-
-        # Concurrency control
-        import asyncio
-        self._semaphore = asyncio.Semaphore(max_concurrent)
-
-        # Dimension varies by model
-        self._dimensions = {
-            "text-embedding-ada-002": 1536,
-            "text-embedding-3-small": 1536,
-            "text-embedding-3-large": 3072,
-        }
-
-        # Metrics
-        self._total_requests = 0
-        self._total_tokens = 0
-        self._rate_limit_hits = 0
-
-    @property
-    def dimension(self) -> int:
-        """Return the embedding dimension."""
-        return self._dimensions.get(self._model, 1536)
-
-    @property
-    def stats(self) -> dict[str, int]:
-        """Get embedder statistics."""
-        return {
-            "total_requests": self._total_requests,
-            "total_tokens": self._total_tokens,
-            "rate_limit_hits": self._rate_limit_hits,
-        }
-
-    async def embed(self, text: str) -> list[float]:
-        """Generate embedding for a single text."""
-        async with self._semaphore:
-            return await self._embed_with_retry(text)
-
-    async def embed_batch(self, texts: list[str]) -> list[list[float]]:
-        """
-        Generate embeddings for multiple texts.
-
-        Uses semaphore to limit concurrent requests and handles rate limits.
-        """
-        async with self._semaphore:
-            return await self._embed_batch_with_retry(texts)
-
-    async def _embed_with_retry(
-        self,
-        text: str,
-        max_retries: int = 3,
-        base_delay: float = 1.0,
-    ) -> list[float]:
-        """Embed with retry logic for rate limits."""
-        import asyncio
-        import random
-
-        last_error = None
-        for attempt in range(max_retries):
-            try:
-                response = await self._client.embeddings.create(
-                    model=self._model,
-                    input=text,
-                )
-                self._total_requests += 1
-                self._total_tokens += response.usage.total_tokens
-                return response.data[0].embedding
-            except Exception as e:
-                last_error = e
-                error_str = str(e).lower()
-                if "rate_limit" in error_str or "429" in error_str:
-                    self._rate_limit_hits += 1
-                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
-                    logger.warning(
-                        f"OpenAI rate limit hit, retrying in {delay:.1f}s "
-                        f"(attempt {attempt + 1}/{max_retries})"
-                    )
-                    await asyncio.sleep(delay)
-                else:
-                    raise
-
-        raise last_error or RuntimeError("Embed failed after retries")
-
-    async def _embed_batch_with_retry(
-        self,
-        texts: list[str],
-        max_retries: int = 3,
-        base_delay: float = 1.0,
-    ) -> list[list[float]]:
-        """Embed batch with retry logic for rate limits."""
-        import asyncio
-        import random
-
-        last_error = None
-        for attempt in range(max_retries):
-            try:
-                response = await self._client.embeddings.create(
-                    model=self._model,
-                    input=texts,
-                )
-                self._total_requests += 1
-                self._total_tokens += response.usage.total_tokens
-                return [item.embedding for item in response.data]
-            except Exception as e:
-                last_error = e
-                error_str = str(e).lower()
-                if "rate_limit" in error_str or "429" in error_str:
-                    self._rate_limit_hits += 1
-                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
-                    logger.warning(
-                        f"OpenAI rate limit hit, retrying in {delay:.1f}s "
-                        f"(attempt {attempt + 1}/{max_retries})"
-                    )
-                    await asyncio.sleep(delay)
-                else:
-                    raise
-
-        raise last_error or RuntimeError("Embed batch failed after retries")
+__all__ = [
+    "HybridRAGRetriever",
+    "Embedder",
+    "LocalEmbedder",
+    "OpenAIEmbedder",
+    "create_embedder",
+]

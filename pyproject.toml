@@ -18,11 +18,6 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-
-[project.urls]
-Homepage = "https://github.com/YOUR_USERNAME/nl2api"
-Repository = "https://github.com/YOUR_USERNAME/nl2api.git"
-Issues = "https://github.com/YOUR_USERNAME/nl2api/issues"
 dependencies = [
     "pydantic>=2.0.0",
     "typer>=0.9.0",
@@ -30,6 +25,11 @@ dependencies = [
     "rapidfuzz>=3.0.0",
     "aiohttp>=3.9.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/nl2api"
+Repository = "https://github.com/YOUR_USERNAME/nl2api.git"
+Issues = "https://github.com/YOUR_USERNAME/nl2api/issues"
 
 [project.optional-dependencies]
 postgres = [
@@ -56,6 +56,15 @@ mcp-server = [
     "opentelemetry-api>=1.20.0",
     "opentelemetry-sdk>=1.20.0",
     "opentelemetry-exporter-otlp>=1.20.0",
+]
+embeddings = [
+    # Local embeddings (sentence-transformers)
+    "sentence-transformers>=2.2.0",
+    "torch>=2.0.0",
+]
+embeddings-openai = [
+    # OpenAI embeddings
+    "openai>=1.0.0",
 ]
 dev = [
     "pytest>=7.0.0",

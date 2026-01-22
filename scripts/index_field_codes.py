@@ -123,11 +123,14 @@ async def main():
         print("No documents to index!")
         return
 
-    # Check for required API key if generating embeddings
-    if not args.no_embeddings:
+    # Check embedding provider
+    embedding_provider = os.environ.get("EMBEDDING_PROVIDER", "local")
+    if not args.no_embeddings and embedding_provider == "openai":
         openai_key = os.environ.get("OPENAI_API_KEY")
         if not openai_key:
-            print("ERROR: OPENAI_API_KEY not set! Use --no-embeddings to skip embedding generation.")
+            print("ERROR: OPENAI_API_KEY not set!")
+            print("  Set EMBEDDING_PROVIDER=local to use local embeddings, or")
+            print("  Set OPENAI_API_KEY to use OpenAI embeddings")
             sys.exit(1)
 
     # Connect to database
@@ -143,10 +146,23 @@ async def main():
 
         # Set up embedder if generating embeddings
         if not args.no_embeddings:
-            from src.nl2api.rag.retriever import OpenAIEmbedder
-            embedder = OpenAIEmbedder(api_key=os.environ["OPENAI_API_KEY"])
+            from src.nl2api.rag.embedders import create_embedder
+
+            if embedding_provider == "openai":
+                embedder = create_embedder(
+                    "openai",
+                    api_key=os.environ["OPENAI_API_KEY"],
+                )
+                print("Embedder initialized (OpenAI text-embedding-3-small, 1536 dims)")
+            else:
+                model_name = os.environ.get("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+                embedder = create_embedder(
+                    "local",
+                    model_name=model_name,
+                )
+                print(f"Embedder initialized (local: {model_name}, {embedder.dimension} dims)")
+
             indexer.set_embedder(embedder)
-            print("Embedder initialized (OpenAI text-embedding-3-small)")
 
         # Clear if requested
         if args.clear:

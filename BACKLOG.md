@@ -210,24 +210,20 @@ Connect evaluation pipeline to real LSEG APIs to:
 
 ### Smart RAG Context Selection (P1.4)
 **Created:** 2026-01-20
-**Status:** Blocked
-**Analyzed:** 2026-01-21
-**Blocked by:** RAG Embeddings Generation
+**Status:** Unblocked - Ready to start
+**Updated:** 2026-01-21
 
-**Analysis Results:**
-- RAG infrastructure is complete with 9,167 documents indexed
-- **No embeddings generated** (0 of 9,167) - vector search is disabled
-- Currently running on keyword search only (30% weight component)
-- Vector similarity (70% weight) returns no results
+**Prerequisites Complete:**
+- [x] Embeddings generated: 463 field codes with 384-dim local embeddings
+- [x] Local embedder implemented (sentence-transformers, no API key needed)
+- [x] Hybrid search now functional (vector + keyword)
 
-**Prerequisites:**
-1. Generate embeddings for RAG documents (requires OPENAI_API_KEY)
-2. Validate hybrid search is working
-3. Establish baseline retrieval quality metrics
+**Next steps:**
+1. Establish baseline retrieval quality metrics
+2. Implement query-type-aware weighting
+3. Add reranking if needed
 
 **Original goal:** Implement query-type-aware weighting and reranking.
-
-**Deferred until:** Embeddings are generated and baseline hybrid search is functional.
 
 ---
 

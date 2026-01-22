@@ -399,17 +399,29 @@ class RAGIndexer:
                 )
 
                 # UPSERT from staging to main table
+                # Use subquery with DISTINCT ON to handle duplicates within the batch
                 await conn.execute("""
                     INSERT INTO rag_documents (id, content, document_type, domain, field_code, metadata, embedding)
                     SELECT
-                        s.id::uuid,
-                        s.content,
-                        s.document_type,
-                        s.domain,
-                        s.field_code,
-                        s.metadata,
-                        s.embedding::vector
-                    FROM staging_rag_documents s
+                        id::uuid,
+                        content,
+                        document_type,
+                        domain,
+                        field_code,
+                        metadata,
+                        embedding::vector
+                    FROM (
+                        SELECT DISTINCT ON (domain, field_code)
+                            s.id,
+                            s.content,
+                            s.document_type,
+                            s.domain,
+                            s.field_code,
+                            s.metadata,
+                            s.embedding
+                        FROM staging_rag_documents s
+                        ORDER BY domain, field_code, id
+                    ) deduped
                     ON CONFLICT (domain, field_code) WHERE document_type = 'field_code' AND field_code IS NOT NULL
                     DO UPDATE SET
                         content = EXCLUDED.content,
