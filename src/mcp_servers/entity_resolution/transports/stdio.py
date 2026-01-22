@@ -1,117 +1,161 @@
 """
 stdio Transport for Entity Resolution MCP Server
 
-Uses the official MCP SDK's stdio transport for compatibility with
-Claude Desktop and other MCP clients.
+Uses the official MCP SDK for full protocol compatibility with Claude Desktop.
 """
 
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING
+from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING, AsyncIterator
 
 import anyio
+from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.shared.session import SessionMessage
-from mcp.types import JSONRPCMessage, JSONRPCRequest, JSONRPCResponse, JSONRPCError
+from mcp.types import TextContent, Tool
 
 from src.mcp_servers.entity_resolution.context import (
     create_stdio_context,
     set_client_context,
 )
+from src.mcp_servers.entity_resolution.tools import TOOL_DEFINITIONS, ToolHandlers
+from src.nl2api.resolution.resolver import ExternalEntityResolver
 
 if TYPE_CHECKING:
-    from src.mcp_servers.entity_resolution.server import EntityResolutionMCPServer
+    import asyncpg
 
 logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def server_lifespan(server: Server) -> AsyncIterator[dict]:
+    """
+    Lifespan context manager for the MCP server.
+
+    Initializes database pool and resolver on startup, cleans up on shutdown.
+    """
+    logger.info("Initializing server resources...")
+
+    # Get config from environment
+    import os
+    postgres_url = os.environ.get(
+        "ENTITY_MCP_POSTGRES_URL",
+        "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+    )
+
+    # Initialize database pool
+    db_pool: asyncpg.Pool | None = None
+    try:
+        import asyncpg
+        db_pool = await asyncpg.create_pool(
+            postgres_url,
+            min_size=1,
+            max_size=5,
+        )
+        logger.info("Database pool initialized")
+    except Exception as e:
+        logger.warning(f"Failed to initialize database pool: {e}")
+
+    # Initialize resolver
+    resolver = ExternalEntityResolver(
+        api_endpoint=None,
+        api_key=None,
+        use_cache=True,
+        timeout_seconds=5.0,
+        db_pool=db_pool,
+    )
+    logger.info("Entity resolver initialized")
+
+    # Initialize tool handlers
+    tool_handlers = ToolHandlers(resolver)
+
+    # Set up client context
+    ctx = create_stdio_context()
+    set_client_context(ctx)
+    logger.info(f"Client context: session_id={ctx.session_id}")
+
+    try:
+        yield {"tool_handlers": tool_handlers, "db_pool": db_pool}
+    finally:
+        if db_pool:
+            await db_pool.close()
+            logger.info("Database pool closed")
+        logger.info("Server resources cleaned up")
+
+
+def create_mcp_server() -> Server:
+    """Create and configure the MCP server with tool handlers."""
+
+    server = Server(
+        name="entity-resolution",
+        version="1.0.0",
+        lifespan=server_lifespan,
+    )
+
+    @server.list_tools()
+    async def list_tools() -> list[Tool]:
+        """Return available tools."""
+        return [
+            Tool(
+                name=t["name"],
+                description=t["description"],
+                inputSchema=t["inputSchema"],
+            )
+            for t in TOOL_DEFINITIONS
+        ]
+
+    @server.call_tool()
+    async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+        """Handle tool calls."""
+        # Get tool handlers from lifespan context
+        ctx = server.request_context
+        tool_handlers: ToolHandlers = ctx.lifespan_context["tool_handlers"]
+
+        try:
+            result = await tool_handlers.handle_tool_call(name, arguments)
+            return [TextContent(type="text", text=str(result))]
+        except ValueError as e:
+            return [TextContent(type="text", text=f"Error: {e}")]
+        except Exception as e:
+            logger.exception(f"Error calling tool {name}: {e}")
+            return [TextContent(type="text", text=f"Internal error: {e}")]
+
+    return server
+
+
+async def run_stdio_server_sdk() -> None:
+    """
+    Run the MCP server using the official SDK.
+
+    This provides full protocol compatibility with Claude Desktop.
+    """
+    logger.info("Starting stdio transport (MCP SDK Server)")
+
+    server = create_mcp_server()
+
+    async with stdio_server() as (read_stream, write_stream):
+        logger.info("stdio transport connected")
+        init_options = server.create_initialization_options()
+        await server.run(read_stream, write_stream, init_options)
+
+    logger.info("stdio transport stopped")
 
 
 async def run_stdio_server(server: "EntityResolutionMCPServer") -> None:
     """
     Run the MCP server using stdio transport.
 
-    Uses the official MCP SDK's stdio_server for proper async I/O handling,
-    ensuring compatibility with Claude Desktop.
-
-    Args:
-        server: The MCP server instance to run
+    Note: The 'server' parameter is ignored - we use the SDK's Server class
+    for full protocol compatibility.
     """
-    logger.info("Starting stdio transport (using MCP SDK)")
+    await run_stdio_server_sdk()
 
-    # Set up client context for this stdio session
-    ctx = create_stdio_context()
-    set_client_context(ctx)
-    logger.info(f"Client context: session_id={ctx.session_id}, transport=stdio")
 
-    try:
-        # Initialize server
-        await server.initialize()
-
-        # Use the official MCP SDK's stdio transport
-        async with stdio_server() as (read_stream, write_stream):
-            logger.debug("stdio transport connected")
-
-            async for session_message in read_stream:
-                # Handle exceptions from the read stream
-                if isinstance(session_message, Exception):
-                    logger.error(f"Error from read stream: {session_message}")
-                    continue
-
-                # Extract the JSON-RPC message
-                message = session_message.message
-
-                # Convert to dict for our handler
-                if isinstance(message, JSONRPCRequest):
-                    method = message.method
-                    params = message.params.model_dump() if message.params else {}
-                    request_id = message.id if hasattr(message, 'id') else None
-
-                    logger.debug(f"Received request: {method} (id={request_id})")
-
-                    message_dict = {
-                        "jsonrpc": "2.0",
-                        "method": method,
-                        "params": params,
-                    }
-                    if request_id is not None:
-                        message_dict["id"] = request_id
-                else:
-                    # Handle other message types (notifications, etc.)
-                    message_dict = message.model_dump()
-                    logger.debug(f"Received message: {message_dict.get('method', 'unknown')}")
-
-                # Handle the message with our server
-                response = await server.handle_message(message_dict)
-
-                # Send response (unless it's a notification - None response)
-                if response is not None:
-                    # Convert response dict to JSONRPCMessage
-                    if "error" in response:
-                        rpc_response = JSONRPCMessage(
-                            JSONRPCError(
-                                jsonrpc="2.0",
-                                id=response.get("id"),
-                                error=response["error"],
-                            )
-                        )
-                    else:
-                        rpc_response = JSONRPCMessage(
-                            JSONRPCResponse(
-                                jsonrpc="2.0",
-                                id=response.get("id"),
-                                result=response.get("result", {}),
-                            )
-                        )
-
-                    await write_stream.send(SessionMessage(rpc_response.root))
-                    logger.debug(f"Sent response for id={response.get('id')}")
-
-    except anyio.ClosedResourceError:
-        logger.info("Client disconnected")
-    except KeyboardInterrupt:
-        logger.info("Keyboard interrupt, shutting down")
-    except Exception as e:
-        logger.exception(f"Error in stdio server: {e}")
-    finally:
-        await server.shutdown()
-        logger.info("stdio transport stopped")
+# Allow running directly for testing
+if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    anyio.run(run_stdio_server_sdk)
