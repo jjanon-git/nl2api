@@ -40,7 +40,20 @@ A capability without evaluation is untested code. See **BACKLOG.md → Capabilit
 
 ## CRITICAL: Testing Requirements
 
-**ALWAYS run tests after making code changes.** This is non-negotiable.
+**ALWAYS write tests for new code AND run tests after making changes.** This is non-negotiable.
+
+### New Code = New Tests
+
+When you create new functionality, write tests alongside it—not as a follow-up:
+
+| You Create | You Also Create |
+|------------|-----------------|
+| New class (e.g., `LocalEmbedder`) | Test class (`TestLocalEmbedder`) |
+| New function (e.g., `create_embedder`) | Tests for happy path + error cases |
+| New module (e.g., `embedders.py`) | Corresponding test file or section |
+| Bug fix | Regression test that reproduces the bug |
+
+**Do not wait to be asked about tests. Do not commit without them.**
 
 ### After ANY code modification:
 ```bash
@@ -192,10 +205,10 @@ pkill -f "entity_resolution.*8085"
 **Why this matters:** Unit tests with mocks can pass while real code fails (wrong imports, missing dependencies, I/O issues). Manual testing catches these gaps.
 
 ### Pre-commit checklist:
-1. ✅ Unit tests pass: `pytest tests/unit/ -v --tb=short -x`
-2. ✅ Integration tests pass: `pytest tests/integration/ -v --tb=short -x`
-3. ✅ Linting passes: `ruff check .`
-4. ✅ **Test coverage assessed for new code** (see above)
+1. ✅ **New tests written for new code** (see "New Code = New Tests" above)
+2. ✅ Unit tests pass: `pytest tests/unit/ -v --tb=short -x`
+3. ✅ Integration tests pass: `pytest tests/integration/ -v --tb=short -x`
+4. ✅ Linting passes: `ruff check .`
 5. ✅ **Manual testing completed for servers/CLIs** (see above)
 6. ✅ Security checklist reviewed (see Security Standards section)
 7. ✅ Telemetry added for external calls/DB operations
