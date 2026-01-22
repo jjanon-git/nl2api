@@ -2,7 +2,7 @@
 
 This file tracks all planned work, technical debt, and in-flight items for the NL2API project.
 
-**Last Updated:** 2026-01-21
+**Last Updated:** 2026-01-21 (Domain MCP Servers item added)
 
 ---
 
@@ -34,6 +34,9 @@ This file tracks all planned work, technical debt, and in-flight items for the N
 | **NL Response Gen** | Generate human-readable response | 0 | `orchestrator` | — | ❌ No fixtures (blocked by temporal) |
 | **RAG Retrieval** | Retrieve relevant context | 0 | — | — | ❌ No fixtures |
 | **Clarification Flow** | Handle ambiguous queries | 0 | — | — | ❌ No fixtures |
+| **Tool Composition** | Multi-tool query chaining | 0 | `orchestrator` | — | ❌ No fixtures |
+| **Multi-Turn Context** | Conversation context accumulation | 0 | `orchestrator` | — | ❌ No fixtures |
+| **Cross-Client Comparison** | Claude vs ChatGPT vs Custom | — | `mcp_passthrough` | — | ❌ Not implemented |
 
 ### Legend
 - ✅ **Evaluated** - Has fixtures, baseline established, tracking over time
@@ -99,13 +102,42 @@ Total: ~850ms, ~1100 tokens per request
 
 | # | Item | Rationale |
 |---|------|-----------|
-| 1 | **Routing Validation Benchmark** | Can't improve what we can't measure. Must establish routing accuracy baseline. |
-| 2 | **Haiku Routing Spike** | Potential 10x cost reduction if Haiku matches Sonnet for routing. Low effort to test. |
-| 3 | **Temporal Data Handling** | Blocks live API integration which blocks NL response generation testing. |
+| 1 | **Multi-Client Eval Platform Phase 0** | Foundation for cross-client comparison, tool-level eval, cost tracking |
+| 2 | **Temporal Data Handling** | Blocks live API integration which blocks NL response generation testing |
+| 3 | **Continuous Evaluation Pipeline** | Enables regression detection, model upgrade tracking |
 
 ---
 
 ## High Priority (P0)
+
+### Multi-Client Evaluation Platform
+**Created:** 2026-01-21
+**Status:** Planning
+**Docs:** [docs/plans/multi-client-eval-platform.md](docs/plans/multi-client-eval-platform.md)
+
+Expand evaluation platform to support multiple orchestrators (Claude, ChatGPT, custom) and track performance across model upgrades.
+
+**Phase 0 (Foundation):**
+- [ ] Add client tracking to Scorecard (`client_type`, `client_version`, `eval_mode`)
+- [ ] Implement tool-level evaluation mode (bypass routing)
+- [ ] MCP passthrough evaluation (capture external orchestrator tool calls)
+- [ ] Basic cross-client comparison queries
+- [ ] Cost/token tracking per evaluation
+
+**Phase 1 (Continuous):**
+- [ ] Scheduled evaluation runner (cron-based)
+- [ ] Regression detection with statistical significance
+- [ ] Model version change detection + auto-re-evaluation
+- [ ] Alerting on accuracy/latency/cost regressions
+
+**Phase 2 (Multi-API):**
+- [ ] API abstraction layer (support multiple data providers)
+- [ ] Mock execution with recorded responses
+- [ ] Cost tracking per API call
+
+**Blocking:** Nothing - can start now
+
+---
 
 ### Codebase Audit: Remove Early Development Hacks ✅ COMPLETE
 **Created:** 2026-01-21
@@ -155,6 +187,115 @@ Connect evaluation pipeline to real LSEG APIs to:
 ---
 
 ## Medium Priority (P1)
+
+### Tool Composition Testing
+**Created:** 2026-01-21
+**Status:** Not Started
+**Related:** Multi-Client Evaluation Platform
+
+When queries require multiple tools in sequence (e.g., "Which S&P 500 company has highest P/E and what do analysts recommend?"):
+- Test tool ordering (screening → estimates)
+- Validate data flow between tools
+- Handle partial failures (tool 1 succeeds, tool 2 fails)
+
+**Requires:** `ToolChain` evaluation model, expected sequence matching, data flow validation.
+
+---
+
+### Ground Truth for Routing (Acceptable Routes)
+**Created:** 2026-01-21
+**Status:** Not Started
+**Related:** Multi-Client Evaluation Platform
+
+Multiple valid routes often exist for a query:
+- "What's Apple's stock price?" → datastream OR fundamentals
+- Both are "correct" but may differ in freshness/detail
+
+**Task:** Define "acceptable route set" instead of single correct answer. Score routing as pass if any acceptable route is chosen.
+
+---
+
+### Semantic Equivalence Detection
+**Created:** 2026-01-21
+**Status:** Not Started
+**Related:** Multi-Client Evaluation Platform
+
+Different tool calls can produce equivalent results:
+- `fundamentals_query(fields=["TR.PERatio"])` vs
+- `fundamentals_query(fields=["TR.PriceClose", "TR.EPSActValue"])` + calculate
+
+**Task:** Define canonical forms for common queries. Score efficiency separately from correctness.
+
+---
+
+### Multi-Turn Conversation Evaluation
+**Created:** 2026-01-21
+**Status:** Not Started
+
+Current tests are single-turn. Real usage involves context:
+- "Show me Apple's financials"
+- "Compare to Microsoft" (requires context)
+- "What about growth rates?" (requires context from turns 1 & 2)
+
+**Task:** Create `ConversationTestCase` with multiple turns. Evaluate context accumulation and clarification flows.
+
+---
+
+### Cost & Token Attribution
+**Created:** 2026-01-21
+**Status:** Not Started
+**Related:** Multi-Client Evaluation Platform
+
+Track per-evaluation costs for orchestrator comparison:
+- Input/output tokens per LLM call
+- API calls made to data providers
+- Estimated cost in USD using provider pricing
+- Cost-efficiency metric: accuracy per dollar
+
+---
+
+### Latency SLOs & Budgets
+**Created:** 2026-01-21
+**Status:** Not Started
+**Related:** Multi-Client Evaluation Platform
+
+Different query types have different acceptable latencies:
+- Interactive: < 2 seconds
+- Batch: < 30 seconds
+- Reports: < 5 minutes
+
+**Task:** Define latency SLOs per query category. Track P50/P95/P99. Alert on violations.
+
+---
+
+### Prompt/Schema Versioning
+**Created:** 2026-01-21
+**Status:** Not Started
+
+Tool schemas evolve (new parameters, renames). Test cases may fail on new schemas.
+
+**Task:**
+- Version tool schemas explicitly
+- Migrate test cases when schema changes
+- Support multiple schema versions simultaneously
+- Track which test cases work with which versions
+
+---
+
+### Model Upgrade Detection
+**Created:** 2026-01-21
+**Status:** Not Started
+**Related:** Multi-Client Evaluation Platform
+
+When Claude/ChatGPT update models, accuracy may change without warning.
+
+**Task:**
+- Query model version at evaluation time
+- Detect version changes automatically
+- Trigger re-evaluation on version change
+- Compare before/after metrics
+
+---
 
 ### Haiku Routing Spike (P1.1) ✅ COMPLETE
 **Created:** 2026-01-21
@@ -297,6 +438,33 @@ Currently, when a query is ambiguous, we return clarification questions in the r
 
 ---
 
+### Domain MCP Tools - Live API Integration
+**Created:** 2026-01-21
+**Status:** Partially Complete
+**Docs:** [docs/plans/mcp-migration.md](docs/plans/mcp-migration.md)
+
+**Already implemented:**
+- Entity resolution MCP server with `resolve_entity`, `resolve_entities_batch`, `extract_and_resolve`
+- NL2API tools exposed via MCP: `nl2api_query`, `query_datastream`, `query_estimates`, `query_fundamentals`, `query_officers`, `query_screening`
+- Stdio transport for Claude Desktop, SSE for HTTP
+
+**Current limitation:** Tools return **simulated data** (LLM-generated placeholders), not live LSEG API responses.
+
+**Remaining work:**
+1. Connect domain agents to live LSEG APIs (Datastream, Eikon, etc.)
+2. Add proper authentication/credential handling for LSEG APIs
+3. Handle rate limiting and quotas
+4. Add response caching to reduce API costs
+
+**Testing:**
+- Integration tests with live APIs (requires LSEG credentials)
+- Compare simulated vs live response quality
+- Measure latency impact of live API calls
+
+**Benefit:** Enables real financial data queries through Claude Desktop.
+
+---
+
 ## Low Priority (P2)
 
 ### Rule-Based Coverage Expansion (P2.0)
@@ -354,17 +522,34 @@ Users wait for full response. Implement streaming for better UX.
 
 ### A/B Testing Infrastructure (P2.2)
 **Created:** 2026-01-20
+**Updated:** 2026-01-21
 **Status:** Not Started
+**Related:** Multi-Client Evaluation Platform
 
 No variant comparison capability. Add infrastructure to compare different approaches.
+
+**Extended scope:**
+- Calculate statistical significance (p-values, confidence intervals)
+- Stratified sampling by query difficulty/category
+- Control for confounding variables (query distribution, time of day)
+- Report confidence intervals, not just point estimates
+- Minimum sample sizes for significance
 
 ---
 
 ### User Feedback Loop (P2.3)
 **Created:** 2026-01-20
+**Updated:** 2026-01-21
 **Status:** Not Started
 
 No accuracy feedback mechanism from users. Add feedback collection and analysis.
+
+**Extended scope:**
+- Log all production queries + tool calls
+- Flag failed/corrected queries automatically
+- Auto-generate test cases from production errors
+- Human review queue for edge cases
+- Close the loop: production errors → test cases → improved accuracy
 
 ---
 
