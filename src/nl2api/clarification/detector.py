@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass
-from typing import Any
 
 from src.nl2api.models import ClarificationQuestion
 from src.nl2api.llm.protocols import LLMMessage, LLMProvider, MessageRole

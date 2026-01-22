@@ -8,7 +8,7 @@ Designed to support both agent-based and MCP-based routing.
 from __future__ import annotations
 
 import warnings
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
 from src.nl2api.llm.protocols import LLMToolDefinition

@@ -15,11 +15,9 @@ from __future__ import annotations
 
 import logging
 import time
-from datetime import timedelta
 from typing import TYPE_CHECKING, Any
-from uuid import UUID, uuid4
+from uuid import UUID
 
-from CONTRACTS import ToolCall
 from src.nl2api.agents.protocols import AgentContext, DomainAgent
 from src.nl2api.clarification.detector import AmbiguityDetector
 from src.nl2api.conversation.manager import ConversationManager, ConversationStorage
@@ -31,10 +29,9 @@ from src.nl2api.observability import RequestMetrics, emit_metrics
 from src.common.telemetry import trace_span, record_exception
 from src.nl2api.rag.protocols import RAGRetriever
 from src.nl2api.resolution.protocols import EntityResolver
-from src.nl2api.routing.protocols import QueryRouter, RouterResult
+from src.nl2api.routing.protocols import QueryRouter
 
 if TYPE_CHECKING:
-    from src.nl2api.mcp.client import MCPClient
     from src.nl2api.mcp.context import MCPContextRetriever
     from src.nl2api.routing.cache import RoutingCache
 

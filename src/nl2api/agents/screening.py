@@ -12,7 +12,6 @@ Handles Screening & Ranking API queries including:
 from __future__ import annotations
 
 import re
-from typing import Any
 
 from CONTRACTS import ToolCall, ToolRegistry
 from src.nl2api.agents.base import BaseDomainAgent

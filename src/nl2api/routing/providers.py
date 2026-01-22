@@ -15,10 +15,10 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from src.nl2api.llm.protocols import LLMToolDefinition
-from src.nl2api.routing.protocols import ToolExecutor, ToolProvider
+from src.nl2api.routing.protocols import ToolProvider
 
 if TYPE_CHECKING:
-    from src.nl2api.agents.protocols import AgentContext, AgentResult, DomainAgent
+    from src.nl2api.agents.protocols import DomainAgent
     from src.nl2api.mcp.client import MCPClient
     from src.nl2api.mcp.protocols import MCPServer
 

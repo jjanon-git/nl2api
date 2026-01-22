@@ -12,7 +12,7 @@ import json
 import logging
 import time
 from collections import OrderedDict
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, TypeVar, Callable, Awaitable
 
 from src.common.telemetry import get_tracer

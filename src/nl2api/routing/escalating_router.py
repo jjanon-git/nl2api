@@ -21,7 +21,6 @@ from src.nl2api.llm.protocols import (
 )
 from src.nl2api.routing.llm_router import ROUTING_SYSTEM_PROMPT
 from src.nl2api.routing.protocols import (
-    QueryRouter,
     RouterResult,
     RoutingToolDefinition,
     ToolProvider,

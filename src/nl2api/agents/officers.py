@@ -11,7 +11,6 @@ Handles Officers & Directors API queries including:
 
 from __future__ import annotations
 
-import re
 from typing import Any
 
 from CONTRACTS import ToolCall, ToolRegistry

@@ -18,12 +18,11 @@ from src.nl2api.llm.protocols import (
     MessageRole,
 )
 from src.nl2api.routing.protocols import (
-    QueryRouter,
     RouterResult,
     RoutingToolDefinition,
     ToolProvider,
 )
-from src.common.telemetry import trace_span, add_span_event
+from src.common.telemetry import trace_span
 
 if TYPE_CHECKING:
     from src.nl2api.routing.cache import RoutingCache

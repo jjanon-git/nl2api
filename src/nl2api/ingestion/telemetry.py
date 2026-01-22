@@ -18,7 +18,7 @@ _tracer = None
 _meter = None
 
 try:
-    from src.common.telemetry import get_tracer, get_meter, is_telemetry_enabled
+    from src.common.telemetry import get_tracer, get_meter
 
     _telemetry_available = True
 except ImportError:

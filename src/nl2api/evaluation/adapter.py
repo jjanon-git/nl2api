@@ -12,7 +12,7 @@ import logging
 import time
 from typing import Any, Protocol, runtime_checkable
 
-from CONTRACTS import SystemResponse, ToolCall
+from CONTRACTS import SystemResponse
 from src.nl2api.models import NL2APIResponse
 from src.nl2api.orchestrator import NL2APIOrchestrator
 

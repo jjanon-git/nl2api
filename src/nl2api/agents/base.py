@@ -9,7 +9,6 @@ from __future__ import annotations
 import logging
 import warnings
 from abc import ABC, abstractmethod
-from typing import Any
 
 from CONTRACTS import ToolCall
 from src.common.telemetry import get_tracer

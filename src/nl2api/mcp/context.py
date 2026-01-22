@@ -325,7 +325,7 @@ class MCPContextRetriever:
                             "uri": resource.uri,
                         }
                 except json.JSONDecodeError:
-                    pass
+                    logger.debug(f"Failed to parse JSON from resource: {resource.uri}")
 
             # Fall back to using name/description
             return {

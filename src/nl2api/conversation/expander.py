@@ -112,7 +112,6 @@ class QueryExpander:
             )
 
         query_lower = query.lower().strip()
-        expanded = query
 
         # Try different expansion strategies in order
         result = self._try_pronoun_expansion(query, query_lower, context)

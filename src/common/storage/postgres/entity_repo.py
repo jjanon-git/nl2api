@@ -8,8 +8,8 @@ Provides CRUD operations and resolution queries against the entities table.
 from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 import asyncpg
