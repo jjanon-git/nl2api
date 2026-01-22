@@ -39,6 +39,7 @@ from CONTRACTS import (
 )
 from src.evaluation.batch.config import BatchRunnerConfig
 from src.evaluation.batch.metrics import get_metrics
+from src.evaluation.batch.pricing import calculate_cost
 from src.evaluation.core.evaluators import WaterfallEvaluator
 
 if TYPE_CHECKING:
@@ -331,17 +332,13 @@ class BatchRunner:
             input_tokens = response.input_tokens
             output_tokens = response.output_tokens
 
-            # Calculate estimated cost (Claude pricing as default)
-            estimated_cost = None
-            if input_tokens is not None and output_tokens is not None:
-                # Default to Claude Sonnet 3.5 pricing: $3/$15 per 1M tokens
-                # Can be overridden based on client_version
-                input_cost_per_million = 3.0
-                output_cost_per_million = 15.0
-                estimated_cost = (
-                    (input_tokens / 1_000_000) * input_cost_per_million +
-                    (output_tokens / 1_000_000) * output_cost_per_million
-                )
+            # Calculate estimated cost using model-aware pricing
+            # Uses client_version as the model identifier for pricing lookup
+            estimated_cost = calculate_cost(
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                model=self.config.client_version,
+            )
 
             # Update scorecard with batch_id and client tracking info
             scorecard = scorecard.model_copy(update={

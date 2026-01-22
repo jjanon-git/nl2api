@@ -164,10 +164,16 @@ def create_routing_generator(router):
                 "arguments": {}
             }]
 
+            # Extract token usage from router result
+            input_tokens = result.input_tokens if result.input_tokens > 0 else None
+            output_tokens = result.output_tokens if result.output_tokens > 0 else None
+
             return SystemResponse(
                 raw_output=json.dumps(tool_calls),
                 nl_response=None,
                 latency_ms=latency_ms,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
             )
 
         except Exception as e:
@@ -217,13 +223,13 @@ def create_nl2api_generator(orchestrator):
                     for tc in result.tool_calls
                 ]
 
-            # Extract token usage if available
-            input_tokens = getattr(result, 'input_tokens', None)
-            output_tokens = getattr(result, 'output_tokens', None)
+            # Extract token usage - NL2APIResponse now has input_tokens and output_tokens
+            input_tokens = result.input_tokens if result.input_tokens > 0 else None
+            output_tokens = result.output_tokens if result.output_tokens > 0 else None
 
             return SystemResponse(
                 raw_output=json.dumps(tool_calls),
-                nl_response=result.nl_response,
+                nl_response=None,  # NL2APIResponse doesn't have nl_response field
                 latency_ms=latency_ms,
                 input_tokens=input_tokens,
                 output_tokens=output_tokens,

@@ -15,7 +15,6 @@ This tests NL generation quality in isolation:
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import time
@@ -242,7 +241,7 @@ class SemanticsEvaluator:
                     duration_ms=duration_ms,
                 )
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 duration_ms = int((time.perf_counter() - start_time) * 1000)
                 span.set_attribute("result.error", "timeout")
                 semantics_total.add(1)
@@ -353,6 +352,21 @@ class SemanticsEvaluator:
                         "expected_nl": test_case.expected_nl_response,
                         "actual_nl": actual_nl,
                     },
+                    duration_ms=duration_ms,
+                )
+
+            except TimeoutError:
+                duration_ms = int((time.perf_counter() - start_time) * 1000)
+                span.set_attribute("result.error", "timeout")
+                semantics_total.add(1)
+                semantics_latency.record(duration_ms)
+                return StageResult(
+                    stage=EvaluationStage.SEMANTICS,
+                    passed=False,
+                    score=0.0,
+                    error_code=ErrorCode.SYSTEM_TIMEOUT,
+                    reason=f"Timeout after {self.config.timeout_ms}ms",
+                    artifacts={"timeout_ms": self.config.timeout_ms},
                     duration_ms=duration_ms,
                 )
 

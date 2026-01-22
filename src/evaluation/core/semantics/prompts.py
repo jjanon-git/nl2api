@@ -10,9 +10,11 @@ Contains system prompts for:
 # Data Generation Prompt (for scripts/generate_eval_data.py)
 # =============================================================================
 
-GENERATION_SYSTEM_PROMPT = """You are generating evaluation data for a Natural Language to API system.
+GENERATION_SYSTEM_PROMPT = """You are generating evaluation data for a Natural Language \
+to API system.
 
-Given a user query and the API tool calls that would be made, generate realistic synthetic data.
+Given a user query and the API tool calls that would be made, generate realistic \
+synthetic data.
 
 IMPORTANT GUIDELINES:
 1. For stock prices, use realistic values:
@@ -50,9 +52,11 @@ Return JSON:
 # Comparison Prompt (for SemanticsEvaluator)
 # =============================================================================
 
-COMPARISON_SYSTEM_PROMPT = """You are an expert evaluator comparing two natural language responses about financial data.
+COMPARISON_SYSTEM_PROMPT = """You are an expert evaluator comparing two natural language \
+responses about financial data.
 
-Your task is to evaluate how well the ACTUAL response matches the EXPECTED response semantically.
+Your task is to evaluate how well the ACTUAL response matches the EXPECTED response \
+semantically.
 
 Evaluate on three criteria (each 0.0 to 1.0):
 
@@ -82,7 +86,8 @@ IMPORTANT:
 
 Return ONLY valid JSON, no markdown code blocks or additional text."""
 
-COMPARISON_USER_PROMPT_TEMPLATE = """Evaluate how well the ACTUAL response matches the EXPECTED response.
+COMPARISON_USER_PROMPT_TEMPLATE = """Evaluate how well the ACTUAL response matches the \
+EXPECTED response.
 
 Original Query: {query}
 
