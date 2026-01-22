@@ -1,57 +1,26 @@
 # CLAUDE.md - Project Context for Claude Code
 
-## META: Self-Improvement Loop (MANDATORY)
+> **Note**: This project inherits shared development standards from `../CLAUDE.md` (self-improvement loop, testing requirements, security standards, error handling patterns).
 
-**Before marking any significant task complete, you MUST complete this reflection checklist:**
+## Project-Specific Documentation Locations
 
-### Post-Task Reflection Checklist
+When applying the self-improvement loop (see parent), use these project-specific locations:
 
-After fixing a bug, adding a feature, or debugging an issue, ask yourself:
+| Issue Type | Where to Document |
+|------------|-------------------|
+| NL2API process/standards | This file |
+| Config/integration issue | `docs/troubleshooting.md` |
+| Evaluation pipeline gotcha | Comment in `src/evaluation/` |
+| Agent behavior issue | Comment in `src/nl2api/agents/` |
 
-- [ ] **What was the root cause?** (Not the symptom - the actual cause)
-- [ ] **Why wasn't this caught earlier?** (Missing test? Missing docs? Missing validation?)
-- [ ] **What instruction would have prevented this?** (Be specific)
-- [ ] **Have I added that instruction to CLAUDE.md?** (If no, do it now)
-
-### When to Trigger This Checklist
-
-- After any debugging session longer than 10 minutes
-- After discovering a config mismatch or integration issue
-- After finding undocumented requirements
-- After manual testing reveals something unit tests missed
-- Before committing a fix
-
-### Examples
+**Examples from this project:**
 
 | Situation | Root Cause | Action |
 |-----------|------------|--------|
 | Grafana shows no data | Datasource UID mismatch | Add to `docs/troubleshooting.md` |
 | Metrics not appearing | Missing `_total` suffix | Add to `docs/troubleshooting.md` |
-| Batch eval fails silently | No fixtures in DB | Add prerequisite to CLAUDE.md (process) |
-| FastAPI returns 422 for valid JSON | `from __future__ import annotations` breaks introspection | Add comment in affected file (code gotcha) |
-
-### Where to Document
-
-Different issues require different artifacts. Choose the right one:
-
-| Issue Type | Where to Document | Example |
-|------------|-------------------|---------|
-| Process/standards gap | CLAUDE.md | "Always run manual tests before committing servers" |
-| Code pattern/gotcha | Comment in affected file | "Don't use X with Y because..." |
-| Config/integration issue | `docs/troubleshooting.md` | "If Grafana shows no data, check UID" |
-| Regression risk | Add a test | Unit test that would have caught it |
-
-**CLAUDE.md is for process, not implementation trivia.** If the instruction is specific to one file or framework, it belongs in code comments or docs, not here.
-
-### The Standard
-
-**Every debugging session should result in one of:**
-1. A process instruction in CLAUDE.md, OR
-2. A code comment/docstring in the affected file, OR
-3. An entry in `docs/troubleshooting.md`, OR
-4. A test that catches the regression
-
-**If you finish a task without updating one of these - you haven't finished.**
+| Batch eval fails silently | No fixtures in DB | Add prerequisite to this file |
+| FastAPI returns 422 for valid JSON | `from __future__ import annotations` breaks introspection | Add comment in affected file |
 
 ---
 
@@ -110,7 +79,7 @@ A capability without evaluation is untested code. See **BACKLOG.md → Capabilit
 .venv/bin/python -m pytest tests/integration/ -v --tb=short -x
 ```
 
-**When to write integration tests vs unit tests vs manual verification:**
+**When to write integration tests vs unit tests vs manual verification** (extends parent):
 
 | Scenario | Unit Test | Integration Test | Manual Verify |
 |----------|-----------|------------------|---------------|
@@ -846,51 +815,23 @@ For high-volume API calls (accuracy tests, batch evaluation):
 
 ## Security Standards
 
-**ALWAYS review code changes for security vulnerabilities.** This project handles financial data queries.
+See parent `../CLAUDE.md` for the full security checklist. This project handles **financial data queries**, so security is critical.
 
-### Security Checklist (verify before committing):
+### Project-Specific: SQL Injection Prevention
 
-1. **Input Validation**
-   - [ ] All user input is validated before use
-   - [ ] Query parameters are sanitized (no raw string interpolation)
-   - [ ] File paths are validated and constrained to expected directories
-
-2. **SQL Injection Prevention**
-   - [ ] Use parameterized queries ONLY (never f-strings or `.format()` with SQL)
-   - [ ] Use `asyncpg` parameter binding: `$1, $2` syntax
-   ```python
-   # CORRECT
-   await conn.fetch("SELECT * FROM users WHERE id = $1", user_id)
-
-   # WRONG - SQL injection vulnerable
-   await conn.fetch(f"SELECT * FROM users WHERE id = {user_id}")
-   ```
-
-3. **Secrets Management**
-   - [ ] No secrets in code (use environment variables)
-   - [ ] No secrets in logs (redact API keys, tokens)
-   - [ ] `.env` files are in `.gitignore`
-
-4. **API Security**
-   - [ ] External API keys loaded from environment only
-   - [ ] Rate limiting considered for external calls
-   - [ ] Error messages don't leak internal details
-
-5. **Dependency Security**
-   - [ ] New dependencies reviewed for known vulnerabilities
-   - [ ] Pin dependency versions in requirements
-
-### Common Patterns in This Codebase
+This project uses `asyncpg` with PostgreSQL. Always use parameterized queries:
 
 ```python
-# Safe database query
-async def get_by_id(self, id: str) -> Optional[Model]:
-    row = await self.conn.fetchrow(
-        "SELECT * FROM table WHERE id = $1", id
-    )
-    return Model(**row) if row else None
+# CORRECT - Use $1, $2 parameter binding
+await conn.fetch("SELECT * FROM users WHERE id = $1", user_id)
 
-# Safe configuration loading
+# WRONG - SQL injection vulnerable
+await conn.fetch(f"SELECT * FROM users WHERE id = {user_id}")
+```
+
+### Project-Specific: Safe Configuration Pattern
+
+```python
 class Config(BaseSettings):
     api_key: SecretStr  # Never logs the actual value
 
@@ -901,7 +842,7 @@ class Config(BaseSettings):
 
 ## Error Handling Patterns
 
-**Follow consistent error handling patterns across the codebase.**
+See parent `../CLAUDE.md` for general error handling rules. Project-specific exceptions:
 
 ### Exception Hierarchy
 
@@ -925,62 +866,15 @@ class StorageError(NL2APIError):
     pass
 ```
 
-### Error Handling Rules
-
-1. **Catch specific exceptions, not bare `except:`**
-   ```python
-   # CORRECT
-   try:
-       result = await external_api.call()
-   except httpx.TimeoutException:
-       logger.warning("API timeout, using fallback")
-       return fallback_result
-   except httpx.HTTPStatusError as e:
-       logger.error(f"API error: {e.response.status_code}")
-       raise AgentProcessingError("External API failed") from e
-
-   # WRONG
-   try:
-       result = await external_api.call()
-   except:
-       pass  # Swallows all errors silently
-   ```
-
-2. **Preserve exception chains with `from`**
-   ```python
-   except SomeError as e:
-       raise OurError("Context about what failed") from e
-   ```
-
-3. **Log at appropriate levels**
-   - `DEBUG`: Detailed diagnostic info
-   - `INFO`: Normal operations (query processed, batch started)
-   - `WARNING`: Recoverable issues (fallback used, retry triggered)
-   - `ERROR`: Failures requiring attention (API down, invalid data)
-
-4. **Don't log and raise** - do one or the other at each level
-   ```python
-   # Let caller decide whether to log
-   raise StorageError("Connection failed") from e
-
-   # OR handle locally and don't propagate
-   logger.error("Connection failed, returning empty result")
-   return []
-   ```
-
-5. **Fail fast at boundaries, recover internally**
-   - External inputs: Validate early, fail with clear errors
-   - Internal operations: Use fallbacks and retries where sensible
-
 ---
 
 ## Telemetry Requirements
 
-**Add observability to new code that involves external calls or significant operations.**
+See parent `../CLAUDE.md` for general observability principles. This project uses **OpenTelemetry (OTEL)** for tracing and metrics.
 
-### When to Add Tracing Spans
+### When to Add OTEL Spans
 
-Add OTEL spans for:
+Add spans for:
 - External API calls (LLM providers, LSEG APIs)
 - Database operations (queries, bulk inserts)
 - Multi-step orchestration flows
@@ -1005,6 +899,43 @@ from src.evaluation.batch.metrics import get_metrics
 metrics = get_metrics()
 metrics.record_test_result(scorecard, batch_id, tags)
 metrics.record_batch_complete(batch_job, duration_seconds)
+```
+
+### MCP Server Telemetry (Project-Specific)
+
+**MCP servers in this project MUST include client differentiation in traces.** This enables debugging multi-tenant deployments and understanding usage patterns per client.
+
+| Component | Required Telemetry |
+|-----------|-------------------|
+| Server | Spans with `server.name`, `jsonrpc.method`, `jsonrpc.id` |
+| Client Context | `client.session_id`, `client.transport`, `client.id` (if provided), `client.name` (if provided) |
+| Tool calls | `tool.name`, `tool.success` |
+| Resource reads | `resource.uri`, `resource.success` |
+
+**Client differentiation implementation:**
+1. Create a `ClientContext` dataclass with session ID, client ID, transport type
+2. Use Python `contextvars` to propagate context through async call stack
+3. For HTTP/SSE: Extract client info from headers (`X-Client-ID`, `X-Client-Name`, `User-Agent`)
+4. For stdio: Generate session ID at startup (single client per process)
+5. Add context attributes to all spans via helper method
+
+```python
+from src.mcp_servers.entity_resolution.context import (
+    ClientContext,
+    get_client_context,
+    set_client_context,
+)
+
+# In middleware or startup
+ctx = create_sse_context(client_id=request.headers.get("X-Client-ID"))
+set_client_context(ctx)
+
+# In span-creating methods
+def _add_client_context_to_span(self, span: Any) -> None:
+    ctx = get_client_context()
+    if ctx:
+        for key, value in ctx.to_span_attributes().items():
+            span.set_attribute(key, value)
 ```
 
 ### Span Implementation Pattern
@@ -1039,6 +970,9 @@ async def process_query(self, query: str) -> Result:
 | Agent | `agent.name`, `agent.confidence`, `query.category` |
 | Evaluator | `test_case.id`, `test_case.category`, `result.passed`, `result.score` |
 | Batch | `batch.id`, `batch.total_tests`, `batch.passed_count`, `batch.duration_ms` |
+| MCP Server | `server.name`, `jsonrpc.method`, `client.session_id`, `client.transport` |
+| MCP Tool | `tool.name`, `tool.success`, `client.id` (if provided) |
+| MCP Resource | `resource.uri`, `resource.success` |
 
 ### Metrics to Track
 
@@ -1072,16 +1006,12 @@ async def handle_request(self, query: str):
 
 ## Known Gaps
 
-The following areas need documented standards but are not yet fully specified:
+See parent `../CLAUDE.md` for general gaps. Project-specific gaps:
 
 | Gap | Description | Workaround |
 |-----|-------------|------------|
 | **Migration guidance** | No documented process for DB schema changes | Always create migrations in `migrations/` for schema changes. Follow existing migration file naming: `NNN_description.sql` |
 | **Backwards compatibility** | No policy for API versioning or deprecation | Avoid breaking changes to public interfaces. If unavoidable, discuss with team first |
-| **Performance testing** | No load/stress testing framework | Manual testing with `ab` or `wrk` for critical paths |
-| **Documentation requirements** | No standard for when to update docs | Update docs when adding new features or changing behavior |
-
-These gaps should be addressed as the project matures. If you encounter a situation requiring guidance in these areas, ask the user for clarification.
 
 ---
 
