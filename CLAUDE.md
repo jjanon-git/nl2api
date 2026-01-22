@@ -1,23 +1,41 @@
 # CLAUDE.md - Project Context for Claude Code
 
-## META: Self-Improvement Loop
+## META: Self-Improvement Loop (MANDATORY)
 
-**After completing any significant work, reflect on what was missing from these instructions.**
+**Before marking any significant task complete, you MUST complete this reflection checklist:**
 
-When you finish a task and notice:
-- A pattern that should be documented but wasn't
-- A standard you had to figure out that others would face
-- A checklist item that was missing
-- A process that should be automated
+### Post-Task Reflection Checklist
 
-**Then:** Add the missing instruction to the relevant section of this file. This creates a continuous improvement loop where the codebase's standards evolve with practice.
+After fixing a bug, adding a feature, or debugging an issue, ask yourself:
 
-**Examples of what to add:**
-- "I had to run coverage after writing tests" → Add to Testing Requirements
-- "I had to look up the JSON-RPC error codes" → Add to relevant docs
-- "I forgot to check if a dependency was optional" → Add to Pre-commit checklist
+- [ ] **What was the root cause?** (Not the symptom - the actual cause)
+- [ ] **Why wasn't this caught earlier?** (Missing test? Missing docs? Missing validation?)
+- [ ] **What instruction would have prevented this?** (Be specific)
+- [ ] **Have I added that instruction to CLAUDE.md?** (If no, do it now)
 
-**The goal:** Each task should leave the instructions better than you found them.
+### When to Trigger This Checklist
+
+- After any debugging session longer than 10 minutes
+- After discovering a config mismatch or integration issue
+- After finding undocumented requirements
+- Before committing a fix
+
+### Examples
+
+| Situation | Root Cause | Instruction to Add |
+|-----------|------------|-------------------|
+| Grafana shows no data | Datasource UID mismatch | "Dashboard uid must match datasource config uid" |
+| Metrics not appearing | Missing `_total` suffix | "OTEL adds `_total` suffix to counters" |
+| Batch eval fails silently | No fixtures in DB | "Load fixtures before batch evaluation" |
+
+### The Standard
+
+**Every debugging session should result in either:**
+1. A new instruction in CLAUDE.md that prevents the issue, OR
+2. A new test that catches the issue, OR
+3. Documentation explaining why neither is needed
+
+**If you finish a task without updating instructions, tests, or docs - you haven't finished.**
 
 ---
 
@@ -1100,7 +1118,13 @@ Application (OTLP) → OTEL Collector (4317) → Prometheus Exporter (8889) → 
 **IMPORTANT: Metric naming convention**
 - OTEL Collector adds `nl2api_` prefix to all metrics (configured in `config/otel-collector-config.yaml`)
 - Dashboard queries must use prefixed names: `nl2api_eval_batch_tests_total`, not `eval_batch_tests_total`
+- OTEL adds `_total` suffix to counters: `eval_batch_tests_passed` becomes `nl2api_eval_batch_tests_passed_total`
 - If Grafana shows no data, check metric names match what's in Prometheus
+
+**IMPORTANT: Grafana datasource UID**
+- Dashboard JSON files reference datasources by `uid` (e.g., `"uid": "prometheus"`)
+- Datasource config in `config/grafana/provisioning/datasources/` MUST specify matching `uid`
+- If dashboards show "No data", verify datasource UID matches between dashboard and config
 
 **Prerequisite for batch evaluation metrics:**
 1. Load fixtures: `python scripts/load_fixtures_to_db.py --all`
