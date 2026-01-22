@@ -193,17 +193,41 @@ Connect evaluation pipeline to real LSEG APIs to:
 
 ### Token Optimization (P1.3)
 **Created:** 2026-01-20
-**Status:** Not Started
+**Status:** Deferred (Low ROI)
+**Analyzed:** 2026-01-21
 
-Static prompts waste 800-1200 tokens per agent. Compress prompts dynamically based on query type.
+**Analysis Results:**
+- Average agent prompt: ~720 tokens (range: 600-880)
+- Total across 5 agents: ~3,620 tokens
+- With Haiku at $0.25/1M input tokens: ~$0.0009/request for all agents
+- Potential savings from compression: ~$0.0001/request
+
+**Decision:** Not worth the complexity. Haiku's low cost makes token optimization low-priority. May revisit if traffic increases significantly or if we switch to more expensive models for agent processing.
+
+**Original goal:** Compress prompts dynamically based on query type.
 
 ---
 
 ### Smart RAG Context Selection (P1.4)
 **Created:** 2026-01-20
-**Status:** Not Started
+**Status:** Blocked
+**Analyzed:** 2026-01-21
+**Blocked by:** RAG Embeddings Generation
 
-Fixed retrieval parameters don't adapt to query type. Implement query-type-aware weighting and reranking.
+**Analysis Results:**
+- RAG infrastructure is complete with 9,167 documents indexed
+- **No embeddings generated** (0 of 9,167) - vector search is disabled
+- Currently running on keyword search only (30% weight component)
+- Vector similarity (70% weight) returns no results
+
+**Prerequisites:**
+1. Generate embeddings for RAG documents (requires OPENAI_API_KEY)
+2. Validate hybrid search is working
+3. Establish baseline retrieval quality metrics
+
+**Original goal:** Implement query-type-aware weighting and reranking.
+
+**Deferred until:** Embeddings are generated and baseline hybrid search is functional.
 
 ---
 
@@ -220,34 +244,42 @@ Create small (100-500 cases) fully-hydrated synthetic dataset:
 
 ---
 
-### OTEL Coverage Gaps
+### OTEL Coverage Gaps ✅ COMPLETE
 **Created:** 2026-01-21
-**Status:** Partially Complete
+**Completed:** 2026-01-21
 **Docs:** [docs/plans/codebase-standards-audit.md](docs/plans/codebase-standards-audit.md)
 
-**Completed:**
+**All components instrumented:**
 - [x] LLM providers (claude.py, openai.py)
 - [x] Domain agents (via base.py)
 - [x] Evaluators
-
-**Remaining:**
-- [ ] RAG retriever/indexer
-- [ ] Entity resolver
-- [ ] DB repositories
-- [ ] Redis cache
+- [x] RAG retriever/indexer (`rag.retrieve`, `rag.retrieve_by_keyword`, `rag.index_field_codes_batch`)
+- [x] Entity resolver (`entity.resolve`, `entity.resolve_single`)
+- [x] DB repositories:
+  - test_case_repo: `db.test_case.get`, `db.test_case.get_many`, `db.test_case.save`
+  - scorecard_repo: `db.scorecard.get`, `db.scorecard.save`
+  - batch_repo: `db.batch_job.create`, `db.batch_job.get`, `db.batch_job.update`, `db.batch_job.list_recent`
+  - entity_repo: `db.entity.resolve`, `db.entity.resolve_batch`, `db.entity.search`, `db.entity.bulk_import`, `db.entity.bulk_import_aliases`
+- [x] Redis cache (`cache.get`, `cache.set`)
 
 ---
 
-### Integration Test Gaps
+### Integration Test Gaps ✅ COMPLETE
 **Created:** 2026-01-21
-**Status:** Not Started
+**Reviewed:** 2026-01-21
+**Status:** Already covered
 **Docs:** [docs/plans/codebase-standards-audit.md](docs/plans/codebase-standards-audit.md)
 
-Missing integration tests for:
-- Repository CRUD operations (3 repos)
-- Batch runner
-- Entity resolver pipeline
-- Orchestrator E2E
+**Existing coverage found:**
+- [x] Repository CRUD (test_case, scorecard, batch): `tests/unit/storage/test_postgres_repos.py` (runs against real DB)
+- [x] Entity repo: `tests/integration/test_entity_repo.py` (comprehensive CRUD, resolution, batch, search)
+- [x] Batch runner: `tests/unit/test_batch_runner.py`
+- [x] Entity resolver pipeline: `tests/integration/test_entity_repo.py` (resolve, resolve_batch)
+- [x] Orchestrator E2E: `tests/integration/test_api_contract.py` (test_orchestrator_end_to_end)
+- [x] RAG retrieval: `tests/integration/test_rag_retrieval.py`
+- [x] Estimates queries: `tests/integration/test_estimates_queries.py`
+
+**Note:** Some "unit" tests in `tests/unit/storage/` are actually integration tests (use real DB via db_pool fixture).
 
 ---
 

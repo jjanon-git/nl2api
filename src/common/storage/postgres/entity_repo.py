@@ -14,6 +14,10 @@ from typing import Any
 
 import asyncpg
 
+from src.common.telemetry import get_tracer
+
+tracer = get_tracer(__name__)
+
 
 @dataclass
 class Entity:
@@ -402,26 +406,36 @@ class PostgresEntityRepository:
         Returns:
             List of EntityMatch ordered by match quality
         """
-        rows = await self.pool.fetch(
-            "SELECT * FROM resolve_entity($1, $2, $3)",
-            query,
-            fuzzy_threshold,
-            limit,
-        )
+        with tracer.start_as_current_span("db.entity.resolve") as span:
+            span.set_attribute("query", query[:100])  # Truncate for safety
+            span.set_attribute("fuzzy_threshold", fuzzy_threshold)
+            span.set_attribute("limit", limit)
 
-        return [
-            EntityMatch(
-                entity_id=str(row["entity_id"]),
-                primary_name=row["primary_name"],
-                display_name=row["display_name"],
-                ric=row["ric"],
-                ticker=row["ticker"],
-                exchange=row["exchange"],
-                match_type=row["match_type"],
-                similarity=row["similarity"],
+            rows = await self.pool.fetch(
+                "SELECT * FROM resolve_entity($1, $2, $3)",
+                query,
+                fuzzy_threshold,
+                limit,
             )
-            for row in rows
-        ]
+
+            span.set_attribute("result_count", len(rows))
+            if rows:
+                span.set_attribute("best_match_type", rows[0]["match_type"])
+                span.set_attribute("best_similarity", rows[0]["similarity"])
+
+            return [
+                EntityMatch(
+                    entity_id=str(row["entity_id"]),
+                    primary_name=row["primary_name"],
+                    display_name=row["display_name"],
+                    ric=row["ric"],
+                    ticker=row["ticker"],
+                    exchange=row["exchange"],
+                    match_type=row["match_type"],
+                    similarity=row["similarity"],
+                )
+                for row in rows
+            ]
 
     async def resolve_batch(
         self,
@@ -438,29 +452,38 @@ class PostgresEntityRepository:
         Returns:
             Dict mapping query -> EntityMatch (or None if not found)
         """
-        if not queries:
-            return {}
+        with tracer.start_as_current_span("db.entity.resolve_batch") as span:
+            span.set_attribute("query_count", len(queries))
+            span.set_attribute("fuzzy_threshold", fuzzy_threshold)
 
-        rows = await self.pool.fetch(
-            "SELECT * FROM resolve_entities_batch($1, $2)",
-            queries,
-            fuzzy_threshold,
-        )
+            if not queries:
+                span.set_attribute("resolved_count", 0)
+                return {}
 
-        results: dict[str, EntityMatch | None] = {q: None for q in queries}
-        for row in rows:
-            results[row["query"]] = EntityMatch(
-                entity_id=str(row["entity_id"]),
-                primary_name=row["primary_name"],
-                display_name=None,  # Not returned by batch function
-                ric=row["ric"],
-                ticker=row["ticker"],
-                exchange=None,
-                match_type=row["match_type"],
-                similarity=row["similarity"],
+            rows = await self.pool.fetch(
+                "SELECT * FROM resolve_entities_batch($1, $2)",
+                queries,
+                fuzzy_threshold,
             )
 
-        return results
+            results: dict[str, EntityMatch | None] = {q: None for q in queries}
+            for row in rows:
+                results[row["query"]] = EntityMatch(
+                    entity_id=str(row["entity_id"]),
+                    primary_name=row["primary_name"],
+                    display_name=None,  # Not returned by batch function
+                    ric=row["ric"],
+                    ticker=row["ticker"],
+                    exchange=None,
+                    match_type=row["match_type"],
+                    similarity=row["similarity"],
+                )
+
+            resolved_count = sum(1 for v in results.values() if v is not None)
+            span.set_attribute("resolved_count", resolved_count)
+            span.set_attribute("resolution_rate", resolved_count / len(queries) if queries else 0)
+
+            return results
 
     # =========================================================================
     # Alias Operations
@@ -667,15 +690,25 @@ class PostgresEntityRepository:
         Returns:
             List of matching entities
         """
-        sql, params = self._build_search_query(
-            query=query,
-            country_code=country_code,
-            exchange=exchange,
-            is_public=is_public,
-            limit=limit,
-        )
-        rows = await self.pool.fetch(sql, *params)
-        return [self._row_to_entity(row) for row in rows]
+        with tracer.start_as_current_span("db.entity.search") as span:
+            span.set_attribute("query", query[:100])
+            span.set_attribute("limit", limit)
+            if country_code:
+                span.set_attribute("country_code", country_code)
+            if exchange:
+                span.set_attribute("exchange", exchange)
+
+            sql, params = self._build_search_query(
+                query=query,
+                country_code=country_code,
+                exchange=exchange,
+                is_public=is_public,
+                limit=limit,
+            )
+            rows = await self.pool.fetch(sql, *params)
+
+            span.set_attribute("result_count", len(rows))
+            return [self._row_to_entity(row) for row in rows]
 
     def _build_search_query(
         self,
@@ -766,18 +799,25 @@ class PostgresEntityRepository:
         Returns:
             Number of records imported
         """
-        if not records:
-            return 0
+        with tracer.start_as_current_span("db.entity.bulk_import") as span:
+            span.set_attribute("record_count", len(records))
+            span.set_attribute("column_count", len(columns))
 
-        async with self.pool.acquire() as conn:
-            result = await conn.copy_records_to_table(
-                "entities",
-                records=records,
-                columns=columns,
-            )
+            if not records:
+                span.set_attribute("imported_count", 0)
+                return 0
 
-        # Result is like "COPY 1000"
-        return int(result.split()[-1])
+            async with self.pool.acquire() as conn:
+                result = await conn.copy_records_to_table(
+                    "entities",
+                    records=records,
+                    columns=columns,
+                )
+
+            # Result is like "COPY 1000"
+            imported = int(result.split()[-1])
+            span.set_attribute("imported_count", imported)
+            return imported
 
     async def bulk_import_aliases(
         self,
@@ -792,17 +832,23 @@ class PostgresEntityRepository:
         Returns:
             Number of records imported
         """
-        if not records:
-            return 0
+        with tracer.start_as_current_span("db.entity.bulk_import_aliases") as span:
+            span.set_attribute("record_count", len(records))
 
-        async with self.pool.acquire() as conn:
-            result = await conn.copy_records_to_table(
-                "entity_aliases",
-                records=records,
-                columns=["id", "entity_id", "alias", "alias_type", "is_primary"],
-            )
+            if not records:
+                span.set_attribute("imported_count", 0)
+                return 0
 
-        return int(result.split()[-1])
+            async with self.pool.acquire() as conn:
+                result = await conn.copy_records_to_table(
+                    "entity_aliases",
+                    records=records,
+                    columns=["id", "entity_id", "alias", "alias_type", "is_primary"],
+                )
+
+            imported = int(result.split()[-1])
+            span.set_attribute("imported_count", imported)
+            return imported
 
     # =========================================================================
     # Helper Methods

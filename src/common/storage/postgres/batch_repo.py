@@ -12,6 +12,9 @@ from datetime import timezone
 import asyncpg
 
 from CONTRACTS import BatchJob, TaskPriority, TaskStatus
+from src.common.telemetry import get_tracer
+
+tracer = get_tracer(__name__)
 
 
 class PostgresBatchJobRepository:
@@ -32,9 +35,13 @@ class PostgresBatchJobRepository:
 
     async def create(self, batch_job: BatchJob) -> None:
         """Create a new batch job record."""
-        batch_uuid = uuid.UUID(batch_job.batch_id)
+        with tracer.start_as_current_span("db.batch_job.create") as span:
+            span.set_attribute("batch_id", batch_job.batch_id)
+            span.set_attribute("total_tests", batch_job.total_tests)
 
-        await self.pool.execute(
+            batch_uuid = uuid.UUID(batch_job.batch_id)
+
+            await self.pool.execute(
             """
             INSERT INTO batch_jobs (
                 id, total_tests, completed_count, failed_count,
@@ -61,50 +68,63 @@ class PostgresBatchJobRepository:
 
     async def get(self, batch_id: str) -> BatchJob | None:
         """Fetch a batch job by ID."""
-        try:
-            batch_uuid = uuid.UUID(batch_id)
-        except ValueError:
-            return None
+        with tracer.start_as_current_span("db.batch_job.get") as span:
+            span.set_attribute("batch_id", batch_id)
 
-        row = await self.pool.fetchrow(
-            "SELECT * FROM batch_jobs WHERE id = $1",
-            batch_uuid,
-        )
-        return self._row_to_batch_job(row) if row else None
+            try:
+                batch_uuid = uuid.UUID(batch_id)
+            except ValueError:
+                span.set_attribute("result", "invalid_id")
+                return None
+
+            row = await self.pool.fetchrow(
+                "SELECT * FROM batch_jobs WHERE id = $1",
+                batch_uuid,
+            )
+            span.set_attribute("found", row is not None)
+            return self._row_to_batch_job(row) if row else None
 
     async def update(self, batch_job: BatchJob) -> None:
         """Update an existing batch job."""
-        batch_uuid = uuid.UUID(batch_job.batch_id)
+        with tracer.start_as_current_span("db.batch_job.update") as span:
+            span.set_attribute("batch_id", batch_job.batch_id)
+            span.set_attribute("status", batch_job.status.value)
 
-        await self.pool.execute(
-            """
-            UPDATE batch_jobs SET
-                completed_count = $2,
-                failed_count = $3,
-                status = $4,
-                started_at = $5,
-                completed_at = $6
-            WHERE id = $1
-            """,
-            batch_uuid,
-            batch_job.completed_count,
-            batch_job.failed_count,
-            batch_job.status.value,
-            batch_job.started_at,
-            batch_job.completed_at,
-        )
+            batch_uuid = uuid.UUID(batch_job.batch_id)
+
+            await self.pool.execute(
+                """
+                UPDATE batch_jobs SET
+                    completed_count = $2,
+                    failed_count = $3,
+                    status = $4,
+                    started_at = $5,
+                    completed_at = $6
+                WHERE id = $1
+                """,
+                batch_uuid,
+                batch_job.completed_count,
+                batch_job.failed_count,
+                batch_job.status.value,
+                batch_job.started_at,
+                batch_job.completed_at,
+            )
 
     async def list_recent(self, limit: int = 10) -> list[BatchJob]:
         """List recent batch jobs."""
-        rows = await self.pool.fetch(
-            """
-            SELECT * FROM batch_jobs
-            ORDER BY created_at DESC
-            LIMIT $1
-            """,
-            limit,
-        )
-        return [self._row_to_batch_job(row) for row in rows]
+        with tracer.start_as_current_span("db.batch_job.list_recent") as span:
+            span.set_attribute("limit", limit)
+
+            rows = await self.pool.fetch(
+                """
+                SELECT * FROM batch_jobs
+                ORDER BY created_at DESC
+                LIMIT $1
+                """,
+                limit,
+            )
+            span.set_attribute("result_count", len(rows))
+            return [self._row_to_batch_job(row) for row in rows]
 
     def _row_to_batch_job(self, row: asyncpg.Record) -> BatchJob:
         """Convert database row to BatchJob model."""
