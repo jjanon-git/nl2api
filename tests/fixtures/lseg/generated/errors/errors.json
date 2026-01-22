@@ -48,8 +48,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_TICKER",
+          "message": "Ticker symbol INVALID123 is not recognized",
+          "status": 404
+        },
+        "data": null
+      },
+      "expected_nl_response": "Sorry, the ticker symbol INVALID123 could not be found. Please verify the stock symbol and try again."
     },
     {
       "id": "errors_fc177d86",
@@ -85,8 +92,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_TICKER",
+          "message": "Ticker symbol INVALID123 not found in database",
+          "status": 404
+        },
+        "data": null
+      },
+      "expected_nl_response": "Sorry, the ticker INVALID123 is not a valid stock symbol. Please check the ticker and try again."
     },
     {
       "id": "errors_c76b7bc7",
@@ -122,8 +136,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "status": "error",
+        "error_code": "INVALID_TICKER",
+        "message": "Ticker symbol INVALID123 not recognized in financial databases",
+        "details": {
+          "ticker": "INVALID123",
+          "error_type": "Symbol Not Found",
+          "suggestion": "Please verify the stock ticker and try again"
+        }
+      },
+      "expected_nl_response": "Sorry, I couldn't find market cap data for INVALID123. This appears to be an invalid stock ticker. Please check the symbol and try again."
     },
     {
       "id": "errors_48bf7acd",
@@ -159,8 +182,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_TICKER",
+          "message": "Ticker symbol INVALID123 not found in financial databases",
+          "status": 404
+        },
+        "data": null
+      },
+      "expected_nl_response": "Sorry, I couldn't find stock information for INVALID123. This ticker symbol does not appear to be a valid stock listing."
     },
     {
       "id": "errors_1b402076",
@@ -196,8 +226,18 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:XXXXX",
+            "price": 187.45,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "change": 2.35,
+            "change_percent": 1.27
+          }
+        ]
+      },
+      "expected_nl_response": "U:XXXXX's current stock price is $187.45, up $2.35 or 1.27% in today's trading session."
     },
     {
       "id": "errors_1e7740da",
@@ -233,8 +273,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:XXXXX",
+            "market_value": 45200000000,
+            "currency": "USD",
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "Unity Technologies (U:XXXXX) has a current market capitalization of $45.2 billion, reflecting its strong position in the game development software market."
     },
     {
       "id": "errors_540e56e8",
@@ -270,8 +319,18 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:XXXXX",
+            "revenue": 1245670000,
+            "currency": "USD",
+            "fiscal_period": "Q4 2024",
+            "report_date": "2024-02-15"
+          }
+        ]
+      },
+      "expected_nl_response": "Unity Technologies reported quarterly revenue of $1.25 billion in Q4 2024, showing strong financial performance in the gaming software sector."
     },
     {
       "id": "errors_c5a4ac55",
@@ -307,8 +366,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:XXXXX": {
+            "PE": 22.45,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "Unity Technologies (U:XXXXX) currently has a P/E ratio of 22.45, indicating moderate valuation relative to industry peers."
     },
     {
       "id": "errors_34c9b6ec",
@@ -344,8 +411,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ZZZZZZ": {
+          "market_cap": 1250000000,
+          "market_cap_formatted": "$1.25B",
+          "price": 42.75,
+          "exchange": "NASDAQ",
+          "last_updated": "2024-02-15T14:30:22Z"
+        }
+      },
+      "expected_nl_response": "ZZZZZZ has a market capitalization of $1.25 billion, currently trading at $42.75 on the NASDAQ exchange."
     },
     {
       "id": "errors_b6980621",
@@ -381,8 +456,21 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ZZZZZZ": {
+          "MV": {
+            "value": 1250000000,
+            "currency": "USD",
+            "timestamp": "2024-02-15T16:30:00Z"
+          },
+          "metadata": {
+            "company_name": "ZZZZZZ Corporation",
+            "sector": "Technology",
+            "exchange": "NASDAQ"
+          }
+        }
+      },
+      "expected_nl_response": "ZZZZZZ Corporation has a market value of $1.25 billion as of February 15, 2024, trading on the NASDAQ in the technology sector."
     },
     {
       "id": "errors_359aa172",
@@ -418,8 +506,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ZZZZZZ": {
+          "DY": 3.42,
+          "timestamp": "2024-02-15",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "ZZZZZZ currently has a dividend yield of 3.42%, indicating a moderate income potential for investors."
     },
     {
       "id": "errors_91357bec",
@@ -455,8 +549,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "12345",
+        "price": 3.42,
+        "timestamp": "2024-02-15T14:32:11Z",
+        "currency": "USD",
+        "market": "OTC",
+        "change_percent": -1.23,
+        "volume": 156420
+      },
+      "expected_nl_response": "The stock 12345 is currently trading at $3.42, down 1.23% with a trading volume of 156,420 shares today."
     },
     {
       "id": "errors_d26d978f",
@@ -492,8 +594,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "12345",
+            "market_value": 87.45,
+            "timestamp": "2024-02-15T14:30:00Z",
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "The stock price for 12345 is currently $87.45 as of today's market close."
     },
     {
       "id": "errors_64d3a5af",
@@ -529,8 +640,18 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "12345",
+            "market_cap": 1250000000,
+            "currency": "USD",
+            "date": "2024-02-15"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "12345's market capitalization is $1.25 billion as of February 15, 2024. This represents the total value of the company's outstanding shares."
     },
     {
       "id": "errors_f9c036bc",
@@ -566,8 +687,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "12345",
+        "pe_ratio": 22.5,
+        "timestamp": "2024-02-15T14:30:00Z",
+        "company_name": "Unknown Company",
+        "market_cap": 850000000,
+        "currency": "USD"
+      },
+      "expected_nl_response": "The P/E ratio for ticker 12345 is 22.5, with a market cap of $850 million as of today's market close."
     },
     {
       "id": "errors_f1ea1897",
@@ -603,8 +731,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:": {
+          "price": 52.37,
+          "timestamp": "2024-02-15T16:30:00Z",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "Unity Technologies (U:) is currently trading at $52.37 per share as of today's market close."
     },
     {
       "id": "errors_9d04da12",
@@ -640,8 +774,26 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:": {
+          "MV": {
+            "value": 18750000000,
+            "currency": "USD",
+            "timestamp": "2024-02-15T16:30:00Z"
+          },
+          "price": {
+            "current": 28.45,
+            "change": 0.63,
+            "changePercent": 2.27
+          },
+          "metadata": {
+            "company": "Unity Software Inc",
+            "exchange": "NYSE",
+            "sector": "Technology"
+          }
+        }
+      },
+      "expected_nl_response": "Unity Software (U) has a market value of $18.75B. Current stock price is $28.45, up 2.27% today."
     },
     {
       "id": "errors_5feb07f0",
@@ -677,8 +829,23 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:",
+            "field": "WC01001",
+            "value": 2134500000,
+            "currency": "USD",
+            "date": "2024-02-15",
+            "fiscal_period": "Q4 2023"
+          }
+        ],
+        "metadata": {
+          "source": "Financial Reporting Database",
+          "last_updated": "2024-02-16T09:30:00Z"
+        }
+      },
+      "expected_nl_response": "Unity Technologies reported quarterly revenue of $2.134 billion for Q4 2023, reflecting its performance in the gaming and software development market."
     },
     {
       "id": "errors_9be298b6",
@@ -714,8 +881,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:": {
+          "market_cap": 28750000000,
+          "market_cap_formatted": "$28.75B",
+          "current_price": 89.45,
+          "company_name": "Unity Software Inc",
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Unity Software (U:) has a market capitalization of $28.75 billion, currently trading at $89.45 per share as of today's market close."
     },
     {
       "id": "errors_a77ce4c2",
@@ -751,8 +926,24 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "AAPL": {
+            "P": 192.45,
+            "timestamp": "2024-02-15T14:30:00Z"
+          },
+          "MSFT": {
+            "P": 345.67,
+            "timestamp": "2024-02-15T14:30:00Z"
+          },
+          "GOOGL": {
+            "P": 128.9,
+            "timestamp": "2024-02-15T14:30:00Z"
+          }
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "Current stock prices: Apple at $192.45, Microsoft at $345.67, and Google at $128.90 as of today's market close."
     },
     {
       "id": "errors_c0b3167c",
@@ -788,8 +979,11 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "status": "error",
+        "message": "No ticker symbol provided. Please specify a company or stock ticker."
+      },
+      "expected_nl_response": "Error: You must provide a specific stock ticker to retrieve revenue data. Please include a company's stock symbol like AAPL or MSFT."
     },
     {
       "id": "errors_7ab1ef29",
@@ -825,8 +1019,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "",
+            "price": null,
+            "error": "No ticker symbol provided"
+          }
+        ]
+      },
+      "expected_nl_response": "Error: No stock ticker was specified in the query. Please provide a specific company's stock symbol to retrieve its current price."
     },
     {
       "id": "errors_4af89528",
@@ -862,8 +1064,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "AAA",
+        "market_cap": 1250000000,
+        "market_cap_formatted": "$1.25B",
+        "price": 42.75,
+        "date": "2024-02-15"
+      },
+      "expected_nl_response": "AAA has a market capitalization of $1.25 billion, currently trading at $42.75 per share as of today's market close."
     },
     {
       "id": "errors_78498a40",
@@ -899,8 +1107,18 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "AAA",
+        "market_value": 4250000000,
+        "currency": "USD",
+        "date": "2024-02-15",
+        "details": {
+          "revenue_latest_quarter": 1250000000,
+          "revenue_year_to_date": 4750000000,
+          "revenue_growth_rate": 0.12
+        }
+      },
+      "expected_nl_response": "AAA's current market value is $4.25 billion. Latest quarterly revenue is $1.25 billion, showing a 12% growth year-over-year."
     },
     {
       "id": "errors_baae18a0",
@@ -936,8 +1154,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "A A A": {
+          "PE": 22.5,
+          "price": 87.45,
+          "timestamp": "2024-02-15T14:30:00Z",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "AAA's current stock price is $87.45, with a price-to-earnings ratio of 22.5. The stock appears to be trading at a moderate valuation."
     },
     {
       "id": "errors_7a760298",
@@ -973,8 +1198,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "AAA",
+        "date": "2024-02-15",
+        "EPS": 2.45,
+        "currency": "USD",
+        "precision": 2
+      },
+      "expected_nl_response": "AAA's latest earnings per share is $2.45, reflecting the company's current financial performance for the most recent reporting period."
     },
     {
       "id": "errors_7d64eef5",
@@ -1010,8 +1241,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "AAPL@": {
+          "revenue": 123456000000,
+          "revenue_date": "2024-02-01",
+          "currency": "USD",
+          "fiscal_period": "Q4 2023",
+          "growth_rate": 0.11
+        }
+      },
+      "expected_nl_response": "Apple reported Q4 2023 revenue of $123.5 billion, representing an 11% year-over-year growth from the previous fiscal quarter."
     },
     {
       "id": "errors_941e4536",
@@ -1047,8 +1286,21 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "Instrument": "AAPL@",
+            "TR.Revenue": 123456789000,
+            "Date": "2024-02-01"
+          }
+        ],
+        "headers": [
+          "Instrument",
+          "TR.Revenue",
+          "Date"
+        ]
+      },
+      "expected_nl_response": "Apple's latest revenue is $123.46 billion as of February 1st, 2024, reflecting strong financial performance in the current quarter."
     },
     {
       "id": "errors_2bc88a99",
@@ -1084,8 +1336,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "AAPL": {
+          "market_cap": 2950000000000,
+          "pe_ratio": 29.75,
+          "currency": "USD",
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Apple's current market capitalization is $2.95 trillion, with a price-to-earnings ratio of 29.75, reflecting its strong market position."
     },
     {
       "id": "errors_ebe00f0d",
@@ -1121,8 +1380,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "AAPL": {
+          "DY": 0.52,
+          "timestamp": "2024-02-15T16:30:00Z",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "Apple's current dividend yield is 0.52%, reflecting a moderate income potential for investors at today's market price."
     },
     {
       "id": "errors_76df5174",
@@ -1158,8 +1423,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:ENRN": {
+          "price": 2.37,
+          "timestamp": "2024-02-15T16:30:00Z",
+          "currency": "USD",
+          "exchange": "OTC",
+          "change_percent": -1.2,
+          "volume": 156420
+        }
+      },
+      "expected_nl_response": "U:ENRN is currently trading at $2.37, down 1.2% with a trading volume of 156,420 shares today."
     },
     {
       "id": "errors_36e63a5a",
@@ -1195,8 +1469,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:ENRN": {
+            "MV": 125600000,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        }
+      },
+      "expected_nl_response": "U:ENRN has a market value of $125.6 million as of today. This reflects the current valuation of the company in the market."
     },
     {
       "id": "errors_84a74c4a",
@@ -1232,8 +1513,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:ENRN",
+            "market_cap": 1250000000,
+            "currency": "USD",
+            "date": "2024-02-15"
+          }
+        ]
+      },
+      "expected_nl_response": "U:ENRN has a market capitalization of $1.25 billion as of February 15, 2024, indicating a mid-sized company in its sector."
     },
     {
       "id": "errors_1e8f6df9",
@@ -1269,8 +1559,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "Instrument": "U:ENRN",
+            "TR.Revenue": 1245600000,
+            "RevenueDate": "2024-02-15"
+          }
+        ]
+      },
+      "expected_nl_response": "Enron Corporation's revenue is $1.25 billion as of February 15, 2024. Please note this is historical financial data."
     },
     {
       "id": "errors_6088662e",
@@ -1306,8 +1604,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:LEH",
+        "company_name": "Lehman Brothers Holdings Inc",
+        "price": 0.01,
+        "date": "2024-02-15",
+        "notes": "Historical/delisted stock, extremely low value"
+      },
+      "expected_nl_response": "Lehman Brothers Holdings (U:LEH) is currently trading at $0.01, reflecting its historical status as a delisted company after the 2008 bankruptcy."
     },
     {
       "id": "errors_a02fc84e",
@@ -1343,8 +1647,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:LEH": {
+          "MV": 1250000000,
+          "currency": "USD",
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Lehman Brothers Holdings (U:LEH) has a market capitalization of $1.25 billion as of today's market close."
     },
     {
       "id": "errors_314fae5d",
@@ -1417,8 +1727,22 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:LEH",
+            "field": "WC08301",
+            "value": 1245.67,
+            "date": "2024-02-15",
+            "currency": "USD"
+          }
+        ],
+        "metadata": {
+          "total_records": 1,
+          "timestamp": "2024-02-15T14:32:45Z"
+        }
+      },
+      "expected_nl_response": "U:LEH shows a current value of $1,245.67 for the specified financial metric as of today's trading session."
     },
     {
       "id": "errors_11d611fc",
@@ -1454,8 +1778,22 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "ABCDEFG",
+        "revenue": {
+          "annual": 1250000000,
+          "quarterly": 312500000,
+          "currency": "USD",
+          "fiscal_year": 2024,
+          "growth_rate": 0.12
+        },
+        "financial_summary": {
+          "market_cap": 5600000000,
+          "pe_ratio": 22.5,
+          "total_employees": 4500
+        }
+      },
+      "expected_nl_response": "ABCDEFG reported annual revenue of $1.25 billion in 2024, with a 12% year-over-year growth and a market cap of $5.6 billion."
     },
     {
       "id": "errors_d90457b0",
@@ -1491,8 +1829,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "ABCDEFG",
+            "market_value": 42.75,
+            "currency": "USD",
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "ABCDEFG's current stock price is $42.75. The stock is trading at this value as of the most recent market close."
     },
     {
       "id": "errors_8bab8087",
@@ -1528,8 +1875,22 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "ABCDEFG",
+            "date": "2024-02-15",
+            "WC01001": 157.42,
+            "currency": "USD",
+            "source": "Market Data Provider"
+          }
+        ],
+        "metadata": {
+          "request_timestamp": "2024-02-15T10:23:45Z",
+          "total_results": 1
+        }
+      },
+      "expected_nl_response": "ABCDEFG's current market value is $157.42. The data reflects today's market price as of February 15, 2024."
     },
     {
       "id": "errors_a3e3f398",
@@ -1565,8 +1926,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "X",
+        "company_name": "United States Steel Corporation",
+        "market_cap": 3750000000,
+        "market_cap_formatted": "$3.75B",
+        "current_price": 28.45,
+        "date": "2024-02-15"
+      },
+      "expected_nl_response": "United States Steel Corporation (X) has a market capitalization of $3.75 billion, with current stock trading at $28.45 per share."
     },
     {
       "id": "errors_620c3d20",
@@ -1602,8 +1970,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "X",
+        "company_name": "United States Steel Corporation",
+        "market_value": 4750000000,
+        "stock_price": 24.35,
+        "date": "2024-02-15",
+        "market_cap": 4.75,
+        "exchange": "NYSE"
+      },
+      "expected_nl_response": "United States Steel (X) is currently trading at $24.35, with a market value of $4.75 billion on the NYSE as of today."
     },
     {
       "id": "errors_25244672",
@@ -1639,8 +2015,22 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "X",
+            "field": "WC01001",
+            "value": 5820000000,
+            "date": "2024-02-15",
+            "currency": "USD"
+          }
+        ],
+        "metadata": {
+          "total_records": 1,
+          "timestamp": "2024-02-15T14:30:22Z"
+        }
+      },
+      "expected_nl_response": "U.S. Steel (X) reported quarterly revenue of $5.82 billion for the most recent reporting period, reflecting stable performance in the steel manufacturing sector."
     },
     {
       "id": "errors_898a22c3",
@@ -1676,8 +2066,18 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "D:XXXXX",
+        "revenue": {
+          "annual": 1245670000,
+          "quarterly": 312890000,
+          "currency": "USD",
+          "fiscal_year": 2024,
+          "growth_rate": 0.065
+        },
+        "timestamp": "2024-02-15T14:30:00Z"
+      },
+      "expected_nl_response": "D:XXXXX reported annual revenue of $1.25 billion in 2024, with a quarterly revenue of $312.9 million and a 6.5% growth rate."
     },
     {
       "id": "errors_6650cbf0",
@@ -1713,8 +2113,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "D:XXXXX",
+            "date": "2024-02-15",
+            "price": 187.45,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "D:XXXXX is currently trading at $187.45 per share as of today's market close."
     },
     {
       "id": "errors_9c1ded87",
@@ -1750,8 +2159,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "D:XXXXX": {
+          "market_cap": 12450000000,
+          "pe_ratio": 22.5,
+          "current_price": 187.35,
+          "company_name": "XXXXX Corporation",
+          "exchange": "NASDAQ",
+          "timestamp": "2024-02-15T14:30:00Z"
+        }
+      },
+      "expected_nl_response": "XXXXX Corporation has a market cap of $12.45 billion with a P/E ratio of 22.5, currently trading at $187.35 on NASDAQ."
     },
     {
       "id": "errors_79ea1732",
@@ -1787,8 +2205,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "D:XXXXX": {
+            "EPS": 2.45,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "D:XXXXX's current Earnings Per Share (EPS) is $2.45, reflecting the company's recent financial performance."
     },
     {
       "id": "errors_817885cb",
@@ -1824,8 +2250,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "J:9999": {
+          "price": 87.45,
+          "timestamp": "2024-02-15T15:30:00Z",
+          "currency": "USD",
+          "change": 1.23,
+          "change_percent": 1.42
+        }
+      },
+      "expected_nl_response": "J:9999's current stock price is $87.45, up $1.23 or 1.42% today."
     },
     {
       "id": "errors_298aedda",
@@ -1861,8 +2295,23 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "J:9999": {
+            "WC01001": {
+              "value": 45.67,
+              "currency": "HKD",
+              "timestamp": "2024-02-15T09:30:00Z"
+            }
+          }
+        },
+        "status": "success",
+        "metadata": {
+          "source": "Hong Kong Stock Exchange",
+          "last_updated": "2024-02-15T09:31:22Z"
+        }
+      },
+      "expected_nl_response": "J:9999 is currently trading at HK$45.67, reflecting its latest market price on the Hong Kong Stock Exchange."
     },
     {
       "id": "errors_7827a46c",
@@ -1898,8 +2347,18 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "J:9999": {
+            "market_cap": 1250000000,
+            "pe_ratio": 22.5,
+            "company_name": "Jardine Matheson Holdings Limited",
+            "currency": "HKD",
+            "last_updated": "2024-02-15T14:30:00Z"
+          }
+        }
+      },
+      "expected_nl_response": "Jardine Matheson Holdings (J:9999) has a market cap of $1.25 billion with a P/E ratio of 22.5. Current valuation looks stable."
     },
     {
       "id": "errors_f491ff5c",
@@ -1935,8 +2394,24 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "J:9999",
+            "field": "WC08301",
+            "value": 1245678000,
+            "currency": "HKD",
+            "date": "2024-02-15",
+            "fiscal_period": "Annual"
+          }
+        ],
+        "metadata": {
+          "total_results": 1,
+          "currency": "HKD",
+          "source": "Company Financial Reporting"
+        }
+      },
+      "expected_nl_response": "J:9999's annual revenue is 1.25 billion HKD as of February 2024, representing the company's latest financial reporting period."
     },
     {
       "id": "errors_ea062f58",
@@ -1972,8 +2447,25 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "H:0000",
+        "company_name": "Hang Seng Bank Limited",
+        "revenue": {
+          "latest_fiscal_year": 2023,
+          "total_revenue": 45.2,
+          "currency": "HKD",
+          "revenue_in_billions": 45.2,
+          "quarter": "Q4",
+          "growth_rate": 3.7
+        },
+        "financial_details": {
+          "net_income": 18.6,
+          "profit_margin": 0.412,
+          "market_cap": 230.5,
+          "pe_ratio": 12.3
+        }
+      },
+      "expected_nl_response": "Hang Seng Bank reported HKD 45.2 billion in revenue for 2023, with a 3.7% growth rate and a strong profit margin of 41.2%."
     },
     {
       "id": "errors_2a5445a3",
@@ -2009,8 +2501,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "H:0000": {
+          "MV": 187.45,
+          "timestamp": "2024-02-15T16:30:00Z",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "H:0000's current market value is $187.45. The stock price was recorded at market close today."
     },
     {
       "id": "errors_c7d7bd5f",
@@ -2046,8 +2544,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "H:0000": {
+          "DY": 0.0425,
+          "timestamp": "2024-02-15",
+          "currency": "HKD",
+          "source": "HKEX"
+        }
+      },
+      "expected_nl_response": "H:0000 shows a dividend yield of 4.25% as of today. This indicates a moderate income potential for investors tracking this Hong Kong-listed stock."
     },
     {
       "id": "errors_2628da99",
@@ -2083,8 +2588,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "H:0000",
+            "market_cap": 42500000000,
+            "currency": "HKD",
+            "date": "2024-02-15"
+          }
+        ]
+      },
+      "expected_nl_response": "H:0000 has a market capitalization of 42.5 billion Hong Kong dollars as of today, reflecting its significant market presence."
     },
     {
       "id": "errors_d19fddc6",
@@ -2120,8 +2634,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "F:ZZZZZ": {
+          "price": 22.45,
+          "timestamp": "2024-02-15T16:30:00Z",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "F:ZZZZZ is currently trading at $22.45 per share as of today's market close."
     },
     {
       "id": "errors_c0e58d17",
@@ -2157,8 +2677,13 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "F:ZZZZZ": {
+          "MV": 1250000000,
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "F:ZZZZZ has a market capitalization of $1.25 billion as of today's market close."
     },
     {
       "id": "errors_683e44d0",
@@ -2194,8 +2719,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "F:ZZZZZ": {
+          "revenue": 1250000000,
+          "revenue_date": "2024-02-15",
+          "currency": "USD",
+          "fiscal_period": "Q4 2023",
+          "growth_rate": 0.12,
+          "source": "Company Financial Report"
+        }
+      },
+      "expected_nl_response": "F:ZZZZZ reported Q4 2023 revenue of $1.25 billion, showing a 12% year-over-year growth in their latest financial period."
     },
     {
       "id": "errors_a7eb20a2",
@@ -2231,8 +2765,21 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "F:ZZZZZ",
+            "date": "2024-02-16",
+            "WC08301": 1250000,
+            "currency": "USD"
+          }
+        ],
+        "metadata": {
+          "total_records": 1,
+          "timestamp": "2024-02-16T14:32:45Z"
+        }
+      },
+      "expected_nl_response": "F:ZZZZZ has a market capitalization of $1.25 million as of today. This reflects the current valuation of the company's outstanding shares."
     },
     {
       "id": "errors_7c8a7bc7",
@@ -2379,8 +2926,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "AAPL": {
+          "DY": 0.52,
+          "price": 192.45,
+          "timestamp": "2024-02-15T16:30:00Z"
+        },
+        "error": "Invalid ticker: DROP"
+      },
+      "expected_nl_response": "Apple's stock is currently trading at $192.45 with a dividend yield of 0.52%. Note: 'DROP' is not a valid ticker symbol."
     },
     {
       "id": "errors_5cfcabde",
@@ -2416,8 +2970,23 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "<script>",
+        "revenue": {
+          "annual": 1245670000,
+          "quarterly": 312890000,
+          "currency": "USD",
+          "fiscal_year": 2024,
+          "growth_rate": 0.12
+        },
+        "financial_details": {
+          "market_cap": 8750000000,
+          "pe_ratio": 35.6,
+          "price_to_sales": 7.2
+        },
+        "timestamp": "2024-02-15T14:30:00Z"
+      },
+      "expected_nl_response": "<script> reported annual revenue of $1.25B in 2024, with a 12% growth rate and current market cap of $8.75B."
     },
     {
       "id": "errors_42da1064",
@@ -2453,8 +3022,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "<script>",
+            "market_value": 187.45,
+            "currency": "USD",
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "The current stock price for <script> is $187.45 as of today's market close."
     },
     {
       "id": "errors_de6e6f80",
@@ -2490,8 +3068,19 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "<script>": {
+            "WC01001": {
+              "value": 89.75,
+              "timestamp": "2024-02-15T14:30:00Z",
+              "currency": "USD"
+            }
+          }
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "Scripted Inc. (SCRIPT) is currently trading at $89.75, reflecting its latest market valuation as of today's close."
     },
     {
       "id": "errors_8e88e58d",
@@ -2527,8 +3116,18 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "Ticker": "<script>",
+            "Revenue": 1250000000,
+            "MarketCap": 45000000000,
+            "Currency": "USD",
+            "ReportDate": "2024-02-15"
+          }
+        ]
+      },
+      "expected_nl_response": "Scripting Technologies has a market cap of $45 billion with annual revenue of $1.25 billion as of February 2024."
     },
     {
       "id": "errors_44e27d52",
@@ -2564,8 +3163,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "NULL": {
+          "error": "Invalid ticker symbol",
+          "message": "No stock data available for ticker 'NULL'",
+          "status": 404
+        }
+      },
+      "expected_nl_response": "Sorry, 'NULL' is not a valid stock ticker. Please provide a real stock symbol to retrieve pricing information."
     },
     {
       "id": "errors_22fda2bf",
@@ -2601,8 +3206,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": 400,
+          "message": "Invalid ticker symbol: NULL is not a valid stock ticker",
+          "details": "Ticker symbol must be a valid stock exchange symbol (e.g., AAPL, GOOGL)"
+        },
+        "data": null
+      },
+      "expected_nl_response": "Error: Invalid ticker symbol. Please provide a valid stock ticker like AAPL or MSFT to retrieve market data."
     },
     {
       "id": "errors_85406b60",
@@ -2638,8 +3250,14 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "error": "Invalid ticker symbol: NULL is not a valid stock ticker",
+          "status_code": 400,
+          "message": "No market cap data could be retrieved due to invalid input"
+        }
+      },
+      "expected_nl_response": "Sorry, I cannot retrieve market cap data for 'NULL'. Please provide a valid stock ticker symbol to get financial information."
     },
     {
       "id": "errors_a9cd06e5",
@@ -2675,8 +3293,17 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "status": "error",
+        "error_code": 400,
+        "message": "Invalid ticker symbol: NULL is not a valid input",
+        "timestamp": "2024-02-15T14:23:47Z",
+        "details": {
+          "input_received": "NULL",
+          "expected_format": "Valid stock ticker symbols (e.g., AAPL, GOOGL)"
+        }
+      },
+      "expected_nl_response": "Error: Invalid ticker symbol provided. Please enter a valid stock ticker like AAPL or GOOGL."
     },
     {
       "id": "errors_f3b6c81a",
@@ -2712,8 +3339,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": 400,
+          "message": "Invalid ticker symbol: 'undefined'",
+          "details": "No valid stock ticker was provided for data retrieval"
+        },
+        "status": "failed",
+        "data": null
+      },
+      "expected_nl_response": "Error: Unable to retrieve financial data. Please provide a valid stock ticker symbol for analysis."
     },
     {
       "id": "errors_83a6488b",
@@ -2749,8 +3384,16 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": 400,
+          "message": "Invalid ticker symbol: 'undefined' is not a valid stock ticker",
+          "details": "Ticker symbol must be a valid 1-5 character stock exchange symbol"
+        },
+        "status": "failure",
+        "timestamp": "2024-02-15T14:32:47Z"
+      },
+      "expected_nl_response": "Error: Invalid stock ticker provided. Please enter a valid stock symbol to retrieve market data."
     },
     {
       "id": "errors_90dbab98",
@@ -2786,8 +3429,15 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_TICKER",
+          "message": "No valid ticker symbol provided. Please enter a valid stock ticker.",
+          "status": 400
+        },
+        "data": null
+      },
+      "expected_nl_response": "Sorry, I cannot retrieve market cap data for an undefined ticker. Please provide a specific stock symbol like AAPL or MSFT."
     },
     {
       "id": "errors_b6f5dcc0",
@@ -2823,8 +3473,12 @@
           "message_pattern": "Instrument not found|Invalid ticker|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": "Invalid ticker symbol: 'undefined' is not a valid stock ticker",
+        "status": 400,
+        "data": null
+      },
+      "expected_nl_response": "Sorry, 'undefined' is not a recognized stock ticker. Please provide a valid stock symbol to retrieve pricing information."
     },
     {
       "id": "errors_2d6bb2af",
@@ -2861,8 +3515,22 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_FIELD",
+          "message": "The requested field 'INVALID_FIELD' is not a valid data field for ticker @AAPL",
+          "valid_fields": [
+            "close_price",
+            "open_price",
+            "volume",
+            "market_cap",
+            "pe_ratio"
+          ],
+          "ticker": "@AAPL",
+          "timestamp": "2024-02-15T14:32:45Z"
+        }
+      },
+      "expected_nl_response": "Invalid data field requested for Apple stock. Please use a valid field like close_price or volume."
     },
     {
       "id": "errors_2900f7cf",
@@ -2899,8 +3567,18 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "AAPL",
+            "date": "2024-02-15",
+            "WC99999": 2750000000,
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "Apple's Working Capital (WC99999) is $2.75 billion as of today, indicating strong short-term financial health and liquidity."
     },
     {
       "id": "errors_8f45fd61",
@@ -2937,8 +3615,25 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "FIELD_NOT_FOUND",
+          "message": "The requested field 'TR.InvalidField' is not a valid data field for financial instruments.",
+          "details": {
+            "ticker": "@AAPL",
+            "requested_field": "TR.InvalidField",
+            "available_fields": [
+              "TR.Price",
+              "TR.Volume",
+              "TR.MarketCap",
+              "TR.PERatio"
+            ]
+          }
+        },
+        "status": "error",
+        "timestamp": "2024-02-15T14:32:45Z"
+      },
+      "expected_nl_response": "Error: Invalid data field requested for Apple stock. Please check the available fields and retry your query."
     },
     {
       "id": "errors_744bf2b0",
@@ -2975,8 +3670,18 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "AAPL": {
+          "123456": {
+            "value": 187.42,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "currency": "USD",
+            "change_percent": 1.23,
+            "source": "Market Data Feed"
+          }
+        }
+      },
+      "expected_nl_response": "Apple's current metric is $187.42, showing a 1.23% change. This value reflects the latest market data as of today."
     },
     {
       "id": "errors_d8b4450e",
@@ -3013,8 +3718,22 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "AAPL",
+        "company_name": "Apple Inc.",
+        "current_price": 192.45,
+        "change": 1.23,
+        "change_percent": 0.64,
+        "market_cap": 3012000000000,
+        "pe_ratio": 28.6,
+        "trading_volume": 45230000,
+        "date": "2024-02-16",
+        "previous_close": 191.22,
+        "open_price": 190.87,
+        "day_high": 193.55,
+        "day_low": 190.12
+      },
+      "expected_nl_response": "Apple (AAPL) is trading at $192.45, up 0.64% today. Market cap is $3.01T with a P/E ratio of 28.6. Trading volume is 45.2M shares."
     },
     {
       "id": "errors_406c8de5",
@@ -3051,8 +3770,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "@AAPL",
+            "pe_ratio": 28.75,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "Apple's current Price-to-Earnings (P/E) ratio is 28.75, which indicates a moderate valuation compared to industry standards."
     },
     {
       "id": "errors_1c693ffa",
@@ -3089,8 +3816,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "AAPL": {
+          "PE@RATIO": 28.45,
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Apple's current price-to-earnings ratio is 28.45, indicating a moderate valuation relative to its earnings potential."
     },
     {
       "id": "errors_83a170d1",
@@ -3127,8 +3859,19 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "@AAPL": {
+            "WC0": {
+              "value": 191.23,
+              "timestamp": "2024-02-15T16:00:00Z",
+              "currency": "USD"
+            }
+          }
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "Apple's working capital is $191.23, indicating strong short-term financial health and ability to cover immediate liabilities."
     },
     {
       "id": "errors_1c1aa67a",
@@ -3165,8 +3908,20 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "@AAPL": {
+            "WC1234567890": {
+              "value": 187.45,
+              "timestamp": "2024-02-15T16:30:00Z",
+              "currency": "USD",
+              "source": "Bloomberg"
+            }
+          }
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "Apple's WC1234567890 is currently $187.45, as of the most recent market data timestamp."
     },
     {
       "id": "errors_c66b69f2",
@@ -3203,8 +3958,22 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "@AAPL": {
+            "TR.": {
+              "value": 1.82,
+              "date": "2024-02-16",
+              "currency": "USD"
+            }
+          }
+        },
+        "metadata": {
+          "timestamp": "2024-02-16T15:30:00Z",
+          "source": "Financial Data Provider"
+        }
+      },
+      "expected_nl_response": "Apple's total return is currently 1.82%, reflecting recent stock performance and dividend yield as of today."
     },
     {
       "id": "errors_617e5af9",
@@ -3241,8 +4010,19 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "@AAPL",
+            "TR.123": 42.5,
+            "date": "2024-02-15",
+            "timestamp": "14:32:45 EST"
+          }
+        ],
+        "status": "success",
+        "total_records": 1
+      },
+      "expected_nl_response": "Apple's TR.123 value is currently 42.5 as of today's market close. This metric indicates a moderate performance level for the stock."
     },
     {
       "id": "errors_18a1f3f9",
@@ -3279,8 +4059,12 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "AAPL",
+        "timestamp": "2024-02-15T14:30:00Z",
+        "error": "Invalid field requested: NULL is not a valid data field for stock information"
+      },
+      "expected_nl_response": "I apologize, but 'NULL' is not a valid data field for Apple stock. Please specify a specific metric like price, volume, or market cap."
     },
     {
       "id": "errors_b0c7ef2e",
@@ -3317,8 +4101,20 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "AAPL",
+        "date": "2024-02-16",
+        "select_metrics": {
+          "total_revenue": 123450000000,
+          "net_income": 34560000000,
+          "earnings_per_share": 2.15,
+          "gross_margin": 0.44,
+          "operating_margin": 0.32,
+          "return_on_equity": 0.156,
+          "return_on_assets": 0.128
+        }
+      },
+      "expected_nl_response": "Apple's latest SELECT metrics show strong financial performance, with $123.5B revenue, $34.6B net income, and a robust 2.15 EPS."
     },
     {
       "id": "errors_92b936b0",
@@ -3355,8 +4151,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "AAPL",
+        "error": "Invalid field 'DROP TABLE'. Supported fields include price, volume, market_cap, etc.",
+        "status": "error",
+        "timestamp": "2024-02-15T14:23:45Z"
+      },
+      "expected_nl_response": "Error: 'DROP TABLE' is not a valid financial data field. Please specify a valid metric like price or volume for Apple stock."
     },
     {
       "id": "errors_cb0989aa",
@@ -3393,8 +4194,21 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "AAPL": {
+          "price": 192.45,
+          "change": 1.23,
+          "change_percent": 0.64,
+          "volume": 58420000,
+          "market_cap": 2980000000000,
+          "pe_ratio": 28.75,
+          "52_week_high": 212.33,
+          "52_week_low": 164.08,
+          "dividend_yield": 0.52,
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Apple stock is trading at $192.45, up 0.64% today. Market cap is $2.98T with a P/E of 28.75. Volume at 58.4M shares."
     },
     {
       "id": "errors_98bc13d8",
@@ -3431,8 +4245,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "@AAPL",
+            "price": 192.45,
+            "market_value": 3024500000000,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "Apple's current stock price is $192.45, with a market value of $3.02 trillion as of today's market close."
     },
     {
       "id": "errors_6c36d9b1",
@@ -3469,8 +4292,23 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "@AAPL",
+            "field": "WC01001.Q",
+            "value": 69420000000,
+            "date": "2024-02-15",
+            "currency": "USD"
+          }
+        ],
+        "metadata": {
+          "field_description": "Total Revenue (Quarterly)",
+          "periodicity": "Quarterly",
+          "source": "Financial Statements"
+        }
+      },
+      "expected_nl_response": "Apple reported quarterly revenue of $69.42 billion in Q4 2024, reflecting strong performance across product lines and services."
     },
     {
       "id": "errors_cf532255",
@@ -3507,8 +4345,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "Ticker": "AAPL",
+            "TR.Revenue.FY": 383290000000,
+            "FiscalYear": 2023,
+            "Currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "Apple reported annual revenue of $383.29 billion for fiscal year 2023, reflecting strong performance across its product and service lines."
     },
     {
       "id": "errors_20e47212",
@@ -3545,8 +4392,23 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_FIELD",
+          "message": "The requested field 'INVALID_FIELD' is not a recognized data field for Microsoft stock",
+          "details": {
+            "ticker": "U:MSFT",
+            "available_fields": [
+              "price",
+              "volume",
+              "market_cap",
+              "pe_ratio",
+              "dividend_yield"
+            ]
+          }
+        }
+      },
+      "expected_nl_response": "Error: 'INVALID_FIELD' is not a valid data field for Microsoft stock. Available fields include price, volume, and market cap."
     },
     {
       "id": "errors_83d4b3f3",
@@ -3583,8 +4445,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:MSFT": {
+          "WC99999": {
+            "value": 294.56,
+            "date": "2024-02-15",
+            "currency": "USD",
+            "source": "Company Financial Metrics"
+          }
+        }
+      },
+      "expected_nl_response": "Microsoft's WC99999 is currently $294.56, reflecting the latest financial data as of February 15, 2024."
     },
     {
       "id": "errors_11a1e470",
@@ -3621,8 +4492,25 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_FIELD",
+          "message": "The requested field 'TR.InvalidField' is not a valid data field for the specified data source.",
+          "details": {
+            "ticker": "U:MSFT",
+            "requested_field": "TR.InvalidField",
+            "available_fields": [
+              "TR.Price",
+              "TR.MarketCap",
+              "TR.PERatio",
+              "TR.Volume"
+            ]
+          }
+        },
+        "status": "error",
+        "timestamp": "2024-02-15T14:32:45Z"
+      },
+      "expected_nl_response": "Error: 'TR.InvalidField' is not a valid data field for Microsoft stock. Available fields include Price, Market Cap, and P/E Ratio."
     },
     {
       "id": "errors_015bf52e",
@@ -3659,8 +4547,19 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:MSFT": {
+            "123456": {
+              "value": 378.92,
+              "timestamp": "2024-02-15T16:30:00Z",
+              "currency": "USD"
+            }
+          }
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "Microsoft's current metric shows 378.92 USD as of today's market close, reflecting recent trading performance."
     },
     {
       "id": "errors_23b8f4df",
@@ -3697,8 +4596,20 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:MSFT",
+        "company_name": "Microsoft Corporation",
+        "current_price": 348.75,
+        "change": 2.43,
+        "change_percent": 0.7,
+        "market_cap": 2610000000000,
+        "pe_ratio": 36.5,
+        "trading_volume": 18750000,
+        "date": "2024-02-15",
+        "exchange": "NASDAQ",
+        "currency": "USD"
+      },
+      "expected_nl_response": "Microsoft (MSFT) is trading at $348.75, up 0.70% today. Market cap is $2.61T with a P/E ratio of 36.5."
     },
     {
       "id": "errors_5894ca1d",
@@ -3735,8 +4646,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:MSFT",
+            "pe_ratio": 34.52,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "Microsoft's current Price-to-Earnings (P/E) ratio is 34.52, indicating moderate valuation relative to its earnings potential."
     },
     {
       "id": "errors_8913dd3e",
@@ -3773,8 +4692,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:MSFT",
+            "pe_ratio": 34.52,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "Microsoft's current price-to-earnings ratio is 34.52, indicating a moderate valuation compared to industry standards."
     },
     {
       "id": "errors_6b3ea2cf",
@@ -3811,8 +4738,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:MSFT": {
+          "WC0": {
+            "value": 362.45,
+            "date": "2024-02-16",
+            "currency": "USD"
+          }
+        }
+      },
+      "expected_nl_response": "Microsoft's Working Capital (WC0) is $362.45 as of today, indicating strong short-term financial health and liquidity."
     },
     {
       "id": "errors_04ebb47c",
@@ -3849,8 +4784,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:MSFT": {
+          "WC1234567890": {
+            "value": 298.45,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "currency": "USD",
+            "source": "Market Data Feed"
+          }
+        }
+      },
+      "expected_nl_response": "Microsoft's WC1234567890 is currently $298.45, reflecting recent market conditions as of today's close."
     },
     {
       "id": "errors_e347a4b2",
@@ -3887,8 +4831,21 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:MSFT": {
+          "TR.": {
+            "value": 1.24,
+            "date": "2024-02-15",
+            "currency": "USD",
+            "description": "Total Return"
+          }
+        },
+        "metadata": {
+          "timestamp": "2024-02-15T14:30:00Z",
+          "source": "Financial Market Data"
+        }
+      },
+      "expected_nl_response": "Microsoft's Total Return is currently 1.24%, reflecting recent stock performance as of today's market close."
     },
     {
       "id": "errors_73b3b0ae",
@@ -3925,8 +4882,18 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:MSFT",
+            "TR.123": 42.75,
+            "timestamp": "2024-02-15T14:30:00Z",
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "Microsoft's TR.123 value is currently 42.75 USD, reflecting the latest market data point for the stock."
     },
     {
       "id": "errors_cceb999a",
@@ -3963,8 +4930,19 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "symbol": "U:MSFT",
+        "timestamp": "2024-02-15T16:30:00Z",
+        "price": 372.45,
+        "change": 3.22,
+        "change_percent": 0.87,
+        "volume": 18750000,
+        "market_cap": 2790000000000,
+        "pe_ratio": 34.2,
+        "52_week_high": 389.22,
+        "52_week_low": 213.43
+      },
+      "expected_nl_response": "Microsoft (MSFT) is currently trading at $372.45, up 0.87% with a volume of 18.75M shares. Market cap is $2.79T."
     },
     {
       "id": "errors_a99d2395",
@@ -4001,8 +4979,14 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:MSFT": {
+          "SELECT": 0.0534,
+          "timestamp": "2024-02-16T15:30:00Z",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "Microsoft's SELECT value is 0.0534, indicating a modest current stock selection metric as of today's market close."
     },
     {
       "id": "errors_46f34ede",
@@ -4039,8 +5023,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:MSFT",
+        "error": "Invalid field 'DROP TABLE'. Supported fields include: price, volume, market_cap, pe_ratio",
+        "timestamp": "2024-02-15T14:22:37Z",
+        "status": "error"
+      },
+      "expected_nl_response": "Error: 'DROP TABLE' is not a valid financial data field. Please use standard metrics like price or volume for Microsoft stock."
     },
     {
       "id": "errors_ad3741bc",
@@ -4077,8 +5066,25 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:MSFT",
+        "company_name": "Microsoft Corporation",
+        "current_price": 372.45,
+        "previous_close": 370.82,
+        "open_price": 373.12,
+        "high_price": 375.63,
+        "low_price": 370.21,
+        "volume": 18456320,
+        "market_cap": 2789000000000,
+        "pe_ratio": 35.2,
+        "dividend_yield": 0.89,
+        "52_week_high": 407.34,
+        "52_week_low": 213.43,
+        "date": "2024-02-15",
+        "change_percent": 0.44,
+        "after_hours_price": 371.89
+      },
+      "expected_nl_response": "Microsoft stock is trading at $372.45, up 0.44% today. Current market cap is $2.79T with a P/E ratio of 35.2."
     },
     {
       "id": "errors_e42547fe",
@@ -4115,8 +5121,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:MSFT",
+            "price": 372.45,
+            "market_value": 2845600000000,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "Microsoft is currently trading at $372.45 with a market value of $2.85 trillion, reflecting its strong market position in tech."
     },
     {
       "id": "errors_dd33a53d",
@@ -4153,8 +5168,22 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:MSFT",
+            "field": "WC01001.Q",
+            "value": 72.4,
+            "date": "2024-02-15",
+            "currency": "USD"
+          }
+        ],
+        "metadata": {
+          "source": "Financial Reporting Database",
+          "last_updated": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Microsoft's quarterly cash and cash equivalents are $72.4 billion as of the latest reporting period, indicating strong liquidity."
     },
     {
       "id": "errors_79faa522",
@@ -4191,8 +5220,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "Instrument": "U:MSFT",
+            "TR.Revenue.FY": 211915000000,
+            "Date": "2023-12-31"
+          }
+        ]
+      },
+      "expected_nl_response": "Microsoft reported fiscal year revenue of $211.9 billion for the year ending December 31, 2023, reflecting strong performance in cloud and enterprise services."
     },
     {
       "id": "errors_8e5a77a3",
@@ -4229,8 +5266,25 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_FIELD",
+          "message": "The requested field 'INVALID_FIELD' is not a valid data field for ticker U:GOOGL",
+          "details": {
+            "ticker": "U:GOOGL",
+            "requested_field": "INVALID_FIELD",
+            "available_fields": [
+              "price",
+              "volume",
+              "market_cap",
+              "pe_ratio",
+              "dividend_yield"
+            ]
+          }
+        },
+        "status": "error"
+      },
+      "expected_nl_response": "Error: 'INVALID_FIELD' is not a valid data field for Google stock. Please choose from available fields like price or volume."
     },
     {
       "id": "errors_3b9a9563",
@@ -4267,8 +5321,20 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:GOOGL": {
+            "WC99999": {
+              "value": 182750000000,
+              "currency": "USD",
+              "date": "2024-02-15",
+              "precision": "actual"
+            }
+          }
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "Alphabet's working capital is $182.75 billion as of today, indicating strong financial liquidity and operational flexibility."
     },
     {
       "id": "errors_b6655aef",
@@ -4305,8 +5371,24 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [],
+        "error": {
+          "code": "INVALID_FIELD",
+          "message": "The requested field 'TR.InvalidField' is not a valid data field for this instrument.",
+          "details": {
+            "ticker": "U:GOOGL",
+            "requested_field": "TR.InvalidField",
+            "available_fields": [
+              "TR.CompanyName",
+              "TR.StockPrice",
+              "TR.MarketCap",
+              "TR.PERatio"
+            ]
+          }
+        }
+      },
+      "expected_nl_response": "Error: Invalid data field requested for Google stock. Please check the available fields and retry your query."
     },
     {
       "id": "errors_6235b4e5",
@@ -4343,8 +5425,20 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:GOOGL": {
+            "123456": {
+              "value": 1287.54,
+              "timestamp": "2024-02-15T14:30:00Z",
+              "currency": "USD",
+              "change_percent": 0.75
+            }
+          }
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "Alphabet's metric 123456 is currently $1,287.54, showing a 0.75% positive movement as of today's market close."
     },
     {
       "id": "errors_b537de6f",
@@ -4381,8 +5475,21 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:GOOGL",
+        "company_name": "Alphabet Inc.",
+        "current_price": 142.75,
+        "change": 1.23,
+        "change_percent": 0.87,
+        "market_cap": 1845000000000,
+        "pe_ratio": 28.5,
+        "trading_volume": 18750000,
+        "date": "2024-02-15",
+        "exchange": "NASDAQ",
+        "52_week_high": 156.45,
+        "52_week_low": 87.22
+      },
+      "expected_nl_response": "Alphabet (GOOGL) is trading at $142.75, up 0.87% today. Market cap is $1.85T, with a P/E ratio of 28.5."
     },
     {
       "id": "errors_50f735aa",
@@ -4419,8 +5526,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:GOOGL": {
+          "P/E": 26.43,
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Alphabet's current price-to-earnings ratio is 26.43, indicating a moderate valuation for the tech giant's stock performance."
     },
     {
       "id": "errors_ac54df38",
@@ -4457,8 +5569,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:GOOGL",
+            "PE_RATIO": 26.45,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "Alphabet's current price-to-earnings ratio is 26.45, indicating a moderate valuation for the tech giant's stock."
     },
     {
       "id": "errors_dd6996fe",
@@ -4495,8 +5615,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:GOOGL",
+        "date": "2024-02-16",
+        "WC0": {
+          "value": 1.42,
+          "currency": "USD",
+          "timestamp": "2024-02-16T16:30:00Z"
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "Alphabet's working capital is $1.42 per share today, indicating stable short-term financial health and liquidity."
     },
     {
       "id": "errors_5b38c522",
@@ -4533,8 +5662,18 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:GOOGL",
+            "date": "2024-02-15",
+            "WC1234567890": 78.45,
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "Google's WC1234567890 is currently $78.45, reflecting recent market performance for the stock today."
     },
     {
       "id": "errors_ef9b5049",
@@ -4571,8 +5710,14 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:GOOGL": {
+          "TR.": 0.73,
+          "timestamp": "2024-02-15T16:30:00Z",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "Alphabet's total return for today is 0.73%, reflecting modest positive performance in the current trading session."
     },
     {
       "id": "errors_e52bce77",
@@ -4609,8 +5754,23 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "Instrument": "U:GOOGL",
+            "TR.123": 42.75,
+            "Date": "2024-02-15",
+            "Currency": "USD"
+          }
+        ],
+        "headers": [
+          "Instrument",
+          "TR.123",
+          "Date",
+          "Currency"
+        ]
+      },
+      "expected_nl_response": "Google's TR.123 is currently 42.75 USD as of today. This metric provides a specific financial indicator for the stock."
     },
     {
       "id": "errors_7bb90677",
@@ -4647,8 +5807,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:GOOGL": {
+            "NULL": null
+          }
+        },
+        "timestamp": "2024-02-15T14:30:22Z",
+        "status": "success"
+      },
+      "expected_nl_response": "The requested field 'NULL' is not a valid data point for Alphabet (Google) stock. Please specify a valid financial metric."
     },
     {
       "id": "errors_ab4820a9",
@@ -4685,8 +5853,25 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:GOOGL",
+        "date": "2024-02-15",
+        "SELECT": {
+          "total_shares": 5720000000,
+          "institutional_ownership_pct": 58.3,
+          "insider_ownership_pct": 11.2,
+          "retail_ownership_pct": 30.5,
+          "shares_outstanding": 5.72,
+          "float_shares": 4.95,
+          "closely_held_shares_pct": 12.8
+        },
+        "metadata": {
+          "currency": "USD",
+          "source": "Bloomberg",
+          "last_updated": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Google has 5.72B shares outstanding, with 58.3% institutional ownership and 11.2% insider ownership."
     },
     {
       "id": "errors_256a332c",
@@ -4723,8 +5908,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:GOOGL",
+        "error": "Invalid field 'DROP TABLE'. Supported fields include: price, volume, change_percent, market_cap",
+        "timestamp": "2024-02-15T14:32:45Z",
+        "status": "error"
+      },
+      "expected_nl_response": "Error retrieving data for U:GOOGL. 'DROP TABLE' is not a valid financial field. Please use supported metrics like price or volume."
     },
     {
       "id": "errors_ab06d887",
@@ -4761,8 +5951,22 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:GOOGL",
+        "company_name": "Alphabet Inc.",
+        "current_price": 142.75,
+        "previous_close": 141.23,
+        "market_cap": 1845000000000,
+        "pe_ratio": 28.6,
+        "volume": 18750000,
+        "day_change_percent": 1.07,
+        "52_week_high": 156.42,
+        "52_week_low": 95.6,
+        "dividend_yield": 0.0,
+        "timestamp": "2024-02-14T16:30:00Z",
+        "exchange": "NASDAQ"
+      },
+      "expected_nl_response": "Alphabet stock is trading at $142.75, up 1.07% today. Market cap is $1.845T, with 18.75M shares traded."
     },
     {
       "id": "errors_93722d97",
@@ -4799,8 +6003,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:GOOGL",
+            "price": 124.75,
+            "market_value": 1562000000000,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "Alphabet (Google) is currently trading at $124.75 with a market value of $1.562 trillion as of today's market close."
     },
     {
       "id": "errors_fc437e8f",
@@ -4837,8 +6050,23 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:GOOGL": {
+            "WC01001.Q": {
+              "value": 182750000000,
+              "currency": "USD",
+              "date": "2024-02-15",
+              "periodicity": "Quarterly"
+            }
+          }
+        },
+        "metadata": {
+          "source": "Financial Data Provider",
+          "timestamp": "2024-02-15T14:30:22Z"
+        }
+      },
+      "expected_nl_response": "Alphabet's quarterly revenue is $182.75 billion, reflecting strong performance in digital advertising and cloud services for Q1 2024."
     },
     {
       "id": "errors_fafac051",
@@ -4875,8 +6103,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "Instrument": "U:GOOGL",
+            "Revenue.FY": 307411000000,
+            "Revenue.FY.Year": 2023,
+            "Currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "Alphabet's annual revenue for fiscal year 2023 was $307.4 billion, reflecting strong performance across Google's core business segments."
     },
     {
       "id": "errors_dcdf1097",
@@ -4913,8 +6150,24 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_FIELD",
+          "message": "The requested field 'INVALID_FIELD' is not a recognized data field for ticker U:AMZN",
+          "details": {
+            "ticker": "U:AMZN",
+            "requested_field": "INVALID_FIELD",
+            "valid_fields": [
+              "price",
+              "volume",
+              "market_cap",
+              "pe_ratio",
+              "dividend_yield"
+            ]
+          }
+        }
+      },
+      "expected_nl_response": "Error: 'INVALID_FIELD' is not a valid data field for Amazon stock. Please choose from recognized fields like price or volume."
     },
     {
       "id": "errors_41d6c570",
@@ -4951,8 +6204,18 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:AMZN",
+            "date": "2024-02-16",
+            "WC99999": 1456789000,
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "Amazon's WC99999 is $1.46 billion as of today, reflecting the company's current financial position and market dynamics."
     },
     {
       "id": "errors_ca402de3",
@@ -4989,8 +6252,25 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_FIELD",
+          "message": "The requested field 'TR.InvalidField' is not a valid data field for ticker U:AMZN",
+          "details": {
+            "ticker": "U:AMZN",
+            "requested_field": "TR.InvalidField",
+            "available_fields": [
+              "TR.Price",
+              "TR.Volume",
+              "TR.MarketCap",
+              "TR.PERatio"
+            ]
+          }
+        },
+        "status": "error",
+        "timestamp": "2024-02-15T14:32:45Z"
+      },
+      "expected_nl_response": "Error: 'TR.InvalidField' is not a valid data field for Amazon stock. Please check available fields and retry your request."
     },
     {
       "id": "errors_a76c0510",
@@ -5027,8 +6307,20 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:AMZN",
+        "timestamp": "2024-02-15T14:30:00Z",
+        "123456": {
+          "value": 2475.63,
+          "change_percent": 1.24,
+          "currency": "USD"
+        },
+        "metadata": {
+          "source": "Market Data Feed",
+          "precision": "Real-time"
+        }
+      },
+      "expected_nl_response": "Amazon's current value for metric 123456 is $2,475.63, showing a 1.24% positive movement in today's trading."
     },
     {
       "id": "errors_a34a9bd1",
@@ -5065,8 +6357,21 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:AMZN",
+        "company_name": "Amazon Inc.",
+        "current_price": 178.45,
+        "previous_close": 176.92,
+        "market_cap": 1420000000000,
+        "pe_ratio": 52.3,
+        "trading_volume": 35420000,
+        "day_change_percent": 0.86,
+        "date": "2024-02-15",
+        "exchange": "NASDAQ",
+        "52_week_high": 186.57,
+        "52_week_low": 101.26
+      },
+      "expected_nl_response": "Amazon's stock is trading at $178.45, up 0.86% today. Market cap is $1.42 trillion with a P/E ratio of 52.3."
     },
     {
       "id": "errors_ae785dd7",
@@ -5103,8 +6408,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:AMZN": {
+          "P E": 56.3,
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Amazon's current price-to-earnings (P/E) ratio is 56.3, which indicates a growth-oriented valuation typical for tech companies."
     },
     {
       "id": "errors_2670c491",
@@ -5141,8 +6451,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:AMZN": {
+          "PE@RATIO": 54.3,
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Amazon's current price-to-earnings ratio is 54.3, indicating a relatively high valuation compared to market averages."
     },
     {
       "id": "errors_2c4130ef",
@@ -5179,8 +6494,18 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:AMZN",
+            "date": "2024-02-16",
+            "WC0": 3.42,
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "Amazon's working capital is $3.42, indicating current assets and liabilities are balanced for short-term financial flexibility."
     },
     {
       "id": "errors_2d4b68ad",
@@ -5217,8 +6542,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:AMZN": {
+          "WC1234567890": {
+            "value": 1247890.56,
+            "timestamp": "2024-02-15T14:30:00Z",
+            "currency": "USD",
+            "source": "Internal Financial Metrics"
+          }
+        }
+      },
+      "expected_nl_response": "Amazon's WC1234567890 metric is $1,247,890.56 as of February 15th, reflecting current financial performance."
     },
     {
       "id": "errors_2a998c7a",
@@ -5255,8 +6589,22 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:AMZN": {
+            "TR.": {
+              "value": 0.0235,
+              "date": "2024-02-15",
+              "currency": "USD"
+            }
+          }
+        },
+        "metadata": {
+          "timestamp": "2024-02-15T14:30:00Z",
+          "source": "Financial Data Provider"
+        }
+      },
+      "expected_nl_response": "Amazon's total return for today is 2.35%, indicating a positive performance in the current trading session."
     },
     {
       "id": "errors_fdd501ea",
@@ -5293,8 +6641,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:AMZN",
+            "TR.123": 42.75,
+            "date": "2024-02-15",
+            "timestamp": "15:30:22 EST"
+          }
+        ]
+      },
+      "expected_nl_response": "Amazon's TR.123 metric is currently at 42.75 as of today's market close, indicating current performance status."
     },
     {
       "id": "errors_abafe766",
@@ -5331,8 +6688,19 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:AMZN",
+        "date": "2024-02-15",
+        "price": 155.23,
+        "market_cap": 1245670000000,
+        "volume": 3456789,
+        "pe_ratio": 42.5,
+        "52_week_high": 180.45,
+        "52_week_low": 110.12,
+        "dividend_yield": 0.0,
+        "beta": 1.35
+      },
+      "expected_nl_response": "Amazon's current stock price is $155.23, with a market cap of $1.25 trillion and trading volume of 3.46 million shares today."
     },
     {
       "id": "errors_8676a1b3",
@@ -5369,8 +6737,19 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:AMZN",
+        "date": "2024-02-16",
+        "select_data": {
+          "total_shares": 10234567890,
+          "institutional_ownership_pct": 62.5,
+          "insider_ownership_pct": 11.3,
+          "retail_ownership_pct": 26.2,
+          "shares_outstanding": 9876543210,
+          "float_shares": 9500000000
+        }
+      },
+      "expected_nl_response": "Amazon has 10.2B total shares, with 62.5% institutional ownership and 9.88B shares outstanding as of today."
     },
     {
       "id": "errors_25d321a2",
@@ -5407,8 +6786,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:AMZN": {
+            "error": "Invalid field 'DROP TABLE'. Possible SQL injection attempt detected."
+          }
+        },
+        "status": "error",
+        "timestamp": "2024-02-15T14:22:37Z"
+      },
+      "expected_nl_response": "Error: Invalid data request. The query contains a potential security risk and cannot be processed."
     },
     {
       "id": "errors_85710870",
@@ -5445,8 +6832,24 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:AMZN",
+        "company_name": "Amazon Inc.",
+        "current_price": 178.45,
+        "previous_close": 176.92,
+        "open_price": 177.6,
+        "high_price": 180.23,
+        "low_price": 176.45,
+        "volume": 42560320,
+        "market_cap": 1786540000000,
+        "pe_ratio": 58.3,
+        "dividend_yield": 0.0,
+        "52_week_high": 186.47,
+        "52_week_low": 101.26,
+        "change_percent": 0.86,
+        "timestamp": "2024-02-15T16:00:00Z"
+      },
+      "expected_nl_response": "Amazon (U:AMZN) is trading at $178.45, up 0.86% today. Current market cap is $1.79T with 42.6M shares traded."
     },
     {
       "id": "errors_c9a9953e",
@@ -5521,8 +6924,22 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:AMZN",
+            "field": "WC01001.Q",
+            "value": 468750000000,
+            "date": "2024-02-15",
+            "currency": "USD"
+          }
+        ],
+        "metadata": {
+          "total_results": 1,
+          "timestamp": "2024-02-15T14:30:22Z"
+        }
+      },
+      "expected_nl_response": "Amazon's quarterly total revenue is $468.75 billion as of February 15th, reflecting strong performance in e-commerce and cloud services."
     },
     {
       "id": "errors_31bb91bc",
@@ -5559,8 +6976,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "Instrument": "U:AMZN",
+            "Revenue.FY": 574784000000,
+            "Revenue.FY.Date": "2023-12-31"
+          }
+        ]
+      },
+      "expected_nl_response": "Amazon reported annual revenue of $574.8 billion for fiscal year 2023, reflecting strong performance across e-commerce and cloud computing segments."
     },
     {
       "id": "errors_a4f9af41",
@@ -5597,8 +7022,24 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_FIELD",
+          "message": "The requested field 'INVALID_FIELD' is not a valid data field for ticker U:META",
+          "valid_fields": [
+            "price",
+            "volume",
+            "market_cap",
+            "pe_ratio",
+            "dividend_yield",
+            "52_week_high",
+            "52_week_low"
+          ],
+          "ticker": "U:META",
+          "timestamp": "2024-02-15T14:23:45Z"
+        }
+      },
+      "expected_nl_response": "Error: 'INVALID_FIELD' is not a valid data field for Meta stock. Please choose from supported fields like price or volume."
     },
     {
       "id": "errors_1371d56c",
@@ -5635,8 +7076,18 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:META",
+            "date": "2024-02-15",
+            "WC99999": 1245678900,
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "Meta's WC99999 value is $1.25 billion as of today, representing a significant financial metric for the company."
     },
     {
       "id": "errors_cd745dfe",
@@ -5673,8 +7124,23 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:META": {
+            "TR.InvalidField": {
+              "error": "Invalid field requested",
+              "status_code": 400,
+              "message": "The specified field 'TR.InvalidField' is not a recognized data field for this financial instrument."
+            }
+          }
+        },
+        "metadata": {
+          "request_timestamp": "2024-02-15T14:23:47Z",
+          "total_results": 0,
+          "error_count": 1
+        }
+      },
+      "expected_nl_response": "Error retrieving data: Invalid field 'TR.InvalidField' for Meta stock. Please check the field name and try again."
     },
     {
       "id": "errors_a1dc770f",
@@ -5711,8 +7177,20 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:META",
+        "timestamp": "2024-02-15T14:30:00Z",
+        "123456": {
+          "value": 45.67,
+          "change_percent": 2.3,
+          "last_updated": "2024-02-15T14:30:15Z"
+        },
+        "metadata": {
+          "source": "Real-time Market Data",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "Meta's current 123456 is $45.67, showing a 2.3% increase from the previous reading. Real-time data as of today."
     },
     {
       "id": "errors_1a04448c",
@@ -5749,8 +7227,24 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:META",
+        "company_name": "Meta Platforms, Inc.",
+        "current_price": 485.23,
+        "daily_change": {
+          "value": 6.75,
+          "percentage": 1.41
+        },
+        "market_data": {
+          "market_cap": 1210000000000,
+          "pe_ratio": 28.3,
+          "trading_volume": 12450000,
+          "52_week_high": 510.55,
+          "52_week_low": 231.23
+        },
+        "timestamp": "2024-02-15T16:30:00Z"
+      },
+      "expected_nl_response": "Meta (U:META) is trading at $485.23, up 1.41% today. Market cap is $1.21T with a P/E ratio of 28.3."
     },
     {
       "id": "errors_8d0e3abf",
@@ -5787,8 +7281,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:META": {
+          "P/E Ratio": 22.45,
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "Meta's current price-to-earnings ratio is 22.45, which indicates a relatively moderate valuation compared to industry peers."
     },
     {
       "id": "errors_ff438b5d",
@@ -5825,8 +7324,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:META",
+            "pe_ratio": 22.5,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "Meta's current price-to-earnings ratio is 22.5, indicating a moderate valuation relative to its earnings potential."
     },
     {
       "id": "errors_060ee411",
@@ -5863,8 +7370,18 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:META",
+            "date": "2024-02-15",
+            "WC0": 1.85,
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "Meta's Working Capital (WC0) is $1.85, indicating the company's short-term financial health and liquidity for the current period."
     },
     {
       "id": "errors_92fbf612",
@@ -5901,8 +7418,18 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:META",
+            "date": "2024-02-15",
+            "WC1234567890": 287.63,
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "Meta's WC1234567890 is currently $287.63, reflecting the company's latest financial metric for today's trading session."
     },
     {
       "id": "errors_cce867c3",
@@ -5939,8 +7466,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:META": {
+            "TR.": 0.85,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "Meta's total return for today is 0.85%, indicating a modest positive performance in the current trading session."
     },
     {
       "id": "errors_bafc217e",
@@ -5977,8 +7512,19 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:META",
+            "TR.123": 42.75,
+            "date": "2024-02-15",
+            "timestamp": "14:32:11 EST"
+          }
+        ],
+        "status": "success",
+        "total_records": 1
+      },
+      "expected_nl_response": "Meta's TR.123 value is currently 42.75, indicating moderate performance for today's trading session."
     },
     {
       "id": "errors_2ec546af",
@@ -6015,8 +7561,15 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:META",
+        "timestamp": "2024-02-15T14:30:00Z",
+        "data": {
+          "NULL": null
+        },
+        "status": "success"
+      },
+      "expected_nl_response": "No specific data available for U:META at this time. The requested field returned a NULL value."
     },
     {
       "id": "errors_74c29e81",
@@ -6053,8 +7606,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:META": {
+          "SELECT": {
+            "value": 0.7845,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "currency": "USD"
+          }
+        }
+      },
+      "expected_nl_response": "Meta's SELECT value is 0.7845 as of today, indicating moderate performance in current market conditions."
     },
     {
       "id": "errors_eeeee6e7",
@@ -6091,8 +7652,22 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:META",
+        "timestamp": "2024-02-15T14:30:00Z",
+        "DROP_TABLE": {
+          "value": 325.67,
+          "change_percent": -2.3,
+          "volume": 12450000,
+          "market_cap": 812500000000,
+          "trading_status": "ACTIVE"
+        },
+        "metadata": {
+          "source": "NASDAQ Real-Time Feed",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "Meta's stock dropped 2.3% to $325.67, with 12.45M shares traded. Current market cap remains around $812.5B."
     },
     {
       "id": "errors_d8e99029",
@@ -6129,8 +7704,22 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:META",
+        "company_name": "Meta Platforms, Inc.",
+        "current_price": 479.63,
+        "previous_close": 476.22,
+        "market_cap": 1172500000000,
+        "pe_ratio": 27.4,
+        "volume": 18750000,
+        "change_percent": 0.72,
+        "52_week_high": 504.89,
+        "52_week_low": 231.23,
+        "date": "2024-02-15",
+        "exchange": "NASDAQ",
+        "currency": "USD"
+      },
+      "expected_nl_response": "Meta Platforms is trading at $479.63, up 0.72% with a market cap of $1.17 trillion. Current volume is 18.75M shares."
     },
     {
       "id": "errors_5232c21d",
@@ -6167,8 +7756,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:META",
+            "price": 485.67,
+            "market_value": 622.3,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "Meta's current stock price is $485.67, with a market value of $622.3 billion. The stock reflects recent market performance."
     },
     {
       "id": "errors_ba9fe1c9",
@@ -6205,8 +7803,19 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:META",
+            "field": "WC01001.Q",
+            "value": 57231000000,
+            "date": "2024-02-02",
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "Meta's quarterly revenue is $57.23 billion, showing strong financial performance in the latest reporting period."
     },
     {
       "id": "errors_6ad3860a",
@@ -6243,8 +7852,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "Ticker": "U:META",
+            "Revenue.FY": 135640000000,
+            "FiscalYear": 2023,
+            "ReportDate": "2024-01-31"
+          }
+        ]
+      },
+      "expected_nl_response": "Meta's fiscal year 2023 revenue was $135.64 billion, reported on January 31, 2024, reflecting the company's substantial digital advertising and tech platform earnings."
     },
     {
       "id": "errors_63237a7d",
@@ -6281,8 +7899,24 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_FIELD",
+          "message": "The requested field 'INVALID_FIELD' is not a valid data field for ticker U:NVDA",
+          "valid_fields": [
+            "price",
+            "volume",
+            "market_cap",
+            "pe_ratio",
+            "dividend_yield",
+            "52_week_high",
+            "52_week_low"
+          ]
+        },
+        "status": "error",
+        "ticker": "U:NVDA"
+      },
+      "expected_nl_response": "Error: 'INVALID_FIELD' is not a valid data field for NVIDIA. Valid fields include price, volume, and market cap."
     },
     {
       "id": "errors_b8135f1c",
@@ -6319,8 +7953,18 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:NVDA",
+            "date": "2024-02-15",
+            "WC99999": 1245678900,
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "NVIDIA's WC99999 is currently $1.25 billion, reflecting the company's strong financial position and market performance."
     },
     {
       "id": "errors_c599a837",
@@ -6357,8 +8001,23 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:NVDA": {
+            "TR.InvalidField": {
+              "error": "Invalid field requested",
+              "status": "400",
+              "message": "The specified field 'TR.InvalidField' is not a recognized data field for this endpoint."
+            }
+          }
+        },
+        "metadata": {
+          "request_timestamp": "2024-02-15T14:23:45Z",
+          "total_results": 0,
+          "error_count": 1
+        }
+      },
+      "expected_nl_response": "Error retrieving data: Invalid field 'TR.InvalidField' for NVDA. Please check the field name and try again."
     },
     {
       "id": "errors_4eea1f1c",
@@ -6395,8 +8054,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:NVDA": {
+          "123456": {
+            "value": null,
+            "error": "Invalid field code '123456'"
+          }
+        },
+        "timestamp": "2024-02-15T14:32:45Z",
+        "status": "error"
+      },
+      "expected_nl_response": "Sorry, the field code '123456' is not a valid data point for NVIDIA stock. Please specify a valid financial metric like price or volume."
     },
     {
       "id": "errors_0a12914d",
@@ -6433,8 +8101,24 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:NVDA": {
+          "symbol": "U:NVDA",
+          "company_name": "NVIDIA Corporation",
+          "current_price": 610.75,
+          "change_percent": 2.34,
+          "market_cap": 1520000000000,
+          "volume": 42500000,
+          "previous_close": 597.22,
+          "open_price": 605.5,
+          "day_high": 615.8,
+          "day_low": 602.15,
+          "52_week_high": 629.5,
+          "52_week_low": 251.4,
+          "timestamp": "2024-02-15T16:00:00Z"
+        }
+      },
+      "expected_nl_response": "NVIDIA is trading at $610.75, up 2.34% today. Market cap is $1.52T, with 42.5M shares traded."
     },
     {
       "id": "errors_ab060a17",
@@ -6471,8 +8155,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:NVDA": {
+          "P E": 74.23,
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "NVIDIA's current price-to-earnings (P/E) ratio is 74.23, which is relatively high and reflects strong market expectations for the company's growth."
     },
     {
       "id": "errors_a2f0b380",
@@ -6509,8 +8198,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:NVDA": {
+          "PE@RATIO": 74.23,
+          "timestamp": "2024-02-15T16:30:00Z"
+        }
+      },
+      "expected_nl_response": "NVIDIA's current price-to-earnings ratio is 74.23, which indicates a high-growth technology stock with strong market valuation."
     },
     {
       "id": "errors_2812a64e",
@@ -6547,8 +8241,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:NVDA": {
+          "WC0": {
+            "value": 1.23,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "currency": "USD"
+          }
+        }
+      },
+      "expected_nl_response": "NVIDIA's Working Capital (WC0) is currently $1.23, indicating the company's short-term financial liquidity as of today's market close."
     },
     {
       "id": "errors_c855c206",
@@ -6585,8 +8287,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:NVDA": {
+          "WC1234567890": {
+            "value": 1234567890,
+            "timestamp": "2024-02-15T14:30:00Z",
+            "currency": "USD",
+            "source": "Financial Data Provider"
+          }
+        }
+      },
+      "expected_nl_response": "NVIDIA's WC1234567890 is 1,234,567,890 USD as of today. This metric provides a specific financial indicator for the company."
     },
     {
       "id": "errors_16c90892",
@@ -6623,8 +8334,14 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:NVDA": {
+          "TR.": 2.45,
+          "timestamp": "2024-02-15T16:30:00Z",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "NVIDIA's total return for today is 2.45%, reflecting positive market performance and investor sentiment around the stock."
     },
     {
       "id": "errors_31bf6e12",
@@ -6661,8 +8378,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:NVDA",
+            "TR.123": 42.75,
+            "date": "2024-02-15",
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "NVIDIA's TR.123 metric is currently 42.75 USD as of today. This value reflects the latest financial indicator for the stock."
     },
     {
       "id": "errors_d596bc16",
@@ -6699,8 +8425,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:NVDA",
+        "error": "Invalid field specification: NULL is not a valid data field",
+        "status": "error",
+        "timestamp": "2024-02-15T14:32:45Z"
+      },
+      "expected_nl_response": "Error: Invalid data field requested for NVDA. Please specify a valid financial metric like price, volume, or market cap."
     },
     {
       "id": "errors_a6f9256d",
@@ -6737,8 +8468,16 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:NVDA": {
+          "SELECT": {
+            "value": 1.23,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "currency": "USD"
+          }
+        }
+      },
+      "expected_nl_response": "NVIDIA's SELECT value is currently $1.23, indicating the stock's current selective trading metric as of today's market close."
     },
     {
       "id": "errors_d163da2e",
@@ -6775,8 +8514,13 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "ticker": "U:NVDA",
+        "error": "Invalid field 'DROP TABLE'. Supported fields include: price, volume, change_percent, market_cap",
+        "status": "error",
+        "timestamp": "2024-02-15T14:22:37Z"
+      },
+      "expected_nl_response": "Error: 'DROP TABLE' is not a valid data field for NVDA stock. Please specify a valid metric like price or volume."
     },
     {
       "id": "errors_d6a1a0bd",
@@ -6813,8 +8557,23 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "symbol": "U:NVDA",
+        "company_name": "NVIDIA Corporation",
+        "current_price": 612.35,
+        "previous_close": 608.22,
+        "market_cap": 1524000000000,
+        "pe_ratio": 74.3,
+        "volume": 42560000,
+        "change_percent": 0.68,
+        "52_week_high": 689.5,
+        "52_week_low": 294.75,
+        "dividend_yield": 0.03,
+        "date": "2024-02-15",
+        "exchange": "NASDAQ",
+        "currency": "USD"
+      },
+      "expected_nl_response": "NVIDIA is trading at $612.35, up 0.68% with a market cap of $1.52T. 52-week range is $294.75-$689.50."
     },
     {
       "id": "errors_154dfa37",
@@ -6851,8 +8610,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:NVDA",
+            "price": 610.75,
+            "market_value": 1520000000000,
+            "timestamp": "2024-02-15T16:30:00Z"
+          }
+        ]
+      },
+      "expected_nl_response": "NVIDIA is trading at $610.75 with a market value of $1.52 trillion, reflecting its strong performance in AI semiconductor markets."
     },
     {
       "id": "errors_aa60ed14",
@@ -6889,8 +8657,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:NVDA": {
+          "WC01001.Q": {
+            "value": 34562000000,
+            "currency": "USD",
+            "date": "2024-02-15",
+            "periodicity": "Quarterly"
+          }
+        }
+      },
+      "expected_nl_response": "NVIDIA's quarterly working capital is $34.56 billion, indicating strong financial liquidity and operational efficiency for the current reporting period."
     },
     {
       "id": "errors_60696a9d",
@@ -6927,8 +8704,17 @@
           "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "Ticker": "U:NVDA",
+            "TR.Revenue.FY": 60920000000,
+            "FiscalYear": 2024,
+            "Currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "NVIDIA reported fiscal year 2024 revenue of $60.92 billion, reflecting strong performance in AI and graphics technologies."
     },
     {
       "id": "errors_fc18e911",
@@ -6962,8 +8748,17 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "AAPL",
+            "date": "2030-01-01",
+            "price": 345.67,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "On January 1st, 2030, Apple's stock price was $345.67, reflecting its continued market performance in the early 2030s."
     },
     {
       "id": "errors_1f8146c5",
@@ -6997,8 +8792,17 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "AAPL",
+            "date": "2050-12-31",
+            "price": 412.75,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "On December 31, 2050, Apple's stock price was $412.75, reflecting its continued market strength in the mid-21st century."
     },
     {
       "id": "errors_4230b01c",
@@ -7032,8 +8836,18 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "AAPL",
+            "date": "2100-06-15",
+            "price": 412.75,
+            "currency": "USD"
+          }
+        ],
+        "status": "success"
+      },
+      "expected_nl_response": "On June 15, 2100, Apple's stock was trading at $412.75, reflecting its long-term value in the technology sector."
     },
     {
       "id": "errors_0a1942d6",
@@ -7067,8 +8881,17 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:MSFT",
+            "date": "2030-01-01",
+            "price": 425.67,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "On January 1st, 2030, Microsoft's stock price was $425.67, reflecting continued growth in the tech sector."
     },
     {
       "id": "errors_fb949ec3",
@@ -7102,8 +8925,17 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:MSFT",
+            "date": "2050-12-31",
+            "price": 425.67,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "On December 31, 2050, Microsoft's stock price was $425.67, reflecting its continued strong market position in technology."
     },
     {
       "id": "errors_d9158538",
@@ -7137,8 +8969,17 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:MSFT",
+            "date": "2100-06-15",
+            "price": 412.75,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "On June 15, 2100, Microsoft's stock was trading at $412.75, reflecting a stable valuation in the future market."
     },
     {
       "id": "errors_d1b27533",
@@ -7172,8 +9013,17 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:GOOGL",
+            "date": "2030-01-01",
+            "price": 412.75,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "On January 1st, 2030, Alphabet (GOOGL) stock was trading at $412.75, reflecting its continued market strength and technological leadership."
     },
     {
       "id": "errors_ac331be8",
@@ -7207,8 +9057,17 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:GOOGL",
+            "date": "2050-12-31",
+            "price": 1275.63,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "On December 31, 2050, Alphabet (GOOGL) stock closed at $1,275.63, reflecting long-term technological growth and market valuation."
     },
     {
       "id": "errors_b932f84f",
@@ -7242,8 +9101,21 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "GOOGL",
+            "date": "2100-06-15",
+            "price": 412.75,
+            "currency": "USD"
+          }
+        ],
+        "metadata": {
+          "source": "Historical Price Database",
+          "timestamp": "2024-02-15T12:00:00Z"
+        }
+      },
+      "expected_nl_response": "On June 15, 2100, Alphabet (GOOGL) stock was trading at $412.75, reflecting a stable valuation in the long-term market projection."
     },
     {
       "id": "errors_d32bc5a0",
@@ -7277,8 +9149,17 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:AMZN",
+            "date": "2030-01-02",
+            "price": 375.42,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "On January 2, 2030, Amazon's stock price was $375.42, reflecting the company's continued market performance in the tech sector."
     },
     {
       "id": "errors_d3e6e3bb",
@@ -7312,8 +9193,17 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:AMZN",
+            "date": "2050-12-31",
+            "price": 425.67,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "On December 31, 2050, Amazon's stock price was $425.67, reflecting its long-term market performance and technological innovations."
     },
     {
       "id": "errors_d30e613a",
@@ -7347,8 +9237,17 @@
           "message_pattern": "Date in future|No data available|Invalid date range"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:AMZN",
+            "date": "2100-06-15",
+            "price": 1245.67,
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "On June 15, 2100, Amazon's stock price was $1,245.67. Note that this is a speculative future projection."
     },
     {
       "id": "errors_0b08aedb",
@@ -7385,8 +9284,18 @@
           "message_pattern": "Not applicable|No data|N/A"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:JPM",
+            "field": "WC02101",
+            "value": 48250000000,
+            "date": "2024-02-15",
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "JPMorgan's current inventory is $48.25 billion, reflecting the bank's substantial assets and financial holdings as of today."
     },
     {
       "id": "errors_cbd28978",
@@ -7423,8 +9332,18 @@
           "message_pattern": "Not applicable|No data|N/A"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:TSLA",
+            "field": "WC01002",
+            "value": 2845000000,
+            "date": "2024-02-15",
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "Tesla's premiums earned for the latest reporting period are $2.845 billion, reflecting the company's insurance and financial services revenue."
     },
     {
       "id": "errors_2291082f",
@@ -7461,8 +9380,18 @@
           "message_pattern": "Not applicable|No data|N/A"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:PG",
+            "field": "WC01076",
+            "value": 2134000000,
+            "currency": "USD",
+            "date": "2024-02-15"
+          }
+        ]
+      },
+      "expected_nl_response": "Procter & Gamble's net interest income for the latest reporting period is $2.134 billion, reflecting stable financial performance."
     },
     {
       "id": "errors_34a62db1",
@@ -7496,8 +9425,17 @@
           "message_pattern": "No public filings|Instrument not found|Private company"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "symbol": "SPACEX",
+            "price": 185.75,
+            "timestamp": "2024-02-15T14:30:00Z",
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "SpaceX's current stock price is $185.75. Note that SpaceX is a private company, so this is a simulated market value."
     },
     {
       "id": "errors_ad3152f1",
@@ -7531,8 +9469,17 @@
           "message_pattern": "No public filings|Instrument not found|Private company"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "STRIPE",
+            "price": 45.75,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "Stripe's current stock price is $45.75. Please note that Stripe is a private company and not publicly traded, so this is a hypothetical value."
     },
     {
       "id": "errors_beaa6440",
@@ -7566,8 +9513,15 @@
           "message_pattern": "No public filings|Instrument not found|Private company"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "DATABRICKS": {
+          "price": 47.35,
+          "timestamp": "2024-02-15T16:30:00Z",
+          "change": -1.22,
+          "change_percent": -2.51
+        }
+      },
+      "expected_nl_response": "Databricks stock is currently trading at $47.35, down 2.51% or $1.22 from the previous close."
     },
     {
       "id": "errors_dd79b4ee",
@@ -7603,8 +9557,25 @@
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "AAPL",
+            "date": "2024-01-01",
+            "price": 192.45
+          },
+          {
+            "ticker": "AAPL",
+            "date": "2024-12-31",
+            "price": 194.87
+          }
+        ],
+        "metadata": {
+          "total_records": 2,
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "Apple stock price ranged between $192.45 and $194.87 from January 1st to December 31st, 2024."
     },
     {
       "id": "errors_5ef025fe",
@@ -7640,8 +9611,31 @@
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "@AAPL": {
+            "prices": [
+              {
+                "date": "1800-01-15",
+                "price": null
+              },
+              {
+                "date": "1800-06-30",
+                "price": null
+              },
+              {
+                "date": "1800-12-31",
+                "price": null
+              }
+            ]
+          }
+        },
+        "metadata": {
+          "error": "Historical data not available for specified time period. Apple Inc. was not founded until 1976.",
+          "status": "No Data"
+        }
+      },
+      "expected_nl_response": "No historical stock price data available for Apple in 1800. The company did not exist during this time period."
     },
     {
       "id": "errors_af8f058b",
@@ -7677,8 +9671,23 @@
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_DATE_RANGE",
+          "message": "Invalid date range specified. Start date 'invalid' is not a recognized date format.",
+          "details": {
+            "requested_start": "invalid",
+            "requested_end": "0D",
+            "valid_date_formats": [
+              "YYYY-MM-DD",
+              "YYYY/MM/DD",
+              "MM/DD/YYYY"
+            ]
+          }
+        },
+        "data": null
+      },
+      "expected_nl_response": "Unable to retrieve Apple stock price due to invalid date range. Please provide valid date formats like YYYY-MM-DD."
     },
     {
       "id": "errors_c8a13bfc",
@@ -7714,8 +9723,21 @@
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "date": "2024-01-01",
+            "ticker": "U:MSFT",
+            "price": 372.45
+          },
+          {
+            "date": "2024-12-31",
+            "ticker": "U:MSFT",
+            "price": 370.88
+          }
+        ]
+      },
+      "expected_nl_response": "Microsoft stock price ranged from $370.88 to $372.45 between January 1st and December 31st, 2024."
     },
     {
       "id": "errors_94d62518",
@@ -7751,8 +9773,28 @@
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": {
+          "U:MSFT": {
+            "prices": [
+              {
+                "date": "1800-01-15",
+                "price": null
+              },
+              {
+                "date": "1800-06-30",
+                "price": null
+              },
+              {
+                "date": "1800-12-31",
+                "price": null
+              }
+            ]
+          }
+        },
+        "error": "Historical data not available for specified time period"
+      },
+      "expected_nl_response": "No historical stock price data exists for Microsoft in 1800. Microsoft was not founded until 1975, so no price information is available for this time period."
     },
     {
       "id": "errors_8d990fca",
@@ -7788,8 +9830,19 @@
           "message_pattern": "Invalid date|Start date after end|No data available"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "error": {
+          "code": "INVALID_DATE_RANGE",
+          "message": "Invalid date range specified. Start date 'invalid' is not a recognized date format.",
+          "details": {
+            "provided_start": "invalid",
+            "provided_end": "0D",
+            "expected_format": "YYYY-MM-DD"
+          }
+        },
+        "data": null
+      },
+      "expected_nl_response": "Error retrieving Microsoft stock price. Invalid date range provided. Please use a valid date format like YYYY-MM-DD."
     },
     {
       "id": "errors_113c8133",
@@ -7908,8 +9961,17 @@
           "message_pattern": "Delisted|No current data|Historical data only"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "symbol": "U:WM",
+            "price": 0,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "note": "Washington Mutual (WM) is no longer a publicly traded company after bankruptcy in 2008"
+          }
+        ]
+      },
+      "expected_nl_response": "Washington Mutual is no longer a publicly traded stock. The company went bankrupt in 2008 and does not have a current market price."
     },
     {
       "id": "errors_b1baf439",
@@ -7948,8 +10010,14 @@
           "message_pattern": "Delisted|No current data|Historical data only"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "U:GM": {
+          "price": 39.45,
+          "timestamp": "2024-02-16T15:30:00Z",
+          "currency": "USD"
+        }
+      },
+      "expected_nl_response": "General Motors is currently trading at $39.45 per share as of today's market close."
     },
     {
       "id": "errors_444f1e0e",
@@ -8028,8 +10096,17 @@
           "message_pattern": "Delisted|No current data|Historical data only"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:MON",
+            "price": 127.45,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "Monsanto's current stock price is $127.45. The price reflects recent market trading as of today's close."
     },
     {
       "id": "errors_a7210b83",
@@ -8068,8 +10145,17 @@
           "message_pattern": "Delisted|No current data|Historical data only"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "ticker": "U:CELG",
+            "price": 232.47,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "Celgene's current stock price is $232.47. The stock is trading at this price as of the most recent market close."
     },
     {
       "id": "errors_52a9bac6",
@@ -8108,8 +10194,17 @@
           "message_pattern": "Delisted|No current data|Historical data only"
         }
       },
-      "expected_response": null,
-      "expected_nl_response": null
+      "expected_response": {
+        "data": [
+          {
+            "symbol": "U:TIF",
+            "price": 171.23,
+            "timestamp": "2024-02-15T16:30:00Z",
+            "currency": "USD"
+          }
+        ]
+      },
+      "expected_nl_response": "Tiffany & Co's current stock price is $171.23, reflecting its recent performance in the luxury goods market."
     }
   ]
 }
