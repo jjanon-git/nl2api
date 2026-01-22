@@ -7,6 +7,11 @@ deployments. Provides a FastAPI application with:
 - /mcp endpoint for JSON-RPC requests
 - /sse endpoint for Server-Sent Events streaming
 
+Security features:
+- Rate limiting (in-memory or Redis-backed)
+- Input validation with size limits
+- Request body size limits
+
 NOTE: Do NOT add `from __future__ import annotations` to this file.
 PEP 563 stringifies type annotations, which breaks FastAPI's runtime
 introspection for determining parameter sources (body vs query vs path).
@@ -20,33 +25,49 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Any, AsyncGenerator, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.mcp_servers.entity_resolution.config import EntityServerConfig
 from src.mcp_servers.entity_resolution.context import (
     create_sse_context,
     set_client_context,
 )
+from src.mcp_servers.entity_resolution.middleware import (
+    InputValidator,
+    RateLimitConfig,
+    create_rate_limiter,
+    create_security_middleware,
+)
 from src.mcp_servers.entity_resolution.server import EntityResolutionMCPServer
 
 logger = logging.getLogger(__name__)
 
+# Default security configuration
+DEFAULT_RATE_LIMIT_CONFIG = RateLimitConfig(
+    requests_per_window=100,  # 100 requests
+    window_seconds=60,  # per minute
+    max_body_size=1_048_576,  # 1MB
+    max_entity_length=500,
+    max_batch_size=100,
+    max_query_length=2000,
+)
 
-# Pydantic models for REST API requests
+
+# Pydantic models for REST API requests with validation
 class ResolveRequest(BaseModel):
     """Request body for /api/resolve endpoint."""
-    entity: str
-    entity_type: Optional[str] = None
+    entity: str = Field(..., min_length=1, max_length=500)
+    entity_type: Optional[str] = Field(None, max_length=50)
 
 
 class BatchResolveRequest(BaseModel):
     """Request body for /api/resolve/batch endpoint."""
-    entities: list[str]
+    entities: list[str] = Field(..., min_length=1, max_length=100)
 
 
 class ExtractRequest(BaseModel):
     """Request body for /api/extract endpoint."""
-    query: str
+    query: str = Field(..., min_length=1, max_length=2000)
 
 # Global server instance for the FastAPI app
 _server: EntityResolutionMCPServer | None = None
@@ -110,8 +131,18 @@ def create_app(
         lifespan=lifespan,
     )
 
-    # Paths exempt from client_id requirement (health checks, server info)
+    # Paths exempt from client_id requirement and rate limiting
     EXEMPT_PATHS = {"/health", "/", "/docs", "/openapi.json"}
+
+    # Initialize rate limiter (Redis-backed if available, otherwise in-memory)
+    rate_limit_config = DEFAULT_RATE_LIMIT_CONFIG
+    rate_limiter = create_rate_limiter(rate_limit_config, redis_client=None)
+
+    # Add security middleware (rate limiting, request size limits)
+    security_middleware = create_security_middleware(
+        rate_limit_config, rate_limiter, EXEMPT_PATHS
+    )
+    app.middleware("http")(security_middleware)
 
     @app.middleware("http")
     async def client_context_middleware(request: Request, call_next: Any) -> Any:

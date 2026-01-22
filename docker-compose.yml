@@ -2,17 +2,21 @@
 # PostgreSQL with pgvector extension for similarity search
 # Redis for distributed caching
 # SigNoz for observability (traces, metrics, logs)
+#
+# SECURITY: Copy .env.example to .env and set secure passwords before running.
+# Default values are for local development only - change for production!
 
 services:
   postgres:
     image: pgvector/pgvector:pg16
     container_name: nl2api-db
     environment:
-      POSTGRES_USER: nl2api
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: nl2api
+      POSTGRES_USER: ${POSTGRES_USER:-nl2api}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nl2api}
+      POSTGRES_DB: ${POSTGRES_DB:-nl2api}
     ports:
-      - "5432:5432"
+      # Bind to localhost only - remove "127.0.0.1:" to expose externally
+      - "127.0.0.1:5432:5432"
     volumes:
       # Persist data
       - postgres_data:/var/lib/postgresql/data
@@ -20,7 +24,7 @@ services:
       # Note: pg_trgm extension (for fuzzy matching) is included in pgvector image
       - ./src/common/storage/postgres/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nl2api -d nl2api"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nl2api} -d ${POSTGRES_DB:-nl2api}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -30,12 +34,24 @@ services:
     image: redis:7-alpine
     container_name: nl2api-redis
     ports:
-      - "6379:6379"
+      # Bind to localhost only - remove "127.0.0.1:" to expose externally
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    # Redis AUTH: if REDIS_PASSWORD is set, require authentication
+    # For development without auth, leave REDIS_PASSWORD empty in .env
+    command: >
+      sh -c '
+        if [ -n "$REDIS_PASSWORD" ]; then
+          redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass "$REDIS_PASSWORD"
+        else
+          redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+        fi
+      '
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "if [ -n \"$REDIS_PASSWORD\" ]; then redis-cli -a \"$REDIS_PASSWORD\" ping; else redis-cli ping; fi"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -51,16 +67,19 @@ services:
     container_name: nl2api-entity-mcp
     environment:
       ENTITY_MCP_TRANSPORT: sse
-      ENTITY_MCP_HOST: "0.0.0.0"
+      ENTITY_MCP_HOST: "0.0.0.0"  # OK: internal to Docker network
       ENTITY_MCP_PORT: "8080"
-      ENTITY_MCP_POSTGRES_URL: postgresql://nl2api:nl2api@postgres:5432/nl2api
-      ENTITY_MCP_REDIS_URL: redis://redis:6379/0
+      # Build Postgres URL from env vars
+      ENTITY_MCP_POSTGRES_URL: postgresql://${POSTGRES_USER:-nl2api}:${POSTGRES_PASSWORD:-nl2api}@postgres:5432/${POSTGRES_DB:-nl2api}
+      # Redis URL - set ENTITY_MCP_REDIS_URL directly in .env if using password
+      ENTITY_MCP_REDIS_URL: ${ENTITY_MCP_REDIS_URL:-redis://redis:6379/0}
       ENTITY_MCP_REDIS_ENABLED: "true"
       ENTITY_MCP_TELEMETRY_ENABLED: "true"
       ENTITY_MCP_TELEMETRY_OTLP_ENDPOINT: http://otel-collector:4317
       ENTITY_MCP_LOG_LEVEL: INFO
     ports:
-      - "8080:8080"
+      # Bind to localhost only - remove "127.0.0.1:" to expose externally
+      - "127.0.0.1:8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -84,10 +103,11 @@ services:
     volumes:
       - ./config/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     ports:
-      - "4317:4317"   # OTLP gRPC receiver
-      - "4318:4318"   # OTLP HTTP receiver
-      - "8888:8888"   # Prometheus metrics exposed by the collector
-      - "8889:8889"   # Prometheus exporter metrics
+      # Bind to localhost only - remove "127.0.0.1:" to expose externally
+      - "127.0.0.1:4317:4317"   # OTLP gRPC receiver
+      - "127.0.0.1:4318:4318"   # OTLP HTTP receiver
+      - "127.0.0.1:8888:8888"   # Prometheus metrics exposed by the collector
+      - "127.0.0.1:8889:8889"   # Prometheus exporter metrics
     depends_on:
       - jaeger
       - prometheus
@@ -100,8 +120,9 @@ services:
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     ports:
-      - "16686:16686"  # Jaeger UI
-      - "14268:14268"  # Jaeger HTTP thrift
+      # Bind to localhost only - remove "127.0.0.1:" to expose externally
+      - "127.0.0.1:16686:16686"  # Jaeger UI
+      - "127.0.0.1:14268:14268"  # Jaeger HTTP thrift
     restart: unless-stopped
 
   # Prometheus - metrics storage and querying
@@ -117,7 +138,8 @@ services:
       - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     ports:
-      - "9090:9090"  # Prometheus UI
+      # Bind to localhost only - remove "127.0.0.1:" to expose externally
+      - "127.0.0.1:9090:9090"  # Prometheus UI
     restart: unless-stopped
 
   # Grafana - dashboards and visualization
@@ -125,14 +147,15 @@ services:
     image: grafana/grafana:10.3.1
     container_name: nl2api-grafana
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
       - grafana_data:/var/lib/grafana
     ports:
-      - "3000:3000"  # Grafana UI
+      # Bind to localhost only - remove "127.0.0.1:" to expose externally
+      - "127.0.0.1:3000:3000"  # Grafana UI
     depends_on:
       - prometheus
       - jaeger
