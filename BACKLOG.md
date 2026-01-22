@@ -279,6 +279,24 @@ Create small (100-500 cases) fully-hydrated synthetic dataset:
 
 ---
 
+## Fast-Follow
+
+### MCP Elicitation for Clarifications
+**Created:** 2026-01-21
+**Status:** Not Started
+**Depends on:** NL2API MCP tools (in progress)
+
+Currently, when a query is ambiguous, we return clarification questions in the response for Claude to present to the user. MCP supports server-initiated elicitation where the server can directly prompt the user for input.
+
+**Task:** Implement MCP elicitation protocol to handle clarifications natively:
+- Server sends elicitation request when query is ambiguous
+- User responds directly to server
+- Server continues processing with clarified input
+
+**Benefit:** Tighter UX - clarifications handled at protocol level rather than requiring Claude to mediate.
+
+---
+
 ## Low Priority (P2)
 
 ### Rule-Based Coverage Expansion (P2.0)
@@ -408,6 +426,34 @@ Migrate from pgvector to Azure AI Search for production scale.
 **Duration:** 1 week
 **Hypothesis:** Better embeddings improve RAG retrieval
 **Status:** Not Started
+
+---
+
+### Custom Orchestrator vs Vanilla MCP Evaluation
+**Duration:** 1-2 weeks
+**Created:** 2026-01-21
+**Status:** Not Started
+
+**Question:** Is our custom NL2API orchestrator (routing → entity resolution → agent dispatch → tool generation) providing measurable value over a simpler "vanilla" MCP implementation where Claude directly uses tools?
+
+**Hypothesis:** The orchestrator adds value through:
+1. Domain-specific routing (vs Claude choosing tools ad-hoc)
+2. Entity resolution accuracy (2.9M entity database)
+3. Context injection (field codes, examples via RAG)
+4. Structured tool call generation (consistent output format)
+
+**How to measure:**
+1. **Accuracy comparison:** Same test queries through orchestrator vs direct Claude tool use
+2. **Cost comparison:** Token usage per query (orchestrator has multiple LLM calls)
+3. **Latency comparison:** End-to-end response time
+4. **Consistency:** Variance in tool call quality across repeated runs
+
+**Vanilla MCP baseline:**
+- Expose raw LSEG API tools directly to Claude
+- Let Claude handle entity resolution, field selection, API construction
+- Compare output quality against orchestrator
+
+**Success criteria:** Define threshold where orchestrator justifies complexity (e.g., >10% accuracy improvement, or <2x cost for same accuracy)
 
 ---
 
