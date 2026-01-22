@@ -6,6 +6,8 @@ Configuration settings for batch evaluation runs.
 
 from __future__ import annotations
 
+from datetime import date
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -57,4 +59,14 @@ class BatchRunnerConfig(BaseModel):
         ge=0.0,
         le=1.0,
         description="Minimum score to pass semantic evaluation",
+    )
+
+    # Temporal evaluation configuration
+    evaluation_date: date | None = Field(
+        default=None,
+        description="Reference date for temporal normalization (defaults to today)",
+    )
+    temporal_mode: str = Field(
+        default="structural",
+        description="Temporal validation mode: behavioral, structural, or data",
     )

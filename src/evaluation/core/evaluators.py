@@ -22,12 +22,14 @@ from CONTRACTS import (
     Scorecard,
     StageResult,
     SystemResponse,
+    TemporalValidationMode,
     TestCase,
     ToolCall,
 )
 
 from src.common.telemetry import get_tracer
 from src.evaluation.core.ast_comparator import ASTComparator, ComparisonResult
+from src.evaluation.core.temporal import DateResolver, TemporalComparator
 
 tracer = get_tracer(__name__)
 
@@ -150,8 +152,20 @@ class LogicEvaluator:
     but the pipeline continues to gather diagnostic data.
     """
 
-    def __init__(self, numeric_tolerance: float = 0.0001):
-        self.comparator = ASTComparator(numeric_tolerance=numeric_tolerance)
+    def __init__(
+        self,
+        numeric_tolerance: float = 0.0001,
+        comparator: ASTComparator | None = None,
+    ):
+        """
+        Initialize the logic evaluator.
+
+        Args:
+            numeric_tolerance: Tolerance for numeric comparisons
+            comparator: Optional custom comparator (e.g., TemporalComparator).
+                       If not provided, uses default ASTComparator.
+        """
+        self.comparator = comparator or ASTComparator(numeric_tolerance=numeric_tolerance)
 
     def evaluate(
         self,
@@ -229,8 +243,25 @@ class WaterfallEvaluator(Evaluator):
     ):
         super().__init__(config)
         self.syntax_evaluator = SyntaxEvaluator()
+
+        # Create comparator - use TemporalComparator if temporal mode is not DATA (exact match)
+        comparator: ASTComparator | None = None
+        if self.config.temporal_mode != TemporalValidationMode.DATA:
+            date_resolver = DateResolver(
+                reference_date=self.config.evaluation_date,
+                fiscal_year_end_month=self.config.fiscal_year_end_month,
+            )
+            base_comparator = ASTComparator(numeric_tolerance=self.config.numeric_tolerance)
+            comparator = TemporalComparator(
+                date_resolver=date_resolver,
+                validation_mode=self.config.temporal_mode,
+                relative_date_fields=self.config.relative_date_fields,
+                base_comparator=base_comparator,
+            )
+
         self.logic_evaluator = LogicEvaluator(
-            numeric_tolerance=self.config.numeric_tolerance
+            numeric_tolerance=self.config.numeric_tolerance,
+            comparator=comparator,
         )
         self.llm_judge_config = llm_judge_config or LLMJudgeConfig()
         self._semantics_evaluator = None  # Lazy initialized

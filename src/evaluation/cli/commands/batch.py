@@ -71,9 +71,13 @@ def batch_run(
         str,
         typer.Option(
             "--mode", "-m",
-            help="Response mode: resolver, orchestrator, routing, or simulated"
+            help="Response mode: resolver, orchestrator, routing, tool_only, or simulated"
         ),
     ] = "resolver",
+    agent: Annotated[
+        str | None,
+        typer.Option("--agent", "-a", help="Agent name for tool_only mode (datastream, estimates, etc.)"),
+    ] = None,
     verbose: Annotated[
         bool,
         typer.Option("--verbose", "-v", help="Show detailed output"),
@@ -102,6 +106,14 @@ def batch_run(
         float,
         typer.Option("--semantics-threshold", help="Minimum score to pass semantic evaluation (0.0-1.0)"),
     ] = 0.7,
+    eval_date: Annotated[
+        str | None,
+        typer.Option("--eval-date", help="Reference date for temporal normalization (YYYY-MM-DD)"),
+    ] = None,
+    temporal_mode: Annotated[
+        str,
+        typer.Option("--temporal-mode", help="Temporal validation mode: behavioral, structural, or data"),
+    ] = "structural",
 ) -> None:
     """
     Run batch evaluation on test cases from database.
@@ -116,6 +128,8 @@ def batch_run(
       End-to-end accuracy measurement.
     - routing: Uses LLM router for routing evaluation (requires LLM API key).
       Tests query → domain routing accuracy.
+    - tool_only: Tests a single agent in isolation (requires --agent and LLM API key).
+      Useful for comparing agent performance with different LLMs.
     - simulated: Always returns correct answers (for pipeline testing only).
       Should NOT be used for accuracy tracking - use unit tests instead.
 
@@ -124,11 +138,40 @@ def batch_run(
     - Requires expected_nl_response to be populated in test cases.
     - Use --semantics-model to override the judge model (default: claude-3-5-haiku).
     - Use --semantics-threshold to set the minimum pass score (default: 0.7).
+
+    TEMPORAL:
+    - Use --eval-date to set the reference date for temporal normalization.
+    - Use --temporal-mode to control date comparison:
+      - structural (default): Normalizes dates before comparison (-1D == 2026-01-20)
+      - behavioral: Only validates both have valid temporal expressions
+      - data: Exact match required (for point-in-time validation)
     """
-    if mode not in ("resolver", "orchestrator", "simulated", "routing"):
+    from datetime import date as date_type
+
+    if mode not in ("resolver", "orchestrator", "simulated", "routing", "tool_only"):
         console.print(f"[red]Error:[/red] Invalid mode '{mode}'.")
-        console.print("Use 'resolver', 'orchestrator', 'simulated', or 'routing'.")
+        console.print("Use 'resolver', 'orchestrator', 'routing', 'tool_only', or 'simulated'.")
         raise typer.Exit(1)
+
+    if mode == "tool_only" and agent is None:
+        console.print("[red]Error:[/red] --agent is required for tool_only mode.")
+        console.print("Available agents: datastream, estimates, fundamentals, officers, screening")
+        raise typer.Exit(1)
+
+    if temporal_mode not in ("behavioral", "structural", "data"):
+        console.print(f"[red]Error:[/red] Invalid temporal mode '{temporal_mode}'.")
+        console.print("Use 'behavioral', 'structural', or 'data'.")
+        raise typer.Exit(1)
+
+    # Parse eval_date if provided
+    parsed_eval_date: date_type | None = None
+    if eval_date:
+        try:
+            parsed_eval_date = date_type.fromisoformat(eval_date)
+        except ValueError:
+            console.print(f"[red]Error:[/red] Invalid date format '{eval_date}'.")
+            console.print("Use YYYY-MM-DD format (e.g., 2026-01-21).")
+            raise typer.Exit(1)
 
     asyncio.run(_batch_run_async(
         tags=tags,
@@ -137,6 +180,7 @@ def batch_run(
         limit=limit,
         concurrency=concurrency,
         mode=mode,
+        agent_name=agent,
         verbose=verbose,
         model=model,
         client=client,
@@ -144,6 +188,8 @@ def batch_run(
         semantics_enabled=semantics,
         semantics_model=semantics_model,
         semantics_threshold=semantics_threshold,
+        evaluation_date=parsed_eval_date,
+        temporal_mode=temporal_mode,
     ))
 
 
@@ -154,10 +200,16 @@ async def _batch_run_async(
     limit: int | None,
     concurrency: int,
     mode: str,
-    verbose: bool,
+    agent_name: str | None = None,
+    verbose: bool = False,
     model: str | None = None,
     client: str = "internal",
     client_version: str | None = None,
+    semantics_enabled: bool = False,
+    semantics_model: str | None = None,
+    semantics_threshold: float = 0.7,
+    evaluation_date: "date | None" = None,
+    temporal_mode: str = "structural",
 ) -> None:
     """Async implementation of batch run command."""
     from src.common.storage import (
@@ -170,6 +222,7 @@ async def _batch_run_async(
         create_entity_resolver_generator,
         create_nl2api_generator,
         create_routing_generator,
+        create_tool_only_generator,
         simulate_correct_response,
     )
 
@@ -257,12 +310,33 @@ async def _batch_run_async(
             router = LLMToolRouter(llm=llm, tool_providers=tool_providers)
             response_generator = create_routing_generator(router)
             console.print(f"[green]Using LLM router ({cfg.llm_provider}/{llm_model}).[/green]\n")
+        elif mode == "tool_only":
+            # Use single agent for isolated tool generation testing
+            from src.nl2api.agents import get_agent_by_name
+            from src.nl2api.llm.factory import create_llm_provider
+            from src.nl2api.config import NL2APIConfig
+
+            cfg = NL2APIConfig()
+            llm_model = model if model else cfg.model
+            llm = create_llm_provider(
+                provider=cfg.llm_provider,
+                api_key=cfg.get_llm_api_key(),
+                model=llm_model,
+            )
+            agent = get_agent_by_name(agent_name, llm=llm)
+            response_generator = create_tool_only_generator(agent)
+            console.print(f"[green]Using {agent_name} agent ({cfg.llm_provider}/{llm_model}).[/green]\n")
+
+            # Override client_version with model for cost tracking
+            if client_version is None:
+                client_version = llm_model
 
         # Map mode to eval_mode
         eval_mode_map = {
             "resolver": "resolver",
             "orchestrator": "orchestrator",
             "routing": "routing",
+            "tool_only": "tool_only",
             "simulated": "orchestrator",  # Simulated still uses orchestrator eval mode
         }
 
@@ -273,7 +347,29 @@ async def _batch_run_async(
             client_type=client,
             client_version=client_version,
             eval_mode=eval_mode_map.get(mode, "orchestrator"),
+            semantics_enabled=semantics_enabled,
+            semantics_model=semantics_model,
+            semantics_pass_threshold=semantics_threshold,
+            evaluation_date=evaluation_date,
+            temporal_mode=temporal_mode,
         )
+
+        if semantics_enabled:
+            console.print(f"[cyan]Semantics stage enabled[/cyan]")
+            if semantics_model:
+                console.print(f"  Model: {semantics_model}")
+            else:
+                console.print("  Model: claude-3-5-haiku-20241022 (default)")
+            console.print(f"  Pass threshold: {semantics_threshold:.2f}\n")
+
+        if evaluation_date or temporal_mode != "structural":
+            console.print(f"[cyan]Temporal evaluation[/cyan]")
+            if evaluation_date:
+                console.print(f"  Reference date: {evaluation_date}")
+            else:
+                from datetime import date as date_class
+                console.print(f"  Reference date: {date_class.today()} (today)")
+            console.print(f"  Validation mode: {temporal_mode}\n")
 
         runner = BatchRunner(
             test_case_repo=test_case_repo,

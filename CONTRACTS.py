@@ -14,7 +14,7 @@ from __future__ import annotations
 import hashlib
 import json
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from enum import Enum
 from typing import Any, ClassVar, Literal
 from uuid import uuid4
@@ -252,6 +252,23 @@ class EvalMode(str, Enum):
     MCP_PASSTHROUGH = "mcp_passthrough"  # MCP server passthrough
 
 
+class TemporalStability(str, Enum):
+    """How stable are expected values over time."""
+
+    EVERGREEN = "evergreen"  # Never changes (sector, industry, static data)
+    ABSOLUTE = "absolute"  # Fixed historical (FY2024, 2024-01-01)
+    RELATIVE = "relative"  # Shifts with eval date (-1D, -1M, FQ0)
+    POINT_IN_TIME = "point_in_time"  # Requires specific data snapshot
+
+
+class TemporalValidationMode(str, Enum):
+    """What aspect of temporal handling to validate."""
+
+    BEHAVIORAL = "behavioral"  # Only validate both are valid temporal expressions
+    STRUCTURAL = "structural"  # Normalize dates to absolute, then compare
+    DATA = "data"  # Compare actual data values (snapshot required)
+
+
 # =============================================================================
 # 1. The "Gold Standard" 4-ple Schema
 # =============================================================================
@@ -334,6 +351,44 @@ class TestCaseMetadata(BaseModel):
     )
 
 
+class TemporalContext(BaseModel):
+    """
+    Temporal context for test case evaluation.
+
+    Enables temporally-aware evaluation where relative date expressions
+    (like "-1D", "FQ0") are normalized before comparison.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    stability: TemporalStability = Field(
+        default=TemporalStability.EVERGREEN,
+        description="How stable are expected values over time",
+    )
+    validation_mode: TemporalValidationMode = Field(
+        default=TemporalValidationMode.STRUCTURAL,
+        description="What aspect of temporal handling to validate",
+    )
+    assertion_date: date | None = Field(
+        default=None,
+        description="When expected values were valid (for POINT_IN_TIME stability)",
+    )
+    snapshot_id: str | None = Field(
+        default=None,
+        description="Reference to data snapshot (for DATA validation mode)",
+    )
+    relative_date_fields: tuple[str, ...] = Field(
+        default=("start", "end", "SDate", "EDate", "Period"),
+        description="Field names that may contain relative date expressions",
+    )
+    fiscal_year_end_month: int = Field(
+        default=12,
+        ge=1,
+        le=12,
+        description="Month when fiscal year ends (for FY/FQ resolution)",
+    )
+
+
 class TestCase(BaseModel):
     """
     The 'Gold Standard' test case definition.
@@ -390,6 +445,12 @@ class TestCase(BaseModel):
     embedding: tuple[float, ...] | None = Field(
         default=None,
         description="Vector embedding of nl_query (dimension: 1536 for ada-002)",
+    )
+
+    # Temporal context (optional, backward compatible)
+    temporal_context: TemporalContext | None = Field(
+        default=None,
+        description="Temporal context for evaluation (None = evergreen, exact match)",
     )
 
     @field_validator("expected_tool_calls", mode="before")
@@ -660,6 +721,20 @@ class Scorecard(BaseModel):
         default=0,
         ge=0,
         description="Total processing time",
+    )
+
+    # Temporal evaluation context
+    evaluation_date: date | None = Field(
+        default=None,
+        description="Date used for temporal normalization (for reproducibility)",
+    )
+    temporal_validation_mode: str | None = Field(
+        default=None,
+        description="Temporal validation mode used (behavioral, structural, data)",
+    )
+    date_normalization_applied: bool = Field(
+        default=False,
+        description="Whether date normalization was applied during evaluation",
     )
 
     @computed_field
@@ -1105,6 +1180,26 @@ class EvaluationConfig(BaseModel):
             "Stage 4: OPTIONAL - evaluates NL response quality, not correctness. "
             "Enable when assessing presentation/UX."
         ),
+    )
+
+    # Temporal evaluation
+    temporal_mode: TemporalValidationMode = Field(
+        default=TemporalValidationMode.STRUCTURAL,
+        description="Temporal validation mode for date comparison",
+    )
+    evaluation_date: date | None = Field(
+        default=None,
+        description="Reference date for temporal normalization (defaults to today)",
+    )
+    relative_date_fields: tuple[str, ...] = Field(
+        default=("start", "end", "SDate", "EDate", "Period"),
+        description="Field names that may contain relative date expressions",
+    )
+    fiscal_year_end_month: int = Field(
+        default=12,
+        ge=1,
+        le=12,
+        description="Month when fiscal year ends (for FY/FQ resolution)",
     )
 
     # Tolerances
