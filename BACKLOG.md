@@ -107,26 +107,19 @@ Total: ~850ms, ~1100 tokens per request
 
 ## High Priority (P0)
 
-### Codebase Audit: Remove Early Development Hacks
+### Codebase Audit: Remove Early Development Hacks ✅ COMPLETE
 **Created:** 2026-01-21
-**Status:** Not Started
+**Completed:** 2026-01-21
 
-Audit the codebase for patterns similar to the static mappings that were just removed:
-- Small hardcoded lists that should be database-backed
-- Fallback logic that masks real issues
-- Redundant code paths that add complexity without value
-- Dead code or unused parameters
+**Results:**
+- Deleted `scripts/generate_company_mappings.py` (dead code - generated removed static mappings)
+- Removed 32 unused imports across `src/` via `ruff --fix`
+- Added logging to silent exception handler in `mcp/context.py`
 
-**Example just removed:** Static company_mappings.json (109 companies) that was:
-- Redundant with 2.9M entity database
-- Causing fuzzy matching to only search 280 names
-- Adding complexity with ticker_mappings + common_mappings code paths
-
-**Areas to audit:**
-- [ ] `src/nl2api/agents/` - Hardcoded patterns, fallback lists
-- [ ] `src/nl2api/rag/` - Static retrieval configs
-- [ ] `src/evaluation/` - Hardcoded thresholds or test data
-- [ ] `scripts/` - One-off hacks that became permanent
+**Kept (acceptable patterns):**
+- Field code mappings in agents (API reference data, small & stable)
+- `_classify_query_legacy` fallback (resilience for router failures)
+- `can_handle()` deprecated methods (still used by legacy fallback)
 
 ---
 
@@ -410,6 +403,8 @@ Migrate from pgvector to Azure AI Search for production scale.
 - [x] OTEL metrics fix: Switched to Prometheus scrape pattern (port 8889)
 - [x] Observability verification: Traces → Jaeger ✓, Metrics → Prometheus ✓, Scorecards → PostgreSQL ✓
 - [x] Removed static mappings: Deleted company_mappings.json (109 companies), mappings.py, and fuzzy matching against static list - simplifies resolver to use database + OpenFIGI only
+- [x] **Codebase Audit**: Deleted dead `generate_company_mappings.py`, removed 32 unused imports, added logging to silent exception handlers
+- [x] **Batch API for Accuracy Tests**: Added Anthropic Batch API support (50% cheaper), retry with jitter, configurable real-time fallback
 
 ### 2026-01-20
 
