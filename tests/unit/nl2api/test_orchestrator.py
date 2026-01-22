@@ -603,57 +603,58 @@ class TestOrchestratorRoutingModel:
         assert cfg.routing_model == "claude-3-5-haiku-20241022"
         assert cfg.routing_model != cfg.llm_model  # Should differ from main model
 
-    def test_orchestrator_creates_separate_routing_llm(self) -> None:
-        """Orchestrator should use separate LLM for routing when configured."""
-        from unittest.mock import MagicMock, patch
+    def test_orchestrator_uses_injected_llm_for_default_router(self) -> None:
+        """Orchestrator should use injected LLM for default router (no hidden config dependency).
 
-        # Mock the config to return different models
-        mock_config = MagicMock()
-        mock_config.routing_model = "claude-3-5-haiku-20241022"
-        mock_config.llm_model = "claude-sonnet-4-20250514"
-        mock_config.llm_provider = "claude"
-        mock_config.get_llm_api_key.return_value = "test-key"
+        This is a regression test for a bug where _create_default_router() created a new
+        NL2APIConfig() which looked for NL2API_ANTHROPIC_API_KEY from environment,
+        causing failures when only ANTHROPIC_API_KEY was set.
 
-        # Mock LLM and agent
+        The fix: orchestrator always uses the injected LLM for routing. If you need
+        a different model for routing, create the router externally and pass it in.
+        """
         main_llm = MockLLMProvider(model_name="sonnet")
         agent = MockAgent()
 
-        # Patch at the import location inside _create_default_router
-        with patch("src.nl2api.config.NL2APIConfig", return_value=mock_config):
-            with patch("src.nl2api.llm.factory.create_llm_provider") as mock_factory:
-                mock_routing_llm = MockLLMProvider(model_name="haiku")
-                mock_factory.return_value = mock_routing_llm
+        # Create orchestrator without router - it should create default router
+        # using the SAME injected LLM (not a new one from config)
+        orchestrator = NL2APIOrchestrator(
+            llm=main_llm,
+            agents={"estimates": agent},
+        )
 
-                orchestrator = NL2APIOrchestrator(
-                    llm=main_llm,
-                    agents={"estimates": agent},
-                )
+        # Verify the router uses the same LLM instance
+        assert orchestrator._router is not None
+        assert orchestrator._router._llm is main_llm
 
-                # Verify create_llm_provider was called for routing
-                mock_factory.assert_called_once_with(
-                    provider="claude",
-                    api_key="test-key",
-                    model="claude-3-5-haiku-20241022",
-                )
+    def test_orchestrator_accepts_custom_router(self) -> None:
+        """Orchestrator should accept pre-configured router for custom routing model.
 
-    def test_orchestrator_reuses_main_llm_when_models_match(self) -> None:
-        """Orchestrator should reuse main LLM when routing_model matches llm_model."""
-        from unittest.mock import MagicMock, patch
-
-        # Mock the config with matching models
-        mock_config = MagicMock()
-        mock_config.routing_model = "claude-sonnet-4-20250514"
-        mock_config.llm_model = "claude-sonnet-4-20250514"
+        If you want a different model for routing (e.g., Haiku for cost savings),
+        create the router externally with that model and pass it to orchestrator.
+        """
+        from src.nl2api.routing.llm_router import LLMToolRouter
+        from src.nl2api.routing.providers import AgentToolProvider
 
         main_llm = MockLLMProvider(model_name="sonnet")
+        routing_llm = MockLLMProvider(model_name="haiku")
         agent = MockAgent()
 
-        with patch("src.nl2api.config.NL2APIConfig", return_value=mock_config):
-            with patch("src.nl2api.llm.factory.create_llm_provider") as mock_factory:
-                orchestrator = NL2APIOrchestrator(
-                    llm=main_llm,
-                    agents={"estimates": agent},
-                )
+        # Create router with different LLM
+        custom_router = LLMToolRouter(
+            llm=routing_llm,
+            tool_providers=[AgentToolProvider(agent)],
+        )
 
-                # Should NOT create a separate LLM - reuse main
-                mock_factory.assert_not_called()
+        # Pass custom router to orchestrator
+        orchestrator = NL2APIOrchestrator(
+            llm=main_llm,
+            agents={"estimates": agent},
+            router=custom_router,
+        )
+
+        # Verify custom router is used
+        assert orchestrator._router is custom_router
+        assert orchestrator._router._llm is routing_llm
+        # Main LLM is still used for other operations
+        assert orchestrator._llm is main_llm
