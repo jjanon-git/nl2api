@@ -371,3 +371,60 @@ class TestRAGRetrieverProtocol:
 
         retriever = MinimalRetriever()
         assert isinstance(retriever, RAGRetriever)
+
+
+class TestLocalEmbedder:
+    """Test suite for LocalEmbedder."""
+
+    def test_local_embedder_imports(self) -> None:
+        """Test that LocalEmbedder can be imported."""
+        from src.nl2api.rag.embedders import LocalEmbedder, Embedder
+
+        # LocalEmbedder should be a subclass of Embedder
+        assert issubclass(LocalEmbedder, Embedder)
+
+    def test_create_embedder_local(self) -> None:
+        """Test create_embedder factory with local provider."""
+        from src.nl2api.rag.embedders import create_embedder, LocalEmbedder
+
+        embedder = create_embedder("local")
+        assert isinstance(embedder, LocalEmbedder)
+        assert embedder.dimension == 384  # all-MiniLM-L6-v2 default
+
+    def test_create_embedder_invalid_provider(self) -> None:
+        """Test create_embedder raises for unknown provider."""
+        from src.nl2api.rag.embedders import create_embedder
+
+        with pytest.raises(ValueError, match="Unknown embedding provider"):
+            create_embedder("invalid_provider")
+
+    def test_create_embedder_openai_requires_api_key(self) -> None:
+        """Test create_embedder raises when OpenAI API key missing."""
+        from src.nl2api.rag.embedders import create_embedder
+
+        with pytest.raises(ValueError, match="api_key"):
+            create_embedder("openai")
+
+    @pytest.mark.asyncio
+    async def test_local_embedder_embed(self) -> None:
+        """Test LocalEmbedder can generate embeddings."""
+        from src.nl2api.rag.embedders import LocalEmbedder
+
+        embedder = LocalEmbedder()
+        embedding = await embedder.embed("Apple stock price")
+
+        assert isinstance(embedding, list)
+        assert len(embedding) == 384
+        assert all(isinstance(x, float) for x in embedding)
+
+    @pytest.mark.asyncio
+    async def test_local_embedder_embed_batch(self) -> None:
+        """Test LocalEmbedder can generate batch embeddings."""
+        from src.nl2api.rag.embedders import LocalEmbedder
+
+        embedder = LocalEmbedder()
+        embeddings = await embedder.embed_batch(["Apple", "Microsoft", "Google"])
+
+        assert isinstance(embeddings, list)
+        assert len(embeddings) == 3
+        assert all(len(e) == 384 for e in embeddings)
