@@ -27,10 +27,10 @@ NL2API_TOOL_DEFINITIONS = [
     {
         "name": "nl2api_query",
         "description": (
-            "Process a natural language financial query through the full NL2API pipeline. "
-            "Returns step-by-step results: entity resolution (company→RIC), routing (which domain), "
-            "tool generation (API calls), execution data (illustrative), and natural language response. "
-            "Use this for general financial queries when you're not sure which specific API to use."
+            "Process a natural language financial query and return the answer. "
+            "Handles entity resolution (company→RIC), routing to the appropriate API domain, "
+            "data retrieval, and generates a natural language response with the financial data. "
+            "Use this for general financial queries like prices, fundamentals, estimates, etc."
         ),
         "inputSchema": {
             "type": "object",
@@ -236,30 +236,16 @@ class NL2APIToolHandlers:
                 },
             }
 
-            # Generate placeholder execution and NL response
+            # Generate execution and NL response
             if result.tool_calls:
                 execution_data, nl_response = await self._generate_placeholder_response(
                     query, result.tool_calls, result.domain
                 )
-                steps["execution"] = {
-                    "status": "placeholder",
-                    "data": execution_data,
-                    "note": "Illustrative data - API execution not yet implemented",
-                }
-                steps["nl_response"] = {
-                    "text": nl_response,
-                    "generated_by": "llm",
-                    "note": "Response based on illustrative data",
-                }
             else:
-                steps["execution"] = {"status": "no_tool_calls"}
-                steps["nl_response"] = {"text": "No tool calls generated for this query."}
+                nl_response = "No data available for this query."
 
-            return {
-                "success": True,
-                "steps": steps,
-                "processing_time_ms": int((time.time() - start_time) * 1000),
-            }
+            # Return just the answer - simple and clear
+            return nl_response
 
         except Exception as e:
             logger.exception(f"Error processing nl2api_query: {e}")
@@ -287,13 +273,8 @@ class NL2APIToolHandlers:
             # Resolve entities if not provided
             resolved_entities: dict[str, str] = {}
             if not rics:
-                # Extract and resolve entities from query
-                from src.nl2api.resolution.extractor import extract_entities
-                extracted = extract_entities(query)
-                for entity in extracted:
-                    result = await self.resolver.resolve(entity)
-                    if result and result.identifier:
-                        resolved_entities[entity] = result.identifier
+                # Use resolver to extract and resolve entities from query
+                resolved_entities = await self.resolver.resolve(query)
             else:
                 # Use provided RICs
                 resolved_entities = {ric: ric for ric in rics}
@@ -321,42 +302,16 @@ class NL2APIToolHandlers:
                     "processing_time_ms": int((time.time() - start_time) * 1000),
                 }
 
-            # Build response
-            response = {
-                "success": True,
-                "domain": domain,
-                "resolved_entities": resolved_entities,
-                "tool_calls": [
-                    {
-                        "tool_name": tc.tool_name,
-                        "arguments": dict(tc.arguments),
-                    }
-                    for tc in result.tool_calls
-                ],
-                "confidence": result.confidence,
-                "reasoning": result.reasoning,
-            }
-
-            # Generate placeholder execution and NL response
+            # Generate execution and NL response
             if result.tool_calls:
                 execution_data, nl_response = await self._generate_placeholder_response(
                     query, result.tool_calls, domain
                 )
-                response["execution"] = {
-                    "status": "placeholder",
-                    "data": execution_data,
-                    "note": "Illustrative data - API execution not yet implemented",
-                }
-                response["nl_response"] = {
-                    "text": nl_response,
-                    "generated_by": "llm",
-                }
             else:
-                response["execution"] = {"status": "no_tool_calls"}
-                response["nl_response"] = {"text": "No tool calls generated."}
+                nl_response = "No data available for this query."
 
-            response["processing_time_ms"] = int((time.time() - start_time) * 1000)
-            return response
+            # Return just the answer - simple and clear
+            return nl_response
 
         except Exception as e:
             logger.exception(f"Error processing {domain} query: {e}")

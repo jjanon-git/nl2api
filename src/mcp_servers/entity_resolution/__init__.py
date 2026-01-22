@@ -1,7 +1,7 @@
 """
-Entity Resolution MCP Server
+NL2API MCP Server
 
-Provides entity resolution capabilities via Model Context Protocol.
+Ask natural language questions to financial services APIs via Model Context Protocol.
 Supports stdio and HTTP/SSE transports for Claude Desktop and production deployments.
 """
 

@@ -2,9 +2,29 @@
 
 > **Note**: This project inherits shared development standards from `../CLAUDE.md` (self-improvement loop, testing requirements, security standards, error handling patterns).
 
-## Project-Specific Documentation Locations
+---
 
-When applying the self-improvement loop (see parent), use these project-specific locations:
+## CRITICAL: Self-Improvement After Debugging
+
+**After ANY debugging session >10 minutes or finding a config/integration issue, STOP and complete this checklist:**
+
+- [ ] **What was the root cause?** (Not the symptom—the actual cause)
+- [ ] **Why wasn't this caught earlier?** (Missing test? Missing docs? Missing validation?)
+- [ ] **What would have prevented this?** (Be specific: add test, add docs, fix design)
+- [ ] **Document it NOW** (Use the table below for where)
+
+**Triggers** (if any of these happen, do the checklist above):
+- Debugging session longer than 10 minutes
+- Config mismatch or environment variable issue
+- Integration issue between components
+- Manual testing reveals something unit tests missed
+- Undocumented behavior discovered
+
+See `../CLAUDE.md` → Self-Improvement Loop for full details.
+
+### Project-Specific Documentation Locations
+
+When applying the self-improvement loop, use these project-specific locations:
 
 | Issue Type | Where to Document |
 |------------|-------------------|

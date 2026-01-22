@@ -104,8 +104,8 @@ def create_app(
         logger.info("MCP server shut down")
 
     app = FastAPI(
-        title="Entity Resolution MCP Server",
-        description="MCP server for entity resolution (company names to RICs)",
+        title="NL2API MCP Server",
+        description="MCP server for natural language queries to financial APIs",
         version=_config.server_version,
         lifespan=lifespan,
     )

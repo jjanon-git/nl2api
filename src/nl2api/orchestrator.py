@@ -440,10 +440,12 @@ class NL2APIOrchestrator:
         Create the default LLMToolRouter.
 
         Called when no router is provided to __init__.
-        Uses routing_model from config if different from main LLM model.
+
+        IMPORTANT: Uses the injected LLM provider directly. If you need a different
+        model for routing (e.g., Haiku for cost savings), create the router externally
+        and pass it to __init__. This avoids hidden dependencies on environment
+        variables like NL2API_ANTHROPIC_API_KEY.
         """
-        from src.nl2api.config import NL2APIConfig
-        from src.nl2api.llm.factory import create_llm_provider
         from src.nl2api.routing.llm_router import LLMToolRouter
         from src.nl2api.routing.providers import AgentToolProvider
 
@@ -453,21 +455,10 @@ class NL2APIOrchestrator:
             for agent in self._agents.values()
         ]
 
-        # Check if we need a separate LLM for routing
-        cfg = NL2APIConfig()
-        routing_llm = self._llm
-
-        # Use routing_model if configured (default: Haiku for cost savings)
-        if cfg.routing_model and cfg.routing_model != cfg.llm_model:
-            routing_llm = create_llm_provider(
-                provider=cfg.llm_provider,
-                api_key=cfg.get_llm_api_key(),
-                model=cfg.routing_model,
-            )
-            logger.info(f"Using separate routing model: {cfg.routing_model}")
-
+        # Use the injected LLM directly - don't create a new one from config
+        # This ensures we use the same credentials that were passed to __init__
         return LLMToolRouter(
-            llm=routing_llm,
+            llm=self._llm,
             tool_providers=providers,
             cache=self._routing_cache,
         )

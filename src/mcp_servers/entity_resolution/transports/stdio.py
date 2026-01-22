@@ -2,7 +2,8 @@
 stdio Transport for NL2API MCP Server
 
 Uses the official MCP SDK for full protocol compatibility with Claude Desktop.
-Exposes entity resolution tools and NL2API orchestrator/agent tools.
+Exposes tools for asking natural language questions to financial services APIs
+(Datastream, Estimates, Fundamentals, Officers, Screening) plus entity resolution.
 """
 
 from __future__ import annotations
@@ -63,7 +64,8 @@ async def server_lifespan(server: Server) -> AsyncIterator[dict]:
         "ENTITY_MCP_POSTGRES_URL",
         "postgresql://nl2api:nl2api@localhost:5432/nl2api"
     )
-    anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY")
+    # Check both prefixed and non-prefixed env var names
+    anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("NL2API_ANTHROPIC_API_KEY")
 
     # Initialize database pool
     db_pool: asyncpg.Pool | None = None
@@ -97,7 +99,7 @@ async def server_lifespan(server: Server) -> AsyncIterator[dict]:
 
     if anthropic_api_key:
         try:
-            from src.nl2api.llm.anthropic import AnthropicProvider
+            from src.nl2api.llm.claude import ClaudeProvider
             from src.nl2api.agents.datastream import DatastreamAgent
             from src.nl2api.agents.estimates import EstimatesAgent
             from src.nl2api.agents.fundamentals import FundamentalsAgent
@@ -106,9 +108,9 @@ async def server_lifespan(server: Server) -> AsyncIterator[dict]:
             from src.nl2api.orchestrator import NL2APIOrchestrator
 
             # Initialize LLM provider (use Haiku for placeholder generation)
-            llm = AnthropicProvider(
+            llm = ClaudeProvider(
                 api_key=anthropic_api_key,
-                model_name="claude-3-5-haiku-latest",
+                model="claude-3-5-haiku-latest",
             )
             logger.info("LLM provider initialized (claude-3-5-haiku-latest)")
 
@@ -122,11 +124,23 @@ async def server_lifespan(server: Server) -> AsyncIterator[dict]:
             }
             logger.info(f"Domain agents initialized: {list(agents.keys())}")
 
-            # Initialize orchestrator
+            # Initialize router with the same LLM (avoids orchestrator creating
+            # a new NL2APIConfig that would look for NL2API_ANTHROPIC_API_KEY)
+            from src.nl2api.routing.llm_router import LLMToolRouter
+            from src.nl2api.routing.providers import AgentToolProvider
+
+            router = LLMToolRouter(
+                llm=llm,
+                tool_providers=[AgentToolProvider(agent) for agent in agents.values()],
+            )
+            logger.info("Query router initialized")
+
+            # Initialize orchestrator with pre-configured router
             orchestrator = NL2APIOrchestrator(
                 llm=llm,
                 agents=agents,
                 entity_resolver=resolver,
+                router=router,
             )
             logger.info("NL2API orchestrator initialized")
 
