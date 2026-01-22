@@ -18,21 +18,23 @@ import time
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
+from src.common.telemetry import record_exception, trace_span
 from src.nl2api.agents.protocols import AgentContext, DomainAgent
 from src.nl2api.clarification.detector import AmbiguityDetector
 from src.nl2api.conversation.manager import ConversationManager, ConversationStorage
 from src.nl2api.conversation.models import ConversationTurn
-from src.nl2api.models import ClarificationQuestion, NL2APIResponse
 from src.nl2api.llm.protocols import LLMMessage, LLMProvider, MessageRole
 from src.nl2api.mcp.context import ContextProvider, DualModeContextRetriever
+from src.nl2api.models import ClarificationQuestion, NL2APIResponse
 from src.nl2api.observability import RequestMetrics, emit_metrics
-from src.common.telemetry import trace_span, record_exception
 from src.nl2api.rag.protocols import RAGRetriever
 from src.nl2api.resolution.protocols import EntityResolver
 from src.nl2api.routing.protocols import QueryRouter
 
 if TYPE_CHECKING:
+    from src.nl2api.mcp.client import MCPClient
     from src.nl2api.mcp.context import MCPContextRetriever
+    from src.nl2api.mcp.protocols import MCPServer
     from src.nl2api.routing.cache import RoutingCache
 
 logger = logging.getLogger(__name__)
@@ -67,6 +69,9 @@ class NL2APIOrchestrator:
         context_mode: str = "local",
         mcp_retriever: MCPContextRetriever | None = None,
         mcp_fallback_enabled: bool = True,
+        mcp_client: MCPClient | None = None,
+        mcp_servers: list[MCPServer] | None = None,
+        mcp_mode: str = "local",
     ):
         """
         Initialize the orchestrator.
@@ -87,6 +92,9 @@ class NL2APIOrchestrator:
             context_mode: Mode for context retrieval ("local", "mcp", "hybrid")
             mcp_retriever: Optional MCP context retriever for dual-mode
             mcp_fallback_enabled: In hybrid mode, fall back to RAG if MCP fails
+            mcp_client: Optional MCP client for tool provider discovery
+            mcp_servers: Optional list of MCP servers for tool providers
+            mcp_mode: Mode for routing ("local", "mcp", "hybrid")
         """
         self._llm = llm
         self._agents = agents
@@ -111,12 +119,21 @@ class NL2APIOrchestrator:
                 fallback_enabled=mcp_fallback_enabled,
             )
 
-        # Initialize router
+        # Store MCP configuration for dual-mode routing
+        self._mcp_client = mcp_client
+        self._mcp_servers = mcp_servers or []
+        self._mcp_mode = mcp_mode
+        self._mcp_fallback_enabled = mcp_fallback_enabled
+
+        # Initialize router (may be created lazily for async MCP setup)
         self._router = router
         self._routing_cache = routing_cache
-        if self._router is None:
-            # Create default LLMToolRouter
-            self._router = self._create_default_router()
+        self._router_initialized = router is not None
+
+        # For local mode, create router synchronously
+        if self._router is None and mcp_mode == "local":
+            self._router = self._create_default_router_sync()
+            self._router_initialized = True
 
     async def process(
         self,
@@ -136,6 +153,11 @@ class NL2APIOrchestrator:
             NL2APIResponse with tool calls or clarification request
         """
         start_time = time.perf_counter()
+
+        # Lazy init router for MCP/hybrid modes (requires async)
+        if not self._router_initialized:
+            self._router = await self._create_default_router_async()
+            self._router_initialized = True
 
         # Initialize metrics collection
         metrics = RequestMetrics(query=query, session_id=session_id)
@@ -435,11 +457,11 @@ class NL2APIOrchestrator:
         except Exception as e:
             logger.warning(f"Failed to emit metrics: {e}")
 
-    def _create_default_router(self) -> QueryRouter:
+    def _create_default_router_sync(self) -> QueryRouter:
         """
-        Create the default LLMToolRouter.
+        Create the default LLMToolRouter synchronously.
 
-        Called when no router is provided to __init__.
+        Called when mcp_mode='local' and no router is provided to __init__.
 
         IMPORTANT: Uses the injected LLM provider directly. If you need a different
         model for routing (e.g., Haiku for cost savings), create the router externally
@@ -457,6 +479,49 @@ class NL2APIOrchestrator:
 
         # Use the injected LLM directly - don't create a new one from config
         # This ensures we use the same credentials that were passed to __init__
+        return LLMToolRouter(
+            llm=self._llm,
+            tool_providers=providers,
+            cache=self._routing_cache,
+        )
+
+    async def _create_default_router_async(self) -> QueryRouter:
+        """
+        Create the default LLMToolRouter asynchronously with MCP support.
+
+        Called when mcp_mode='mcp' or 'hybrid' and no router is provided.
+        Uses create_dual_mode_providers() to support both local agents and
+        MCP servers as tool providers.
+
+        IMPORTANT: Uses the injected LLM provider directly. If you need a different
+        model for routing (e.g., Haiku for cost savings), create the router externally
+        and pass it to __init__. This avoids hidden dependencies on environment
+        variables like NL2API_ANTHROPIC_API_KEY.
+        """
+        from src.nl2api.routing.llm_router import LLMToolRouter
+        from src.nl2api.routing.providers import create_dual_mode_providers
+
+        # Create providers based on mcp_mode
+        providers = await create_dual_mode_providers(
+            agents=self._agents,
+            mcp_client=self._mcp_client,
+            mcp_servers=self._mcp_servers,
+            mode=self._mcp_mode,
+        )
+
+        # Fallback to local-only if no providers created and fallback enabled
+        if not providers and self._mcp_fallback_enabled:
+            logger.warning(
+                f"No providers created for mcp_mode={self._mcp_mode}, "
+                "falling back to local agents"
+            )
+            from src.nl2api.routing.providers import AgentToolProvider
+            providers = [
+                AgentToolProvider(agent)
+                for agent in self._agents.values()
+            ]
+
+        # Use the injected LLM directly
         return LLMToolRouter(
             llm=self._llm,
             tool_providers=providers,
