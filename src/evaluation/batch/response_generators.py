@@ -217,10 +217,16 @@ def create_nl2api_generator(orchestrator):
                     for tc in result.tool_calls
                 ]
 
+            # Extract token usage if available
+            input_tokens = getattr(result, 'input_tokens', None)
+            output_tokens = getattr(result, 'output_tokens', None)
+
             return SystemResponse(
                 raw_output=json.dumps(tool_calls),
                 nl_response=result.nl_response,
                 latency_ms=latency_ms,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
             )
 
         except Exception as e:
@@ -233,3 +239,80 @@ def create_nl2api_generator(orchestrator):
             )
 
     return generate_orchestrator_response
+
+
+def create_tool_only_generator(agent, resolved_entities: dict[str, str] | None = None):
+    """
+    Create a response generator that tests a single agent directly.
+
+    This generator bypasses routing and entity resolution to test
+    a specific agent's tool generation capabilities in isolation.
+
+    Args:
+        agent: Agent instance to test (e.g., DatastreamAgent, EstimatesAgent)
+        resolved_entities: Pre-resolved entity mapping {company_name: RIC}
+                          If None, uses entities from test case metadata
+
+    Returns:
+        Async function that generates SystemResponse from TestCase
+    """
+
+    async def generate_tool_only_response(test_case: TestCase) -> SystemResponse:
+        """
+        Generate response by running a single agent directly.
+
+        Uses pre-resolved entities from test case metadata (stored in expected_response)
+        or the provided resolved_entities mapping.
+        """
+        import time
+
+        start_time = time.perf_counter()
+
+        try:
+            # Get resolved entities from test case metadata or provided mapping
+            entities = resolved_entities
+            if entities is None and test_case.expected_response:
+                # Look for resolved_entities in the expected_response metadata
+                entities = test_case.expected_response.get("resolved_entities", {})
+
+            # Build context for the agent
+            context = {
+                "query": test_case.nl_query,
+                "resolved_entities": entities or {},
+            }
+
+            # Call the agent's process method
+            result = await agent.process(test_case.nl_query, context)
+
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
+
+            # Convert agent result to tool calls
+            tool_calls = []
+            if hasattr(result, 'tool_calls') and result.tool_calls:
+                tool_calls = [
+                    {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+                    for tc in result.tool_calls
+                ]
+
+            # Extract token usage if available
+            input_tokens = getattr(result, 'input_tokens', None)
+            output_tokens = getattr(result, 'output_tokens', None)
+
+            return SystemResponse(
+                raw_output=json.dumps(tool_calls),
+                nl_response=getattr(result, 'nl_response', None),
+                latency_ms=latency_ms,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+            )
+
+        except Exception as e:
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
+            return SystemResponse(
+                raw_output=json.dumps([]),
+                nl_response=None,
+                latency_ms=latency_ms,
+                error=str(e),
+            )
+
+    return generate_tool_only_response

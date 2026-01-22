@@ -233,6 +233,25 @@ class TestCaseStatus(str, Enum):
     ARCHIVED = "archived"  # No longer relevant, excluded from runs
 
 
+class ClientType(str, Enum):
+    """Type of client being evaluated."""
+
+    INTERNAL_ORCHESTRATOR = "internal"  # Internal NL2API orchestrator
+    MCP_CLAUDE = "mcp_claude"  # Claude via MCP server
+    MCP_CHATGPT = "mcp_chatgpt"  # ChatGPT via MCP server
+    MCP_CUSTOM = "mcp_custom"  # Custom MCP client
+
+
+class EvalMode(str, Enum):
+    """Evaluation mode - what component is being tested."""
+
+    ORCHESTRATOR = "orchestrator"  # Full end-to-end orchestrator
+    TOOL_ONLY = "tool_only"  # Single agent/tool evaluation
+    ROUTING_ONLY = "routing"  # Router decision evaluation
+    RESOLVER_ONLY = "resolver"  # Entity resolution evaluation
+    MCP_PASSTHROUGH = "mcp_passthrough"  # MCP server passthrough
+
+
 # =============================================================================
 # 1. The "Gold Standard" 4-ple Schema
 # =============================================================================
@@ -494,6 +513,18 @@ class SystemResponse(BaseModel):
         description="Error message if invocation failed",
     )
 
+    # Token usage tracking (for cost calculation)
+    input_tokens: int | None = Field(
+        default=None,
+        ge=0,
+        description="Input/prompt tokens used",
+    )
+    output_tokens: int | None = Field(
+        default=None,
+        ge=0,
+        description="Output/completion tokens used",
+    )
+
 
 # =============================================================================
 # 3. The "Scorecard" Interface & Evaluation Models
@@ -550,6 +581,37 @@ class Scorecard(BaseModel):
     scorecard_id: str = Field(
         default_factory=_generate_id,
         description="Unique scorecard ID",
+    )
+
+    # Client tracking (multi-client evaluation)
+    client_type: str | None = Field(
+        default=None,
+        description="Type of client (internal, mcp_claude, mcp_chatgpt, mcp_custom)",
+    )
+    client_version: str | None = Field(
+        default=None,
+        description="Client version identifier (e.g., claude-opus-4.5-20251101)",
+    )
+    eval_mode: str | None = Field(
+        default=None,
+        description="Evaluation mode (orchestrator, tool_only, routing, resolver)",
+    )
+
+    # Cost tracking
+    input_tokens: int | None = Field(
+        default=None,
+        ge=0,
+        description="Input/prompt tokens used",
+    )
+    output_tokens: int | None = Field(
+        default=None,
+        ge=0,
+        description="Output/completion tokens used",
+    )
+    estimated_cost_usd: float | None = Field(
+        default=None,
+        ge=0.0,
+        description="Estimated cost in USD",
     )
 
     # Timestamps
@@ -1078,8 +1140,8 @@ class LLMJudgeConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     model: str = Field(
-        default="gpt-4o",
-        description="Azure OpenAI deployment name",
+        default="claude-3-5-haiku-20241022",
+        description="Model for semantic evaluation (Claude 3.5 Haiku by default)",
     )
     temperature: float = Field(
         default=0.0,
@@ -1088,17 +1150,45 @@ class LLMJudgeConfig(BaseModel):
         description="Sampling temperature (0 for deterministic)",
     )
     max_tokens: int = Field(
-        default=1024,
+        default=512,
         ge=1,
         description="Max tokens in judge response",
     )
-    system_prompt: str = Field(
-        default=(
-            "You are an expert evaluator comparing AI-generated responses. "
-            "Score the semantic similarity between the expected and actual responses. "
-            "Consider meaning, completeness, and accuracy. Ignore minor wording differences."
-        ),
-        description="System prompt for the judge",
+    pass_threshold: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        description="Minimum score to pass semantic evaluation",
+    )
+    timeout_ms: int = Field(
+        default=30000,
+        ge=1000,
+        description="Timeout for LLM judge call in milliseconds",
+    )
+    max_retries: int = Field(
+        default=3,
+        ge=1,
+        le=10,
+        description="Maximum retry attempts on transient errors",
+    )
+    # Evaluation weights
+    meaning_weight: float = Field(
+        default=0.4,
+        ge=0.0,
+        le=1.0,
+        description="Weight for meaning match criterion",
+    )
+    completeness_weight: float = Field(
+        default=0.3,
+        ge=0.0,
+        le=1.0,
+        description="Weight for completeness criterion",
+    )
+    accuracy_weight: float = Field(
+        default=0.3,
+        ge=0.0,
+        le=1.0,
+        description="Weight for accuracy criterion",
     )
 
 
@@ -1306,6 +1396,8 @@ __all__ = [
     "ErrorCode",
     "CircuitState",
     "TestCaseStatus",
+    "ClientType",
+    "EvalMode",
     "LLMProvider",
     "RunStatus",
     # Core Models

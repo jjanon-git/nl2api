@@ -3,8 +3,8 @@ Evaluation Pipeline Implementations
 
 Stage 1: SyntaxEvaluator - Validates JSON structure and schema
 Stage 2: LogicEvaluator - AST-based comparison of tool calls
-Stage 3: ExecutionEvaluator - Deferred to Sprint 4
-Stage 4: SemanticsEvaluator - Deferred to Sprint 4
+Stage 3: ExecutionEvaluator - Deferred
+Stage 4: SemanticsEvaluator - LLM-as-Judge semantic comparison
 """
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ from CONTRACTS import (
     EvaluationConfig,
     EvaluationStage,
     Evaluator,
+    LLMJudgeConfig,
     Scorecard,
     StageResult,
     SystemResponse,
@@ -214,16 +215,25 @@ class WaterfallEvaluator(Evaluator):
     """
     Complete evaluation pipeline implementing the waterfall pattern.
 
-    Sprint 1 implements Stage 1 (Syntax) and Stage 2 (Logic).
-    Stage 3 (Execution) and Stage 4 (Semantics) are stubs for now.
+    Stages:
+    - Stage 1 (Syntax): GATE - validates JSON structure, halts on failure
+    - Stage 2 (Logic): HIGH priority - AST-based tool call comparison
+    - Stage 3 (Execution): CRITICAL - deferred (live API verification)
+    - Stage 4 (Semantics): LOW priority - LLM-as-Judge NL comparison
     """
 
-    def __init__(self, config: EvaluationConfig | None = None):
+    def __init__(
+        self,
+        config: EvaluationConfig | None = None,
+        llm_judge_config: LLMJudgeConfig | None = None,
+    ):
         super().__init__(config)
         self.syntax_evaluator = SyntaxEvaluator()
         self.logic_evaluator = LogicEvaluator(
             numeric_tolerance=self.config.numeric_tolerance
         )
+        self.llm_judge_config = llm_judge_config or LLMJudgeConfig()
+        self._semantics_evaluator = None  # Lazy initialized
 
     async def evaluate(
         self,
@@ -237,8 +247,8 @@ class WaterfallEvaluator(Evaluator):
         Pipeline flow:
         1. Syntax (GATE) - If fails, stop and return
         2. Logic (HIGH) - Continue even on failure
-        3. Execution (CRITICAL) - Skipped in Sprint 1
-        4. Semantics (LOW) - Skipped in Sprint 1
+        3. Execution (CRITICAL) - Skipped (deferred)
+        4. Semantics (LOW) - Runs if enabled and expected_nl_response is present
         """
         with tracer.start_as_current_span("evaluator.evaluate") as span:
             span.set_attribute("test_case.id", test_case.id)
@@ -283,17 +293,42 @@ class WaterfallEvaluator(Evaluator):
                 logic_span.set_attribute("result.score", logic_result.score)
                 logic_span.set_attribute("result.duration_ms", logic_result.duration_ms)
 
-            # Stage 3 & 4: Skipped in Sprint 1
+            # Stage 3: Execution - skipped (deferred)
             execution_result = None
+
+            # Stage 4: Semantics - runs if enabled and we have NL response to compare
             semantics_result = None
+            if self.config.semantics_stage_enabled:
+                # Only run if we have an actual NL response to compare
+                actual_nl = system_response.nl_response
+                if actual_nl and test_case.expected_nl_response:
+                    with tracer.start_as_current_span("evaluator.semantics") as semantics_span:
+                        semantics_result = await self._evaluate_semantics_direct(
+                            test_case=test_case,
+                            actual_nl=actual_nl,
+                        )
+                        semantics_span.set_attribute("result.passed", semantics_result.passed)
+                        semantics_span.set_attribute("result.score", semantics_result.score)
+                        semantics_span.set_attribute("result.duration_ms", semantics_result.duration_ms)
+                else:
+                    # Skip semantics if no NL responses to compare
+                    span.add_event("semantics_skipped", {
+                        "reason": "no_nl_response",
+                        "has_actual": actual_nl is not None,
+                        "has_expected": test_case.expected_nl_response is not None,
+                    })
 
             total_latency_ms = int((time.perf_counter() - start_time) * 1000)
 
             # Record final results
             overall_passed = syntax_result.passed and logic_result.passed
+            if semantics_result:
+                overall_passed = overall_passed and semantics_result.passed
             span.set_attribute("result.passed", overall_passed)
             span.set_attribute("result.syntax_passed", syntax_result.passed)
             span.set_attribute("result.logic_passed", logic_result.passed)
+            if semantics_result:
+                span.set_attribute("result.semantics_passed", semantics_result.passed)
             span.set_attribute("result.total_latency_ms", total_latency_ms)
 
             return Scorecard(
@@ -307,6 +342,25 @@ class WaterfallEvaluator(Evaluator):
                 worker_id=worker_id,
                 total_latency_ms=total_latency_ms,
             )
+
+    async def _evaluate_semantics_direct(
+        self,
+        test_case: TestCase,
+        actual_nl: str,
+    ) -> StageResult:
+        """
+        Evaluate semantics using direct comparison.
+
+        Lazily initializes the semantics evaluator.
+        """
+        if self._semantics_evaluator is None:
+            from src.evaluation.core.semantics import SemanticsEvaluator
+            self._semantics_evaluator = SemanticsEvaluator(config=self.llm_judge_config)
+
+        return await self._semantics_evaluator.evaluate_direct(
+            test_case=test_case,
+            actual_nl=actual_nl,
+        )
 
     def evaluate_syntax(self, raw_output: str) -> tuple[StageResult, tuple[ToolCall, ...] | None]:
         """Stage 1: Validate JSON structure and schema."""

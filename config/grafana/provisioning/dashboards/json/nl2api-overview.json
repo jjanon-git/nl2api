@@ -1,7 +1,5 @@
 {
-  "annotations": {
-    "list": []
-  },
+  "annotations": { "list": [] },
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
@@ -14,47 +12,42 @@
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
       "id": 1,
       "panels": [],
-      "title": "Evaluation Overview",
+      "title": "🚨 Health at a Glance",
       "type": "row"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "palette-classic" },
-          "mappings": [],
+          "color": { "mode": "thresholds" },
+          "mappings": [{ "options": { "0": { "color": "green", "index": 0, "text": "✓ No Alerts" } }, "type": "value" }],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null }
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 3 }
             ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
       "id": 2,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
         "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        {
-          "expr": "sum(nl2api_eval_batch_tests_total)",
-          "refId": "A"
-        }
+        { "expr": "sum(nl2api_regression_alerts_total) - sum(nl2api_regression_alerts_acknowledged_total) or vector(0)", "refId": "A" }
       ],
-      "title": "Total Tests",
+      "title": "Unacked Alerts",
       "type": "stat"
     },
     {
@@ -67,36 +60,92 @@
             "mode": "absolute",
             "steps": [
               { "color": "red", "value": null },
-              { "color": "yellow", "value": 50 },
-              { "color": "green", "value": 80 }
+              { "color": "yellow", "value": 70 },
+              { "color": "green", "value": 90 }
             ]
           },
           "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
       "id": 3,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        {
-          "expr": "100 * sum(nl2api_eval_batch_tests_passed_total) / sum(nl2api_eval_batch_tests_total)",
-          "refId": "A"
-        }
+        { "expr": "100 * sum(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})", "refId": "A" }
       ],
       "title": "Pass Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "green", "value": 90 }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "100 * sum(increase(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[24h])) / sum(increase(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[24h]))", "refId": "A" }
+      ],
+      "title": "Pass Rate (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})", "refId": "A" }
+      ],
+      "title": "Total Tests",
       "type": "stat"
     },
     {
@@ -117,28 +166,571 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
-      "id": 4,
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "id": 6,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[5m])) by (le))",
-          "refId": "A"
-        }
+        { "expr": "histogram_quantile(0.95, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])) by (le))", "refId": "A" }
       ],
-      "title": "P95 Test Duration",
+      "title": "P95 Latency",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "currencyUSD",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "id": 7,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "sum(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / 1000000", "refId": "A" }
+      ],
+      "title": "Total Cost",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 10,
+      "panels": [],
+      "title": "📈 Trends",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "line" }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 80 }] },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 11,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "mean"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "100 * sum(rate(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])) / sum(rate(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m]))", "legendFormat": "Pass Rate", "refId": "A" }
+      ],
+      "title": "Pass Rate Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 12,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "mean"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])) by (le))", "legendFormat": "p50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])) by (le))", "legendFormat": "p95", "refId": "B" }
+      ],
+      "title": "Latency Over Time",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "id": 20,
+      "panels": [],
+      "title": "🔄 Client Comparison",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "id": 21,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "mean"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "100 * sum by (client_type) (rate(nl2api_eval_batch_tests_passed_total[5m])) / sum by (client_type) (rate(nl2api_eval_batch_tests_total[5m]))", "legendFormat": "{{client_type}}", "refId": "A" }
+      ],
+      "title": "Pass Rate by Client",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "currencyUSD",
+          "decimals": 4
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "id": 22,
+      "options": {
+        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "sum by (client_type) (rate(nl2api_eval_cost_usd_total[5m])) / 1000000", "legendFormat": "{{client_type}}", "refId": "A" }
+      ],
+      "title": "Cost by Client",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
+      "id": 30,
+      "panels": [],
+      "title": "💰 Token & Cost Details",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 24 },
+      "id": 31,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"input\"}) / sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})", "refId": "A" }
+      ],
+      "title": "Avg Input Tokens/Test",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] },
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 24 },
+      "id": 32,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"output\"}) / sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})", "refId": "A" }
+      ],
+      "title": "Avg Output Tokens/Test",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "currencyUSD",
+          "decimals": 6
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 24 },
+      "id": 33,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "(sum(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / 1000000) / sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})", "refId": "A" }
+      ],
+      "title": "Avg Cost/Test",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 24 },
+      "id": 34,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"input\"})", "refId": "A" }
+      ],
+      "title": "Total Input Tokens",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 24 },
+      "id": 35,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"output\"})", "refId": "A" }
+      ],
+      "title": "Total Output Tokens",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "id": 36,
+      "options": {
+        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "sum by (token_type) (rate(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m]))", "legendFormat": "{{token_type}}", "refId": "A" }
+      ],
+      "title": "Token Usage Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 200 },
+              { "color": "red", "value": 500 }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 24 },
+      "id": 37,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])) by (le))", "refId": "A" }
+      ],
+      "title": "P50 Latency",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "id": 38,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "histogram_quantile(0.5, sum(rate(nl2api_eval_batch_duration_seconds_bucket{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])) by (le))", "legendFormat": "p50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum(rate(nl2api_eval_batch_duration_seconds_bucket{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])) by (le))", "legendFormat": "p95", "refId": "B" }
+      ],
+      "title": "Batch Duration Over Time",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 36 },
+      "id": 40,
+      "panels": [],
+      "title": "🚨 Regression Alerts",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 37 },
+      "id": 41,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "sum(nl2api_regression_alerts_total{severity=\"critical\"}) or vector(0)", "refId": "A" }
+      ],
+      "title": "Critical Alerts",
       "type": "stat"
     },
     {
@@ -151,45 +743,29 @@
             "mode": "absolute",
             "steps": [
               { "color": "green", "value": null },
-              { "color": "yellow", "value": 10 },
-              { "color": "red", "value": 50 }
+              { "color": "yellow", "value": 1 }
             ]
           },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
-      "id": 5,
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 37 },
+      "id": 42,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
         "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        {
-          "expr": "sum(nl2api_eval_batch_tests_failed_total)",
-          "refId": "A"
-        }
+        { "expr": "sum(nl2api_regression_alerts_total{severity=\"warning\"}) or vector(0)", "refId": "A" }
       ],
-      "title": "Failed Tests",
+      "title": "Warning Alerts",
       "type": "stat"
-    },
-    {
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
-      "id": 6,
-      "panels": [],
-      "title": "Evaluation Trends",
-      "type": "row"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -197,80 +773,26 @@
         "defaults": {
           "color": { "mode": "thresholds" },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "red", "value": null },
-              { "color": "yellow", "value": 50 },
-              { "color": "green", "value": 80 }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 6 },
-      "id": 7,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
-        "textMode": "auto"
-      },
-      "pluginVersion": "10.3.1",
-      "targets": [
-        {
-          "expr": "100 * sum(increase(nl2api_eval_batch_tests_passed_total[24h])) / sum(increase(nl2api_eval_batch_tests_total[24h]))",
-          "refId": "A"
-        }
-      ],
-      "title": "Pass Rate (24h)",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null }
-            ]
-          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
           "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 6 },
-      "id": 8,
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 37 },
+      "id": 43,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
-        },
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "auto"
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        {
-          "expr": "sum(increase(nl2api_eval_batch_tests_total[24h]))",
-          "refId": "A"
-        }
+        { "expr": "sum(nl2api_regression_alerts_acknowledged_total) or vector(0)", "refId": "A" }
       ],
-      "title": "Tests Run (24h)",
+      "title": "Acknowledged",
       "type": "stat"
     },
     {
@@ -285,205 +807,41 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
-      "id": 9,
-      "options": {
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
-      },
-      "pluginVersion": "10.3.1",
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.5, sum(rate(nl2api_eval_test_score_bucket[1h])) by (le))",
-          "legendFormat": "P50 Score",
-          "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(nl2api_eval_test_score_bucket[1h])) by (le))",
-          "legendFormat": "P95 Score",
-          "refId": "B"
-        }
-      ],
-      "title": "Score Distribution Over Time",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
-      "id": 10,
-      "panels": [],
-      "title": "Category Breakdown",
-      "type": "row"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": { "hideFrom": { "legend": false, "tooltip": false, "viz": false } },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 15 },
-      "id": 11,
-      "options": {
-        "legend": { "displayMode": "list", "placement": "right", "showLegend": true },
-        "pieType": "pie",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "tooltip": { "mode": "single", "sort": "none" }
-      },
-      "pluginVersion": "10.3.1",
-      "targets": [
-        {
-          "expr": "sum by (category) (nl2api_eval_batch_tests_total)",
-          "legendFormat": "{{category}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Tests by Category",
-      "type": "piechart"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "auto",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 15 },
-      "id": 12,
-      "options": {
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
-      },
-      "pluginVersion": "10.3.1",
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[5m])) by (le, category))",
-          "legendFormat": "{{category}}",
-          "refId": "A"
-        }
-      ],
-      "title": "P95 Duration by Category",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 23 },
-      "id": 13,
-      "panels": [],
-      "title": "Stage Results",
-      "type": "row"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
+            "drawStyle": "bars",
             "fillOpacity": 80,
             "gradientMode": "none",
             "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
             "lineWidth": 1,
+            "pointSize": 5,
             "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" },
             "thresholdsStyle": { "mode": "off" }
           },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "critical" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "warning" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] }
+        ]
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
-      "id": 14,
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 37 },
+      "id": 44,
       "options": {
-        "barRadius": 0,
-        "barWidth": 0.6,
-        "fullHighlight": false,
-        "groupWidth": 0.7,
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "orientation": "auto",
-        "showValue": "auto",
-        "stacking": "none",
-        "tooltip": { "mode": "single", "sort": "none" },
-        "xTickLabelRotation": 0,
-        "xTickLabelSpacing": 0
+        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        {
-          "expr": "sum by (stage) (nl2api_eval_stage_passed_total)",
-          "legendFormat": "{{stage}} Passed",
-          "refId": "A"
-        },
-        {
-          "expr": "sum by (stage) (nl2api_eval_stage_failed_total)",
-          "legendFormat": "{{stage}} Failed",
-          "refId": "B"
-        }
+        { "expr": "sum by (severity) (rate(nl2api_regression_alerts_total[5m]))", "legendFormat": "{{severity}}", "refId": "A" }
       ],
-      "title": "Results by Stage",
-      "type": "barchart"
+      "title": "Alerts Over Time",
+      "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -497,8 +855,8 @@
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
+            "drawStyle": "bars",
+            "fillOpacity": 80,
             "gradientMode": "none",
             "hideFrom": { "legend": false, "tooltip": false, "viz": false },
             "insertNulls": false,
@@ -506,52 +864,94 @@
             "lineWidth": 1,
             "pointSize": 5,
             "scaleDistribution": { "type": "linear" },
-            "showPoints": "auto",
+            "showPoints": "never",
             "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
+            "stacking": { "group": "A", "mode": "normal" },
             "thresholdsStyle": { "mode": "off" }
           },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [{ "color": "green", "value": null }]
-          },
-          "unit": "s"
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
-      "id": 15,
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 41 },
+      "id": 45,
       "options": {
-        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "single", "sort": "none" }
+        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        {
-          "expr": "histogram_quantile(0.5, sum(rate(nl2api_eval_batch_duration_seconds_bucket[1h])) by (le))",
-          "legendFormat": "P50 Batch Duration",
-          "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(nl2api_eval_batch_duration_seconds_bucket[1h])) by (le))",
-          "legendFormat": "P95 Batch Duration",
-          "refId": "B"
-        }
+        { "expr": "sum by (metric_name) (rate(nl2api_regression_alerts_total[5m]))", "legendFormat": "{{metric_name}}", "refId": "A" }
       ],
-      "title": "Batch Duration Over Time",
+      "title": "Alerts by Metric",
       "type": "timeseries"
     }
   ],
   "refresh": "30s",
   "schemaVersion": 39,
   "tags": ["nl2api", "evaluation"],
-  "templating": { "list": [] },
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(nl2api_eval_batch_tests_total, client_type)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Client Type",
+        "multi": true,
+        "name": "client_type",
+        "options": [],
+        "query": { "query": "label_values(nl2api_eval_batch_tests_total, client_type)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(nl2api_eval_batch_tests_total{client_type=~\"$client_type\"}, client_version)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Client Version",
+        "multi": true,
+        "name": "client_version",
+        "options": [],
+        "query": { "query": "label_values(nl2api_eval_batch_tests_total{client_type=~\"$client_type\"}, client_version)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values(nl2api_eval_batch_tests_total, eval_mode)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Eval Mode",
+        "multi": true,
+        "name": "eval_mode",
+        "options": [],
+        "query": { "query": "label_values(nl2api_eval_batch_tests_total, eval_mode)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
   "time": { "from": "now-3h", "to": "now" },
   "timepicker": {},
   "timezone": "",
   "title": "NL2API Overview",
   "uid": "nl2api-overview",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

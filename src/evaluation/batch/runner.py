@@ -30,6 +30,8 @@ from rich.table import Table
 
 from CONTRACTS import (
     BatchJob,
+    EvaluationConfig,
+    LLMJudgeConfig,
     Scorecard,
     SystemResponse,
     TaskStatus,
@@ -105,7 +107,26 @@ class BatchRunner:
         self.scorecard_repo = scorecard_repo
         self.batch_repo = batch_repo
         self.config = config or BatchRunnerConfig()
-        self.evaluator = WaterfallEvaluator()
+
+        # Build evaluation config based on batch runner config
+        eval_config = EvaluationConfig(
+            semantics_stage_enabled=self.config.semantics_enabled,
+        )
+
+        # Build LLM judge config if semantics is enabled
+        llm_judge_config = None
+        if self.config.semantics_enabled:
+            llm_judge_kwargs = {
+                "pass_threshold": self.config.semantics_pass_threshold,
+            }
+            if self.config.semantics_model:
+                llm_judge_kwargs["model"] = self.config.semantics_model
+            llm_judge_config = LLMJudgeConfig(**llm_judge_kwargs)
+
+        self.evaluator = WaterfallEvaluator(
+            config=eval_config,
+            llm_judge_config=llm_judge_config,
+        )
         self.semaphore = asyncio.Semaphore(self.config.max_concurrency)
         self.metrics = get_metrics()
 
@@ -163,7 +184,13 @@ class BatchRunner:
             console.print(f"\n[bold]Running batch evaluation...[/bold]")
             console.print(f"  Batch ID: [cyan]{batch_job.batch_id}[/cyan]")
             console.print(f"  Test cases: {len(test_cases)}")
-            console.print(f"  Concurrency: {self.config.max_concurrency}\n")
+            console.print(f"  Concurrency: {self.config.max_concurrency}")
+            console.print(f"  Client: [cyan]{self.config.client_type}[/cyan]", end="")
+            if self.config.client_version:
+                console.print(f" / [cyan]{self.config.client_version}[/cyan]")
+            else:
+                console.print()
+            console.print(f"  Eval mode: [cyan]{self.config.eval_mode}[/cyan]\n")
 
         # Track results
         passed_count = 0
@@ -253,7 +280,13 @@ class BatchRunner:
         await self.batch_repo.update(completed_batch)
 
         # Record batch completion metrics
-        self.metrics.record_batch_complete(completed_batch, duration_seconds)
+        self.metrics.record_batch_complete(
+            completed_batch,
+            duration_seconds,
+            client_type=self.config.client_type,
+            client_version=self.config.client_version,
+            eval_mode=self.config.eval_mode,
+        )
 
         # Display results
         if self.config.show_progress:
@@ -294,14 +327,41 @@ class BatchRunner:
                 worker_id=f"batch-{batch_id[:8]}",
             )
 
-            # Update scorecard with batch_id
-            scorecard = scorecard.model_copy(update={"batch_id": batch_id})
+            # Extract token usage from response
+            input_tokens = response.input_tokens
+            output_tokens = response.output_tokens
 
-            # Record metrics
+            # Calculate estimated cost (Claude pricing as default)
+            estimated_cost = None
+            if input_tokens is not None and output_tokens is not None:
+                # Default to Claude Sonnet 3.5 pricing: $3/$15 per 1M tokens
+                # Can be overridden based on client_version
+                input_cost_per_million = 3.0
+                output_cost_per_million = 15.0
+                estimated_cost = (
+                    (input_tokens / 1_000_000) * input_cost_per_million +
+                    (output_tokens / 1_000_000) * output_cost_per_million
+                )
+
+            # Update scorecard with batch_id and client tracking info
+            scorecard = scorecard.model_copy(update={
+                "batch_id": batch_id,
+                "client_type": self.config.client_type,
+                "client_version": self.config.client_version,
+                "eval_mode": self.config.eval_mode,
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "estimated_cost_usd": estimated_cost,
+            })
+
+            # Record metrics with client dimensions
             self.metrics.record_test_result(
                 scorecard,
                 batch_id,
                 list(test_case.metadata.tags) if test_case.metadata.tags else None,
+                client_type=self.config.client_type,
+                client_version=self.config.client_version,
+                eval_mode=self.config.eval_mode,
             )
 
             # Save scorecard
@@ -343,12 +403,23 @@ class BatchRunner:
             else 0.0
         )
 
+        # Calculate token and cost totals
+        total_input_tokens = sum(sc.input_tokens or 0 for sc in scorecards)
+        total_output_tokens = sum(sc.output_tokens or 0 for sc in scorecards)
+        total_cost = sum(sc.estimated_cost_usd or 0.0 for sc in scorecards)
+
         table.add_row("Total", str(total))
         table.add_row("Passed", f"[green]{passed}[/green]")
         table.add_row("Failed", f"[red]{failed}[/red]" if failed > 0 else "0")
         table.add_row("Pass Rate", f"{pass_rate:.1f}%")
         table.add_row("Avg Score", f"{avg_score:.2f}")
         table.add_row("Duration", f"{duration_seconds:.1f}s")
+
+        # Only show token/cost info if tokens were tracked
+        if total_input_tokens > 0 or total_output_tokens > 0:
+            table.add_row("Input Tokens", f"{total_input_tokens:,}")
+            table.add_row("Output Tokens", f"{total_output_tokens:,}")
+            table.add_row("Est. Cost", f"${total_cost:.4f}")
 
         console.print(table)
         console.print()

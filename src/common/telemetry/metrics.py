@@ -224,11 +224,28 @@ class EvalMetrics:
             unit="1",
         )
 
+        # Token usage metrics
+        self._tokens_total = self._meter.create_counter(
+            name="eval_tokens_total",
+            description="Total tokens used in evaluations",
+            unit="1",
+        )
+
+        # Cost metrics
+        self._cost_total = self._meter.create_counter(
+            name="eval_cost_usd_total",
+            description="Estimated cost of evaluations in USD (scaled by 1M for precision)",
+            unit="1",
+        )
+
     def record_test_result(
         self,
         scorecard: "Scorecard",
         batch_id: str,
         tags: list[str] | None = None,
+        client_type: str | None = None,
+        client_version: str | None = None,
+        eval_mode: str | None = None,
     ) -> None:
         """
         Record metrics for a single test result.
@@ -237,6 +254,9 @@ class EvalMetrics:
             scorecard: The scorecard from evaluation
             batch_id: Batch identifier for grouping
             tags: Optional tags for filtering
+            client_type: Client type for multi-client tracking
+            client_version: Client version for multi-client tracking
+            eval_mode: Evaluation mode
         """
         if not self._enabled:
             return
@@ -245,6 +265,14 @@ class EvalMetrics:
             attrs: dict[str, Any] = {"batch_id": batch_id}
             if tags:
                 attrs["tags"] = ",".join(tags)
+
+            # Add client dimensions for multi-client tracking
+            if client_type:
+                attrs["client_type"] = client_type
+            if client_version:
+                attrs["client_version"] = client_version
+            if eval_mode:
+                attrs["eval_mode"] = eval_mode
 
             # Record test counts
             self._tests_total.add(1, attrs)
@@ -274,6 +302,22 @@ class EvalMetrics:
                 else:
                     self._stage_failed.add(1, stage_attrs)
 
+            # Record token usage
+            if hasattr(scorecard, "input_tokens") and scorecard.input_tokens:
+                token_attrs = {**attrs, "token_type": "input"}
+                self._tokens_total.add(scorecard.input_tokens, token_attrs)
+
+            if hasattr(scorecard, "output_tokens") and scorecard.output_tokens:
+                token_attrs = {**attrs, "token_type": "output"}
+                self._tokens_total.add(scorecard.output_tokens, token_attrs)
+
+            # Record cost (scaled by 1M for counter precision with small values)
+            if hasattr(scorecard, "estimated_cost_usd") and scorecard.estimated_cost_usd:
+                # Scale to micro-dollars (USD * 1,000,000) for counter precision
+                cost_micro_usd = int(scorecard.estimated_cost_usd * 1_000_000)
+                if cost_micro_usd > 0:
+                    self._cost_total.add(cost_micro_usd, attrs)
+
         except Exception as e:
             logger.warning(f"Failed to record eval test metrics: {e}")
 
@@ -281,6 +325,9 @@ class EvalMetrics:
         self,
         batch_job: "BatchJob",
         duration_seconds: float,
+        client_type: str | None = None,
+        client_version: str | None = None,
+        eval_mode: str | None = None,
     ) -> None:
         """
         Record metrics for batch completion.
@@ -288,6 +335,9 @@ class EvalMetrics:
         Args:
             batch_job: The completed batch job
             duration_seconds: Total batch duration
+            client_type: Client type for multi-client tracking
+            client_version: Client version for multi-client tracking
+            eval_mode: Evaluation mode
         """
         if not self._enabled:
             return
@@ -296,6 +346,14 @@ class EvalMetrics:
             attrs: dict[str, Any] = {"batch_id": batch_job.batch_id}
             if batch_job.tags:
                 attrs["tags"] = ",".join(batch_job.tags)
+
+            # Add client dimensions for multi-client tracking
+            if client_type:
+                attrs["client_type"] = client_type
+            if client_version:
+                attrs["client_version"] = client_version
+            if eval_mode:
+                attrs["eval_mode"] = eval_mode
 
             self._batch_duration.record(duration_seconds, attrs)
 
@@ -472,11 +530,109 @@ class AccuracyMetrics:
             logger.warning(f"Failed to record accuracy batch metrics: {e}")
 
 
+class RegressionAlertMetrics:
+    """
+    Metrics for regression detection alerts.
+
+    Tracks:
+    - Alert counts by severity and metric
+    - Acknowledgment counts
+    - Alert response times
+    """
+
+    def __init__(self, meter_name: str = "nl2api"):
+        """Initialize regression alert metrics."""
+        self._meter = get_meter(meter_name)
+        self._enabled = is_telemetry_enabled()
+
+        # Alert counters
+        self._alerts_total = self._meter.create_counter(
+            name="regression_alerts_total",
+            description="Total regression alerts created",
+            unit="1",
+        )
+
+        self._alerts_acknowledged = self._meter.create_counter(
+            name="regression_alerts_acknowledged_total",
+            description="Total regression alerts acknowledged",
+            unit="1",
+        )
+
+        # Alert delta (magnitude of regression)
+        self._alert_delta = self._meter.create_histogram(
+            name="regression_alert_delta_pct",
+            description="Regression delta percentage distribution",
+            unit="1",
+        )
+
+    def record_alert_created(
+        self,
+        severity: str,
+        metric_name: str,
+        delta_pct: float | None = None,
+        client_type: str | None = None,
+    ) -> None:
+        """
+        Record metrics for a new regression alert.
+
+        Args:
+            severity: Alert severity (warning, critical)
+            metric_name: Name of the metric that regressed
+            delta_pct: Percentage change (optional)
+            client_type: Client type (optional)
+        """
+        if not self._enabled:
+            return
+
+        try:
+            attrs: dict[str, Any] = {
+                "severity": severity,
+                "metric_name": metric_name,
+            }
+            if client_type:
+                attrs["client_type"] = client_type
+
+            self._alerts_total.add(1, attrs)
+
+            if delta_pct is not None:
+                self._alert_delta.record(abs(delta_pct), attrs)
+
+        except Exception as e:
+            logger.warning(f"Failed to record regression alert metrics: {e}")
+
+    def record_alert_acknowledged(
+        self,
+        severity: str,
+        metric_name: str,
+    ) -> None:
+        """
+        Record metrics for an acknowledged alert.
+
+        Args:
+            severity: Alert severity
+            metric_name: Name of the metric
+        """
+        if not self._enabled:
+            return
+
+        try:
+            attrs: dict[str, Any] = {
+                "severity": severity,
+                "metric_name": metric_name,
+            }
+
+            self._alerts_acknowledged.add(1, attrs)
+
+        except Exception as e:
+            logger.warning(f"Failed to record alert acknowledgment metrics: {e}")
+
+
 # === Global Instances ===
 
 _nl2api_metrics: NL2APIMetrics | None = None
 _eval_metrics: EvalMetrics | None = None
 _accuracy_metrics: AccuracyMetrics | None = None
+_regression_alert_metrics: RegressionAlertMetrics | None = None
 
 
 def get_nl2api_metrics() -> NL2APIMetrics:
@@ -501,3 +657,11 @@ def get_accuracy_metrics() -> AccuracyMetrics:
     if _accuracy_metrics is None:
         _accuracy_metrics = AccuracyMetrics()
     return _accuracy_metrics
+
+
+def get_regression_alert_metrics() -> RegressionAlertMetrics:
+    """Get the global regression alert metrics instance."""
+    global _regression_alert_metrics
+    if _regression_alert_metrics is None:
+        _regression_alert_metrics = RegressionAlertMetrics()
+    return _regression_alert_metrics

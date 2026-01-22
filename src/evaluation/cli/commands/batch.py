@@ -82,6 +82,26 @@ def batch_run(
         str | None,
         typer.Option("--model", help="Override LLM model (e.g., claude-3-5-haiku-20241022)"),
     ] = None,
+    client: Annotated[
+        str,
+        typer.Option("--client", help="Client type (internal, mcp_claude, mcp_chatgpt, mcp_custom)"),
+    ] = "internal",
+    client_version: Annotated[
+        str | None,
+        typer.Option("--client-version", help="Client version identifier"),
+    ] = None,
+    semantics: Annotated[
+        bool,
+        typer.Option("--semantics", help="Enable LLM-as-Judge semantic evaluation (Stage 4)"),
+    ] = False,
+    semantics_model: Annotated[
+        str | None,
+        typer.Option("--semantics-model", help="Override model for semantic evaluation"),
+    ] = None,
+    semantics_threshold: Annotated[
+        float,
+        typer.Option("--semantics-threshold", help="Minimum score to pass semantic evaluation (0.0-1.0)"),
+    ] = 0.7,
 ) -> None:
     """
     Run batch evaluation on test cases from database.
@@ -98,6 +118,12 @@ def batch_run(
       Tests query → domain routing accuracy.
     - simulated: Always returns correct answers (for pipeline testing only).
       Should NOT be used for accuracy tracking - use unit tests instead.
+
+    SEMANTICS:
+    - Use --semantics to enable LLM-as-Judge semantic evaluation (Stage 4).
+    - Requires expected_nl_response to be populated in test cases.
+    - Use --semantics-model to override the judge model (default: claude-3-5-haiku).
+    - Use --semantics-threshold to set the minimum pass score (default: 0.7).
     """
     if mode not in ("resolver", "orchestrator", "simulated", "routing"):
         console.print(f"[red]Error:[/red] Invalid mode '{mode}'.")
@@ -113,6 +139,11 @@ def batch_run(
         mode=mode,
         verbose=verbose,
         model=model,
+        client=client,
+        client_version=client_version,
+        semantics_enabled=semantics,
+        semantics_model=semantics_model,
+        semantics_threshold=semantics_threshold,
     ))
 
 
@@ -125,6 +156,8 @@ async def _batch_run_async(
     mode: str,
     verbose: bool,
     model: str | None = None,
+    client: str = "internal",
+    client_version: str | None = None,
 ) -> None:
     """Async implementation of batch run command."""
     from src.common.storage import (
@@ -225,10 +258,21 @@ async def _batch_run_async(
             response_generator = create_routing_generator(router)
             console.print(f"[green]Using LLM router ({cfg.llm_provider}/{llm_model}).[/green]\n")
 
+        # Map mode to eval_mode
+        eval_mode_map = {
+            "resolver": "resolver",
+            "orchestrator": "orchestrator",
+            "routing": "routing",
+            "simulated": "orchestrator",  # Simulated still uses orchestrator eval mode
+        }
+
         runner_config = BatchRunnerConfig(
             max_concurrency=concurrency,
             show_progress=True,
             verbose=verbose,
+            client_type=client,
+            client_version=client_version,
+            eval_mode=eval_mode_map.get(mode, "orchestrator"),
         )
 
         runner = BatchRunner(
@@ -553,6 +597,196 @@ async def _batch_list_async(limit: int) -> None:
                 passed,
                 failed,
                 batch.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            )
+
+        console.print(table)
+        console.print()
+
+    except typer.Exit:
+        raise
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(2)
+    finally:
+        try:
+            await close_repositories()
+        except Exception as e:
+            logger.warning(f"Error during cleanup: {e}")
+
+
+@batch_app.command("compare")
+def batch_compare(
+    clients: Annotated[
+        list[str],
+        typer.Option("--client", "-c", help="Client types to compare (can be repeated)"),
+    ],
+    start: Annotated[
+        str | None,
+        typer.Option("--start", help="Start date (YYYY-MM-DD)"),
+    ] = None,
+    end: Annotated[
+        str | None,
+        typer.Option("--end", help="End date (YYYY-MM-DD)"),
+    ] = None,
+) -> None:
+    """
+    Compare evaluation results across different client types.
+
+    Shows pass rate, average score, token usage, and costs for each client.
+    """
+    asyncio.run(_batch_compare_async(clients, start, end))
+
+
+async def _batch_compare_async(
+    clients: list[str],
+    start: str | None,
+    end: str | None,
+) -> None:
+    """Async implementation of batch compare command."""
+    from datetime import datetime, timezone
+
+    from src.common.storage import StorageConfig, close_repositories, create_repositories
+
+    try:
+        config = StorageConfig()
+        _, scorecard_repo, _ = await create_repositories(config)
+
+        # Parse dates
+        start_date = None
+        end_date = None
+        if start:
+            start_date = datetime.strptime(start, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+        if end:
+            end_date = datetime.strptime(end, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+
+        # Get comparison data
+        summaries = await scorecard_repo.get_comparison_summary(clients, start_date, end_date)
+
+        if not summaries:
+            console.print("[yellow]No data found for the specified clients and date range[/yellow]")
+            raise typer.Exit(0)
+
+        console.print()
+        table = Table(title="Client Comparison", show_header=True, header_style="bold")
+        table.add_column("Client", width=15)
+        table.add_column("Version", width=25)
+        table.add_column("Tests", width=8, justify="right")
+        table.add_column("Pass Rate", width=10, justify="right")
+        table.add_column("Avg Score", width=10, justify="right")
+        table.add_column("Tokens", width=12, justify="right")
+        table.add_column("Cost", width=10, justify="right")
+
+        for summary in summaries:
+            pass_rate_pct = summary["pass_rate"] * 100
+            pass_rate_str = f"{pass_rate_pct:.1f}%"
+            if pass_rate_pct >= 90:
+                pass_rate_str = f"[green]{pass_rate_str}[/green]"
+            elif pass_rate_pct < 70:
+                pass_rate_str = f"[red]{pass_rate_str}[/red]"
+
+            total_tokens = summary["total_input_tokens"] + summary["total_output_tokens"]
+
+            table.add_row(
+                summary["client_type"],
+                summary["client_version"] or "-",
+                str(summary["total_tests"]),
+                pass_rate_str,
+                f"{summary['avg_score']:.2f}",
+                f"{total_tokens:,}",
+                f"${summary['total_cost_usd']:.4f}",
+            )
+
+        console.print(table)
+        console.print()
+
+    except typer.Exit:
+        raise
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(2)
+    finally:
+        try:
+            await close_repositories()
+        except Exception as e:
+            logger.warning(f"Error during cleanup: {e}")
+
+
+@batch_app.command("trend")
+def batch_trend(
+    client: Annotated[
+        str,
+        typer.Option("--client", "-c", help="Client type to show trend for"),
+    ],
+    metric: Annotated[
+        str,
+        typer.Option("--metric", "-m", help="Metric to track (pass_rate, avg_score, avg_latency_ms, total_cost_usd)"),
+    ] = "pass_rate",
+    days: Annotated[
+        int,
+        typer.Option("--days", "-d", help="Number of days to include"),
+    ] = 30,
+) -> None:
+    """
+    Show daily trend for a specific client and metric.
+
+    Displays a table of daily values for the selected metric over time.
+    """
+    asyncio.run(_batch_trend_async(client, metric, days))
+
+
+async def _batch_trend_async(
+    client: str,
+    metric: str,
+    days: int,
+) -> None:
+    """Async implementation of batch trend command."""
+    from src.common.storage import StorageConfig, close_repositories, create_repositories
+
+    try:
+        config = StorageConfig()
+        _, scorecard_repo, _ = await create_repositories(config)
+
+        # Get trend data
+        trend_data = await scorecard_repo.get_client_trend(client, metric, days)
+
+        if not trend_data:
+            console.print(f"[yellow]No data found for client '{client}' in the last {days} days[/yellow]")
+            raise typer.Exit(0)
+
+        console.print()
+        table = Table(
+            title=f"Trend: {client} - {metric} (last {days} days)",
+            show_header=True,
+            header_style="bold"
+        )
+        table.add_column("Date", width=15)
+        table.add_column("Tests", width=10, justify="right")
+        table.add_column(metric.replace("_", " ").title(), width=15, justify="right")
+
+        for point in trend_data:
+            date_str = point["date"][:10]  # Just the date part
+            value = point["value"]
+
+            # Format value based on metric type
+            if metric == "pass_rate":
+                value_str = f"{value * 100:.1f}%"
+                if value >= 0.9:
+                    value_str = f"[green]{value_str}[/green]"
+                elif value < 0.7:
+                    value_str = f"[red]{value_str}[/red]"
+            elif metric == "avg_score":
+                value_str = f"{value:.2f}"
+            elif metric == "avg_latency_ms":
+                value_str = f"{value:.0f}ms"
+            elif metric == "total_cost_usd":
+                value_str = f"${value:.4f}"
+            else:
+                value_str = f"{value:.2f}"
+
+            table.add_row(
+                date_str,
+                str(point["total_tests"]),
+                value_str,
             )
 
         console.print(table)

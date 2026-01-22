@@ -5,20 +5,14 @@ Integration tests run against real dependencies (PostgreSQL, Redis).
 Requires: docker compose up -d
 """
 
-import pytest
-import asyncio
+import os
 from typing import AsyncGenerator
 
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create an event loop for the test session."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
+import pytest
+import pytest_asyncio
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def db_pool():
     """
     Create a database connection pool for integration tests.
@@ -26,11 +20,10 @@ async def db_pool():
     Requires PostgreSQL to be running via docker compose.
     """
     import asyncpg
-    import os
 
     database_url = os.getenv(
         "DATABASE_URL",
-        "postgresql://postgres:postgres@localhost:5432/nl2api_test"
+        "postgresql://nl2api:nl2api@localhost:5432/nl2api"
     )
 
     pool = await asyncpg.create_pool(database_url, min_size=1, max_size=5)
@@ -38,7 +31,7 @@ async def db_pool():
     await pool.close()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture(loop_scope="session")
 async def db_connection(db_pool) -> AsyncGenerator:
     """Get a database connection from the pool."""
     async with db_pool.acquire() as conn:

@@ -53,6 +53,9 @@ class BatchMetrics:
         scorecard: "Scorecard",
         batch_id: str,
         tags: list[str] | None = None,
+        client_type: str | None = None,
+        client_version: str | None = None,
+        eval_mode: str | None = None,
     ) -> None:
         """
         Record metrics for a single test result.
@@ -61,16 +64,29 @@ class BatchMetrics:
             scorecard: The scorecard from evaluation
             batch_id: Batch identifier
             tags: Optional tags for filtering
+            client_type: Client type for multi-client tracking
+            client_version: Client version for multi-client tracking
+            eval_mode: Evaluation mode
         """
         if not self.enabled or not self._eval_metrics:
             return
 
-        self._eval_metrics.record_test_result(scorecard, batch_id, tags)
+        self._eval_metrics.record_test_result(
+            scorecard,
+            batch_id,
+            tags,
+            client_type=client_type,
+            client_version=client_version,
+            eval_mode=eval_mode,
+        )
 
     def record_batch_complete(
         self,
         batch_job: "BatchJob",
         duration_seconds: float,
+        client_type: str | None = None,
+        client_version: str | None = None,
+        eval_mode: str | None = None,
     ) -> None:
         """
         Record metrics for batch completion.
@@ -78,11 +94,20 @@ class BatchMetrics:
         Args:
             batch_job: The completed batch job
             duration_seconds: Total batch duration in seconds
+            client_type: Client type for multi-client tracking
+            client_version: Client version for multi-client tracking
+            eval_mode: Evaluation mode
         """
         if not self.enabled or not self._eval_metrics:
             return
 
-        self._eval_metrics.record_batch_complete(batch_job, duration_seconds)
+        self._eval_metrics.record_batch_complete(
+            batch_job,
+            duration_seconds,
+            client_type=client_type,
+            client_version=client_version,
+            eval_mode=eval_mode,
+        )
 
 
 def setup_console_exporter() -> None:
