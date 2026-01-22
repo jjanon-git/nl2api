@@ -4,11 +4,6 @@ NL2API Orchestrator
 Main entry point for the NL2API system.
 Coordinates query classification, entity resolution, context retrieval,
 and domain agent routing. Supports multi-turn conversations.
-
-Dual-Mode Context Retrieval:
-- local: Use RAG retriever only
-- mcp: Use MCP servers only
-- hybrid: Try MCP first, fall back to RAG
 """
 
 from __future__ import annotations
@@ -24,7 +19,7 @@ from src.nl2api.clarification.detector import AmbiguityDetector
 from src.nl2api.conversation.manager import ConversationManager, ConversationStorage
 from src.nl2api.conversation.models import ConversationTurn
 from src.nl2api.llm.protocols import LLMMessage, LLMProvider, MessageRole
-from src.nl2api.mcp.context import ContextProvider, DualModeContextRetriever
+from src.nl2api.mcp.context import ContextProvider
 from src.nl2api.models import ClarificationQuestion, NL2APIResponse
 from src.nl2api.observability import RequestMetrics, emit_metrics
 from src.nl2api.rag.protocols import RAGRetriever
@@ -32,9 +27,6 @@ from src.nl2api.resolution.protocols import EntityResolver
 from src.nl2api.routing.protocols import QueryRouter
 
 if TYPE_CHECKING:
-    from src.nl2api.mcp.client import MCPClient
-    from src.nl2api.mcp.context import MCPContextRetriever
-    from src.nl2api.mcp.protocols import MCPServer
     from src.nl2api.routing.cache import RoutingCache
 
 logger = logging.getLogger(__name__)
@@ -66,12 +58,6 @@ class NL2APIOrchestrator:
         history_limit: int = 5,
         session_ttl_minutes: int = 30,
         context_retriever: ContextProvider | None = None,
-        context_mode: str = "local",
-        mcp_retriever: MCPContextRetriever | None = None,
-        mcp_fallback_enabled: bool = True,
-        mcp_client: MCPClient | None = None,
-        mcp_servers: list[MCPServer] | None = None,
-        mcp_mode: str = "local",
     ):
         """
         Initialize the orchestrator.
@@ -79,7 +65,7 @@ class NL2APIOrchestrator:
         Args:
             llm: LLM provider for classification and fallback
             agents: Dictionary of domain name to agent
-            rag: Optional RAG retriever (legacy, prefer context_retriever)
+            rag: Optional RAG retriever for field codes and examples
             entity_resolver: Optional entity resolver
             conversation_storage: Optional storage for multi-turn conversations
             ambiguity_detector: Optional detector for ambiguous queries
@@ -88,13 +74,7 @@ class NL2APIOrchestrator:
             routing_confidence_threshold: Threshold below which clarification is needed
             history_limit: Maximum conversation turns to keep in context
             session_ttl_minutes: Session timeout in minutes
-            context_retriever: Optional context provider (overrides rag/mcp setup)
-            context_mode: Mode for context retrieval ("local", "mcp", "hybrid")
-            mcp_retriever: Optional MCP context retriever for dual-mode
-            mcp_fallback_enabled: In hybrid mode, fall back to RAG if MCP fails
-            mcp_client: Optional MCP client for tool provider discovery
-            mcp_servers: Optional list of MCP servers for tool providers
-            mcp_mode: Mode for routing ("local", "mcp", "hybrid")
+            context_retriever: Optional context provider (overrides rag)
         """
         # Validate protocol conformance for required parameters
         if not isinstance(llm, LLMProvider):
@@ -151,32 +131,14 @@ class NL2APIOrchestrator:
             session_ttl_minutes=session_ttl_minutes,
         )
 
-        # Initialize context retriever (dual-mode support)
+        # Context retriever: use provided or fall back to RAG wrapper
         self._context_retriever = context_retriever
-        if self._context_retriever is None and (rag or mcp_retriever):
-            # Create DualModeContextRetriever from individual retrievers
-            self._context_retriever = self._create_context_retriever(
-                rag=rag,
-                mcp_retriever=mcp_retriever,
-                mode=context_mode,
-                fallback_enabled=mcp_fallback_enabled,
-            )
 
-        # Store MCP configuration for dual-mode routing
-        self._mcp_client = mcp_client
-        self._mcp_servers = mcp_servers or []
-        self._mcp_mode = mcp_mode
-        self._mcp_fallback_enabled = mcp_fallback_enabled
-
-        # Initialize router (may be created lazily for async MCP setup)
+        # Initialize router (create default if not provided)
         self._router = router
         self._routing_cache = routing_cache
-        self._router_initialized = router is not None
-
-        # For local mode, create router synchronously
-        if self._router is None and mcp_mode == "local":
-            self._router = self._create_default_router_sync()
-            self._router_initialized = True
+        if self._router is None:
+            self._router = self._create_default_router()
 
     async def process(
         self,
@@ -196,11 +158,6 @@ class NL2APIOrchestrator:
             NL2APIResponse with tool calls or clarification request
         """
         start_time = time.perf_counter()
-
-        # Lazy init router for MCP/hybrid modes (requires async)
-        if not self._router_initialized:
-            self._router = await self._create_default_router_async()
-            self._router_initialized = True
 
         # Initialize metrics collection
         metrics = RequestMetrics(query=query, session_id=session_id)
@@ -269,11 +226,24 @@ class NL2APIOrchestrator:
 
                 # Check if confidence is too low
                 if confidence < self._routing_confidence_threshold or domain not in self._agents:
+                    processing_time_ms = int((time.perf_counter() - start_time) * 1000)
+                    turn_number = session.total_turns + 1
                     metrics.set_clarification("domain")
-                    metrics.finalize(int((time.perf_counter() - start_time) * 1000))
+                    metrics.finalize(processing_time_ms)
                     root_span.set_attribute("clarification.type", "domain")
-                    root_span.set_attribute("total_latency_ms", int((time.perf_counter() - start_time) * 1000))
+                    root_span.set_attribute("total_latency_ms", processing_time_ms)
                     await self._emit_metrics_safe(metrics)
+
+                    # Save turn even when clarification is needed (preserves context for next turn)
+                    turn = ConversationTurn(
+                        turn_number=turn_number,
+                        user_query=query,
+                        expanded_query=effective_query if effective_query != query else None,
+                        needs_clarification=True,
+                        clarification_questions=("domain",),
+                        processing_time_ms=processing_time_ms,
+                    )
+                    await self._conversation_manager.add_turn(session, turn)
 
                     return NL2APIResponse(
                         needs_clarification=True,
@@ -285,8 +255,8 @@ class NL2APIOrchestrator:
                             ),
                         ),
                         session_id=str(session.id),
-                        turn_number=session.total_turns + 1,
-                        processing_time_ms=int((time.perf_counter() - start_time) * 1000),
+                        turn_number=turn_number,
+                        processing_time_ms=processing_time_ms,
                     )
 
                 # Step 3: Resolve entities (company names to RICs)
@@ -322,13 +292,30 @@ class NL2APIOrchestrator:
                     )
                     ambiguity_span.set_attribute("ambiguity.is_ambiguous", ambiguity_analysis.is_ambiguous)
                     if ambiguity_analysis.is_ambiguous:
+                        processing_time_ms = int((time.perf_counter() - start_time) * 1000)
+                        turn_number = session.total_turns + 1
                         ambiguity_span.set_attribute("ambiguity.types", list(ambiguity_analysis.ambiguity_types))
                         logger.info(f"Query is ambiguous: {ambiguity_analysis.ambiguity_types}")
                         metrics.set_clarification("ambiguity")
-                        metrics.finalize(int((time.perf_counter() - start_time) * 1000))
+                        metrics.finalize(processing_time_ms)
                         root_span.set_attribute("clarification.type", "ambiguity")
-                        root_span.set_attribute("total_latency_ms", int((time.perf_counter() - start_time) * 1000))
+                        root_span.set_attribute("total_latency_ms", processing_time_ms)
                         await self._emit_metrics_safe(metrics)
+
+                        # Save turn even when clarification is needed (preserves context for next turn)
+                        turn = ConversationTurn(
+                            turn_number=turn_number,
+                            user_query=query,
+                            expanded_query=effective_query if effective_query != query else None,
+                            needs_clarification=True,
+                            clarification_questions=tuple(
+                                q.question for q in ambiguity_analysis.clarification_questions
+                            ),
+                            domain=domain,
+                            resolved_entities=merged_entities,
+                            processing_time_ms=processing_time_ms,
+                        )
+                        await self._conversation_manager.add_turn(session, turn)
 
                         return NL2APIResponse(
                             needs_clarification=True,
@@ -336,8 +323,8 @@ class NL2APIOrchestrator:
                             domain=domain,
                             resolved_entities=merged_entities,
                             session_id=str(session.id),
-                            turn_number=session.total_turns + 1,
-                            processing_time_ms=int((time.perf_counter() - start_time) * 1000),
+                            turn_number=turn_number,
+                            processing_time_ms=processing_time_ms,
                         )
 
                 # Step 5: Retrieve context (dual-mode: RAG or MCP)
@@ -504,11 +491,9 @@ class NL2APIOrchestrator:
         except Exception as e:
             logger.warning(f"Failed to emit metrics: {e}")
 
-    def _create_default_router_sync(self) -> QueryRouter:
+    def _create_default_router(self) -> QueryRouter:
         """
-        Create the default LLMToolRouter synchronously.
-
-        Called when mcp_mode='local' and no router is provided to __init__.
+        Create the default LLMToolRouter.
 
         IMPORTANT: Uses the injected LLM provider directly. If you need a different
         model for routing (e.g., Haiku for cost savings), create the router externally
@@ -524,51 +509,6 @@ class NL2APIOrchestrator:
             for agent in self._agents.values()
         ]
 
-        # Use the injected LLM directly - don't create a new one from config
-        # This ensures we use the same credentials that were passed to __init__
-        return LLMToolRouter(
-            llm=self._llm,
-            tool_providers=providers,
-            cache=self._routing_cache,
-        )
-
-    async def _create_default_router_async(self) -> QueryRouter:
-        """
-        Create the default LLMToolRouter asynchronously with MCP support.
-
-        Called when mcp_mode='mcp' or 'hybrid' and no router is provided.
-        Uses create_dual_mode_providers() to support both local agents and
-        MCP servers as tool providers.
-
-        IMPORTANT: Uses the injected LLM provider directly. If you need a different
-        model for routing (e.g., Haiku for cost savings), create the router externally
-        and pass it to __init__. This avoids hidden dependencies on environment
-        variables like NL2API_ANTHROPIC_API_KEY.
-        """
-        from src.nl2api.routing.llm_router import LLMToolRouter
-        from src.nl2api.routing.providers import create_dual_mode_providers
-
-        # Create providers based on mcp_mode
-        providers = await create_dual_mode_providers(
-            agents=self._agents,
-            mcp_client=self._mcp_client,
-            mcp_servers=self._mcp_servers,
-            mode=self._mcp_mode,
-        )
-
-        # Fallback to local-only if no providers created and fallback enabled
-        if not providers and self._mcp_fallback_enabled:
-            logger.warning(
-                f"No providers created for mcp_mode={self._mcp_mode}, "
-                "falling back to local agents"
-            )
-            from src.nl2api.routing.providers import AgentToolProvider
-            providers = [
-                AgentToolProvider(agent)
-                for agent in self._agents.values()
-            ]
-
-        # Use the injected LLM directly
         return LLMToolRouter(
             llm=self._llm,
             tool_providers=providers,
@@ -696,37 +636,6 @@ If you cannot determine the domain, respond with "unknown".
         """Return list of available domain names."""
         return list(self._agents.keys())
 
-    def _create_context_retriever(
-        self,
-        rag: RAGRetriever | None,
-        mcp_retriever: MCPContextRetriever | None,
-        mode: str,
-        fallback_enabled: bool,
-    ) -> DualModeContextRetriever:
-        """
-        Create a DualModeContextRetriever from individual retrievers.
-
-        Args:
-            rag: Optional RAG retriever
-            mcp_retriever: Optional MCP context retriever
-            mode: Context mode ("local", "mcp", "hybrid")
-            fallback_enabled: Whether to fall back to RAG in hybrid mode
-
-        Returns:
-            Configured DualModeContextRetriever
-        """
-        # Wrap RAG retriever to match ContextProvider protocol
-        rag_wrapper = None
-        if rag:
-            rag_wrapper = _RAGContextAdapter(rag)
-
-        return DualModeContextRetriever(
-            rag_retriever=rag_wrapper,
-            mcp_retriever=mcp_retriever,
-            mode=mode,
-            fallback_enabled=fallback_enabled,
-        )
-
     async def _retrieve_context(
         self,
         query: str,
@@ -735,8 +644,8 @@ If you cannot determine the domain, respond with "unknown".
         """
         Retrieve field codes and query examples for context.
 
-        Uses the configured context retriever (DualModeContextRetriever)
-        which can source from RAG, MCP, or both depending on mode.
+        Uses the configured context retriever if available, otherwise
+        falls back to direct RAG retrieval.
 
         Args:
             query: User's natural language query
@@ -801,57 +710,3 @@ If you cannot determine the domain, respond with "unknown".
                 logger.warning(f"RAG retrieval failed: {e}")
 
         return field_codes, query_examples
-
-
-class _RAGContextAdapter:
-    """
-    Adapter to make RAGRetriever compatible with ContextProvider protocol.
-
-    This allows the DualModeContextRetriever to use the existing RAG
-    infrastructure without changes.
-    """
-
-    def __init__(self, rag: RAGRetriever):
-        self._rag = rag
-
-    async def get_field_codes(
-        self,
-        query: str,
-        domain: str,
-        limit: int = 5,
-    ) -> list[dict[str, Any]]:
-        """Retrieve field codes via RAG and convert to dict format."""
-        results = await self._rag.retrieve_field_codes(
-            query=query,
-            domain=domain,
-            limit=limit,
-        )
-        return [
-            {
-                "code": r.field_code,
-                "description": r.content,
-                "source": "rag",
-            }
-            for r in results
-        ]
-
-    async def get_query_examples(
-        self,
-        query: str,
-        domain: str,
-        limit: int = 3,
-    ) -> list[dict[str, Any]]:
-        """Retrieve query examples via RAG and convert to dict format."""
-        results = await self._rag.retrieve_examples(
-            query=query,
-            domain=domain,
-            limit=limit,
-        )
-        return [
-            {
-                "query": r.example_query,
-                "api_call": r.example_api_call,
-                "source": "rag",
-            }
-            for r in results
-        ]

@@ -148,6 +148,8 @@ class ConversationContext:
         Returns:
             ConversationContext with extracted information
         """
+        import re
+
         recent = session.get_recent_turns(max_turns)
 
         if not recent:
@@ -157,6 +159,22 @@ class ConversationContext:
         entities = {}
         for turn in recent:
             entities.update(turn.resolved_entities)
+
+        # Fallback: extract entity names from query text if no resolved entities
+        # This handles cases where entity resolution failed but we still know the entity name
+        if not entities:
+            for turn in recent:
+                query = turn.expanded_query or turn.user_query
+                # Pattern for capitalized words that look like company names
+                # Matches: "Apple", "Microsoft", "JP Morgan"
+                cap_pattern = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b'
+                matches = re.findall(cap_pattern, query)
+                # Filter out common words and keep potential entity names
+                common_words = {"What", "How", "Show", "Get", "The", "For", "And", "Which", "When", "Where"}
+                for match in matches:
+                    if match not in common_words:
+                        # Store with placeholder RIC - the key is the entity name
+                        entities[match] = match
 
         # Collect fields from all turns
         fields = []

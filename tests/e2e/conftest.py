@@ -59,7 +59,7 @@ def llm_provider(api_key):
 
     return ClaudeProvider(
         api_key=api_key,
-        model="claude-3-5-haiku-20241022",  # Use Haiku for cost efficiency
+        model="claude-3-5-haiku-latest",  # Use Haiku for cost efficiency
     )
 
 
@@ -70,7 +70,7 @@ def routing_llm(api_key):
 
     return ClaudeProvider(
         api_key=api_key,
-        model="claude-3-5-haiku-20241022",
+        model="claude-3-5-haiku-latest",
     )
 
 

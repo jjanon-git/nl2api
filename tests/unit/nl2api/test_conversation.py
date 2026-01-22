@@ -309,6 +309,48 @@ class TestConversationContext:
         assert "What is Apple's EPS estimate?" in context.history_text
         assert "System:" in context.history_text
 
+    def test_from_session_extracts_entities_from_query_text(self) -> None:
+        """Test fallback entity extraction from query text when resolved_entities is empty.
+
+        This tests the fix for the multi-turn context bug where entity resolution
+        might fail (e.g., external API rate limit) but we still want to preserve
+        the entity name from the query text for pronoun expansion.
+        """
+        session = ConversationSession()
+
+        # Simulate a turn where entity resolution failed (resolved_entities is empty)
+        # but the query clearly mentions a company name
+        turn = ConversationTurn(
+            turn_number=1,
+            user_query="What is Microsoft's stock price?",
+            domain="datastream",
+            resolved_entities={},  # Entity resolution failed
+        )
+        session.add_turn(turn)
+
+        context = ConversationContext.from_session(session)
+
+        # Should extract "Microsoft" from the query text as a fallback
+        assert context.turn_count == 1
+        assert "Microsoft" in context.entities
+
+    def test_from_session_prefers_resolved_entities(self) -> None:
+        """Test that resolved entities take precedence over text extraction."""
+        session = ConversationSession()
+
+        turn = ConversationTurn(
+            turn_number=1,
+            user_query="What is Apple's stock price?",
+            domain="datastream",
+            resolved_entities={"Apple": "AAPL.O"},  # Proper resolution
+        )
+        session.add_turn(turn)
+
+        context = ConversationContext.from_session(session)
+
+        # Should use resolved entity with proper RIC
+        assert context.entities == {"Apple": "AAPL.O"}
+
 
 class TestQueryExpander:
     """Test suite for QueryExpander."""
