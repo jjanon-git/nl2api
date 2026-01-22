@@ -1,17 +1,19 @@
 """
 stdio Transport for Entity Resolution MCP Server
 
-Implements the stdio transport for use with Claude Desktop and other
-local MCP clients that communicate via stdin/stdout.
+Uses the official MCP SDK's stdio transport for compatibility with
+Claude Desktop and other MCP clients.
 """
 
 from __future__ import annotations
 
-import asyncio
-import json
 import logging
-import sys
 from typing import TYPE_CHECKING
+
+import anyio
+from mcp.server.stdio import stdio_server
+from mcp.shared.session import SessionMessage
+from mcp.types import JSONRPCMessage, JSONRPCRequest, JSONRPCResponse, JSONRPCError
 
 from src.mcp_servers.entity_resolution.context import (
     create_stdio_context,
@@ -24,69 +26,19 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-async def read_message() -> dict | None:
-    """
-    Read a JSON-RPC message from stdin.
-
-    Returns:
-        Parsed JSON message or None if EOF
-    """
-    loop = asyncio.get_event_loop()
-
-    try:
-        # Read line from stdin (blocking operation wrapped in executor)
-        line = await loop.run_in_executor(None, sys.stdin.readline)
-
-        logger.debug(f"Read line from stdin: {repr(line)[:100]}")
-
-        if not line:
-            logger.debug("Empty line received (EOF)")
-            return None
-
-        stripped = line.strip()
-        if not stripped:
-            # Empty line (just whitespace), skip and read next
-            logger.debug("Whitespace-only line, reading next")
-            return await read_message()
-
-        return json.loads(stripped)
-    except json.JSONDecodeError as e:
-        logger.error(f"Invalid JSON received: {e}, line was: {repr(line)[:100]}")
-        return None
-    except Exception as e:
-        logger.error(f"Error reading message: {e}")
-        return None
-
-
-def write_message(message: dict) -> None:
-    """
-    Write a JSON-RPC message to stdout.
-
-    Args:
-        message: Message to write
-    """
-    try:
-        line = json.dumps(message)
-        sys.stdout.write(line + "\n")
-        sys.stdout.flush()
-    except Exception as e:
-        logger.error(f"Error writing message: {e}")
-
-
 async def run_stdio_server(server: "EntityResolutionMCPServer") -> None:
     """
     Run the MCP server using stdio transport.
 
-    Reads JSON-RPC messages from stdin and writes responses to stdout.
-    Used by Claude Desktop and other local MCP clients.
+    Uses the official MCP SDK's stdio_server for proper async I/O handling,
+    ensuring compatibility with Claude Desktop.
 
     Args:
         server: The MCP server instance to run
     """
-    logger.info("Starting stdio transport")
+    logger.info("Starting stdio transport (using MCP SDK)")
 
     # Set up client context for this stdio session
-    # (single client per process, session persists for duration)
     ctx = create_stdio_context()
     set_client_context(ctx)
     logger.info(f"Client context: session_id={ctx.session_id}, transport=stdio")
@@ -95,23 +47,67 @@ async def run_stdio_server(server: "EntityResolutionMCPServer") -> None:
         # Initialize server
         await server.initialize()
 
-        # Message loop
-        while True:
-            message = await read_message()
+        # Use the official MCP SDK's stdio transport
+        async with stdio_server() as (read_stream, write_stream):
+            logger.debug("stdio transport connected")
 
-            if message is None:
-                logger.info("EOF received, shutting down")
-                break
+            async for session_message in read_stream:
+                # Handle exceptions from the read stream
+                if isinstance(session_message, Exception):
+                    logger.error(f"Error from read stream: {session_message}")
+                    continue
 
-            logger.debug(f"Received message: {message.get('method', 'unknown')}")
+                # Extract the JSON-RPC message
+                message = session_message.message
 
-            # Handle the message
-            response = await server.handle_message(message)
+                # Convert to dict for our handler
+                if isinstance(message, JSONRPCRequest):
+                    method = message.method
+                    params = message.params.model_dump() if message.params else {}
+                    request_id = message.id if hasattr(message, 'id') else None
 
-            # Write response (unless it's a notification with no response)
-            if response is not None:
-                write_message(response)
+                    logger.debug(f"Received request: {method} (id={request_id})")
 
+                    message_dict = {
+                        "jsonrpc": "2.0",
+                        "method": method,
+                        "params": params,
+                    }
+                    if request_id is not None:
+                        message_dict["id"] = request_id
+                else:
+                    # Handle other message types (notifications, etc.)
+                    message_dict = message.model_dump()
+                    logger.debug(f"Received message: {message_dict.get('method', 'unknown')}")
+
+                # Handle the message with our server
+                response = await server.handle_message(message_dict)
+
+                # Send response (unless it's a notification - None response)
+                if response is not None:
+                    # Convert response dict to JSONRPCMessage
+                    if "error" in response:
+                        rpc_response = JSONRPCMessage(
+                            JSONRPCError(
+                                jsonrpc="2.0",
+                                id=response.get("id"),
+                                error=response["error"],
+                            )
+                        )
+                    else:
+                        rpc_response = JSONRPCMessage(
+                            JSONRPCResponse(
+                                jsonrpc="2.0",
+                                id=response.get("id"),
+                                result=response.get("result", {}),
+                            )
+                        )
+
+                    await write_stream.send(SessionMessage(rpc_response.root))
+                    logger.debug(f"Sent response for id={response.get('id')}")
+
+    except anyio.ClosedResourceError:
+        logger.info("Client disconnected")
     except KeyboardInterrupt:
         logger.info("Keyboard interrupt, shutting down")
     except Exception as e:

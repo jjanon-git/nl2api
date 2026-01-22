@@ -865,65 +865,11 @@ class TestJsonRpcMessageHandling:
 # =============================================================================
 
 
-class TestStdioTransportHelpers:
-    """Tests for stdio transport helper functions."""
-
-    def test_write_message(self, capsys: pytest.CaptureFixture) -> None:
-        """Test write_message writes JSON to stdout."""
-        from src.mcp_servers.entity_resolution.transports.stdio import write_message
-
-        test_message = {"jsonrpc": "2.0", "id": 1, "result": {}}
-        write_message(test_message)
-
-        captured = capsys.readouterr()
-        assert captured.out.strip() == '{"jsonrpc": "2.0", "id": 1, "result": {}}'
-
-    @pytest.mark.asyncio
-    async def test_read_message_valid_json(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test read_message parses valid JSON."""
-        from io import StringIO
-
-        from src.mcp_servers.entity_resolution.transports.stdio import read_message
-
-        test_input = '{"jsonrpc": "2.0", "id": 1, "method": "ping"}\n'
-        monkeypatch.setattr("sys.stdin", StringIO(test_input))
-
-        message = await read_message()
-
-        assert message == {"jsonrpc": "2.0", "id": 1, "method": "ping"}
-
-    @pytest.mark.asyncio
-    async def test_read_message_eof(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Test read_message returns None on EOF."""
-        from io import StringIO
-
-        from src.mcp_servers.entity_resolution.transports.stdio import read_message
-
-        monkeypatch.setattr("sys.stdin", StringIO(""))
-
-        message = await read_message()
-
-        assert message is None
-
-    @pytest.mark.asyncio
-    async def test_read_message_invalid_json(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Test read_message returns None for invalid JSON."""
-        from io import StringIO
-
-        from src.mcp_servers.entity_resolution.transports.stdio import read_message
-
-        monkeypatch.setattr("sys.stdin", StringIO("not valid json\n"))
-
-        message = await read_message()
-
-        assert message is None
-
-
 # =============================================================================
 # SSE Transport Helper Tests
 # =============================================================================
+# Note: stdio transport tests removed - now using official MCP SDK's stdio_server
+# which handles all I/O internally. The SDK is well-tested upstream.
 
 
 class TestSSETransportHelpers:
