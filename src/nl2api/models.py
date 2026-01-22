@@ -53,6 +53,10 @@ class NL2APIResponse:
     tokens_used: int = 0
     processing_time_ms: int = 0
 
+    # Token tracking (for cost calculation)
+    input_tokens: int = 0
+    output_tokens: int = 0
+
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         result: dict[str, Any] = {

@@ -391,6 +391,8 @@ class NL2APIOrchestrator:
                         raw_llm_response=result.raw_llm_response,
                         tokens_used=result.tokens_used,
                         processing_time_ms=processing_time_ms,
+                        input_tokens=result.tokens_prompt,
+                        output_tokens=result.tokens_completion,
                     )
 
                 # Set successful output metrics
@@ -425,6 +427,8 @@ class NL2APIOrchestrator:
                     raw_llm_response=result.raw_llm_response,
                     tokens_used=result.tokens_used,
                     processing_time_ms=processing_time_ms,
+                    input_tokens=result.tokens_prompt,
+                    output_tokens=result.tokens_completion,
                 )
 
             except Exception as e:

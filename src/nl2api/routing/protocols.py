@@ -30,6 +30,10 @@ class RouterResult:
     latency_ms: int = 0
     model_used: str | None = None  # For escalation tracking
 
+    # Token tracking for cost calculation
+    input_tokens: int = 0
+    output_tokens: int = 0
+
 
 @runtime_checkable
 class QueryRouter(Protocol):

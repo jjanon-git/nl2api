@@ -243,6 +243,15 @@ class LLMToolRouter:
         """
         latency_ms = int((time.perf_counter() - start_time) * 1000)
 
+        # Extract token usage from response
+        # LLM providers may use different key names: prompt_tokens/completion_tokens
+        # or input_tokens/output_tokens
+        input_tokens = 0
+        output_tokens = 0
+        if hasattr(response, 'usage') and response.usage:
+            input_tokens = response.usage.get("input_tokens") or response.usage.get("prompt_tokens", 0)
+            output_tokens = response.usage.get("output_tokens") or response.usage.get("completion_tokens", 0)
+
         if response.has_tool_calls:
             tool_call = response.tool_calls[0]
             tool_name = tool_call.name
@@ -264,6 +273,8 @@ class LLMToolRouter:
                         reasoning=reasoning,
                         latency_ms=latency_ms,
                         model_used=self._llm.model_name,
+                        input_tokens=input_tokens,
+                        output_tokens=output_tokens,
                     )
 
             logger.warning(f"Unknown routing tool selected: {tool_name}")
@@ -283,6 +294,8 @@ class LLMToolRouter:
                         reasoning="Parsed from response content (no tool call)",
                         latency_ms=latency_ms,
                         model_used=self._llm.model_name,
+                        input_tokens=input_tokens,
+                        output_tokens=output_tokens,
                     )
 
         # No valid routing found
@@ -293,6 +306,8 @@ class LLMToolRouter:
             reasoning="LLM did not select a routing tool",
             latency_ms=latency_ms,
             model_used=self._llm.model_name,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
         )
 
     def _format_context(self, context: dict[str, Any]) -> str:
