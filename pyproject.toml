@@ -107,6 +107,12 @@ packages = ["src"]
 testpaths = ["tests"]
 asyncio_mode = "auto"
 addopts = "-v"
+filterwarnings = [
+    # Ignore PytestCollectionWarning for data model classes named Test*
+    "ignore:cannot collect test class 'TestCase':pytest.PytestCollectionWarning",
+    "ignore:cannot collect test class 'TestCaseMetadata':pytest.PytestCollectionWarning",
+    "ignore:cannot collect test class 'TestCaseStatus':pytest.PytestCollectionWarning",
+]
 
 [tool.ruff]
 line-length = 100

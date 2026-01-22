@@ -7,7 +7,7 @@ Data models for multi-turn conversation tracking.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -41,7 +41,7 @@ class ConversationTurn:
 
     # Metadata
     processing_time_ms: int = 0
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def get_entities(self) -> dict[str, str]:
         """Get resolved entities from this turn."""
@@ -67,8 +67,8 @@ class ConversationSession:
 
     id: UUID = field(default_factory=uuid4)
     user_id: str | None = None
-    started_at: datetime = field(default_factory=datetime.utcnow)
-    last_activity_at: datetime = field(default_factory=datetime.utcnow)
+    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    last_activity_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     is_active: bool = True
 
     turns: list[ConversationTurn] = field(default_factory=list)
@@ -78,7 +78,7 @@ class ConversationSession:
     def add_turn(self, turn: ConversationTurn) -> None:
         """Add a turn to the conversation."""
         self.turns.append(turn)
-        self.last_activity_at = datetime.utcnow()
+        self.last_activity_at = datetime.now(timezone.utc)
 
     def get_last_turn(self) -> ConversationTurn | None:
         """Get the most recent turn."""

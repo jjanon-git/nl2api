@@ -11,7 +11,7 @@ Manages multi-turn conversations including:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol, runtime_checkable
 from uuid import UUID, uuid4
 
@@ -89,7 +89,7 @@ class InMemoryConversationStorage:
         self,
         inactive_threshold: timedelta,
     ) -> int:
-        cutoff = datetime.utcnow() - inactive_threshold
+        cutoff = datetime.now(timezone.utc) - inactive_threshold
         expired = 0
         for session in self._sessions.values():
             if session.is_active and session.last_activity_at < cutoff:
@@ -315,7 +315,7 @@ class ConversationManager:
         if not session.is_active:
             return True
 
-        age = datetime.utcnow() - session.last_activity_at
+        age = datetime.now(timezone.utc) - session.last_activity_at
         return age > self._session_ttl
 
     def build_history_prompt(

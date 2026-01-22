@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -493,7 +493,7 @@ class TestInMemoryConversationStorage:
         # Create an active session
         session = ConversationSession()
         # Manually set old activity time
-        old_time = datetime.utcnow() - timedelta(hours=2)
+        old_time = datetime.now(timezone.utc) - timedelta(hours=2)
         session.last_activity_at = old_time
 
         await self.storage.save_session(session)
@@ -647,7 +647,7 @@ class TestConversationManager:
         """Test cleaning up expired sessions."""
         # Create a session with old activity time
         session = await self.manager.create_session()
-        session.last_activity_at = datetime.utcnow() - timedelta(hours=2)
+        session.last_activity_at = datetime.now(timezone.utc) - timedelta(hours=2)
 
         # Create manager with short TTL
         manager = ConversationManager(session_ttl_minutes=1)

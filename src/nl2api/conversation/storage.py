@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
@@ -187,7 +187,7 @@ class PostgresConversationStorage:
         inactive_threshold: timedelta,
     ) -> int:
         """Mark inactive sessions as expired."""
-        cutoff = datetime.utcnow() - inactive_threshold
+        cutoff = datetime.now(timezone.utc) - inactive_threshold
 
         async with self._pool.acquire() as conn:
             result = await conn.execute(
