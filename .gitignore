@@ -68,6 +68,11 @@ data/
 # Evaluation results
 routing_eval_*.json
 eval_results.json
+*_eval_results.json
 batch_*.json
 batch_*.jsonl
 claude-code-evaluation-email.txt
+
+# Checkpoint files
+*_checkpoint.json
+.*_checkpoint.json
