@@ -2,7 +2,7 @@
 
 This file tracks all planned work, technical debt, and in-flight items for the NL2API project.
 
-**Last Updated:** 2026-01-22 (Health checks, CONTRACTS.py split, security fixes)
+**Last Updated:** 2026-01-22 (Temporal handling, protocol enforcement, PII redaction)
 
 ---
 
@@ -102,9 +102,10 @@ Total: ~850ms, ~1100 tokens per request
 
 | # | Item | Rationale |
 |---|------|-----------|
-| 1 | **Multi-Client Eval Platform Phase 0** | Foundation for cross-client comparison, tool-level eval, cost tracking |
-| 2 | **Temporal Data Handling** | Blocks live API integration which blocks NL response generation testing |
-| 3 | **Continuous Evaluation Pipeline** | Enables regression detection, model upgrade tracking |
+| 1 | **Test Quality Improvements** | Critical - current tests don't validate correctness |
+| 2 | **Live API Integration** | Unblocked by temporal handling, enables real accuracy testing |
+| 3 | **Multi-Client Eval Phase 1** | Scheduled evaluation, regression detection |
+| 4 | **Orchestrator Refactor** | Tech debt - 803 line god class |
 
 ---
 
@@ -300,34 +301,58 @@ eval matrix compare --runs <id1>,<id2>
 
 ---
 
-### Temporal Evaluation Data Handling
+### Temporal Evaluation Data Handling ✅ COMPLETE
 **Created:** 2026-01-21
-**Status:** Planning Required
+**Completed:** 2026-01-22
 **Docs:** [docs/plans/temporal-eval-data.md](docs/plans/temporal-eval-data.md)
 
-Financial data changes constantly. Before live API integration, we need a strategy for:
-- Handling stale expected values (stock prices change)
-- Point-in-time vs current data queries
-- Validation approaches (exact match, range-based, semantic)
+**Solution implemented:**
+- [x] `DateResolver` - resolves relative dates (-1D, -1M, -1Y, FY0, FQ0) to absolute
+- [x] `TemporalComparator` - wraps ASTComparator with 3 validation modes:
+  - BEHAVIORAL: Accept any valid temporal expression
+  - STRUCTURAL: Normalize to absolute dates before comparison (default)
+  - DATA: Exact match required
+- [x] Integrated into `LogicEvaluator` (uses TemporalComparator when not in DATA mode)
+- [x] CLI options: `--temporal-mode`, `--evaluation-date`
+- [x] 21 unit tests covering all modes and edge cases
 
-**Blocking:** Live API integration for evaluation
+**Files:**
+- `src/evaluation/core/temporal/date_resolver.py`
+- `src/evaluation/core/temporal/comparator.py`
+- `tests/unit/evaluation/test_temporal_comparator.py`
 
-**Next steps:**
-1. Decide on validation approach (see options in plan doc)
-2. Design schema changes if needed (temporal_type, valid_as_of, tolerance fields)
-3. Implement temporal-aware validation logic
+**Usage:**
+```bash
+# Default (structural mode - normalizes dates)
+eval batch run --limit 10
+
+# Behavioral mode (accepts any valid temporal expression)
+eval batch run --temporal-mode behavioral --limit 10
+
+# With specific evaluation date
+eval batch run --evaluation-date 2026-01-15 --limit 10
+```
 
 ---
 
 ### Live API Integration for Evaluation
 **Created:** 2026-01-21
-**Status:** Blocked by temporal data handling
-**Depends on:** Temporal Evaluation Data Handling
+**Status:** Unblocked - Ready to start
+**Depends on:** ~~Temporal Evaluation Data Handling~~ ✅
 
 Connect evaluation pipeline to real LSEG APIs to:
 - Populate `expected_response` with real data
 - Enable Stage 3 (Execution) evaluation
 - Generate accurate `expected_nl_response` values
+
+**Prerequisites complete:**
+- [x] Temporal data handling (relative dates normalized before comparison)
+
+**Remaining work:**
+- [ ] LSEG API credentials and authentication
+- [ ] API client implementation for Datastream, Eikon
+- [ ] Response caching to reduce API costs
+- [ ] Rate limiting compliance
 
 ---
 
@@ -913,6 +938,8 @@ Migrate from pgvector to Azure AI Search for production scale.
 
 ### 2026-01-22
 
+- [x] **Temporal Data Handling** - `DateResolver` + `TemporalComparator` with 3 validation modes (behavioral, structural, data), integrated into LogicEvaluator, 21 tests
+- [x] **Canonical Tool Names** - Standardized tool names (get_data vs datastream_get_data) and RIC ticker format, AST comparator with tool name normalization
 - [x] **Protocol Enforcement** - All protocols have `@runtime_checkable`, NL2APIOrchestrator validates protocol conformance with isinstance checks
 - [x] **PII/Secrets Redaction** - Created `src/common/logging/sanitizer.py` with SanitizingFilter for API keys, passwords, tokens, connection strings
 - [x] **Health Checks: Liveness vs Readiness** - Added `/health` (liveness) and `/ready` (readiness) endpoints with server, database, and Redis checks for Kubernetes compatibility
