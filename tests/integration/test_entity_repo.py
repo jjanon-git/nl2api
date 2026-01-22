@@ -64,17 +64,19 @@ async def has_entity_tables(db_pool) -> bool:
 
 @pytest.fixture
 def sample_entity():
-    """Create a sample entity for testing."""
+    """Create a sample entity for testing with unique identifiers."""
     from src.common.storage.postgres.entity_repo import Entity
 
+    # Use unique test identifiers that won't conflict with production data
+    unique_suffix = uuid.uuid4().hex[:8].upper()
     return Entity(
         id=str(uuid.uuid4()),
-        primary_name="Integration Test Company Inc",
+        primary_name=f"Integration Test Company {unique_suffix} Inc",
         data_source="test",
-        lei="TEST00000000000001",
-        cik="0000000001",
-        ticker="INTG",
-        ric="INTG.N",
+        lei=f"TEST{unique_suffix}00000001",
+        cik=f"99{unique_suffix}".zfill(10),  # Normalized to 10 digits
+        ticker=f"TST{unique_suffix[:4]}",
+        ric=f"TST{unique_suffix[:4]}.N",
         exchange="NYSE",
         entity_type="company",
         entity_status="active",
@@ -92,9 +94,15 @@ def sample_entity():
 
 @pytest.fixture
 async def cleanup_test_data(db_pool):
-    """Fixture to clean up test data after each test."""
+    """Fixture to clean up test data before and after each test."""
+    # Clean up BEFORE the test to ensure no leftover data
+    async with db_pool.acquire() as conn:
+        await conn.execute(
+            "DELETE FROM entity_aliases WHERE entity_id IN (SELECT id FROM entities WHERE data_source = 'test')"
+        )
+        await conn.execute("DELETE FROM entities WHERE data_source = 'test'")
     yield
-    # Clean up all test entities and aliases
+    # Clean up AFTER the test as well
     async with db_pool.acquire() as conn:
         await conn.execute(
             "DELETE FROM entity_aliases WHERE entity_id IN (SELECT id FROM entities WHERE data_source = 'test')"
@@ -120,9 +128,9 @@ class TestEntityCRUD:
         # Retrieve by ID
         retrieved = await entity_repo.get(entity_id)
         assert retrieved is not None
-        assert retrieved.primary_name == "Integration Test Company Inc"
-        assert retrieved.ticker == "INTG"
-        assert retrieved.ric == "INTG.N"
+        assert retrieved.primary_name == sample_entity.primary_name
+        assert retrieved.ticker == sample_entity.ticker
+        assert retrieved.ric == sample_entity.ric
         assert retrieved.is_public is True
 
     @pytest.mark.asyncio
@@ -135,12 +143,12 @@ class TestEntityCRUD:
 
         await entity_repo.save(sample_entity)
 
-        retrieved = await entity_repo.get_by_lei("TEST00000000000001")
+        retrieved = await entity_repo.get_by_lei(sample_entity.lei)
         assert retrieved is not None
         assert retrieved.id == sample_entity.id
 
         # Test case insensitivity
-        retrieved_lower = await entity_repo.get_by_lei("test00000000000001")
+        retrieved_lower = await entity_repo.get_by_lei(sample_entity.lei.lower())
         assert retrieved_lower is not None
         assert retrieved_lower.id == sample_entity.id
 
@@ -154,15 +162,18 @@ class TestEntityCRUD:
 
         await entity_repo.save(sample_entity)
 
-        # Test with leading zeros
-        retrieved = await entity_repo.get_by_cik("0000000001")
+        # Test with exact CIK value
+        retrieved = await entity_repo.get_by_cik(sample_entity.cik)
         assert retrieved is not None
         assert retrieved.id == sample_entity.id
 
-        # Test without leading zeros (should normalize)
-        retrieved_short = await entity_repo.get_by_cik("1")
-        assert retrieved_short is not None
-        assert retrieved_short.id == sample_entity.id
+        # Test with shorter CIK value (should normalize with leading zeros)
+        # Take the CIK, strip leading zeros, and search
+        short_cik = sample_entity.cik.lstrip("0")
+        if short_cik:  # Only test if there were leading zeros to strip
+            retrieved_short = await entity_repo.get_by_cik(short_cik)
+            assert retrieved_short is not None
+            assert retrieved_short.id == sample_entity.id
 
     @pytest.mark.asyncio
     async def test_get_by_ticker(
@@ -174,12 +185,12 @@ class TestEntityCRUD:
 
         await entity_repo.save(sample_entity)
 
-        retrieved = await entity_repo.get_by_ticker("INTG")
+        retrieved = await entity_repo.get_by_ticker(sample_entity.ticker)
         assert retrieved is not None
         assert retrieved.id == sample_entity.id
 
         # Test case insensitivity
-        retrieved_lower = await entity_repo.get_by_ticker("intg")
+        retrieved_lower = await entity_repo.get_by_ticker(sample_entity.ticker.lower())
         assert retrieved_lower is not None
         assert retrieved_lower.id == sample_entity.id
 
@@ -193,7 +204,7 @@ class TestEntityCRUD:
 
         await entity_repo.save(sample_entity)
 
-        retrieved = await entity_repo.get_by_ric("INTG.N")
+        retrieved = await entity_repo.get_by_ric(sample_entity.ric)
         assert retrieved is not None
         assert retrieved.id == sample_entity.id
 
@@ -227,7 +238,7 @@ class TestEntityCRUD:
         assert retrieved.ticker == "UPDT"
         assert retrieved.ric == "UPDT.O"
         # Original LEI should be preserved (COALESCE in upsert)
-        assert retrieved.lei == "TEST00000000000001"
+        assert retrieved.lei == sample_entity.lei
 
     @pytest.mark.asyncio
     async def test_delete_entity(
@@ -280,15 +291,17 @@ class TestEntityResolution:
             pytest.skip("Entity tables not created")
 
         await entity_repo.save(sample_entity)
+        # Use unique alias based on sample_entity name
+        alias_name = f"Test Company {sample_entity.ticker}"
         await entity_repo.add_alias(
-            sample_entity.id, "Integration Test Company", "legal_name", is_primary=True
+            sample_entity.id, alias_name, "legal_name", is_primary=True
         )
         await entity_repo.add_alias(
-            sample_entity.id, "INTG Corp", "trade_name"
+            sample_entity.id, f"{sample_entity.ticker} Corp", "trade_name"
         )
 
         # Exact match on alias
-        matches = await entity_repo.resolve("integration test company")
+        matches = await entity_repo.resolve(alias_name.lower())
         assert len(matches) >= 1
         assert matches[0].entity_id == sample_entity.id
         assert matches[0].match_type == "exact"
@@ -304,11 +317,11 @@ class TestEntityResolution:
 
         await entity_repo.save(sample_entity)
 
-        matches = await entity_repo.resolve("INTG")
+        matches = await entity_repo.resolve(sample_entity.ticker)
         assert len(matches) >= 1
         assert matches[0].entity_id == sample_entity.id
         assert matches[0].match_type == "ticker"
-        assert matches[0].ticker == "INTG"
+        assert matches[0].ticker == sample_entity.ticker
 
     @pytest.mark.asyncio
     async def test_resolve_ric_match(
@@ -320,11 +333,11 @@ class TestEntityResolution:
 
         await entity_repo.save(sample_entity)
 
-        matches = await entity_repo.resolve("INTG.N")
+        matches = await entity_repo.resolve(sample_entity.ric)
         assert len(matches) >= 1
         assert matches[0].entity_id == sample_entity.id
         assert matches[0].match_type == "ric"
-        assert matches[0].ric == "INTG.N"
+        assert matches[0].ric == sample_entity.ric
 
     @pytest.mark.asyncio
     async def test_resolve_fuzzy_match(
@@ -336,11 +349,13 @@ class TestEntityResolution:
 
         await entity_repo.save(sample_entity)
         await entity_repo.add_alias(
-            sample_entity.id, "Integration Test Company Inc", "legal_name", is_primary=True
+            sample_entity.id, sample_entity.primary_name, "legal_name", is_primary=True
         )
 
         # Misspelled query should still match via fuzzy
-        matches = await entity_repo.resolve("Integraton Test Compeny", fuzzy_threshold=0.3)
+        # Take the primary name and introduce typos
+        misspelled = sample_entity.primary_name.replace("a", "e").replace("i", "o")
+        matches = await entity_repo.resolve(misspelled, fuzzy_threshold=0.3)
         # May or may not match depending on trigram similarity
         # This tests that fuzzy matching doesn't error
         assert isinstance(matches, list)
@@ -393,23 +408,25 @@ class TestEntityResolution:
 
         await entity_repo.save(sample_entity)
         await entity_repo.add_alias(
-            sample_entity.id, "integration test company inc", "legal_name", is_primary=True
+            sample_entity.id, sample_entity.primary_name.lower(), "legal_name", is_primary=True
         )
 
+        # Use a unique string that won't fuzzy-match any real entity names
+        nonexistent_query = "ZZZZZZZNOTFOUND123"
         results = await entity_repo.resolve_batch(
-            ["INTG", "INTG.N", "NONEXISTENT"],
+            [sample_entity.ticker, sample_entity.ric, nonexistent_query],
             fuzzy_threshold=0.3,
         )
 
-        assert "INTG" in results
-        assert "INTG.N" in results
-        assert "NONEXISTENT" in results
+        assert sample_entity.ticker in results
+        assert sample_entity.ric in results
+        assert nonexistent_query in results
 
-        assert results["INTG"] is not None
-        assert results["INTG"].ticker == "INTG"
-        assert results["INTG.N"] is not None
-        assert results["INTG.N"].ric == "INTG.N"
-        assert results["NONEXISTENT"] is None
+        assert results[sample_entity.ticker] is not None
+        assert results[sample_entity.ticker].ticker == sample_entity.ticker
+        assert results[sample_entity.ric] is not None
+        assert results[sample_entity.ric].ric == sample_entity.ric
+        assert results[nonexistent_query] is None
 
 
 class TestEntityAliases:
@@ -425,15 +442,15 @@ class TestEntityAliases:
 
         await entity_repo.save(sample_entity)
 
-        # Add aliases
+        # Add aliases using dynamic entity values
         alias1_id = await entity_repo.add_alias(
-            sample_entity.id, "Integration Test Company Inc", "legal_name", is_primary=True
+            sample_entity.id, sample_entity.primary_name, "legal_name", is_primary=True
         )
         alias2_id = await entity_repo.add_alias(
-            sample_entity.id, "INTG Corp", "trade_name"
+            sample_entity.id, f"{sample_entity.ticker} Corp", "trade_name"
         )
         alias3_id = await entity_repo.add_alias(
-            sample_entity.id, "ITC", "abbreviation"
+            sample_entity.id, sample_entity.ticker[:3], "abbreviation"
         )
 
         assert alias1_id is not None
@@ -446,7 +463,7 @@ class TestEntityAliases:
 
         # Primary should be first
         assert aliases[0].is_primary is True
-        assert aliases[0].alias == "integration test company inc"  # Normalized to lowercase
+        assert aliases[0].alias == sample_entity.primary_name.lower()  # Normalized to lowercase
 
     @pytest.mark.asyncio
     async def test_add_duplicate_alias_ignored(
@@ -702,7 +719,9 @@ class TestEntitySearch:
 
         await entity_repo.save(sample_entity)
 
-        results = await entity_repo.search("Integration Test")
+        # Search by a unique part of the entity name
+        search_term = sample_entity.primary_name.split()[3]  # Get unique suffix
+        results = await entity_repo.search(search_term)
         assert len(results) >= 1
         assert any(e.id == sample_entity.id for e in results)
 
@@ -716,12 +735,13 @@ class TestEntitySearch:
 
         await entity_repo.save(sample_entity)
 
-        # Should find with correct country
-        results = await entity_repo.search("Integration", country_code="US")
+        # Search by unique suffix and country filter
+        search_term = sample_entity.primary_name.split()[3]  # Get unique suffix
+        results = await entity_repo.search(search_term, country_code="US")
         assert any(e.id == sample_entity.id for e in results)
 
         # Should not find with wrong country
-        results = await entity_repo.search("Integration", country_code="GB")
+        results = await entity_repo.search(search_term, country_code="GB")
         assert not any(e.id == sample_entity.id for e in results)
 
     @pytest.mark.asyncio
@@ -734,12 +754,15 @@ class TestEntitySearch:
 
         await entity_repo.save(sample_entity)
 
+        # Search by unique suffix
+        search_term = sample_entity.primary_name.split()[3]  # Get unique suffix
+
         # Should find with correct exchange
-        results = await entity_repo.search("Integration", exchange="NYSE")
+        results = await entity_repo.search(search_term, exchange="NYSE")
         assert any(e.id == sample_entity.id for e in results)
 
         # Should not find with wrong exchange
-        results = await entity_repo.search("Integration", exchange="LSE")
+        results = await entity_repo.search(search_term, exchange="LSE")
         assert not any(e.id == sample_entity.id for e in results)
 
     @pytest.mark.asyncio
@@ -752,12 +775,15 @@ class TestEntitySearch:
 
         await entity_repo.save(sample_entity)
 
+        # Search by unique suffix
+        search_term = sample_entity.primary_name.split()[3]  # Get unique suffix
+
         # Should find public
-        results = await entity_repo.search("Integration", is_public=True)
+        results = await entity_repo.search(search_term, is_public=True)
         assert any(e.id == sample_entity.id for e in results)
 
         # Should not find private
-        results = await entity_repo.search("Integration", is_public=False)
+        results = await entity_repo.search(search_term, is_public=False)
         assert not any(e.id == sample_entity.id for e in results)
 
     @pytest.mark.asyncio

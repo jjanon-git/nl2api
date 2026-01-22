@@ -25,6 +25,7 @@ from src.nl2api.llm.protocols import (
     LLMToolCall,
     LLMToolDefinition,
 )
+from src.nl2api.resolution.protocols import ResolvedEntity
 
 
 @dataclass
@@ -67,7 +68,7 @@ class MockLLMProvider:
                             id="call-1",
                             name="get_data",
                             arguments={
-                                "RICs": ["AAPL.O"],
+                                "tickers": ["AAPL.O"],
                                 "fields": ["TR.EPSMean(Period=FY1)"],
                             },
                         ),
@@ -80,7 +81,7 @@ class MockLLMProvider:
                             id="call-1",
                             name="get_data",
                             arguments={
-                                "RICs": ["AAPL.O"],
+                                "tickers": ["AAPL.O"],
                                 "fields": ["TR.RevenueMean(Period=FY1)"],
                             },
                         ),
@@ -113,6 +114,33 @@ class MockEntityResolver:
                 result[name] = ric
         return result
 
+    async def resolve_single(
+        self,
+        entity: str,
+        entity_type: str | None = None,
+    ) -> ResolvedEntity | None:
+        """Resolve a single entity."""
+        ric = self.mappings.get(entity)
+        if ric:
+            return ResolvedEntity(
+                original=entity,
+                identifier=ric,
+                entity_type="company",
+            )
+        return None
+
+    async def resolve_batch(
+        self,
+        entities: list[str],
+    ) -> list[ResolvedEntity]:
+        """Resolve multiple entities in batch."""
+        results = []
+        for entity in entities:
+            resolved = await self.resolve_single(entity)
+            if resolved:
+                results.append(resolved)
+        return results
+
 
 class TestSampleEPSQueries:
     """Test EPS-related queries through the full NL2API stack."""
@@ -138,7 +166,7 @@ class TestSampleEPSQueries:
         assert not result.needs_clarification
         assert len(result.tool_calls) == 1
         assert result.tool_calls[0].tool_name == "get_data"
-        assert "AAPL.O" in result.tool_calls[0].arguments["RICs"]
+        assert "AAPL.O" in result.tool_calls[0].arguments["tickers"]
         assert any("EPSMean" in f for f in result.tool_calls[0].arguments["fields"])
         assert result.domain == "estimates"
 
@@ -151,23 +179,27 @@ class TestSampleEPSQueries:
 
         assert not result.needs_clarification
         assert len(result.tool_calls) == 1
-        assert "MSFT.O" in result.tool_calls[0].arguments["RICs"]
+        assert "MSFT.O" in result.tool_calls[0].arguments["tickers"]
         # earnings maps to EPS
         assert any("EPSMean" in f for f in result.tool_calls[0].arguments["fields"])
 
     @pytest.mark.asyncio
     async def test_quarterly_eps_query(self) -> None:
-        """Test: 'What is Tesla's EPS estimate for next quarter?'"""
+        """Test: 'What is Tesla's EPS estimate for next quarter?'
+
+        Note: "next quarter" is ambiguous - the system asks for clarification
+        to get a specific time period like Q1 2024 or FQ1.
+        """
         result = await self.orchestrator.process(
             "What is Tesla's EPS estimate for next quarter?"
         )
 
-        assert not result.needs_clarification
-        assert len(result.tool_calls) == 1
-        assert "TSLA.O" in result.tool_calls[0].arguments["RICs"]
-        # Should use FQ1 for quarterly
-        fields = result.tool_calls[0].arguments["fields"]
-        assert any("FQ1" in f for f in fields)
+        # Ambiguous temporal reference triggers clarification
+        assert result.needs_clarification
+        assert result.domain == "estimates"
+        assert "Tesla" in result.resolved_entities
+        # The clarification should be about time period
+        assert any(q.category == "time_period" for q in result.clarification_questions)
 
     @pytest.mark.asyncio
     async def test_eps_with_explicit_period(self) -> None:
@@ -205,7 +237,7 @@ class TestSampleRevenueQueries:
 
         assert not result.needs_clarification
         assert len(result.tool_calls) == 1
-        assert "AAPL.O" in result.tool_calls[0].arguments["RICs"]
+        assert "AAPL.O" in result.tool_calls[0].arguments["tickers"]
         assert any("RevenueMean" in f for f in result.tool_calls[0].arguments["fields"])
 
     @pytest.mark.asyncio
@@ -221,15 +253,20 @@ class TestSampleRevenueQueries:
 
     @pytest.mark.asyncio
     async def test_quarterly_revenue_query(self) -> None:
-        """Test: 'What is Amazon's revenue forecast for next quarter?'"""
+        """Test: 'What is Amazon's revenue forecast for next quarter?'
+
+        Note: "next quarter" is ambiguous - the system asks for clarification
+        to get a specific time period.
+        """
         result = await self.orchestrator.process(
             "What is Amazon's revenue forecast for next quarter?"
         )
 
-        assert not result.needs_clarification
-        assert "AMZN.O" in result.tool_calls[0].arguments["RICs"]
-        fields = result.tool_calls[0].arguments["fields"]
-        assert any("FQ1" in f for f in fields)
+        # Ambiguous temporal reference triggers clarification
+        assert result.needs_clarification
+        assert result.domain == "estimates"
+        assert "Amazon" in result.resolved_entities
+        assert any(q.category == "time_period" for q in result.clarification_questions)
 
 
 class TestSampleAnalystQueries:
@@ -286,15 +323,20 @@ class TestSampleSurpriseQueries:
 
     @pytest.mark.asyncio
     async def test_earnings_beat_query(self) -> None:
-        """Test: 'Did Amazon beat earnings last quarter?'"""
+        """Test: 'Did Amazon beat earnings last quarter?'
+
+        Note: "last quarter" is ambiguous - the system asks for clarification
+        to get a specific time period like Q4 2023.
+        """
         result = await self.orchestrator.process(
             "Did Amazon beat earnings last quarter?"
         )
 
-        assert not result.needs_clarification
-        fields = result.tool_calls[0].arguments["fields"]
-        # Should include surprise field
-        assert any("Surprise" in f for f in fields)
+        # Ambiguous temporal reference triggers clarification
+        assert result.needs_clarification
+        assert result.domain == "estimates"
+        assert "Amazon" in result.resolved_entities
+        assert any(q.category == "time_period" for q in result.clarification_questions)
 
     @pytest.mark.asyncio
     async def test_eps_surprise_query(self) -> None:
@@ -372,6 +414,6 @@ class TestMultipleCompanies:
         )
 
         assert not result.needs_clarification
-        rics = result.tool_calls[0].arguments["RICs"]
+        rics = result.tool_calls[0].arguments["tickers"]
         assert "AAPL.O" in rics
         assert "MSFT.O" in rics

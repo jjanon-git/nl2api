@@ -13,6 +13,17 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
+from src.nl2api.llm.protocols import LLMProvider
+
+
+def create_mock_llm() -> MagicMock:
+    """Create a mock that implements LLMProvider protocol."""
+    mock = MagicMock(spec=LLMProvider)
+    mock.model_name = "mock-model"  # Required property
+    mock.complete = AsyncMock()
+    mock.complete_with_retry = AsyncMock()
+    return mock
+
 
 class TestNL2APIInitialization:
     """Test NL2API component initialization in MCP server context."""
@@ -30,12 +41,12 @@ class TestNL2APIInitialization:
         from src.nl2api.orchestrator import NL2APIOrchestrator
         from src.nl2api.agents.protocols import AgentContext, AgentResult, DomainAgent
 
-        # Create a mock LLM provider
-        mock_llm = MagicMock()
-        mock_llm.complete = AsyncMock(return_value=MagicMock(
+        # Create a mock LLM provider that implements the protocol
+        mock_llm = create_mock_llm()
+        mock_llm.complete.return_value = MagicMock(
             content='{"domain": "fundamentals", "confidence": 0.9}',
             usage=MagicMock(total_tokens=100),
-        ))
+        )
 
         # Create a mock agent
         mock_agent = MagicMock(spec=DomainAgent)
@@ -86,8 +97,7 @@ class TestNL2APIInitialization:
 
         # Simulate the stdio.py initialization flow
         # Step 1: Create mock LLM provider (simulating ClaudeProvider with API key)
-        mock_llm = MagicMock()
-        mock_llm.complete = AsyncMock()
+        mock_llm = create_mock_llm()
 
         # Step 2: Create mock agent (simulating DatastreamAgent)
         mock_agent = MagicMock(spec=DomainAgent)
@@ -124,8 +134,7 @@ class TestNL2APIInitialization:
         from src.nl2api.orchestrator import NL2APIOrchestrator
         from src.nl2api.agents.protocols import DomainAgent
 
-        mock_llm = MagicMock()
-        mock_llm.complete = AsyncMock()
+        mock_llm = create_mock_llm()
 
         mock_agent = MagicMock(spec=DomainAgent)
         mock_agent.domain_name = "test"
