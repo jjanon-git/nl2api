@@ -11,13 +11,14 @@ import hashlib
 import json
 import logging
 from dataclasses import replace
-from typing import Any, Awaitable, Callable, Protocol
+from typing import Any, Awaitable, Callable, Protocol, runtime_checkable
 
 from src.nl2api.routing.protocols import RouterResult
 
 logger = logging.getLogger(__name__)
 
 
+@runtime_checkable
 class RedisClient(Protocol):
     """Protocol for Redis client compatibility."""
 
@@ -30,6 +31,7 @@ class RedisClient(Protocol):
         ...
 
 
+@runtime_checkable
 class PostgresPool(Protocol):
     """Protocol for PostgreSQL connection pool."""
 

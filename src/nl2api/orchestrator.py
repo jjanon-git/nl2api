@@ -96,6 +96,49 @@ class NL2APIOrchestrator:
             mcp_servers: Optional list of MCP servers for tool providers
             mcp_mode: Mode for routing ("local", "mcp", "hybrid")
         """
+        # Validate protocol conformance for required parameters
+        if not isinstance(llm, LLMProvider):
+            raise TypeError(
+                f"llm must implement LLMProvider protocol, got {type(llm).__name__}"
+            )
+
+        # Validate agents dict
+        for domain, agent in agents.items():
+            if not isinstance(agent, DomainAgent):
+                raise TypeError(
+                    f"Agent for domain '{domain}' must implement DomainAgent protocol, "
+                    f"got {type(agent).__name__}"
+                )
+
+        # Validate optional protocol parameters
+        if rag is not None and not isinstance(rag, RAGRetriever):
+            raise TypeError(
+                f"rag must implement RAGRetriever protocol, got {type(rag).__name__}"
+            )
+        if entity_resolver is not None and not isinstance(entity_resolver, EntityResolver):
+            raise TypeError(
+                f"entity_resolver must implement EntityResolver protocol, "
+                f"got {type(entity_resolver).__name__}"
+            )
+        if conversation_storage is not None and not isinstance(
+            conversation_storage, ConversationStorage
+        ):
+            raise TypeError(
+                f"conversation_storage must implement ConversationStorage protocol, "
+                f"got {type(conversation_storage).__name__}"
+            )
+        if router is not None and not isinstance(router, QueryRouter):
+            raise TypeError(
+                f"router must implement QueryRouter protocol, got {type(router).__name__}"
+            )
+        if context_retriever is not None and not isinstance(
+            context_retriever, ContextProvider
+        ):
+            raise TypeError(
+                f"context_retriever must implement ContextProvider protocol, "
+                f"got {type(context_retriever).__name__}"
+            )
+
         self._llm = llm
         self._agents = agents
         self._rag = rag
@@ -638,7 +681,14 @@ If you cannot determine the domain, respond with "unknown".
 
         Args:
             agent: Domain agent to register
+
+        Raises:
+            TypeError: If agent doesn't implement DomainAgent protocol
         """
+        if not isinstance(agent, DomainAgent):
+            raise TypeError(
+                f"agent must implement DomainAgent protocol, got {type(agent).__name__}"
+            )
         self._agents[agent.domain_name] = agent
         logger.info(f"Registered agent for domain: {agent.domain_name}")
 

@@ -51,10 +51,12 @@ class MockLLMProvider:
 
 @dataclass
 class MockAgent:
-    """Mock domain agent for testing."""
+    """Mock domain agent for testing that implements the DomainAgent protocol."""
 
     domain_name: str = "estimates"
     domain_description: str = "Test estimates agent"
+    capabilities: tuple[str, ...] = ("EPS estimates", "revenue forecasts")
+    example_queries: tuple[str, ...] = ("What is Apple's EPS?",)
     result: AgentResult = field(default_factory=lambda: AgentResult(
         tool_calls=(
             ToolCall(tool_name="get_data", arguments={"RICs": ["AAPL.O"], "fields": ["TR.EPSMean"]}),

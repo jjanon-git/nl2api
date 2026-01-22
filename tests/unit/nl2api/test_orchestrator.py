@@ -34,10 +34,12 @@ class MockLLMProvider:
 
 @dataclass
 class MockAgent:
-    """Mock domain agent."""
+    """Mock domain agent that implements the DomainAgent protocol."""
 
     domain_name: str = "estimates"
     domain_description: str = "Test agent"
+    capabilities: tuple[str, ...] = ("EPS estimates", "revenue forecasts")
+    example_queries: tuple[str, ...] = ("What is Apple's EPS?",)
     can_handle_score: float = 0.9
     result: AgentResult = field(default_factory=lambda: AgentResult(
         tool_calls=(ToolCall(tool_name="get_data", arguments={"RICs": ["AAPL.O"]}),),
@@ -54,7 +56,7 @@ class MockAgent:
 
 @dataclass
 class MockEntityResolver:
-    """Mock entity resolver."""
+    """Mock entity resolver that implements the EntityResolver protocol."""
 
     entities: dict[str, str] = field(default_factory=lambda: {"Apple": "AAPL.O"})
 
@@ -64,6 +66,28 @@ class MockEntityResolver:
             if name.lower() in query.lower():
                 result[name] = ric
         return result
+
+    async def resolve_single(self, entity: str, entity_type: str | None = None) -> Any:
+        """Resolve a single entity."""
+        from src.nl2api.resolution.protocols import ResolvedEntity
+
+        for name, ric in self.entities.items():
+            if name.lower() == entity.lower():
+                return ResolvedEntity(
+                    original=entity,
+                    identifier=ric,
+                    entity_type=entity_type or "company",
+                )
+        return None
+
+    async def resolve_batch(self, entities: list[str]) -> list[Any]:
+        """Resolve multiple entities in batch."""
+        results = []
+        for entity in entities:
+            result = await self.resolve_single(entity)
+            if result:
+                results.append(result)
+        return results
 
 
 class TestNL2APIOrchestrator:
@@ -438,6 +462,16 @@ class TestOrchestratorDualModeContext:
 
         @dataclass
         class MockRAG:
+            async def retrieve(
+                self,
+                query: str,
+                domain: str | None = None,
+                document_types: list | None = None,
+                limit: int = 10,
+                threshold: float = 0.5,
+            ) -> list:
+                return []
+
             async def retrieve_field_codes(self, query, domain=None, limit=10):
                 return [
                     RetrievalResult(
