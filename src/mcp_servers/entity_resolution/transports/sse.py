@@ -6,6 +6,12 @@ deployments. Provides a FastAPI application with:
 - /health endpoint for load balancer health checks
 - /mcp endpoint for JSON-RPC requests
 - /sse endpoint for Server-Sent Events streaming
+
+NOTE: Do NOT add `from __future__ import annotations` to this file.
+PEP 563 stringifies type annotations, which breaks FastAPI's runtime
+introspection for determining parameter sources (body vs query vs path).
+Symptoms: 422 errors for valid JSON, "missing query parameter" errors.
+Fix: Use Pydantic models for request bodies (see ResolveRequest, etc.).
 """
 
 import asyncio

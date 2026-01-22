@@ -18,24 +18,40 @@ After fixing a bug, adding a feature, or debugging an issue, ask yourself:
 - After any debugging session longer than 10 minutes
 - After discovering a config mismatch or integration issue
 - After finding undocumented requirements
+- After manual testing reveals something unit tests missed
 - Before committing a fix
 
 ### Examples
 
-| Situation | Root Cause | Instruction to Add |
-|-----------|------------|-------------------|
-| Grafana shows no data | Datasource UID mismatch | "Dashboard uid must match datasource config uid" |
-| Metrics not appearing | Missing `_total` suffix | "OTEL adds `_total` suffix to counters" |
-| Batch eval fails silently | No fixtures in DB | "Load fixtures before batch evaluation" |
+| Situation | Root Cause | Action |
+|-----------|------------|--------|
+| Grafana shows no data | Datasource UID mismatch | Add to `docs/troubleshooting.md` |
+| Metrics not appearing | Missing `_total` suffix | Add to `docs/troubleshooting.md` |
+| Batch eval fails silently | No fixtures in DB | Add prerequisite to CLAUDE.md (process) |
+| FastAPI returns 422 for valid JSON | `from __future__ import annotations` breaks introspection | Add comment in affected file (code gotcha) |
+
+### Where to Document
+
+Different issues require different artifacts. Choose the right one:
+
+| Issue Type | Where to Document | Example |
+|------------|-------------------|---------|
+| Process/standards gap | CLAUDE.md | "Always run manual tests before committing servers" |
+| Code pattern/gotcha | Comment in affected file | "Don't use X with Y because..." |
+| Config/integration issue | `docs/troubleshooting.md` | "If Grafana shows no data, check UID" |
+| Regression risk | Add a test | Unit test that would have caught it |
+
+**CLAUDE.md is for process, not implementation trivia.** If the instruction is specific to one file or framework, it belongs in code comments or docs, not here.
 
 ### The Standard
 
-**Every debugging session should result in either:**
-1. A new instruction in CLAUDE.md that prevents the issue, OR
-2. A new test that catches the issue, OR
-3. Documentation explaining why neither is needed
+**Every debugging session should result in one of:**
+1. A process instruction in CLAUDE.md, OR
+2. A code comment/docstring in the affected file, OR
+3. An entry in `docs/troubleshooting.md`, OR
+4. A test that catches the regression
 
-**If you finish a task without updating instructions, tests, or docs - you haven't finished.**
+**If you finish a task without updating one of these - you haven't finished.**
 
 ---
 
