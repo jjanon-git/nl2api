@@ -1,5 +1,26 @@
 # CLAUDE.md - Project Context for Claude Code
 
+## META: Self-Improvement Loop
+
+**After completing any significant work, reflect on what was missing from these instructions.**
+
+When you finish a task and notice:
+- A pattern that should be documented but wasn't
+- A standard you had to figure out that others would face
+- A checklist item that was missing
+- A process that should be automated
+
+**Then:** Add the missing instruction to the relevant section of this file. This creates a continuous improvement loop where the codebase's standards evolve with practice.
+
+**Examples of what to add:**
+- "I had to run coverage after writing tests" → Add to Testing Requirements
+- "I had to look up the JSON-RPC error codes" → Add to relevant docs
+- "I forgot to check if a dependency was optional" → Add to Pre-commit checklist
+
+**The goal:** Each task should leave the instructions better than you found them.
+
+---
+
 ## CRITICAL: Every Capability Needs Evaluation
 
 **No capability is complete without evaluation data and metrics.** This is non-negotiable.
@@ -105,13 +126,44 @@ def test_orchestrator_reuses_main_llm_when_models_match():
 
 **Why this matters:** Config changes silently affect runtime behavior. Without tests, regressions go unnoticed until production. The routing model switch (Sonnet → Haiku) required 3 tests to properly verify.
 
+### Test Coverage Requirements
+
+**After completing any new module or significant code addition, assess test coverage.**
+
+```bash
+# Check coverage for changed files
+.venv/bin/python -m pytest tests/unit/ --cov=src/path/to/module --cov-report=term-missing -v
+
+# Example: Check MCP server coverage
+.venv/bin/python -m pytest tests/unit/mcp_servers/ --cov=src/mcp_servers --cov-report=term-missing -v
+```
+
+**Coverage targets:**
+| Component Type | Minimum Coverage |
+|----------------|------------------|
+| Core business logic (agents, orchestrator) | 80% |
+| Utilities and helpers | 70% |
+| New modules (MCP servers, CLI) | 60% |
+| Transport/IO code | 40% (harder to test without integration tests) |
+
+**What to test for coverage gaps:**
+- All public methods should have at least one test
+- Error handling paths (exceptions, edge cases)
+- Configuration options and their effects
+- Protocol handlers and message routing
+
+**When to skip coverage:**
+- `__main__.py` entry points (tested via integration/manual)
+- I/O-heavy code that requires real connections (mark for integration tests instead)
+
 ### Pre-commit checklist:
 1. ✅ Unit tests pass: `pytest tests/unit/ -v --tb=short -x`
 2. ✅ Integration tests pass: `pytest tests/integration/ -v --tb=short -x`
 3. ✅ Linting passes: `ruff check .`
-4. ✅ Security checklist reviewed (see Security Standards section)
-5. ✅ Telemetry added for external calls/DB operations
-6. ✅ No regressions in changed areas
+4. ✅ **Test coverage assessed for new code** (see above)
+5. ✅ Security checklist reviewed (see Security Standards section)
+6. ✅ Telemetry added for external calls/DB operations
+7. ✅ No regressions in changed areas
 
 ---
 
@@ -224,11 +276,17 @@ ruff check .
 # Run single test case evaluation
 .venv/bin/python -m src.evaluation.cli.main run tests/fixtures/search_products.json
 
+# Load fixtures to database (REQUIRED before batch evaluation)
+.venv/bin/python scripts/load_fixtures_to_db.py --all
+
 # Run batch evaluation
 .venv/bin/python -m src.evaluation.cli.main batch run --limit 10
 
 # View batch results
 .venv/bin/python -m src.evaluation.cli.main batch list
+
+# View metrics in Grafana (after docker compose up -d)
+# Open http://localhost:3000 (default: admin/admin)
 ```
 
 ## Architecture
@@ -419,6 +477,20 @@ pytest tests/accuracy/ -m tier1    # Quick
 pytest tests/accuracy/ -m tier2    # Standard
 pytest tests/accuracy/ -m tier3    # Comprehensive
 ```
+
+### Evaluation Modes
+
+| Mode | Flag | When to Use |
+|------|------|-------------|
+| Batch API | `use_batch_api=True` (default) | CI runs, cost-sensitive |
+| Real-time | `use_batch_api=False` | Debugging, immediate feedback |
+
+```bash
+# Quick debugging with real-time API:
+pytest tests/accuracy/routing/ -k realtime
+```
+
+Config options in `tests/accuracy/core/config.py`.
 
 See [docs/accuracy-testing.md](docs/accuracy-testing.md) for full documentation.
 
@@ -697,6 +769,12 @@ All repository operations, agents, and evaluators are async.
 ### 5. Rule-Based + LLM Fallback
 Agents use pattern matching first, fall back to LLM for complex queries.
 
+### 6. Rate Limit Resilience
+For high-volume API calls (accuracy tests, batch evaluation):
+- Prefer Batch API when immediate results aren't needed
+- Use exponential backoff with jitter on retries
+- Config in `tests/accuracy/core/config.py`
+
 ---
 
 ## Security Standards
@@ -966,6 +1044,35 @@ These gaps should be addressed as the project matures. If you encounter a situat
 - `NL2API_LLM_PROVIDER`: "anthropic" | "openai"
 - `NL2API_ANTHROPIC_API_KEY`: Claude API key
 - `NL2API_OPENAI_API_KEY`: OpenAI API key
+- `NL2API_TELEMETRY_ENABLED`: "true" to enable OTEL metrics/tracing
+
+### Observability Stack
+
+The observability stack runs via `docker compose up -d`:
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| PostgreSQL | 5432 | Primary database |
+| Redis | 6379 | Caching |
+| OTEL Collector | 4317 (gRPC), 4318 (HTTP) | Receives telemetry |
+| Prometheus | 9090 | Metrics storage, queries |
+| Grafana | 3000 | Dashboards (admin/admin) |
+| Jaeger | 16686 | Distributed tracing |
+
+**Metrics flow:**
+```
+Application (OTLP) → OTEL Collector (4317) → Prometheus Exporter (8889) → Prometheus (9090) → Grafana
+```
+
+**IMPORTANT: Metric naming convention**
+- OTEL Collector adds `nl2api_` prefix to all metrics (configured in `config/otel-collector-config.yaml`)
+- Dashboard queries must use prefixed names: `nl2api_eval_batch_tests_total`, not `eval_batch_tests_total`
+- If Grafana shows no data, check metric names match what's in Prometheus
+
+**Prerequisite for batch evaluation metrics:**
+1. Load fixtures: `python scripts/load_fixtures_to_db.py --all`
+2. Run batch: `python -m src.evaluation.cli.main batch run --limit 10`
+3. View in Grafana: http://localhost:3000 → "NL2API Evaluation & Accuracy" dashboard
 
 ## Current Status
 
