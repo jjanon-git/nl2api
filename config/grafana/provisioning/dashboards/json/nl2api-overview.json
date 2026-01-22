@@ -80,7 +80,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "100 * sum(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})", "refId": "A" }
+        { "expr": "(100 * sum(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / clamp_min(sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Pass Rate",
       "type": "stat"
@@ -115,7 +115,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "100 * sum(increase(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[24h])) / sum(increase(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[24h]))", "refId": "A" }
+        { "expr": "(100 * sum(increase(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[24h])) / clamp_min(sum(increase(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[24h])), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Pass Rate (24h)",
       "type": "stat"
@@ -143,7 +143,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})) or vector(0)", "refId": "A" }
       ],
       "title": "Total Tests",
       "type": "stat"
@@ -207,7 +207,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / 1000000", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / 1000000) or vector(0)", "refId": "A" }
       ],
       "title": "Total Cost",
       "type": "stat"
@@ -262,7 +262,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "100 * sum(rate(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])) / sum(rate(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m]))", "legendFormat": "Pass Rate", "refId": "A" }
+        { "expr": "(100 * sum(rate(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])) / clamp_min(sum(rate(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])), 0.0001)) or vector(0)", "legendFormat": "Pass Rate", "refId": "A" }
       ],
       "title": "Pass Rate Over Time",
       "type": "timeseries"
@@ -363,7 +363,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "100 * sum by (client_type) (rate(nl2api_eval_batch_tests_passed_total[5m])) / sum by (client_type) (rate(nl2api_eval_batch_tests_total[5m]))", "legendFormat": "{{client_type}}", "refId": "A" }
+        { "expr": "(100 * sum by (client_type) (rate(nl2api_eval_batch_tests_passed_total[5m])) / clamp_min(sum by (client_type) (rate(nl2api_eval_batch_tests_total[5m])), 0.0001)) or vector(0)", "legendFormat": "{{client_type}}", "refId": "A" }
       ],
       "title": "Pass Rate by Client",
       "type": "timeseries"
@@ -446,7 +446,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"input\"}) / sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"input\"}) / clamp_min(sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Avg Input Tokens/Test",
       "type": "stat"
@@ -475,7 +475,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"output\"}) / sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"output\"}) / clamp_min(sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Avg Output Tokens/Test",
       "type": "stat"
@@ -504,7 +504,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / 1000000) / sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"})", "refId": "A" }
+        { "expr": "((sum(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / 1000000) / clamp_min(sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Avg Cost/Test",
       "type": "stat"
@@ -532,7 +532,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"input\"})", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"input\"})) or vector(0)", "refId": "A" }
       ],
       "title": "Total Input Tokens",
       "type": "stat"
@@ -560,7 +560,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"output\"})", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"output\"})) or vector(0)", "refId": "A" }
       ],
       "title": "Total Output Tokens",
       "type": "stat"
@@ -895,6 +895,7 @@
   "templating": {
     "list": [
       {
+        "allValue": ".*",
         "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
         "datasource": { "type": "prometheus", "uid": "prometheus" },
         "definition": "label_values(nl2api_eval_batch_tests_total, client_type)",
@@ -912,6 +913,7 @@
         "type": "query"
       },
       {
+        "allValue": ".*",
         "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
         "datasource": { "type": "prometheus", "uid": "prometheus" },
         "definition": "label_values(nl2api_eval_batch_tests_total{client_type=~\"$client_type\"}, client_version)",
@@ -929,6 +931,7 @@
         "type": "query"
       },
       {
+        "allValue": ".*",
         "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
         "datasource": { "type": "prometheus", "uid": "prometheus" },
         "definition": "label_values(nl2api_eval_batch_tests_total, eval_mode)",

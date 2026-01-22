@@ -1,1 +1,1 @@
-"""Integration tests for evaluation module."""
+"""Integration tests for evaluation infrastructure."""

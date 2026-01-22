@@ -1,7 +1,7 @@
 """
 Tests for Tool Providers
 
-Tests the AgentToolProvider, MCPToolProvider, and dual-mode factory functions.
+Tests the AgentToolProvider, MCPToolProvider, and factory functions.
 """
 
 import pytest
@@ -16,7 +16,6 @@ from src.nl2api.routing.providers import (
     MCPToolProvider,
     MCPToolExecutor,
     create_providers_from_agents,
-    create_dual_mode_providers,
 )
 
 
@@ -691,126 +690,3 @@ class TestCreateProvidersFromAgents:
         providers = create_providers_from_agents(agents, examples_map=examples_map)
 
         assert providers[0].example_queries == ("new query",)
-
-
-class TestCreateDualModeProviders:
-    """Tests for create_dual_mode_providers factory."""
-
-    @pytest.fixture
-    def mock_mcp_client(self):
-        """Create a mock MCP client."""
-        client = MagicMock(spec=MCPClient)
-        client.is_connected.return_value = False
-        client.connect = AsyncMock(return_value=True)
-        return client
-
-    @pytest.mark.asyncio
-    async def test_local_mode_only_agents(self):
-        """Test local mode only uses agents."""
-        agents = {
-            "datastream": MockDomainAgent(name="datastream"),
-        }
-
-        providers = await create_dual_mode_providers(
-            agents=agents,
-            mode="local",
-        )
-
-        assert len(providers) == 1
-        assert isinstance(providers[0], AgentToolProvider)
-
-    @pytest.mark.asyncio
-    async def test_mcp_mode_only_mcp_servers(self, mock_mcp_client):
-        """Test mcp mode only uses MCP servers."""
-        servers = [
-            MCPServer(uri="mcp://test.com", name="test"),
-        ]
-        agents = {
-            "datastream": MockDomainAgent(name="datastream"),
-        }
-
-        providers = await create_dual_mode_providers(
-            agents=agents,
-            mcp_client=mock_mcp_client,
-            mcp_servers=servers,
-            mode="mcp",
-        )
-
-        assert len(providers) == 1
-        assert isinstance(providers[0], MCPToolProvider)
-
-    @pytest.mark.asyncio
-    async def test_hybrid_mode_uses_both(self, mock_mcp_client):
-        """Test hybrid mode uses both agents and MCP servers."""
-        servers = [
-            MCPServer(uri="mcp://test.com", name="test"),
-        ]
-        agents = {
-            "datastream": MockDomainAgent(name="datastream"),
-        }
-
-        providers = await create_dual_mode_providers(
-            agents=agents,
-            mcp_client=mock_mcp_client,
-            mcp_servers=servers,
-            mode="hybrid",
-        )
-
-        assert len(providers) == 2
-        types = {type(p).__name__ for p in providers}
-        assert types == {"AgentToolProvider", "MCPToolProvider"}
-
-    @pytest.mark.asyncio
-    async def test_connects_to_mcp_servers(self, mock_mcp_client):
-        """Test that MCP servers are connected."""
-        servers = [
-            MCPServer(uri="mcp://test.com", name="test"),
-        ]
-
-        await create_dual_mode_providers(
-            mcp_client=mock_mcp_client,
-            mcp_servers=servers,
-            mode="mcp",
-        )
-
-        mock_mcp_client.connect.assert_called_once()
-
-    @pytest.mark.asyncio
-    async def test_handles_connection_failure(self, mock_mcp_client):
-        """Test that connection failures are handled gracefully."""
-        mock_mcp_client.connect = AsyncMock(side_effect=Exception("Connection failed"))
-        servers = [
-            MCPServer(uri="mcp://test.com", name="test"),
-        ]
-
-        providers = await create_dual_mode_providers(
-            mcp_client=mock_mcp_client,
-            mcp_servers=servers,
-            mode="mcp",
-        )
-
-        # Should not raise, but provider list may be empty
-        assert providers == []
-
-    @pytest.mark.asyncio
-    async def test_empty_mode_returns_empty(self):
-        """Test that empty configuration returns empty list."""
-        providers = await create_dual_mode_providers(mode="local")
-
-        assert providers == []
-
-    @pytest.mark.asyncio
-    async def test_skips_already_connected_servers(self, mock_mcp_client):
-        """Test that already connected servers are not reconnected."""
-        mock_mcp_client.is_connected.return_value = True
-        servers = [
-            MCPServer(uri="mcp://test.com", name="test"),
-        ]
-
-        await create_dual_mode_providers(
-            mcp_client=mock_mcp_client,
-            mcp_servers=servers,
-            mode="mcp",
-        )
-
-        mock_mcp_client.connect.assert_not_called()

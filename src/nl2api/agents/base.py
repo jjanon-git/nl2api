@@ -151,6 +151,8 @@ class BaseDomainAgent(ABC):
                     domain=self.domain_name,
                     raw_llm_response=response.content,
                     tokens_used=response.usage.get("total_tokens", 0),
+                    tokens_prompt=response.usage.get("prompt_tokens", 0),
+                    tokens_completion=response.usage.get("completion_tokens", 0),
                 )
             else:
                 # No tool calls - might need clarification

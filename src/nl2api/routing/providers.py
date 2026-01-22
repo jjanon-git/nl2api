@@ -15,12 +15,10 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from src.nl2api.llm.protocols import LLMToolDefinition
-from src.nl2api.routing.protocols import ToolProvider
 
 if TYPE_CHECKING:
     from src.nl2api.agents.protocols import DomainAgent
     from src.nl2api.mcp.client import MCPClient
-    from src.nl2api.mcp.protocols import MCPServer
 
 logger = logging.getLogger(__name__)
 
@@ -256,7 +254,7 @@ class MCPToolProvider:
     def __init__(
         self,
         server_uri: str,
-        mcp_client: "MCPClient | None" = None,
+        mcp_client: MCPClient | None = None,
         provider_name: str | None = None,
         provider_description: str | None = None,
         capabilities: tuple[str, ...] | None = None,
@@ -396,7 +394,7 @@ class MCPToolExecutor:
 
     def __init__(
         self,
-        mcp_client: "MCPClient | None" = None,
+        mcp_client: MCPClient | None = None,
         providers: list[MCPToolProvider] | None = None,
     ):
         """
@@ -492,64 +490,3 @@ class MCPToolExecutor:
             }
 
 
-# =============================================================================
-# Dual-Mode Provider Factory
-# =============================================================================
-
-
-async def create_dual_mode_providers(
-    agents: dict[str, Any] | None = None,
-    mcp_client: "MCPClient | None" = None,
-    mcp_servers: list["MCPServer"] | None = None,
-    mode: str = "local",
-) -> list[ToolProvider]:
-    """
-    Create tool providers based on the configured mode.
-
-    Args:
-        agents: Dictionary of local domain agents
-        mcp_client: MCP client for remote server access
-        mcp_servers: List of MCP servers to connect to
-        mode: Operation mode - "local", "mcp", or "hybrid"
-
-    Returns:
-        List of ToolProvider instances
-
-    Mode behaviors:
-        - "local": Only use local agents
-        - "mcp": Only use MCP servers (requires mcp_client and mcp_servers)
-        - "hybrid": Use both, with MCP servers taking precedence
-    """
-    providers: list[ToolProvider] = []
-
-    # Add local agent providers
-    if mode in ("local", "hybrid") and agents:
-        for agent in agents.values():
-            providers.append(AgentToolProvider(agent=agent))
-        logger.info(f"Added {len(agents)} local agent providers")
-
-    # Add MCP providers
-    if mode in ("mcp", "hybrid") and mcp_client and mcp_servers:
-        for server in mcp_servers:
-            # Ensure client is connected
-            if not mcp_client.is_connected(server.uri):
-                try:
-                    await mcp_client.connect(server)
-                except Exception as e:
-                    logger.warning(f"Failed to connect to MCP server {server.uri}: {e}")
-                    continue
-
-            provider = MCPToolProvider(
-                server_uri=server.uri,
-                mcp_client=mcp_client,
-                provider_name=server.name,
-                provider_description=server.description,
-            )
-            providers.append(provider)
-
-        logger.info(f"Added MCP providers for {len(mcp_servers)} servers")
-
-    if not providers:
-        logger.warning(f"No providers created for mode={mode}")
-
-    return providers

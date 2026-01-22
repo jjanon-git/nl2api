@@ -57,7 +57,6 @@ from src.nl2api.routing.providers import (
     MCPToolExecutor,
     MCPToolProvider,
     create_providers_from_agents,
-    create_dual_mode_providers,
 )
 
 __all__ = [
@@ -81,7 +80,6 @@ __all__ = [
     "MCPToolProvider",
     "MCPToolExecutor",
     "create_providers_from_agents",
-    "create_dual_mode_providers",
     # Utilities
     "deprecated_can_handle",
 ]

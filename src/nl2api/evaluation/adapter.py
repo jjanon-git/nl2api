@@ -174,6 +174,9 @@ class NL2APITargetAdapter:
                 "tokens_used": nl2api_response.tokens_used,
             },
             latency_ms=latency_ms,
+            # Pass through token counts for cost calculation
+            input_tokens=nl2api_response.input_tokens if nl2api_response.input_tokens > 0 else None,
+            output_tokens=nl2api_response.output_tokens if nl2api_response.output_tokens > 0 else None,
         )
 
     def reset_conversation(self) -> None:

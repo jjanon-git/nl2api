@@ -380,8 +380,8 @@ class TestOrchestratorWithRAG:
         assert len(captured_context.query_examples) == 1
 
 
-class TestOrchestratorDualModeContext:
-    """Test suite for orchestrator dual-mode context retrieval."""
+class TestOrchestratorContextRetrieval:
+    """Test suite for orchestrator context retrieval."""
 
     @dataclass
     class MockContextProvider:
@@ -441,8 +441,8 @@ class TestOrchestratorDualModeContext:
         assert captured_context.field_codes[0]["code"] == "TR.EPSMean"
 
     @pytest.mark.asyncio
-    async def test_orchestrator_creates_dual_mode_retriever_from_rag(self) -> None:
-        """Test that orchestrator creates DualModeContextRetriever from RAG."""
+    async def test_orchestrator_uses_rag_fallback_when_no_context_retriever(self) -> None:
+        """Test that orchestrator uses RAG as fallback when no context_retriever."""
         from src.nl2api.rag.protocols import DocumentType, RetrievalResult
 
         llm = MockLLMProvider()
@@ -499,7 +499,6 @@ class TestOrchestratorDualModeContext:
             llm=llm,
             agents={"estimates": agent},
             rag=MockRAG(),
-            context_mode="local",  # Use RAG mode
         )
 
         await orchestrator.process("What is Apple's EPS?")
@@ -510,8 +509,8 @@ class TestOrchestratorDualModeContext:
         assert captured_context.field_codes[0]["code"] == "TR.EPSMean"
 
     @pytest.mark.asyncio
-    async def test_orchestrator_context_mode_hybrid(self) -> None:
-        """Test orchestrator in hybrid context mode."""
+    async def test_orchestrator_context_retriever_takes_precedence_over_rag(self) -> None:
+        """Test that context_retriever takes precedence over rag when both provided."""
         llm = MockLLMProvider()
         agent = MockAgent()
         captured_context = None
@@ -527,30 +526,25 @@ class TestOrchestratorDualModeContext:
 
         agent.process = capture_context
 
-        # Create mock MCP retriever
-        @dataclass
-        class MockMCPRetriever:
-            async def get_field_codes(self, query, domain, limit=5):
-                return [{"code": "MCP_CODE", "description": "From MCP", "source": "mcp"}]
-
-            async def get_query_examples(self, query, domain, limit=3):
-                return [{"query": "MCP query", "api_call": "mcp_call()", "source": "mcp"}]
+        # Create mock context provider with distinct values
+        context_provider = self.MockContextProvider(
+            field_codes=[{"code": "CONTEXT_CODE", "description": "From Context", "source": "context"}],
+            examples=[{"query": "Context query", "api_call": "context_call()", "source": "context"}],
+        )
 
         orchestrator = NL2APIOrchestrator(
             llm=llm,
             agents={"estimates": agent},
-            rag=None,  # No RAG
-            mcp_retriever=MockMCPRetriever(),
-            context_mode="mcp",  # Use MCP mode
+            context_retriever=context_provider,
         )
 
         await orchestrator.process("What is Apple's EPS?")
 
-        # Context should have been retrieved from MCP
+        # Context should have been retrieved from context provider
         assert captured_context is not None
         assert len(captured_context.field_codes) == 1
-        assert captured_context.field_codes[0]["code"] == "MCP_CODE"
-        assert captured_context.field_codes[0]["source"] == "mcp"
+        assert captured_context.field_codes[0]["code"] == "CONTEXT_CODE"
+        assert captured_context.field_codes[0]["source"] == "context"
 
     @pytest.mark.asyncio
     async def test_orchestrator_context_retrieval_handles_errors(self) -> None:
