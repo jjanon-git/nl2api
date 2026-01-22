@@ -826,6 +826,55 @@ For high-volume API calls (accuracy tests, batch evaluation):
 
 ---
 
+## MCP Server Development
+
+**Always use the official MCP SDK** (`mcp` package) for MCP server implementations. Do NOT roll custom protocol handling.
+
+### Why This Matters
+
+Custom implementations lead to protocol compatibility issues:
+- Protocol version negotiation (Claude Desktop uses `2025-06-18`, custom code may use older versions)
+- Message framing and JSON-RPC handling
+- Notification vs request handling
+- Proper async I/O with stdio
+
+### Required Pattern
+
+```python
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+from mcp.types import Tool, TextContent
+
+# Create server with SDK's Server class
+server = Server(name="my-server", version="1.0.0", lifespan=my_lifespan)
+
+# Register handlers with decorators
+@server.list_tools()
+async def list_tools() -> list[Tool]:
+    return [...]
+
+@server.call_tool()
+async def call_tool(name: str, arguments: dict) -> list[TextContent]:
+    return [...]
+
+# Run with SDK's stdio transport
+async with stdio_server() as (read_stream, write_stream):
+    await server.run(read_stream, write_stream, server.create_initialization_options())
+```
+
+### What NOT to Do
+
+- ❌ Custom `read_message()` / `write_message()` functions
+- ❌ Manual JSON-RPC parsing and response building
+- ❌ Hardcoded protocol versions
+- ❌ Custom stdin/stdout handling with `asyncio.run_in_executor`
+
+### Reference Implementation
+
+See `src/mcp_servers/entity_resolution/transports/stdio.py` for the correct pattern.
+
+---
+
 ## Security Standards
 
 See parent `../CLAUDE.md` for the full security checklist. This project handles **financial data queries**, so security is critical.
