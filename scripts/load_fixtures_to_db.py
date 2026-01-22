@@ -100,13 +100,17 @@ async def load_fixtures_to_db(
                 tool_calls_json = json.dumps(expected_tool_calls)
 
                 # Prepare other fields - using existing schema fields
-                # Store metadata in expected_response for entity_resolution tests
-                # This allows the response generator to access input_entity directly
+                # expected_response: Synthetic API response data (for semantics eval)
+                # For entity_resolution, we also store metadata for the response generator
                 metadata = tc.get("metadata", {})
-                expected_raw_data = tc.get("expected_response") or metadata
-                expected_raw_data_json = (
-                    json.dumps(expected_raw_data) if expected_raw_data else None
+                expected_response = tc.get("expected_response")
+                # If no expected_response but has metadata, use metadata (backward compat)
+                if expected_response is None and metadata:
+                    expected_response = metadata
+                expected_response_json = (
+                    json.dumps(expected_response) if expected_response else None
                 )
+                # expected_nl_response: NL summary (for semantics eval)
                 expected_nl_response = tc.get("expected_nl_response") or ""
                 complexity = tc.get("complexity", 1)
 
@@ -134,7 +138,7 @@ async def load_fixtures_to_db(
                     test_uuid,
                     tc.get("nl_query", ""),
                     tool_calls_json,
-                    expected_raw_data_json,
+                    expected_response_json,
                     expected_nl_response,
                     "v1.0.0",  # api_version
                     min(complexity, 5),  # complexity_level (1-5)

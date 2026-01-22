@@ -2,7 +2,7 @@
 
 This file tracks all planned work, technical debt, and in-flight items for the NL2API project.
 
-**Last Updated:** 2026-01-21 (Domain MCP Servers item added)
+**Last Updated:** 2026-01-21 (Codebase audit gaps added - security, test quality, architecture)
 
 ---
 
@@ -108,21 +108,154 @@ Total: ~850ms, ~1100 tokens per request
 
 ---
 
+## Critical Priority (P0) - Production & Quality Blockers
+
+### Hardcoded Credentials in Docker Compose
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** CRITICAL
+
+Docker-compose.yml contains hardcoded credentials:
+- `POSTGRES_USER: nl2api`, `POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}`
+- `GF_SECURITY_ADMIN_USER: admin`, `GF_SECURITY_ADMIN_PASSWORD: admin`
+- Redis exposed on 0.0.0.0:6379 without auth
+
+**Impact:** Anyone with access to docker-compose.yml can access databases and dashboards.
+
+**Fix:**
+- [ ] Move all credentials to `.env.example` with placeholder values
+- [ ] Document that `.env` must be created from `.env.example`
+- [ ] Add Redis AUTH configuration
+- [ ] Add network isolation (don't bind to 0.0.0.0)
+
+---
+
+### Input Validation & Rate Limiting Missing
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** CRITICAL
+
+No API-level input validation or rate limiting:
+- Query strings not validated for length/content
+- Entity names have no max_length
+- No request size limits
+- No per-IP/per-user rate limits
+- Potential injection attacks via ticker symbols
+
+**Fix:**
+- [ ] Add request rate limiting middleware (e.g., slowapi for FastAPI)
+- [ ] Implement input validation schemas with max_length, regex patterns
+- [ ] Set connection pool limits with overflow handling
+- [ ] Add request/response size limits
+- [ ] Document acceptable input ranges
+
+---
+
+### Test Quality: Tests Don't Validate Correctness
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** CRITICAL
+**Docs:** See codebase audit analysis
+
+The test suite has structural issues that allow broken agents to pass:
+
+**Problems:**
+1. Fixture tests only check `can_handle()`, not `process()` - agents that claim they can handle queries but generate garbage pass
+2. 121k fixtures but only ~100 sampled (0.08% coverage)
+3. Coverage thresholds are 10-40% (absurdly low)
+4. Mock LLM returns static response - can't test real behavior
+5. Assertions like `len(result.tool_calls) >= 0` are always true
+6. No execution stage - tool calls never validated against APIs
+
+**Fix:**
+- [ ] Add `process()` tests that validate tool call structure
+- [ ] Increase fixture sampling to at least 1% (1,200 samples)
+- [ ] Raise coverage thresholds to 70%+ per category
+- [ ] Add semantic validation of tool call arguments
+- [ ] Implement mock LLM that validates prompt/response pairs
+
+---
+
+### Health Checks: No Liveness vs Readiness Separation
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** HIGH
+
+Current `/health` endpoint exists but doesn't distinguish:
+- **Liveness:** Is the process alive?
+- **Readiness:** Are dependencies ready (DB connected, cache warmed, RAG loaded)?
+
+**Fix:**
+- [ ] Add `/health` (liveness) and `/ready` (readiness) endpoints
+- [ ] Check PostgreSQL connectivity in readiness
+- [ ] Check Redis availability in readiness
+- [ ] Check RAG index loaded in readiness
+- [ ] Add startup probe for slow initialization
+
+---
+
+### PII/Secrets Redaction in Logs
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** HIGH
+
+Logs may contain sensitive data:
+- Entity names, ticker symbols logged as-is
+- API keys could appear in exception traces
+- Queries logged with full content
+
+**Fix:**
+- [ ] Add PII redactor to logger configuration
+- [ ] Implement secret redaction for API keys in error messages
+- [ ] Document what data should/shouldn't be logged
+
+---
+
 ## High Priority (P0)
 
-### Multi-Client Evaluation Platform
+### Distributed Evaluation Infrastructure
 **Created:** 2026-01-21
-**Status:** Planning
-**Docs:** [docs/plans/multi-client-eval-platform.md](docs/plans/multi-client-eval-platform.md)
+**Status:** Not Started
+**Severity:** HIGH
 
-Expand evaluation platform to support multiple orchestrators (Claude, ChatGPT, custom) and track performance across model upgrades.
+Current evaluation runner (`BatchRunner`) uses `asyncio.Semaphore` for local concurrency but lacks true distributed processing capabilities.
+- No task queue (Celery/BullMQ/Redis Streams)
+- No worker nodes (single monolithic process)
+- No distributed locking or state management
 
-**Phase 0 (Foundation):**
-- [ ] Add client tracking to Scorecard (`client_type`, `client_version`, `eval_mode`)
-- [ ] Implement tool-level evaluation mode (bypass routing)
-- [ ] MCP passthrough evaluation (capture external orchestrator tool calls)
-- [ ] Basic cross-client comparison queries
-- [ ] Cost/token tracking per evaluation
+**Fix:**
+- [ ] Implement `AzureBatchJobRepository` for cloud state storage
+- [ ] Add Redis-based job queue (BullMQ or custom via Redis Streams)
+- [ ] Create worker service entry point (`src.evaluation.worker`)
+- [ ] Add `worker` service to `docker-compose.yml`
+- [ ] Update `BatchRunner` to dispatch jobs to queue instead of local execution
+
+---
+
+### Multi-Client Evaluation Platform (Eval Matrix)
+**Created:** 2026-01-21
+**Status:** Phase 0 Complete
+**Docs:** [docs/plans/eval-matrix.md](docs/plans/eval-matrix.md)
+
+Multi-dimensional evaluation framework for comparing components × LLMs × configs.
+
+**Phase 0 (Foundation) - COMPLETE:**
+- [x] Add client tracking to Scorecard (`client_type`, `client_version`, `eval_mode`)
+- [x] Token tracking through orchestrator (`NL2APIResponse.input_tokens/output_tokens`)
+- [x] Model-aware cost calculation (`src/evaluation/batch/pricing.py`)
+- [x] Agent factory for component-level testing (`get_agent_by_name()`)
+- [x] `eval matrix run` CLI command with component selection
+- [x] `eval matrix compare` for side-by-side comparison
+- [x] `--mode tool_only` and `--agent` options in batch run
+- [x] Backfill script for historical scorecards
+
+**Usage:**
+```bash
+# Compare agents across LLMs
+eval matrix run --component datastream --llm claude-3-5-haiku-20241022 --limit 50
+eval matrix run --component datastream --llm claude-3-5-sonnet-20241022 --limit 50
+eval matrix compare --runs <id1>,<id2>
+```
 
 **Phase 1 (Continuous):**
 - [ ] Scheduled evaluation runner (cron-based)
@@ -187,6 +320,120 @@ Connect evaluation pipeline to real LSEG APIs to:
 ---
 
 ## Medium Priority (P1)
+
+### Architecture: CONTRACTS.py Needs Decomposition
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** MEDIUM
+
+CONTRACTS.py (1,428 lines) mixes 6+ concerns:
+- Core data models (TestCase, ToolCall)
+- Evaluation infrastructure (Evaluator ABC, EvaluationConfig, StageResult)
+- Worker task models (WorkerTask, BatchJob)
+- Client/tenant management (Client, TestSuite, TargetSystemConfig)
+- Configuration (EvaluationConfig, LLMJudgeConfig, WorkerConfig)
+- Azure Table Storage specifics (partition/row keys, IdempotencyRecord)
+
+**Fix:**
+- [ ] Split into: `core_models.py`, `evaluation_models.py`, `worker_models.py`, `tenant_models.py`
+- [ ] Move Evaluator ABC to `src/evaluation/core/`
+- [ ] Move storage-specific models to `src/common/storage/`
+
+---
+
+### Architecture: Orchestrator God Class (803 lines)
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** MEDIUM
+
+Orchestrator has several problems:
+1. Hidden lazy initialization (`_router_initialized` flag)
+2. 11-parameter `__init__` with complex conditionals
+3. Error handling conflates failures with clarification requests
+4. `_RAGContextAdapter` is an adapter that shouldn't exist
+
+**Fix:**
+- [ ] Extract router initialization to factory/builder
+- [ ] Separate error handling from clarification flow
+- [ ] Have RAGRetriever implement ContextProvider directly
+- [ ] Split into NL2APIOrchestrator + OrchestratorBuilder
+
+---
+
+### Architecture: Protocols Defined But Not Enforced
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** MEDIUM
+
+DomainAgent, RAGRetriever, LLMProvider protocols exist but:
+- Agents accessed via dict, not protocol checks
+- No runtime verification of protocol compliance
+- BaseDomainAgent doesn't explicitly implement DomainAgent
+- `can_handle()` deprecated but still in protocol
+
+**Fix:**
+- [ ] Add `@runtime_checkable` to all protocols
+- [ ] Add isinstance checks at registration time
+- [ ] Have BaseDomainAgent explicitly implement DomainAgent
+- [ ] Remove deprecated methods from protocol or mark clearly
+
+---
+
+### Architecture: God Classes > 500 Lines
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** LOW
+
+Six files exceed 500 lines:
+- RAG Indexer: 1024 lines (should split field code vs query example indexing)
+- Entity Repo: 887 lines (should split into EntityRepository, EntityAliasRepository, EntityMatcher)
+- Orchestrator: 803 lines (see above)
+- Batch Commands: 783 lines
+- Metrics: 667 lines
+- Scorecard Repo: 655 lines
+
+**Fix:** Refactor incrementally as these files are touched.
+
+---
+
+### No Deployment Configuration (K8s/IaC)
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** HIGH (for production)
+
+No deployment infrastructure:
+- No Kubernetes manifests
+- No Terraform/CloudFormation templates
+- No Helm charts
+- No scaling guidelines
+- No monitoring/alerting as code
+
+**Fix:**
+- [ ] Create `deploy/` directory with Kubernetes manifests or Helm charts
+- [ ] Document deployment prerequisites
+- [ ] Create deployment runbook
+- [ ] Add resource requests/limits
+- [ ] Add HPA policies
+
+---
+
+### No Alerting Rules Defined
+**Created:** 2026-01-21
+**Status:** Not Started
+**Severity:** MEDIUM
+
+Prometheus/Grafana exist but no alerting:
+- No SLO/SLI definitions
+- No alert rules (circuit breaker open, response time >5s)
+- No trace sampling strategy
+
+**Fix:**
+- [ ] Define alerting rules (e.g., circuit breaker open, latency >5s)
+- [ ] Add SLO dashboards (e.g., "99% of queries <2s")
+- [ ] Implement trace sampling for production
+- [ ] Add business metrics (entity resolution accuracy, query acceptance rate)
+
+---
 
 ### Tool Composition Testing
 **Created:** 2026-01-21
