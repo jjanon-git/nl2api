@@ -70,3 +70,4 @@ routing_eval_*.json
 eval_results.json
 batch_*.json
 batch_*.jsonl
+claude-code-evaluation-email.txt

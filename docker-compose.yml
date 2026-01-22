@@ -41,6 +41,39 @@ services:
       retries: 5
     restart: unless-stopped
 
+  # === MCP Servers ===
+
+  # Entity Resolution MCP Server
+  entity-mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: nl2api-entity-mcp
+    environment:
+      ENTITY_MCP_TRANSPORT: sse
+      ENTITY_MCP_HOST: "0.0.0.0"
+      ENTITY_MCP_PORT: "8080"
+      ENTITY_MCP_POSTGRES_URL: postgresql://nl2api:nl2api@postgres:5432/nl2api
+      ENTITY_MCP_REDIS_URL: redis://redis:6379/0
+      ENTITY_MCP_REDIS_ENABLED: "true"
+      ENTITY_MCP_TELEMETRY_ENABLED: "true"
+      ENTITY_MCP_TELEMETRY_OTLP_ENDPOINT: http://otel-collector:4317
+      ENTITY_MCP_LOG_LEVEL: INFO
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
   # === Observability Stack ===
 
   # OpenTelemetry Collector - receives telemetry and routes to backends

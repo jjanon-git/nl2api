@@ -43,6 +43,20 @@ telemetry = [
     "opentelemetry-exporter-otlp>=1.20.0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.20.0",
 ]
+mcp-server = [
+    # HTTP/SSE transport
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
+    # Database
+    "asyncpg>=0.29.0",
+    "pydantic-settings>=2.0.0",
+    # Redis cache
+    "redis>=5.0.0",
+    # Telemetry
+    "opentelemetry-api>=1.20.0",
+    "opentelemetry-sdk>=1.20.0",
+    "opentelemetry-exporter-otlp>=1.20.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
@@ -61,10 +75,15 @@ dev = [
     "opentelemetry-sdk>=1.20.0",
     "opentelemetry-exporter-otlp>=1.20.0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.20.0",
+    # Include mcp-server deps in dev
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
+    "redis>=5.0.0",
 ]
 
 [project.scripts]
 eval = "src.cli.main:app"
+entity-mcp = "src.mcp_servers.entity_resolution.__main__:app"
 
 [build-system]
 requires = ["hatchling"]

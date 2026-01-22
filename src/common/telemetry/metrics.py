@@ -259,8 +259,16 @@ class EvalMetrics:
             self._test_score.record(scorecard.overall_score, attrs)
 
             # Record per-stage results
-            for stage_result in scorecard.stage_results:
-                stage_attrs = {**attrs, "stage": stage_result.stage_name}
+            stage_fields = [
+                ("syntax", scorecard.syntax_result),
+                ("logic", scorecard.logic_result),
+                ("execution", scorecard.execution_result),
+                ("semantics", scorecard.semantics_result),
+            ]
+            for stage_name, stage_result in stage_fields:
+                if stage_result is None:
+                    continue
+                stage_attrs = {**attrs, "stage": stage_name}
                 if stage_result.passed:
                     self._stage_passed.add(1, stage_attrs)
                 else:

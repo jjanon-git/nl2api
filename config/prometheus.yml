@@ -18,10 +18,13 @@ scrape_configs:
     static_configs:
       - targets: ["localhost:9090"]
 
-  # Scrape OTEL Collector metrics
+  # Scrape OTEL Collector internal metrics
   - job_name: "otel-collector"
     static_configs:
       - targets: ["otel-collector:8888"]
 
-# Enable remote write receiver for OTEL Collector
-# (configured via command line in docker-compose)
+  # Scrape NL2API application metrics (exported by OTEL Collector)
+  - job_name: "nl2api"
+    static_configs:
+      - targets: ["otel-collector:8889"]
+    honor_labels: true

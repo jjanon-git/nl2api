@@ -156,14 +156,47 @@ def test_orchestrator_reuses_main_llm_when_models_match():
 - `__main__.py` entry points (tested via integration/manual)
 - I/O-heavy code that requires real connections (mark for integration tests instead)
 
+### Manual Testing Requirements
+
+**Before committing new servers, CLIs, or API endpoints, manually verify they work.**
+
+This applies to:
+- HTTP/API servers (MCP servers, REST APIs)
+- CLI tools
+- Any code that unit tests can't fully cover
+
+**Manual testing checklist:**
+1. Start the server/CLI with default configuration
+2. Verify health/status endpoints respond
+3. Test at least one happy-path request per endpoint
+4. Test at least one error case (invalid input, missing resource)
+5. Document what you tested in the commit message
+
+**Example: MCP Server manual testing**
+```bash
+# Start server
+.venv/bin/python -m src.mcp_servers.entity_resolution --port 8085 --no-redis &
+
+# Test endpoints
+curl http://localhost:8085/health
+curl -X POST http://localhost:8085/api/resolve -H "Content-Type: application/json" -d '{"entity": "Apple"}'
+curl -X POST http://localhost:8085/mcp -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id": 1, "method": "tools/list"}'
+
+# Kill server
+pkill -f "entity_resolution.*8085"
+```
+
+**Why this matters:** Unit tests with mocks can pass while real code fails (wrong imports, missing dependencies, I/O issues). Manual testing catches these gaps.
+
 ### Pre-commit checklist:
 1. ✅ Unit tests pass: `pytest tests/unit/ -v --tb=short -x`
 2. ✅ Integration tests pass: `pytest tests/integration/ -v --tb=short -x`
 3. ✅ Linting passes: `ruff check .`
 4. ✅ **Test coverage assessed for new code** (see above)
-5. ✅ Security checklist reviewed (see Security Standards section)
-6. ✅ Telemetry added for external calls/DB operations
-7. ✅ No regressions in changed areas
+5. ✅ **Manual testing completed for servers/CLIs** (see above)
+6. ✅ Security checklist reviewed (see Security Standards section)
+7. ✅ Telemetry added for external calls/DB operations
+8. ✅ No regressions in changed areas
 
 ---
 
