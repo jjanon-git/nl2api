@@ -358,103 +358,12 @@ ruff check .
 
 ## Architecture
 
-### NL2API System
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         NL2API System                            │
-├─────────────────────────────────────────────────────────────────┤
-│  NL2APIOrchestrator                                              │
-│  ├─ Query classification (route to domain agent)                │
-│  ├─ Entity resolution (Company → RIC via resolver)              │
-│  └─ Ambiguity detection → Clarification flow                    │
-├─────────────────────────────────────────────────────────────────┤
-│  Domain Agents (5 implemented)                                   │
-│  ├─ DatastreamAgent     (price, time series, calculated fields) │
-│  ├─ EstimatesAgent      (I/B/E/S forecasts, recommendations)    │
-│  ├─ FundamentalsAgent   (WC codes, TR codes, financials)        │
-│  ├─ OfficersAgent       (executives, compensation, governance)  │
-│  └─ ScreeningAgent      (SCREEN expressions, rankings)          │
-├─────────────────────────────────────────────────────────────────┤
-│  Support Components                                              │
-│  ├─ LLM Abstraction (Claude + OpenAI providers)                 │
-│  ├─ RAG Retriever (hybrid vector + keyword, pgvector)           │
-│  ├─ Conversation Manager (multi-turn, query expansion)          │
-│  └─ Entity Resolver (pattern-based + static mappings)           │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-### Evaluation Pipeline (Waterfall)
-
-```
-Raw Output → [Stage 1: Syntax] → Parsed ToolCalls → [Stage 2: Logic] → Scorecard
-                  │                                       │
-                  │ FAIL: Hard stop                       │ FAIL: Soft continue
-                  ▼                                       ▼
-              Scorecard                              Scorecard
-```
-
-- **Stage 1 (Syntax)**: Validates JSON structure and schema - GATE (hard stop on failure)
-- **Stage 2 (Logic)**: AST-based tool call comparison - HIGH priority (soft continue)
-- **Stage 3 (Execution)**: Live API verification - CRITICAL (configurable)
-- **Stage 4 (Semantics)**: LLM-as-Judge NL comparison - LOW priority (configurable)
-
-### Key Data Models (CONTRACTS.py)
-
-```python
-TestCase     # The "Gold Standard" - nl_query, expected_tool_calls, expected_nl_response
-ToolCall     # Tool name + frozen arguments (hashable for set comparison)
-Scorecard    # Evaluation result with per-stage results and overall pass/fail
-BatchJob     # Batch tracking with status and progress
-```
-
-### Storage Layer
-
-Protocol-based abstraction with implementations for:
-- **PostgreSQL** (`src/common/storage/postgres/`) - Local development
-- **In-Memory** (`src/common/storage/memory/`) - Unit tests
-- **Azure** (not yet implemented) - Production
-
-Factory pattern: `create_repositories(config) -> (test_case_repo, scorecard_repo, batch_repo)`
-
-## Directory Structure
-
-```
-nl2api/
-├── CONTRACTS.py              # Pydantic v2 data models
-├── src/
-│   ├── nl2api/               # NL2API System
-│   │   ├── orchestrator.py   # Main entry point
-│   │   ├── config.py         # Configuration (pydantic-settings)
-│   │   ├── llm/              # LLM providers (Claude, OpenAI)
-│   │   ├── agents/           # Domain agents (5 implemented)
-│   │   ├── rag/              # RAG retrieval (pgvector)
-│   │   ├── resolution/       # Entity resolution
-│   │   ├── clarification/    # Ambiguity detection
-│   │   ├── conversation/     # Multi-turn support
-│   │   └── evaluation/       # Eval adapter
-│   ├── common/
-│   │   ├── storage/          # Storage layer (postgres, memory)
-│   │   ├── telemetry/        # OTEL metrics + tracing
-│   │   ├── cache/            # Redis caching
-│   │   └── resilience/       # Circuit breaker, retry
-│   └── evaluation/           # Evaluation pipeline
-│       ├── core/             # Evaluators
-│       └── batch/            # Batch runner
-├── tests/
-│   ├── unit/                         # Unit tests (mocked dependencies)
-│   │   ├── nl2api/                   # NL2API unit tests
-│   │   └── common/                   # Resilience + cache tests
-│   ├── integration/                  # Integration tests (real DB, multi-component)
-│   │   ├── storage/                  # Repository integration tests
-│   │   └── nl2api/                   # Orchestrator + agent integration tests
-│   ├── accuracy/                     # Accuracy tests (real LLM)
-│   │   ├── core/                     # Evaluator, config, thresholds
-│   │   ├── agents/                   # Per-agent accuracy tests
-│   │   └── domains/                  # Per-domain accuracy tests
-│   └── fixtures/lseg/generated/      # ~19k test fixtures
-└── docker-compose.yml                # PostgreSQL + pgvector + Redis + OTEL
-```
+See [docs/architecture.md](docs/architecture.md) for comprehensive documentation including:
+- **NL2API System** - Orchestrator, domain agents, support components (Section 1.1)
+- **Evaluation Pipeline** - 4-stage waterfall with stage criticality (Section 4)
+- **Data Models** - TestCase, ToolCall, Scorecard schemas (Section 3)
+- **Storage Layer** - Protocol-based abstraction with PostgreSQL/Memory backends
+- **Directory Structure** - Full project layout (Section 12)
 
 ## Dynamic Fixture-Based Testing
 
@@ -581,7 +490,7 @@ TestCase → Evaluator Pipeline → Scorecard
 | Scenario | Action |
 |----------|--------|
 | New tool/API added | Add test fixtures + update LogicEvaluator if needed |
-| New evaluation metric | Add to `CONTRACTS.py` first, then implement evaluator |
+| New evaluation metric | Add to `src/contracts/` first, then implement evaluator |
 | Scoring logic change | Requires tier2 accuracy test before/after comparison |
 | New evaluator stage | Must integrate with OTEL (see below) |
 
@@ -589,7 +498,7 @@ TestCase → Evaluator Pipeline → Scorecard
 
 When adding or modifying test fixtures in `tests/fixtures/`:
 
-1. **Follow the TestCase contract** (defined in `CONTRACTS.py`):
+1. **Follow the TestCase contract** (defined in `src/contracts/core.py`):
    ```python
    TestCase(
        id="unique-id",
@@ -720,7 +629,7 @@ batch run --mode simulated      # Pipeline testing only (NOT for tracking)
 | Git strategy for fixtures | **Commit to git** | Reproducibility, review visibility, no CI API costs |
 | NL response generation model | **Claude 3.5 Haiku** | Better quality than 3 Haiku; negligible cost difference |
 | `expected_response` field | **Leave null** | Until execution stage is implemented (deferred) |
-| Fixture schema | **Align with CONTRACTS.py** | Generator dataclass must match `TestCase` contract |
+| Fixture schema | **Align with src/contracts/** | Generator dataclass must match `TestCase` contract |
 | Batch eval default mode | **`resolver` (real)** | Persist meaningful accuracy, not simulated 100% |
 | Simulated responses | **Unit tests only** | Pipeline infra testing doesn't need persistence |
 
@@ -729,7 +638,7 @@ See `docs/plans/evaluation-data-contract-plan.md` for full rationale.
 ### Test Case Field Definitions
 
 ```python
-# In CONTRACTS.py
+# In src/contracts/core.py
 class TestCase:
     expected_response: dict | None      # Raw API data (e.g., {"AAPL.O": {"P": 246.02}})
                                         # Currently NULL - populate when execution stage added
@@ -779,7 +688,7 @@ python scripts/generate_test_cases.py --all
 # Regenerate specific category
 python scripts/generate_test_cases.py --category lookups
 
-# Validate generated output against CONTRACTS.py
+# Validate generated output against src/contracts/ schemas
 python scripts/generate_test_cases.py --validate
 
 # Generate NL responses (uses Claude 3.5 Haiku, ~$5 cost)
@@ -1129,21 +1038,6 @@ These gaps should be addressed as the project matures. If you encounter a situat
 
 ## Development Notes
 
-### Running Tests
-```bash
-# All unit tests
-.venv/bin/python -m pytest tests/unit/ -v
-
-# All integration tests (requires docker compose up -d)
-.venv/bin/python -m pytest tests/integration/ -v
-
-# NL2API tests only
-.venv/bin/python -m pytest tests/unit/nl2api/ -v
-
-# Specific agent tests
-.venv/bin/python -m pytest tests/unit/nl2api/test_datastream.py -v
-```
-
 ### Database
 - PostgreSQL 16 with pgvector extension
 - Tables: `test_cases`, `scorecards`, `batch_jobs`
@@ -1209,7 +1103,7 @@ Application (OTLP) → OTEL Collector (4317) → Prometheus Exporter (8889) → 
 
 | File | Purpose |
 |------|---------|
-| `CONTRACTS.py` | All data models - read this first |
+| `src/contracts/` | All Pydantic v2 data models (core.py, evaluation.py, worker.py, tenant.py) |
 | `src/nl2api/orchestrator.py` | NL2API main entry point |
 | `src/nl2api/agents/*.py` | Domain agent implementations |
 | `src/nl2api/resolution/resolver.py` | Entity resolution implementation |

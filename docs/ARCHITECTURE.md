@@ -12,13 +12,41 @@ NL2API is a Natural Language to API translation system for LSEG financial data. 
 
 ## 1. System Overview
 
-### 1.1 Core Objectives
+### 1.1 NL2API Translation System
+
+The core NL2API system translates natural language queries into structured API calls:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         NL2API System                            │
+├─────────────────────────────────────────────────────────────────┤
+│  NL2APIOrchestrator                                              │
+│  ├─ Query classification (route to domain agent)                │
+│  ├─ Entity resolution (Company → RIC via resolver)              │
+│  └─ Ambiguity detection → Clarification flow                    │
+├─────────────────────────────────────────────────────────────────┤
+│  Domain Agents (5 implemented)                                   │
+│  ├─ DatastreamAgent     (price, time series, calculated fields) │
+│  ├─ EstimatesAgent      (I/B/E/S forecasts, recommendations)    │
+│  ├─ FundamentalsAgent   (WC codes, TR codes, financials)        │
+│  ├─ OfficersAgent       (executives, compensation, governance)  │
+│  └─ ScreeningAgent      (SCREEN expressions, rankings)          │
+├─────────────────────────────────────────────────────────────────┤
+│  Support Components                                              │
+│  ├─ LLM Abstraction (Claude + OpenAI providers)                 │
+│  ├─ RAG Retriever (hybrid vector + keyword, pgvector)           │
+│  ├─ Conversation Manager (multi-turn, query expansion)          │
+│  └─ Entity Resolver (pattern-based + static mappings)           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 Evaluation Platform Objectives
 - **Scale:** Handle ~400k test cases with high concurrency
 - **Reliability:** Fault-tolerant, idempotent workers with automatic retry
 - **Observability:** Full tracing and metrics for debugging at scale
 - **Extensibility:** Clean interfaces for adding new evaluation strategies
 
-### 1.2 Technology Stack
+### 1.3 Technology Stack
 | Component | Technology |
 |-----------|------------|
 | Language | Python 3.11+ |
@@ -738,61 +766,53 @@ make run-cli -- submit --batch-file sample_tests.json
 ## 12. Directory Structure
 
 ```
-eval-platform/
+nl2api/
+├── CONTRACTS.py              # Backward-compat wrapper (re-exports from src/contracts/)
 ├── src/
-│   ├── core/
-│   │   ├── __init__.py
-│   │   ├── schemas.py          # Pydantic models (TestCase, Scorecard, etc.)
-│   │   ├── evaluators.py       # Evaluator ABC + implementations
-│   │   ├── ast_comparator.py   # AST-based tool call comparison
-│   │   └── config.py           # Configuration management
-│   ├── api/                    # Management API (REST)
-│   │   ├── __init__.py
-│   │   ├── main.py             # FastAPI app entry
-│   │   ├── dependencies.py     # DI, auth, etc.
-│   │   └── routers/
-│   │       ├── test_cases.py   # /api/v1/test-cases
-│   │       ├── test_suites.py  # /api/v1/test-suites
-│   │       ├── target_systems.py # /api/v1/target-systems
-│   │       ├── clients.py      # /api/v1/clients
-│   │       └── runs.py         # /api/v1/runs
-│   ├── worker/                 # Execution plane
-│   │   ├── __init__.py
-│   │   ├── main.py             # Worker entry point
-│   │   ├── consumer.py         # Service Bus consumer
-│   │   ├── pipeline.py         # Evaluation pipeline orchestration
-│   │   └── clients/
-│   │       ├── gold_store.py   # Azure AI Search client
-│   │       ├── results_store.py # Table Storage client
-│   │       ├── target_invoker.py # LLM orchestrator client
-│   │       └── llm_judge.py    # Azure OpenAI client (Stage 4)
-│   └── shared/
-│       ├── __init__.py
-│       ├── circuit_breaker.py
-│       ├── retry.py
-│       └── telemetry.py
-├── cli/
-│   ├── __init__.py
-│   ├── main.py                 # Typer CLI entry
-│   └── commands/
-│       ├── submit.py
-│       ├── status.py
-│       └── replay.py
-├── infra/
-│   ├── main.bicep              # Azure infrastructure
-│   ├── modules/
-│   │   ├── api.bicep           # Management API container app
-│   │   ├── worker.bicep        # Worker container app
-│   │   ├── search.bicep        # AI Search
-│   │   ├── servicebus.bicep    # Service Bus
-│   │   └── storage.bicep       # Table Storage
-│   └── parameters/
+│   ├── contracts/            # Pydantic v2 data models (split into focused modules)
+│   │   ├── core.py           # Fundamental types, enums, TestCase, ToolCall
+│   │   ├── evaluation.py     # Scorecard, StageResult, EvaluationConfig
+│   │   ├── worker.py         # BatchJob, WorkerTask, WorkerConfig
+│   │   └── tenant.py         # Client, TestSuite, EvaluationRun
+│   ├── nl2api/               # NL2API Translation System
+│   │   ├── orchestrator.py   # Main entry point
+│   │   ├── config.py         # Configuration (pydantic-settings)
+│   │   ├── llm/              # LLM providers (Claude, OpenAI)
+│   │   ├── agents/           # Domain agents (5 implemented)
+│   │   ├── rag/              # RAG retrieval (hybrid vector + keyword, pgvector)
+│   │   ├── resolution/       # Entity resolution
+│   │   ├── clarification/    # Ambiguity detection
+│   │   ├── conversation/     # Multi-turn support
+│   │   └── evaluation/       # Eval adapter
+│   ├── common/
+│   │   ├── storage/          # Storage layer (postgres, memory protocols)
+│   │   ├── telemetry/        # OTEL metrics + tracing
+│   │   ├── cache/            # Redis caching
+│   │   └── resilience/       # Circuit breaker, retry
+│   ├── evaluation/           # Evaluation Pipeline
+│   │   ├── core/             # Evaluators (Syntax, Logic, Execution, Semantics)
+│   │   ├── batch/            # Batch runner with concurrency control
+│   │   └── cli/              # CLI commands (run, batch)
+│   └── mcp_servers/          # MCP server implementations
 ├── tests/
-│   ├── unit/
-│   ├── integration/
-│   └── fixtures/
-├── docker-compose.yml
-├── Makefile
+│   ├── unit/                 # Unit tests (mocked dependencies)
+│   │   ├── nl2api/           # NL2API unit tests
+│   │   └── common/           # Resilience + cache tests
+│   ├── integration/          # Integration tests (real DB, multi-component)
+│   │   ├── storage/          # Repository integration tests
+│   │   └── nl2api/           # Orchestrator + agent integration tests
+│   ├── accuracy/             # Accuracy tests (real LLM calls)
+│   │   ├── core/             # Evaluator, config, thresholds
+│   │   ├── agents/           # Per-agent accuracy tests
+│   │   └── domains/          # Per-domain accuracy tests
+│   └── fixtures/lseg/generated/  # ~19k test fixtures
+├── scripts/                  # Utility scripts
+│   ├── generators/           # Test case generators
+│   └── load_fixtures_to_db.py
+├── config/                   # Docker/infra configuration
+│   ├── grafana/              # Grafana dashboards and datasources
+│   └── otel-collector-config.yaml
+├── docker-compose.yml        # PostgreSQL + pgvector + Redis + OTEL stack
 ├── pyproject.toml
 └── README.md
 ```
