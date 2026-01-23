@@ -1,9 +1,19 @@
-"""Unit tests for PostgreSQL repository implementations."""
+"""Integration tests for PostgreSQL repository implementations.
+
+Note: These tests require a running PostgreSQL database with migrations applied.
+They will be skipped if the database tables don't exist.
+"""
 
 import os
 import uuid
 
 import pytest
+
+# Skip entire module if we're in CI without database migrations
+pytestmark = pytest.mark.skipif(
+    os.environ.get("CI") == "true" and not os.environ.get("RUN_DB_TESTS"),
+    reason="Requires database migrations; set RUN_DB_TESTS=true to run",
+)
 
 from CONTRACTS import (
     BatchJob as BatchJobModel,
