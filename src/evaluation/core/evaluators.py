@@ -297,7 +297,7 @@ class WaterfallEvaluator(Evaluator):
 
             if not syntax_result.passed:
                 # GATE failure - halt pipeline
-                total_latency_ms = int((time.perf_counter() - start_time) * 1000)
+                total_latency_ms = max(1, int((time.perf_counter() - start_time) * 1000))
                 span.set_attribute("result.passed", False)
                 span.set_attribute("result.gate_failed", True)
                 span.set_attribute("result.total_latency_ms", total_latency_ms)
@@ -349,7 +349,7 @@ class WaterfallEvaluator(Evaluator):
                         "has_expected": test_case.expected_nl_response is not None,
                     })
 
-            total_latency_ms = int((time.perf_counter() - start_time) * 1000)
+            total_latency_ms = max(1, int((time.perf_counter() - start_time) * 1000))
 
             # Record final results
             overall_passed = syntax_result.passed and logic_result.passed
