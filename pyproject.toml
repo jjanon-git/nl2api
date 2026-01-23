@@ -122,6 +122,9 @@ target-version = "py311"
 select = ["E", "F", "I", "N", "W", "UP"]
 ignore = ["E501", "E402", "N806"]  # E501: line too long, E402: imports not at top, N806: uppercase in function (intentional constants)
 
+[tool.ruff.lint.isort]
+known-first-party = ["CONTRACTS", "src"]
+
 [tool.mypy]
 python_version = "3.11"
 strict = true
