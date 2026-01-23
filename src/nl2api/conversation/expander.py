@@ -39,9 +39,17 @@ class QueryExpander:
     # Sorted by length (longest first) to match longer patterns before shorter ones
     # e.g., "its" before "it" to avoid partial matches
     ENTITY_PRONOUNS = [
-        "the company's", "that company's", "the company",
-        "that company", "this company", "the stock's",
-        "the stock", "their", "they", "its", "it",
+        "the company's",
+        "that company's",
+        "the company",
+        "that company",
+        "this company",
+        "the stock's",
+        "the stock",
+        "their",
+        "they",
+        "its",
+        "it",
     ]
 
     # Patterns for period changes
@@ -82,10 +90,27 @@ class QueryExpander:
 
     # Known metrics for detection
     KNOWN_METRICS = {
-        "eps", "earnings", "revenue", "sales", "ebitda", "ebit",
-        "profit", "income", "dividend", "dps", "price target",
-        "rating", "recommendation", "pe", "p/e", "peg",
-        "free cash flow", "fcf", "book value", "roe", "roa",
+        "eps",
+        "earnings",
+        "revenue",
+        "sales",
+        "ebitda",
+        "ebit",
+        "profit",
+        "income",
+        "dividend",
+        "dps",
+        "price target",
+        "rating",
+        "recommendation",
+        "pe",
+        "p/e",
+        "peg",
+        "free cash flow",
+        "fcf",
+        "book value",
+        "roe",
+        "roa",
     }
 
     def expand(
@@ -150,7 +175,7 @@ class QueryExpander:
         # Check for pronoun patterns (list is sorted longest first)
         for pronoun in self.ENTITY_PRONOUNS:
             # Use word boundaries to avoid partial matches (e.g., "it" in "its")
-            pattern = re.compile(r'\b' + re.escape(pronoun) + r'\b', re.IGNORECASE)
+            pattern = re.compile(r"\b" + re.escape(pronoun) + r"\b", re.IGNORECASE)
             if pattern.search(query_lower):
                 # Replace pronoun with last entity
                 # Use the most recently mentioned entity
@@ -178,9 +203,17 @@ class QueryExpander:
 
     # Keywords that indicate period changes, not entity comparisons
     PERIOD_KEYWORDS = {
-        "quarterly", "annual", "annually", "yearly", "monthly",
-        "next year", "this year", "last year",
-        "next quarter", "this quarter", "last quarter",
+        "quarterly",
+        "annual",
+        "annually",
+        "yearly",
+        "monthly",
+        "next year",
+        "this year",
+        "last year",
+        "next quarter",
+        "this quarter",
+        "last quarter",
     }
 
     def _try_comparison_expansion(
@@ -210,7 +243,9 @@ class QueryExpander:
                     metric = self._infer_metric_from_fields(context.fields)
                     if metric:
                         # Capitalize first letter of entity name
-                        entity_display = new_entity[0].upper() + new_entity[1:] if new_entity else new_entity
+                        entity_display = (
+                            new_entity[0].upper() + new_entity[1:] if new_entity else new_entity
+                        )
                         expanded = f"What is {entity_display}'s {metric}?"
                         return ExpansionResult(
                             original_query=query,
@@ -241,7 +276,11 @@ class QueryExpander:
                     entity = list(context.entities.keys())[-1]
                     metric = self._infer_metric_from_fields(context.fields)
                     if metric:
-                        period_text = "quarterly" if "Q" in period_type or period_type == "quarterly" else "annual"
+                        period_text = (
+                            "quarterly"
+                            if "Q" in period_type or period_type == "quarterly"
+                            else "annual"
+                        )
                         expanded = f"What is {entity}'s {period_text} {metric}?"
                         return ExpansionResult(
                             original_query=query,

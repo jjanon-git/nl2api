@@ -48,11 +48,11 @@ def parse_cron_expression(cron_expr: str) -> dict[str, set[int]]:
 
     field_names = ["minute", "hour", "day_of_month", "month", "day_of_week"]
     field_ranges = [
-        (0, 59),   # minute
-        (0, 23),   # hour
-        (1, 31),   # day of month
-        (1, 12),   # month
-        (0, 6),    # day of week (0 = Sunday)
+        (0, 59),  # minute
+        (0, 23),  # hour
+        (1, 31),  # day of month
+        (1, 12),  # month
+        (0, 6),  # day of week (0 = Sunday)
     ]
 
     result = {}

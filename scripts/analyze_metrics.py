@@ -20,7 +20,7 @@ import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from statistics import mean, median, stdev
+from statistics import mean, median
 from typing import Any
 
 
@@ -154,8 +154,16 @@ def print_summary(summary: MetricsSummary) -> None:
 
     print("\n📊 REQUEST OVERVIEW")
     print(f"  Total requests:        {summary.total_requests:,}")
-    print(f"  Successful:            {summary.successful_requests:,} ({summary.successful_requests/summary.total_requests*100:.1f}%)" if summary.total_requests else "  Successful:            0")
-    print(f"  Failed:                {summary.failed_requests:,} ({summary.failed_requests/summary.total_requests*100:.1f}%)" if summary.total_requests else "  Failed:                0")
+    print(
+        f"  Successful:            {summary.successful_requests:,} ({summary.successful_requests / summary.total_requests * 100:.1f}%)"
+        if summary.total_requests
+        else "  Successful:            0"
+    )
+    print(
+        f"  Failed:                {summary.failed_requests:,} ({summary.failed_requests / summary.total_requests * 100:.1f}%)"
+        if summary.total_requests
+        else "  Failed:                0"
+    )
     print(f"  Clarifications:        {summary.clarification_requests:,}")
 
     print("\n⏱️  LATENCY (ms)")
@@ -169,9 +177,9 @@ def print_summary(summary: MetricsSummary) -> None:
     print(f"  Per request (mean):    {summary.tokens_per_request_mean:.1f}")
 
     print("\n🎯 EFFICIENCY")
-    print(f"  Cache hit rate:        {summary.cache_hit_rate*100:.1f}%")
-    print(f"  LLM usage rate:        {summary.llm_usage_rate*100:.1f}%")
-    print(f"  Rule match rate:       {summary.rule_match_rate*100:.1f}%")
+    print(f"  Cache hit rate:        {summary.cache_hit_rate * 100:.1f}%")
+    print(f"  LLM usage rate:        {summary.llm_usage_rate * 100:.1f}%")
+    print(f"  Rule match rate:       {summary.rule_match_rate * 100:.1f}%")
 
     if summary.domains:
         print("\n📁 DOMAIN DISTRIBUTION")
@@ -204,10 +212,10 @@ def print_by_domain(metrics: list[dict[str, Any]]) -> None:
 
         print(f"\n📂 {domain.upper()}")
         print(f"   Requests: {summary.total_requests:,}")
-        print(f"   Success rate: {summary.successful_requests/summary.total_requests*100:.1f}%")
+        print(f"   Success rate: {summary.successful_requests / summary.total_requests * 100:.1f}%")
         print(f"   Latency (mean): {summary.latency_mean:.1f}ms")
         print(f"   Tokens (mean): {summary.tokens_per_request_mean:.1f}")
-        print(f"   LLM usage: {summary.llm_usage_rate*100:.1f}%")
+        print(f"   LLM usage: {summary.llm_usage_rate * 100:.1f}%")
 
 
 def print_slow_requests(metrics: list[dict[str, Any]], threshold_ms: int) -> None:
@@ -258,9 +266,20 @@ def export_csv(metrics: list[dict[str, Any]], output_path: Path) -> None:
 
     # Define preferred column order
     priority_keys = [
-        "request_id", "timestamp", "query", "routing_domain", "routing_confidence",
-        "routing_cached", "agent_used_llm", "agent_rule_matched", "tool_calls_count",
-        "total_latency_ms", "total_tokens", "success", "error_type", "error_message",
+        "request_id",
+        "timestamp",
+        "query",
+        "routing_domain",
+        "routing_confidence",
+        "routing_cached",
+        "agent_used_llm",
+        "agent_rule_matched",
+        "tool_calls_count",
+        "total_latency_ms",
+        "total_tokens",
+        "success",
+        "error_type",
+        "error_message",
     ]
 
     # Order columns: priority first, then alphabetical
@@ -292,7 +311,9 @@ def main() -> None:
     parser.add_argument("file", type=Path, help="Path to metrics JSONL file")
     parser.add_argument("--summary", action="store_true", help="Show overall summary (default)")
     parser.add_argument("--by-domain", action="store_true", help="Show metrics by domain")
-    parser.add_argument("--slow-requests", type=int, metavar="MS", help="Show requests slower than MS milliseconds")
+    parser.add_argument(
+        "--slow-requests", type=int, metavar="MS", help="Show requests slower than MS milliseconds"
+    )
     parser.add_argument("--errors", action="store_true", help="Show failed requests")
     parser.add_argument("--export-csv", type=Path, metavar="PATH", help="Export to CSV file")
 
@@ -311,7 +332,9 @@ def main() -> None:
         sys.exit(0)
 
     # Determine what to show
-    show_summary = args.summary or not any([args.by_domain, args.slow_requests, args.errors, args.export_csv])
+    show_summary = args.summary or not any(
+        [args.by_domain, args.slow_requests, args.errors, args.export_csv]
+    )
 
     if show_summary:
         summary = compute_summary(metrics)

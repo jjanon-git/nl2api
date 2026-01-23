@@ -45,6 +45,7 @@ from typing import Any
 @dataclass
 class ExtractionTestCase:
     """A single entity extraction test case."""
+
     id: str
     nl_query: str
     expected_tool_calls: list[dict[str, Any]]
@@ -70,10 +71,19 @@ class EntityExtractionGenerator:
 
     # Patterns to detect extraction type from NL query
     EXTRACTION_PATTERNS = {
-        "possessive": re.compile(r"(\w+(?:\s+\w+)?(?:\s+(?:Inc|Corp|Ltd|SA|AG|SE|NV|PLC)\.?)?)'s\b", re.IGNORECASE),
-        "of_pattern": re.compile(r"\b(?:of|for)\s+(\w+(?:\s+\w+)?(?:\s+(?:Inc|Corp|Ltd|SA|AG|SE|NV|PLC)\.?)?)\b", re.IGNORECASE),
-        "ticker_inline": re.compile(r"\b([A-Z]{2,5})\s+(?:stock|price|data|earnings|revenue)", re.IGNORECASE),
-        "embedded": re.compile(r"\b(?:how|what|show|get)\s+.*?\b(\w+(?:\s+\w+)?)\s+(?:stock|price|data)", re.IGNORECASE),
+        "possessive": re.compile(
+            r"(\w+(?:\s+\w+)?(?:\s+(?:Inc|Corp|Ltd|SA|AG|SE|NV|PLC)\.?)?)'s\b", re.IGNORECASE
+        ),
+        "of_pattern": re.compile(
+            r"\b(?:of|for)\s+(\w+(?:\s+\w+)?(?:\s+(?:Inc|Corp|Ltd|SA|AG|SE|NV|PLC)\.?)?)\b",
+            re.IGNORECASE,
+        ),
+        "ticker_inline": re.compile(
+            r"\b([A-Z]{2,5})\s+(?:stock|price|data|earnings|revenue)", re.IGNORECASE
+        ),
+        "embedded": re.compile(
+            r"\b(?:how|what|show|get)\s+.*?\b(\w+(?:\s+\w+)?)\s+(?:stock|price|data)", re.IGNORECASE
+        ),
     }
 
     # Target counts per subcategory
@@ -159,7 +169,10 @@ class EntityExtractionGenerator:
         Uses the expected ticker as a hint to find the correct entity.
         """
         # Try to find company name near possessive
-        possessive_match = re.search(r"([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?(?:\s+(?:Inc|Corp|Ltd|SA|AG|SE|NV|PLC)\.?)?)'s", nl_query)
+        possessive_match = re.search(
+            r"([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?(?:\s+(?:Inc|Corp|Ltd|SA|AG|SE|NV|PLC)\.?)?)'s",
+            nl_query,
+        )
         if possessive_match:
             return possessive_match.group(1)
 
@@ -181,7 +194,20 @@ class EntityExtractionGenerator:
         # Try to find capitalized words that could be company names
         cap_words = re.findall(r"\b([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)\b", nl_query)
         # Filter out common words
-        stop_words = {"What", "Show", "Get", "Find", "How", "The", "Is", "Are", "Tell", "Can", "Please", "Give"}
+        stop_words = {
+            "What",
+            "Show",
+            "Get",
+            "Find",
+            "How",
+            "The",
+            "Is",
+            "Are",
+            "Tell",
+            "Can",
+            "Please",
+            "Give",
+        }
         for word in cap_words:
             if word not in stop_words:
                 return word
@@ -247,7 +273,9 @@ class EntityExtractionGenerator:
 
         # Build metadata - NO input_entity to force extraction
         metadata = {
-            "expected_extractions": [company] if not self._is_multi_entity(tool_calls) else self._extract_all_companies(nl_query),
+            "expected_extractions": [company]
+            if not self._is_multi_entity(tool_calls)
+            else self._extract_all_companies(nl_query),
             "expected_tickers": tickers,
             "extraction_pattern": subcategory,
             "source_fixture": source.get("id", "unknown"),
@@ -333,8 +361,7 @@ class EntityExtractionGenerator:
 
             # Check if we've hit all targets
             all_done = all(
-                subcategory_counts.get(k, 0) >= v
-                for k, v in self.SUBCATEGORY_TARGETS.items()
+                subcategory_counts.get(k, 0) >= v for k, v in self.SUBCATEGORY_TARGETS.items()
             )
             if all_done:
                 break

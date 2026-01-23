@@ -192,24 +192,59 @@ class FundamentalsAgent(BaseDomainAgent):
     # Keywords for domain classification
     DOMAIN_KEYWORDS = [
         # Income statement
-        "revenue", "sales", "net income", "profit", "earnings",
-        "gross profit", "operating income", "ebit", "ebitda",
-        "cost of goods", "cogs", "expenses", "margin",
+        "revenue",
+        "sales",
+        "net income",
+        "profit",
+        "earnings",
+        "gross profit",
+        "operating income",
+        "ebit",
+        "ebitda",
+        "cost of goods",
+        "cogs",
+        "expenses",
+        "margin",
         # Balance sheet
-        "assets", "liabilities", "equity", "debt", "cash",
-        "balance sheet", "receivables", "inventory", "payables",
+        "assets",
+        "liabilities",
+        "equity",
+        "debt",
+        "cash",
+        "balance sheet",
+        "receivables",
+        "inventory",
+        "payables",
         # Cash flow
-        "cash flow", "operating cash", "free cash flow", "fcf",
-        "capex", "capital expenditure", "dividends paid",
+        "cash flow",
+        "operating cash",
+        "free cash flow",
+        "fcf",
+        "capex",
+        "capital expenditure",
+        "dividends paid",
         # Ratios
-        "roe", "roa", "current ratio", "quick ratio",
-        "debt to equity", "profit margin", "gross margin",
-        "return on", "leverage",
+        "roe",
+        "roa",
+        "current ratio",
+        "quick ratio",
+        "debt to equity",
+        "profit margin",
+        "gross margin",
+        "return on",
+        "leverage",
         # Per share
-        "per share", "eps", "dps", "bvps",
+        "per share",
+        "eps",
+        "dps",
+        "bvps",
         # General
-        "fundamentals", "financials", "financial data",
-        "annual report", "quarterly report", "fiscal",
+        "fundamentals",
+        "financials",
+        "financial data",
+        "annual report",
+        "quarterly report",
+        "fiscal",
     ]
 
     def __init__(
@@ -542,7 +577,7 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
                 continue
 
             # Use word boundary matching
-            pattern = r'\b' + re.escape(keyword) + r'\b'
+            pattern = r"\b" + re.escape(keyword) + r"\b"
             if re.search(pattern, query_lower):
                 if field_code not in fields:
                     fields.append(field_code)
@@ -556,7 +591,7 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
         params: dict[str, str] = {}
 
         # Time series patterns (last N years)
-        time_series_match = re.search(r'(?:last|past)\s+(\d+)\s+years?', query_lower)
+        time_series_match = re.search(r"(?:last|past)\s+(\d+)\s+years?", query_lower)
         if time_series_match:
             years = int(time_series_match.group(1))
             params["SDate"] = "0"

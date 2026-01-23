@@ -6,15 +6,12 @@ Tests against the 265 screening test cases in tests/fixtures/lseg/generated/scre
 
 from __future__ import annotations
 
-import re
 import pytest
-from typing import Any
 
-from src.nl2api.agents.screening import ScreeningAgent
 from src.nl2api.agents.protocols import AgentContext
+from src.nl2api.agents.screening import ScreeningAgent
 from tests.unit.nl2api.fixture_loader import (
     FixtureLoader,
-    GeneratedTestCase,
 )
 
 
@@ -78,7 +75,8 @@ class TestScreeningAgentIndexConstituents:
     async def test_index_detection_sp500(self, agent: ScreeningAgent, loader: FixtureLoader):
         """Test S&P 500 index detection."""
         sp500_cases = [
-            c for c in loader.load_category("screening")
+            c
+            for c in loader.load_category("screening")
             if "s&p 500" in c.nl_query.lower() or "s&p500" in c.nl_query.lower()
         ]
 
@@ -93,10 +91,7 @@ class TestScreeningAgentIndexConstituents:
     @pytest.mark.asyncio
     async def test_index_detection_ftse(self, agent: ScreeningAgent, loader: FixtureLoader):
         """Test FTSE index detection."""
-        ftse_cases = [
-            c for c in loader.load_category("screening")
-            if "ftse" in c.nl_query.lower()
-        ]
+        ftse_cases = [c for c in loader.load_category("screening") if "ftse" in c.nl_query.lower()]
 
         if not ftse_cases:
             pytest.skip("No FTSE cases found")
@@ -109,8 +104,7 @@ class TestScreeningAgentIndexConstituents:
     async def test_index_detection_nasdaq(self, agent: ScreeningAgent, loader: FixtureLoader):
         """Test NASDAQ index detection."""
         nasdaq_cases = [
-            c for c in loader.load_category("screening")
-            if "nasdaq" in c.nl_query.lower()
+            c for c in loader.load_category("screening") if "nasdaq" in c.nl_query.lower()
         ]
 
         if not nasdaq_cases:
@@ -168,7 +162,7 @@ class TestScreeningAgentTopN:
         rate = detected_count / len(top_n_cases) if top_n_cases else 0
         n_rate = correct_n_count / len(top_n_cases) if top_n_cases else 0
 
-        print(f"\nTop-N detection statistics:")
+        print("\nTop-N detection statistics:")
         print(f"  Detection rate: {rate:.2%}")
         print(f"  Correct N rate: {n_rate:.2%}")
 
@@ -178,7 +172,8 @@ class TestScreeningAgentTopN:
     async def test_market_cap_ranking(self, agent: ScreeningAgent, loader: FixtureLoader):
         """Test market cap ranking queries."""
         market_cap_cases = [
-            c for c in loader.load_by_subcategory("top_n")
+            c
+            for c in loader.load_by_subcategory("top_n")
             if c.metadata.get("metric") == "market cap"
         ][:20]
 
@@ -195,7 +190,9 @@ class TestScreeningAgentTopN:
         assert rate >= 0.5, f"Market cap ranking detection rate: {rate:.2%}"
 
     @pytest.mark.asyncio
-    async def test_top_n_builds_screen_expression(self, agent: ScreeningAgent, loader: FixtureLoader):
+    async def test_top_n_builds_screen_expression(
+        self, agent: ScreeningAgent, loader: FixtureLoader
+    ):
         """Test that top-N queries build SCREEN expressions."""
         top_n_cases = loader.load_by_subcategory("top_n")[:20]
 
@@ -213,11 +210,14 @@ class TestScreeningAgentTopN:
                 tool_call = result.tool_calls[0]
                 screen_expr = tool_call.arguments.get("tickers", "")
 
-                if screen_expr and isinstance(screen_expr, str) and screen_expr.startswith("SCREEN"):
+                if (
+                    screen_expr
+                    and isinstance(screen_expr, str)
+                    and screen_expr.startswith("SCREEN")
+                ):
                     built_count += 1
                     # Verify it contains TOP()
-                    assert "TOP(" in screen_expr, \
-                        f"SCREEN missing TOP() for: {case.nl_query}"
+                    assert "TOP(" in screen_expr, f"SCREEN missing TOP() for: {case.nl_query}"
 
         rate = built_count / len(top_n_cases) if top_n_cases else 0
         print(f"\nSCREEN expression build rate: {rate:.2%}")
@@ -233,9 +233,12 @@ class TestScreeningAgentFilters:
         """Test sector filter detection."""
         # Find cases with sector filters
         sector_cases = [
-            c for c in loader.load_category("screening")
-            if any(term in c.nl_query.lower() for term in
-                   ["technology", "healthcare", "financials", "energy", "consumer"])
+            c
+            for c in loader.load_category("screening")
+            if any(
+                term in c.nl_query.lower()
+                for term in ["technology", "healthcare", "financials", "energy", "consumer"]
+            )
         ][:20]
 
         if not sector_cases:
@@ -257,8 +260,12 @@ class TestScreeningAgentFilters:
         """Test country filter detection (agent uses _detect_country_filter)."""
         # Find cases with country filters (US, UK)
         country_cases = [
-            c for c in loader.load_category("screening")
-            if any(term in c.nl_query.lower() for term in ["us ", "usa", "united states", "uk ", "japan"])
+            c
+            for c in loader.load_category("screening")
+            if any(
+                term in c.nl_query.lower()
+                for term in ["us ", "usa", "united states", "uk ", "japan"]
+            )
         ][:20]
 
         if not country_cases:
@@ -322,7 +329,8 @@ class TestScreeningAgentMetricDetection:
     async def test_revenue_metric_detection(self, agent: ScreeningAgent, loader: FixtureLoader):
         """Test revenue metric detection via _detect_top_clause."""
         revenue_cases = [
-            c for c in loader.load_category("screening")
+            c
+            for c in loader.load_category("screening")
             if "revenue" in c.nl_query.lower() or "sales" in c.nl_query.lower()
         ][:20]
 
@@ -341,10 +349,13 @@ class TestScreeningAgentMetricDetection:
         assert rate >= 0.2, f"Revenue metric detection rate too low: {rate:.2%}"
 
     @pytest.mark.asyncio
-    async def test_dividend_yield_metric_detection(self, agent: ScreeningAgent, loader: FixtureLoader):
+    async def test_dividend_yield_metric_detection(
+        self, agent: ScreeningAgent, loader: FixtureLoader
+    ):
         """Test dividend yield metric detection via _detect_top_clause."""
         div_cases = [
-            c for c in loader.load_category("screening")
+            c
+            for c in loader.load_category("screening")
             if "dividend" in c.nl_query.lower() or "yield" in c.nl_query.lower()
         ][:20]
 
@@ -354,7 +365,9 @@ class TestScreeningAgentMetricDetection:
         detected_count = 0
         for case in div_cases:
             top_clause = agent._detect_top_clause(case.nl_query)
-            if top_clause and ("Dividend" in top_clause.get("field", "") or "Yield" in top_clause.get("field", "")):
+            if top_clause and (
+                "Dividend" in top_clause.get("field", "") or "Yield" in top_clause.get("field", "")
+            ):
                 detected_count += 1
 
         # Report rate
@@ -458,8 +471,9 @@ class TestScreeningExpressionFormat:
                     # Verify parentheses are balanced
                     open_parens = screen_expr.count("(")
                     close_parens = screen_expr.count(")")
-                    assert open_parens == close_parens, \
+                    assert open_parens == close_parens, (
                         f"Unbalanced parens in SCREEN: {screen_expr}"
+                    )
 
                     # Verify basic structure
                     assert "U(" in screen_expr, f"Missing U() in SCREEN: {screen_expr}"
@@ -497,12 +511,16 @@ class TestScreeningExpressionFormat:
                 continue
 
             # Check for partial match (same structure but different values)
-            if (actual_screen.startswith("SCREEN") and expected_tickers.startswith("SCREEN") and
-                "TOP(" in actual_screen and "TOP(" in expected_tickers):
+            if (
+                actual_screen.startswith("SCREEN")
+                and expected_tickers.startswith("SCREEN")
+                and "TOP(" in actual_screen
+                and "TOP(" in expected_tickers
+            ):
                 partial_match_count += 1
 
         total = len(top_n_cases)
-        print(f"\nSCREEN comparison:")
+        print("\nSCREEN comparison:")
         print(f"  Total cases: {total}")
         print(f"  Exact matches: {match_count}")
         print(f"  Partial matches: {partial_match_count}")
@@ -528,10 +546,12 @@ class TestIndexConstituentFormat:
             expected_tickers = expected_tc.get("arguments", {}).get("tickers", "")
 
             # Index constituents should use L prefix pattern like "LS&PCOMP|L"
-            assert expected_tickers.startswith("L"), \
+            assert expected_tickers.startswith("L"), (
                 f"Expected L prefix for index constituents: {expected_tickers}"
-            assert "|L" in expected_tickers or expected_tickers.endswith("|L"), \
+            )
+            assert "|L" in expected_tickers or expected_tickers.endswith("|L"), (
                 f"Expected |L suffix for index constituents: {expected_tickers}"
+            )
 
     @pytest.mark.asyncio
     async def test_index_name_to_code_mapping(self, agent: ScreeningAgent, loader: FixtureLoader):

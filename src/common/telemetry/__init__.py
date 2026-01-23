@@ -24,30 +24,30 @@ Usage:
     requests_counter.add(1, {"domain": "estimates"})
 """
 
-from src.common.telemetry.setup import (
-    init_telemetry,
-    shutdown_telemetry,
-    get_tracer,
-    get_meter,
-    is_telemetry_enabled,
-    TelemetryConfig,
-)
 from src.common.telemetry.metrics import (
-    NL2APIMetrics,
-    get_nl2api_metrics,
-    EvalMetrics,
-    get_eval_metrics,
     AccuracyMetrics,
+    EvalMetrics,
+    NL2APIMetrics,
     get_accuracy_metrics,
+    get_eval_metrics,
+    get_nl2api_metrics,
+)
+from src.common.telemetry.setup import (
+    TelemetryConfig,
+    get_meter,
+    get_tracer,
+    init_telemetry,
+    is_telemetry_enabled,
+    shutdown_telemetry,
 )
 from src.common.telemetry.tracing import (
-    trace_async,
-    trace_sync,
-    trace_span,
-    trace_span_safe,
     add_span_attributes,
     add_span_event,
     record_exception,
+    trace_async,
+    trace_span,
+    trace_span_safe,
+    trace_sync,
 )
 
 __all__ = [

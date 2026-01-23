@@ -5,9 +5,9 @@ Tests for Redis cache (using in-memory fallback).
 import pytest
 
 from src.common.cache.redis_cache import (
-    RedisCache,
     CacheConfig,
     MemoryCache,
+    RedisCache,
     cache_key_for_entity,
     cache_key_for_query,
 )

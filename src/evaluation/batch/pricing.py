@@ -83,10 +83,7 @@ def calculate_cost(
 
     input_rate, output_rate = get_model_pricing(model)
 
-    return (
-        (input_tokens / 1_000_000) * input_rate +
-        (output_tokens / 1_000_000) * output_rate
-    )
+    return (input_tokens / 1_000_000) * input_rate + (output_tokens / 1_000_000) * output_rate
 
 
 def format_cost(cost: float | None) -> str:

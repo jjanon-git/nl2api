@@ -98,21 +98,47 @@ class OfficersAgent(BaseDomainAgent):
     # Keywords for domain classification
     DOMAIN_KEYWORDS = [
         # Executive roles
-        "ceo", "cfo", "coo", "cto", "cio",
-        "chief executive", "chief financial", "chief operating",
-        "president", "chairman", "chairperson",
+        "ceo",
+        "cfo",
+        "coo",
+        "cto",
+        "cio",
+        "chief executive",
+        "chief financial",
+        "chief operating",
+        "president",
+        "chairman",
+        "chairperson",
         # General terms
-        "executive", "officer", "management", "leadership",
-        "who runs", "who leads", "who is the",
+        "executive",
+        "officer",
+        "management",
+        "leadership",
+        "who runs",
+        "who leads",
+        "who is the",
         # Board terms
-        "board", "director", "board member", "governance",
-        "independent director", "board size",
+        "board",
+        "director",
+        "board member",
+        "governance",
+        "independent director",
+        "board size",
         # Compensation
-        "salary", "compensation", "bonus", "pay",
-        "stock awards", "total comp",
+        "salary",
+        "compensation",
+        "bonus",
+        "pay",
+        "stock awards",
+        "total comp",
         # Background
-        "tenure", "how long", "education", "university",
-        "background", "biography", "bio",
+        "tenure",
+        "how long",
+        "education",
+        "university",
+        "background",
+        "biography",
+        "bio",
     ]
 
     def __init__(
@@ -409,7 +435,10 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
             fields.append("TR.ODOfficerTotalComp")
 
         # Check for executives list
-        if any(kw in query_lower for kw in ["executives", "top executives", "management team", "leadership"]):
+        if any(
+            kw in query_lower
+            for kw in ["executives", "top executives", "management team", "leadership"]
+        ):
             if "TR.OfficerName" not in fields:
                 fields.append("TR.OfficerName")
             if "TR.OfficerTitle" not in fields:
@@ -452,7 +481,9 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
         params: dict[str, str] = {}
 
         # Detect officer type
-        if any(kw in query_lower for kw in ["executives", "top executives", "management", "leadership"]):
+        if any(
+            kw in query_lower for kw in ["executives", "top executives", "management", "leadership"]
+        ):
             params["OfficerType"] = "Executive"
         elif any(kw in query_lower for kw in ["directors", "board members", "board of directors"]):
             params["OfficerType"] = "Director"

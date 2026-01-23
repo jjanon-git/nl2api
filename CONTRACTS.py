@@ -24,50 +24,50 @@ The contracts have been split into focused modules:
 
 # Re-export everything from the contracts package
 from src.contracts import (
-    # Utility
-    FrozenDict,
-    _generate_id,
-    _now_utc,
+    # Worker
+    BatchJob,
     # Enums
     CircuitState,
+    # Management
+    Client,
     ClientType,
     ErrorCode,
     EvalMode,
+    EvaluationConfig,
+    EvaluationRun,
     EvaluationStage,
+    # Evaluation
+    Evaluator,
+    # Utility
+    FrozenDict,
+    # Storage
+    IdempotencyRecord,
+    LLMJudgeConfig,
     LLMProvider,
     RunStatus,
-    TaskPriority,
-    TaskStatus,
-    TemporalStability,
-    TemporalValidationMode,
-    TestCaseStatus,
-    # Registry
-    ToolRegistry,
+    Scorecard,
+    StageResult,
     # Core Models
     SystemResponse,
+    TableStorageEntity,
+    TargetSystemConfig,
+    TaskPriority,
+    TaskStatus,
     TemporalContext,
+    TemporalStability,
+    TemporalValidationMode,
     TestCase,
     TestCaseMetadata,
     TestCaseSetConfig,
+    TestCaseStatus,
+    TestSuite,
     ToolCall,
-    # Evaluation
-    Evaluator,
-    EvaluationConfig,
-    LLMJudgeConfig,
-    Scorecard,
-    StageResult,
-    # Worker
-    BatchJob,
+    # Registry
+    ToolRegistry,
     WorkerConfig,
     WorkerTask,
-    # Management
-    Client,
-    EvaluationRun,
-    TargetSystemConfig,
-    TestSuite,
-    # Storage
-    IdempotencyRecord,
-    TableStorageEntity,
+    _generate_id,
+    _now_utc,
 )
 
 __all__ = [

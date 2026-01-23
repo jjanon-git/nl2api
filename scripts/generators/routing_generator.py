@@ -8,7 +8,7 @@ query → domain routing accuracy.
 
 import hashlib
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Target counts per subcategory
@@ -26,23 +26,92 @@ TARGETS = {
 
 # Company names for variation
 COMPANIES = [
-    "Apple", "Microsoft", "Google", "Amazon", "Tesla", "Meta", "NVIDIA",
-    "Netflix", "Adobe", "Salesforce", "Intel", "AMD", "Cisco", "Oracle",
-    "IBM", "SAP", "Qualcomm", "Broadcom", "Texas Instruments", "Micron",
-    "JPMorgan", "Goldman Sachs", "Morgan Stanley", "Bank of America", "Wells Fargo",
-    "Coca-Cola", "PepsiCo", "Procter & Gamble", "Johnson & Johnson", "Pfizer",
-    "ExxonMobil", "Chevron", "Shell", "BP", "ConocoPhillips",
-    "Boeing", "Lockheed Martin", "Raytheon", "General Dynamics", "Northrop Grumman",
-    "Walmart", "Target", "Costco", "Home Depot", "Lowe's",
-    "Disney", "Comcast", "AT&T", "Verizon", "T-Mobile",
+    "Apple",
+    "Microsoft",
+    "Google",
+    "Amazon",
+    "Tesla",
+    "Meta",
+    "NVIDIA",
+    "Netflix",
+    "Adobe",
+    "Salesforce",
+    "Intel",
+    "AMD",
+    "Cisco",
+    "Oracle",
+    "IBM",
+    "SAP",
+    "Qualcomm",
+    "Broadcom",
+    "Texas Instruments",
+    "Micron",
+    "JPMorgan",
+    "Goldman Sachs",
+    "Morgan Stanley",
+    "Bank of America",
+    "Wells Fargo",
+    "Coca-Cola",
+    "PepsiCo",
+    "Procter & Gamble",
+    "Johnson & Johnson",
+    "Pfizer",
+    "ExxonMobil",
+    "Chevron",
+    "Shell",
+    "BP",
+    "ConocoPhillips",
+    "Boeing",
+    "Lockheed Martin",
+    "Raytheon",
+    "General Dynamics",
+    "Northrop Grumman",
+    "Walmart",
+    "Target",
+    "Costco",
+    "Home Depot",
+    "Lowe's",
+    "Disney",
+    "Comcast",
+    "AT&T",
+    "Verizon",
+    "T-Mobile",
 ]
 
 # Tickers for variation
 TICKERS = [
-    "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META", "NVDA", "NFLX",
-    "ADBE", "CRM", "INTC", "AMD", "CSCO", "ORCL", "IBM", "QCOM",
-    "JPM", "GS", "MS", "BAC", "WFC", "C", "USB", "PNC",
-    "KO", "PEP", "PG", "JNJ", "PFE", "MRK", "ABBV", "LLY",
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "TSLA",
+    "META",
+    "NVDA",
+    "NFLX",
+    "ADBE",
+    "CRM",
+    "INTC",
+    "AMD",
+    "CSCO",
+    "ORCL",
+    "IBM",
+    "QCOM",
+    "JPM",
+    "GS",
+    "MS",
+    "BAC",
+    "WFC",
+    "C",
+    "USB",
+    "PNC",
+    "KO",
+    "PEP",
+    "PG",
+    "JNJ",
+    "PFE",
+    "MRK",
+    "ABBV",
+    "LLY",
 ]
 
 
@@ -97,22 +166,24 @@ def generate_datastream_clear() -> list[dict]:
     ]
 
     cases = []
-    for i, template in enumerate(templates[:TARGETS["datastream_clear"]]):
+    for i, template in enumerate(templates[: TARGETS["datastream_clear"]]):
         company = COMPANIES[i % len(COMPANIES)]
         ticker = TICKERS[i % len(TICKERS)]
         query = template.format(company=company, ticker=ticker)
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": "route_to_datastream", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 1,
-            "category": "routing",
-            "subcategory": "datastream_clear",
-            "tags": ["routing", "datastream"],
-            "metadata": {"expected_domain": "datastream", "min_confidence": 0.8}
-        })
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": "route_to_datastream", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 1,
+                "category": "routing",
+                "subcategory": "datastream_clear",
+                "tags": ["routing", "datastream"],
+                "metadata": {"expected_domain": "datastream", "min_confidence": 0.8},
+            }
+        )
     return cases
 
 
@@ -162,21 +233,23 @@ def generate_estimates_clear() -> list[dict]:
     ]
 
     cases = []
-    for i, template in enumerate(templates[:TARGETS["estimates_clear"]]):
+    for i, template in enumerate(templates[: TARGETS["estimates_clear"]]):
         company = COMPANIES[i % len(COMPANIES)]
         query = template.format(company=company)
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": "route_to_estimates", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 1,
-            "category": "routing",
-            "subcategory": "estimates_clear",
-            "tags": ["routing", "estimates", "forecast"],
-            "metadata": {"expected_domain": "estimates", "min_confidence": 0.8}
-        })
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": "route_to_estimates", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 1,
+                "category": "routing",
+                "subcategory": "estimates_clear",
+                "tags": ["routing", "estimates", "forecast"],
+                "metadata": {"expected_domain": "estimates", "min_confidence": 0.8},
+            }
+        )
     return cases
 
 
@@ -226,21 +299,23 @@ def generate_fundamentals_clear() -> list[dict]:
     ]
 
     cases = []
-    for i, template in enumerate(templates[:TARGETS["fundamentals_clear"]]):
+    for i, template in enumerate(templates[: TARGETS["fundamentals_clear"]]):
         company = COMPANIES[i % len(COMPANIES)]
         query = template.format(company=company)
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": "route_to_fundamentals", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 1,
-            "category": "routing",
-            "subcategory": "fundamentals_clear",
-            "tags": ["routing", "fundamentals", "historical"],
-            "metadata": {"expected_domain": "fundamentals", "min_confidence": 0.8}
-        })
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": "route_to_fundamentals", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 1,
+                "category": "routing",
+                "subcategory": "fundamentals_clear",
+                "tags": ["routing", "fundamentals", "historical"],
+                "metadata": {"expected_domain": "fundamentals", "min_confidence": 0.8},
+            }
+        )
     return cases
 
 
@@ -275,21 +350,23 @@ def generate_officers_clear() -> list[dict]:
     ]
 
     cases = []
-    for i, template in enumerate(templates[:TARGETS["officers_clear"]]):
+    for i, template in enumerate(templates[: TARGETS["officers_clear"]]):
         company = COMPANIES[i % len(COMPANIES)]
         query = template.format(company=company)
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": "route_to_officers", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 1,
-            "category": "routing",
-            "subcategory": "officers_clear",
-            "tags": ["routing", "officers", "governance"],
-            "metadata": {"expected_domain": "officers", "min_confidence": 0.8}
-        })
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": "route_to_officers", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 1,
+                "category": "routing",
+                "subcategory": "officers_clear",
+                "tags": ["routing", "officers", "governance"],
+                "metadata": {"expected_domain": "officers", "min_confidence": 0.8},
+            }
+        )
     return cases
 
 
@@ -324,20 +401,22 @@ def generate_screening_clear() -> list[dict]:
     ]
 
     cases = []
-    for i, template in enumerate(templates[:TARGETS["screening_clear"]]):
+    for i, template in enumerate(templates[: TARGETS["screening_clear"]]):
         query = template
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": "route_to_screening", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 2,
-            "category": "routing",
-            "subcategory": "screening_clear",
-            "tags": ["routing", "screening", "ranking"],
-            "metadata": {"expected_domain": "screening", "min_confidence": 0.8}
-        })
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": "route_to_screening", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 2,
+                "category": "routing",
+                "subcategory": "screening_clear",
+                "tags": ["routing", "screening", "ranking"],
+                "metadata": {"expected_domain": "screening", "min_confidence": 0.8},
+            }
+        )
     return cases
 
 
@@ -377,81 +456,177 @@ def generate_temporal_ambiguous() -> list[dict]:
     ]
 
     cases = []
-    for i, (template, acceptable) in enumerate(templates[:TARGETS["temporal_ambiguous"]]):
+    for i, (template, acceptable) in enumerate(templates[: TARGETS["temporal_ambiguous"]]):
         company = COMPANIES[i % len(COMPANIES)]
         query = template.format(company=company)
         # Default expectation is fundamentals (historical data), but either is acceptable
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": "route_to_fundamentals", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 1,
-            "category": "routing",
-            "subcategory": "temporal_ambiguous",
-            "tags": ["routing", "ambiguous", "temporal"],
-            "metadata": {
-                "expected_domain": "fundamentals",
-                "acceptable_domains": acceptable,
-                "max_confidence": 0.6,
-                "note": "Ambiguous - no temporal context"
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": "route_to_fundamentals", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 1,
+                "category": "routing",
+                "subcategory": "temporal_ambiguous",
+                "tags": ["routing", "ambiguous", "temporal"],
+                "metadata": {
+                    "expected_domain": "fundamentals",
+                    "acceptable_domains": acceptable,
+                    "max_confidence": 0.6,
+                    "note": "Ambiguous - no temporal context",
+                },
             }
-        })
+        )
     return cases
 
 
 def generate_domain_boundary() -> list[dict]:
     """Generate multi-domain boundary cases."""
     templates = [
-        ("What is {company}'s PE ratio and EPS forecast?", "datastream", ["datastream", "estimates"]),
-        ("Compare {company}'s reported revenue with analyst estimates", "fundamentals", ["fundamentals", "estimates"]),
+        (
+            "What is {company}'s PE ratio and EPS forecast?",
+            "datastream",
+            ["datastream", "estimates"],
+        ),
+        (
+            "Compare {company}'s reported revenue with analyst estimates",
+            "fundamentals",
+            ["fundamentals", "estimates"],
+        ),
         ("Show me {company}'s stock price and CEO", "datastream", ["datastream", "officers"]),
-        ("Top tech stocks by market cap and their CEO compensation", "screening", ["screening", "officers"]),
-        ("Find companies with high growth and show their financials", "screening", ["screening", "fundamentals"]),
-        ("{company}'s current price and historical revenue", "datastream", ["datastream", "fundamentals"]),
-        ("Show {company}'s analyst ratings and board members", "estimates", ["estimates", "officers"]),
-        ("Screen for high dividend stocks and show their payout history", "screening", ["screening", "fundamentals"]),
-        ("{company}'s forward PE and trailing PE comparison", "estimates", ["estimates", "datastream"]),
-        ("Top 10 companies by market cap with CEO compensation details", "screening", ["screening", "officers"]),
-        ("Show {company}'s price performance and earnings history", "datastream", ["datastream", "fundamentals"]),
-        ("Find growth stocks and their analyst recommendations", "screening", ["screening", "estimates"]),
-        ("{company}'s stock chart and financial ratios", "datastream", ["datastream", "fundamentals"]),
-        ("Compare {company}'s valuation with peer fundamentals", "datastream", ["datastream", "fundamentals"]),
-        ("Show {company}'s price target and reported earnings", "estimates", ["estimates", "fundamentals"]),
-        ("Find undervalued stocks with strong management teams", "screening", ["screening", "officers"]),
-        ("{company}'s dividend yield and executive stock ownership", "datastream", ["datastream", "officers"]),
-        ("Screen for profitable companies and show their cash flows", "screening", ["screening", "fundamentals"]),
-        ("Show {company}'s beta and earnings volatility", "datastream", ["datastream", "fundamentals"]),
-        ("{company}'s market cap and revenue breakdown", "datastream", ["datastream", "fundamentals"]),
+        (
+            "Top tech stocks by market cap and their CEO compensation",
+            "screening",
+            ["screening", "officers"],
+        ),
+        (
+            "Find companies with high growth and show their financials",
+            "screening",
+            ["screening", "fundamentals"],
+        ),
+        (
+            "{company}'s current price and historical revenue",
+            "datastream",
+            ["datastream", "fundamentals"],
+        ),
+        (
+            "Show {company}'s analyst ratings and board members",
+            "estimates",
+            ["estimates", "officers"],
+        ),
+        (
+            "Screen for high dividend stocks and show their payout history",
+            "screening",
+            ["screening", "fundamentals"],
+        ),
+        (
+            "{company}'s forward PE and trailing PE comparison",
+            "estimates",
+            ["estimates", "datastream"],
+        ),
+        (
+            "Top 10 companies by market cap with CEO compensation details",
+            "screening",
+            ["screening", "officers"],
+        ),
+        (
+            "Show {company}'s price performance and earnings history",
+            "datastream",
+            ["datastream", "fundamentals"],
+        ),
+        (
+            "Find growth stocks and their analyst recommendations",
+            "screening",
+            ["screening", "estimates"],
+        ),
+        (
+            "{company}'s stock chart and financial ratios",
+            "datastream",
+            ["datastream", "fundamentals"],
+        ),
+        (
+            "Compare {company}'s valuation with peer fundamentals",
+            "datastream",
+            ["datastream", "fundamentals"],
+        ),
+        (
+            "Show {company}'s price target and reported earnings",
+            "estimates",
+            ["estimates", "fundamentals"],
+        ),
+        (
+            "Find undervalued stocks with strong management teams",
+            "screening",
+            ["screening", "officers"],
+        ),
+        (
+            "{company}'s dividend yield and executive stock ownership",
+            "datastream",
+            ["datastream", "officers"],
+        ),
+        (
+            "Screen for profitable companies and show their cash flows",
+            "screening",
+            ["screening", "fundamentals"],
+        ),
+        (
+            "Show {company}'s beta and earnings volatility",
+            "datastream",
+            ["datastream", "fundamentals"],
+        ),
+        (
+            "{company}'s market cap and revenue breakdown",
+            "datastream",
+            ["datastream", "fundamentals"],
+        ),
         ("Top banks by assets and their board composition", "screening", ["screening", "officers"]),
-        ("{company}'s price momentum and analyst sentiment", "datastream", ["datastream", "estimates"]),
-        ("Find high-margin companies with strong governance", "screening", ["screening", "officers"]),
-        ("Show {company}'s trading volume and insider transactions", "datastream", ["datastream", "officers"]),
-        ("{company}'s current valuation and historical profitability", "datastream", ["datastream", "fundamentals"]),
+        (
+            "{company}'s price momentum and analyst sentiment",
+            "datastream",
+            ["datastream", "estimates"],
+        ),
+        (
+            "Find high-margin companies with strong governance",
+            "screening",
+            ["screening", "officers"],
+        ),
+        (
+            "Show {company}'s trading volume and insider transactions",
+            "datastream",
+            ["datastream", "officers"],
+        ),
+        (
+            "{company}'s current valuation and historical profitability",
+            "datastream",
+            ["datastream", "fundamentals"],
+        ),
     ]
 
     cases = []
-    for i, (template, primary, acceptable) in enumerate(templates[:TARGETS["domain_boundary"]]):
+    for i, (template, primary, acceptable) in enumerate(templates[: TARGETS["domain_boundary"]]):
         company = COMPANIES[i % len(COMPANIES)]
         query = template.format(company=company)
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": f"route_to_{primary}", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 2,
-            "category": "routing",
-            "subcategory": "domain_boundary",
-            "tags": ["routing", "boundary", "multi_domain"],
-            "metadata": {
-                "expected_domain": primary,
-                "acceptable_domains": acceptable,
-                "min_confidence": 0.5,
-                "note": "Multi-domain query - primary domain expected"
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": f"route_to_{primary}", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 2,
+                "category": "routing",
+                "subcategory": "domain_boundary",
+                "tags": ["routing", "boundary", "multi_domain"],
+                "metadata": {
+                    "expected_domain": primary,
+                    "acceptable_domains": acceptable,
+                    "min_confidence": 0.5,
+                    "note": "Multi-domain query - primary domain expected",
+                },
             }
-        })
+        )
     return cases
 
 
@@ -474,18 +649,20 @@ def generate_edge_cases() -> list[dict]:
     ]
 
     for query, domain in abbrev_queries:
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": f"route_to_{domain}", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 2,
-            "category": "routing",
-            "subcategory": "edge_cases",
-            "tags": ["routing", "edge_case", "abbreviation"],
-            "metadata": {"expected_domain": domain, "min_confidence": 0.7}
-        })
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": f"route_to_{domain}", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 2,
+                "category": "routing",
+                "subcategory": "edge_cases",
+                "tags": ["routing", "edge_case", "abbreviation"],
+                "metadata": {"expected_domain": domain, "min_confidence": 0.7},
+            }
+        )
 
     # Incomplete/casual queries
     casual_queries = [
@@ -502,18 +679,20 @@ def generate_edge_cases() -> list[dict]:
     ]
 
     for query, domain in casual_queries:
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": f"route_to_{domain}", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 1,
-            "category": "routing",
-            "subcategory": "edge_cases",
-            "tags": ["routing", "edge_case", "casual"],
-            "metadata": {"expected_domain": domain, "min_confidence": 0.6}
-        })
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": f"route_to_{domain}", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 1,
+                "category": "routing",
+                "subcategory": "edge_cases",
+                "tags": ["routing", "edge_case", "casual"],
+                "metadata": {"expected_domain": domain, "min_confidence": 0.6},
+            }
+        )
 
     # Questions with context
     context_queries = [
@@ -525,20 +704,22 @@ def generate_edge_cases() -> list[dict]:
     ]
 
     for query, domain in context_queries:
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": f"route_to_{domain}", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 2,
-            "category": "routing",
-            "subcategory": "edge_cases",
-            "tags": ["routing", "edge_case", "context"],
-            "metadata": {"expected_domain": domain, "min_confidence": 0.7}
-        })
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": f"route_to_{domain}", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 2,
+                "category": "routing",
+                "subcategory": "edge_cases",
+                "tags": ["routing", "edge_case", "context"],
+                "metadata": {"expected_domain": domain, "min_confidence": 0.7},
+            }
+        )
 
-    return cases[:TARGETS["edge_cases"]]
+    return cases[: TARGETS["edge_cases"]]
 
 
 def generate_negative_cases() -> list[dict]:
@@ -567,25 +748,33 @@ def generate_negative_cases() -> list[dict]:
     ]
 
     cases = []
-    for query in queries[:TARGETS["negative_cases"]]:
+    for query in queries[: TARGETS["negative_cases"]]:
         # For negative cases, we expect low confidence or datastream as fallback
-        cases.append({
-            "id": generate_id(query),
-            "nl_query": query,
-            "expected_tool_calls": [{"tool_name": "route_to_datastream", "arguments": {}}],
-            "expected_response": None,
-            "expected_nl_response": None,
-            "complexity": 1,
-            "category": "routing",
-            "subcategory": "negative_cases",
-            "tags": ["routing", "negative", "out_of_domain"],
-            "metadata": {
-                "expected_domain": "datastream",
-                "acceptable_domains": ["datastream", "fundamentals", "estimates", "officers", "screening"],
-                "max_confidence": 0.5,
-                "note": "Out-of-domain query - any routing acceptable but low confidence expected"
+        cases.append(
+            {
+                "id": generate_id(query),
+                "nl_query": query,
+                "expected_tool_calls": [{"tool_name": "route_to_datastream", "arguments": {}}],
+                "expected_response": None,
+                "expected_nl_response": None,
+                "complexity": 1,
+                "category": "routing",
+                "subcategory": "negative_cases",
+                "tags": ["routing", "negative", "out_of_domain"],
+                "metadata": {
+                    "expected_domain": "datastream",
+                    "acceptable_domains": [
+                        "datastream",
+                        "fundamentals",
+                        "estimates",
+                        "officers",
+                        "screening",
+                    ],
+                    "max_confidence": 0.5,
+                    "note": "Out-of-domain query - any routing acceptable but low confidence expected",
+                },
             }
-        })
+        )
     return cases
 
 
@@ -617,16 +806,16 @@ def generate_all() -> dict:
             "requires_nl_response": False,
             "requires_expected_response": False,
             "schema_version": "1.0",
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "generator": "scripts/generators/routing_generator.py",
-            "subcategory_counts": subcategory_counts
+            "subcategory_counts": subcategory_counts,
         },
         "metadata": {
             "category": "routing",
             "generator": "RoutingGenerator",
-            "count": len(all_cases)
+            "count": len(all_cases),
         },
-        "test_cases": all_cases
+        "test_cases": all_cases,
     }
 
 

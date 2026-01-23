@@ -9,16 +9,16 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from src.nl2api.agents.protocols import (
-    AgentContext,
-    AgentResult,
-    DomainAgent,
-)
 from src.nl2api.agents.base import BaseDomainAgent
 from src.nl2api.agents.datastream import DatastreamAgent
 from src.nl2api.agents.estimates import EstimatesAgent
 from src.nl2api.agents.fundamentals import FundamentalsAgent
 from src.nl2api.agents.officers import OfficersAgent
+from src.nl2api.agents.protocols import (
+    AgentContext,
+    AgentResult,
+    DomainAgent,
+)
 from src.nl2api.agents.screening import ScreeningAgent
 
 if TYPE_CHECKING:
@@ -38,8 +38,8 @@ AGENT_REGISTRY: dict[str, type[BaseDomainAgent]] = {
 
 def get_agent_by_name(
     name: str,
-    llm: "LLMProvider",
-    rag: "RAGRetriever | None" = None,
+    llm: LLMProvider,
+    rag: RAGRetriever | None = None,
 ) -> BaseDomainAgent:
     """
     Create an agent instance by domain name.

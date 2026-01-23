@@ -4,10 +4,8 @@ Unit tests for checkpoint management.
 
 import json
 import tempfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-
-import pytest
 
 from src.nl2api.ingestion.checkpoint import CheckpointManager, IngestionCheckpoint
 
@@ -19,7 +17,7 @@ class TestIngestionCheckpoint:
         """Test creating a new checkpoint."""
         checkpoint = IngestionCheckpoint(
             source="gleif",
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
 
         assert checkpoint.source == "gleif"
@@ -33,7 +31,7 @@ class TestIngestionCheckpoint:
         """Test checkpoint state transitions."""
         checkpoint = IngestionCheckpoint(
             source="gleif",
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
 
         # Initial state
@@ -67,7 +65,7 @@ class TestIngestionCheckpoint:
         """Test checkpoint failure handling."""
         checkpoint = IngestionCheckpoint(
             source="gleif",
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
         checkpoint.mark_loading(100000)
 
@@ -82,7 +80,7 @@ class TestIngestionCheckpoint:
         """Test checkpoint to/from dict."""
         original = IngestionCheckpoint(
             source="sec_edgar",
-            started_at=datetime(2026, 1, 21, 10, 0, 0, tzinfo=timezone.utc),
+            started_at=datetime(2026, 1, 21, 10, 0, 0, tzinfo=UTC),
             last_offset=50000,
             state="loading",
             total_records=100000,

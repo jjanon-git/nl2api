@@ -130,14 +130,29 @@ class DatastreamAgent(BaseDomainAgent):
 
     # Domain keywords for classification
     DOMAIN_KEYWORDS = [
-        "price", "stock price", "share price",
-        "open", "high", "low", "close", "volume", "ohlc",
-        "market cap", "market capitalization",
-        "pe ratio", "p/e", "price to earnings",
-        "dividend", "yield",
-        "historical", "time series",
-        "trading", "quote", "quotes",
-        "index", "indices",
+        "price",
+        "stock price",
+        "share price",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "ohlc",
+        "market cap",
+        "market capitalization",
+        "pe ratio",
+        "p/e",
+        "price to earnings",
+        "dividend",
+        "yield",
+        "historical",
+        "time series",
+        "trading",
+        "quote",
+        "quotes",
+        "index",
+        "indices",
     ]
 
     def __init__(
@@ -511,46 +526,23 @@ Generate the most appropriate get_data tool call for the user's query."""
 
         # Historical patterns - use start/end/freq parameter names
         historical_patterns = [
-            (r"past (\d+) year", lambda m: {
-                "start": f"-{m.group(1)}Y", "end": "0D", "freq": "D"
-            }),
-            (r"last (\d+) year", lambda m: {
-                "start": f"-{m.group(1)}Y", "end": "0D", "freq": "D"
-            }),
+            (r"past (\d+) year", lambda m: {"start": f"-{m.group(1)}Y", "end": "0D", "freq": "D"}),
+            (r"last (\d+) year", lambda m: {"start": f"-{m.group(1)}Y", "end": "0D", "freq": "D"}),
             # "for the past year", "over the past year"
-            (r"(?:for |over )?the past year", lambda m: {
-                "start": "-1Y", "end": "0D", "freq": "D"
-            }),
-            (r"past (\d+) month", lambda m: {
-                "start": f"-{m.group(1)}M", "end": "0D", "freq": "D"
-            }),
-            (r"last (\d+) month", lambda m: {
-                "start": f"-{m.group(1)}M", "end": "0D", "freq": "D"
-            }),
-            (r"last (\d+) day", lambda m: {
-                "start": f"-{m.group(1)}D", "end": "0D", "freq": "D"
-            }),
-            (r"past (\d+) day", lambda m: {
-                "start": f"-{m.group(1)}D", "end": "0D", "freq": "D"
-            }),
-            (r"past (\d+) week", lambda m: {
-                "start": f"-{m.group(1)}W", "end": "0D", "freq": "D"
-            }),
-            (r"yesterday", lambda m: {
-                "start": "-1D", "end": "-1D"
-            }),
-            (r"last week", lambda m: {
-                "start": "-1W", "end": "0D", "freq": "D"
-            }),
-            (r"last month", lambda m: {
-                "start": "-1M", "end": "0D", "freq": "D"
-            }),
-            (r"ytd|year.to.date", lambda m: {
-                "start": "-0Y", "end": "0D", "freq": "D"
-            }),
-            (r"historical|time series|history", lambda m: {
-                "start": "-1Y", "end": "0D", "freq": "D"
-            }),
+            (r"(?:for |over )?the past year", lambda m: {"start": "-1Y", "end": "0D", "freq": "D"}),
+            (r"past (\d+) month", lambda m: {"start": f"-{m.group(1)}M", "end": "0D", "freq": "D"}),
+            (r"last (\d+) month", lambda m: {"start": f"-{m.group(1)}M", "end": "0D", "freq": "D"}),
+            (r"last (\d+) day", lambda m: {"start": f"-{m.group(1)}D", "end": "0D", "freq": "D"}),
+            (r"past (\d+) day", lambda m: {"start": f"-{m.group(1)}D", "end": "0D", "freq": "D"}),
+            (r"past (\d+) week", lambda m: {"start": f"-{m.group(1)}W", "end": "0D", "freq": "D"}),
+            (r"yesterday", lambda m: {"start": "-1D", "end": "-1D"}),
+            (r"last week", lambda m: {"start": "-1W", "end": "0D", "freq": "D"}),
+            (r"last month", lambda m: {"start": "-1M", "end": "0D", "freq": "D"}),
+            (r"ytd|year.to.date", lambda m: {"start": "-0Y", "end": "0D", "freq": "D"}),
+            (
+                r"historical|time series|history",
+                lambda m: {"start": "-1Y", "end": "0D", "freq": "D"},
+            ),
         ]
 
         for pattern, extractor in historical_patterns:

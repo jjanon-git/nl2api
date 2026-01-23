@@ -34,10 +34,12 @@ async def simulate_correct_response(test_case: TestCase) -> SystemResponse:
     await asyncio.sleep(latency_ms / 1000)
 
     # Build raw output from expected tool calls
-    raw_output = json.dumps([
-        {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
-        for tc in test_case.expected_tool_calls
-    ])
+    raw_output = json.dumps(
+        [
+            {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+            for tc in test_case.expected_tool_calls
+        ]
+    )
 
     return SystemResponse(
         raw_output=raw_output,
@@ -83,26 +85,30 @@ def create_entity_resolver_generator(resolver: EntityResolver):
                 # This is the correct approach for entity_resolution tests
                 result = await resolver.resolve_single(input_entity)
                 if result:
-                    tool_calls.append({
-                        "tool_name": "get_data",
-                        "arguments": {
-                            "tickers": [result.identifier],
-                            "fields": ["TR.Revenue"]  # Default field
+                    tool_calls.append(
+                        {
+                            "tool_name": "get_data",
+                            "arguments": {
+                                "tickers": [result.identifier],
+                                "fields": ["TR.Revenue"],  # Default field
+                            },
                         }
-                    })
+                    )
             else:
                 # Fallback for non-entity_resolution tests: parse full query
                 resolved = await resolver.resolve(test_case.nl_query)
                 if resolved:
                     rics = list(resolved.values())
                     if rics:
-                        tool_calls.append({
-                            "tool_name": "get_data",
-                            "arguments": {
-                                "tickers": rics,
-                                "fields": ["TR.Revenue"]  # Default field
+                        tool_calls.append(
+                            {
+                                "tool_name": "get_data",
+                                "arguments": {
+                                    "tickers": rics,
+                                    "fields": ["TR.Revenue"],  # Default field
+                                },
                             }
-                        })
+                        )
 
             latency_ms = int((time.perf_counter() - start_time) * 1000)
 
@@ -159,10 +165,7 @@ def create_routing_generator(router):
             # Tool name is "route_to_{domain}" to match expected format
             # Use empty arguments - we only compare the domain (tool_name)
             # Actual confidence/reasoning is stored in metadata for analysis
-            tool_calls = [{
-                "tool_name": f"route_to_{result.domain}",
-                "arguments": {}
-            }]
+            tool_calls = [{"tool_name": f"route_to_{result.domain}", "arguments": {}}]
 
             # Extract token usage from router result
             input_tokens = result.input_tokens if result.input_tokens > 0 else None
@@ -309,15 +312,15 @@ def create_tool_only_generator(
 
             # Convert agent result to tool calls
             tool_calls = []
-            if hasattr(result, 'tool_calls') and result.tool_calls:
+            if hasattr(result, "tool_calls") and result.tool_calls:
                 tool_calls = [
                     {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
                     for tc in result.tool_calls
                 ]
 
             # Extract token usage from AgentResult
-            input_tokens = getattr(result, 'tokens_prompt', None)
-            output_tokens = getattr(result, 'tokens_completion', None)
+            input_tokens = getattr(result, "tokens_prompt", None)
+            output_tokens = getattr(result, "tokens_completion", None)
 
             return SystemResponse(
                 raw_output=json.dumps(tool_calls),

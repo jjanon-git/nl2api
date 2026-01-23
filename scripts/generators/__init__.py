@@ -14,20 +14,20 @@ Generators:
 - entity_resolution_generator: Entity name/ticker to RIC resolution tests
 """
 
-from .lookup_generator import LookupGenerator
-from .temporal_generator import TemporalGenerator
 from .comparison_generator import ComparisonGenerator
-from .screening_generator import ScreeningGenerator
-from .error_generator import ErrorGenerator
 from .complex_generator import ComplexGenerator
 from .entity_resolution_generator import EntityResolutionGenerator
+from .error_generator import ErrorGenerator
+from .lookup_generator import LookupGenerator
+from .screening_generator import ScreeningGenerator
+from .temporal_generator import TemporalGenerator
 
 __all__ = [
-    'LookupGenerator',
-    'TemporalGenerator',
-    'ComparisonGenerator',
-    'ScreeningGenerator',
-    'ErrorGenerator',
-    'ComplexGenerator',
-    'EntityResolutionGenerator',
+    "LookupGenerator",
+    "TemporalGenerator",
+    "ComparisonGenerator",
+    "ScreeningGenerator",
+    "ErrorGenerator",
+    "ComplexGenerator",
+    "EntityResolutionGenerator",
 ]

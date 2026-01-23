@@ -9,8 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests.accuracy.conftest import requires_llm
-from tests.accuracy.core.config import CATEGORY_THRESHOLDS, DEFAULT_MIN_ACCURACY
+from tests.accuracy.core.config import DEFAULT_MIN_ACCURACY
 
 
 @pytest.mark.requires_llm
@@ -28,7 +27,8 @@ class TestEstimatesAccuracy:
             # Fallback: try to find any cases mentioning EPS or estimates
             all_cases = list(fixture_loader.iterate_all())
             cases = [
-                c for c in all_cases
+                c
+                for c in all_cases
                 if "eps" in c.nl_query.lower() or "estimate" in c.nl_query.lower()
             ][:25]
 
@@ -53,11 +53,22 @@ class TestEstimatesAccuracy:
         if not cases:
             all_cases = list(fixture_loader.iterate_all())
             cases = [
-                c for c in all_cases
-                if any(term in c.nl_query.lower() for term in [
-                    "eps", "estimate", "forecast", "analyst", "recommendation",
-                    "consensus", "ibes", "mean", "median"
-                ])
+                c
+                for c in all_cases
+                if any(
+                    term in c.nl_query.lower()
+                    for term in [
+                        "eps",
+                        "estimate",
+                        "forecast",
+                        "analyst",
+                        "recommendation",
+                        "consensus",
+                        "ibes",
+                        "mean",
+                        "median",
+                    ]
+                )
             ][:100]
 
         if not cases:
@@ -76,12 +87,25 @@ class TestEstimatesAccuracy:
         """Comprehensive evaluation on all estimates-related queries."""
         all_cases = list(fixture_loader.iterate_all())
         cases = [
-            c for c in all_cases
-            if any(term in c.nl_query.lower() for term in [
-                "eps", "estimate", "forecast", "analyst", "recommendation",
-                "consensus", "ibes", "mean", "median", "target price",
-                "earnings", "revenue estimate"
-            ])
+            c
+            for c in all_cases
+            if any(
+                term in c.nl_query.lower()
+                for term in [
+                    "eps",
+                    "estimate",
+                    "forecast",
+                    "analyst",
+                    "recommendation",
+                    "consensus",
+                    "ibes",
+                    "mean",
+                    "median",
+                    "target price",
+                    "earnings",
+                    "revenue estimate",
+                ]
+            )
         ]
 
         if not cases:

@@ -290,35 +290,39 @@ class PostgresEntityRepository:
         for entity in entities:
             eid = uuid.UUID(entity.id) if entity.id else uuid.uuid4()
             parent_id = uuid.UUID(entity.parent_entity_id) if entity.parent_entity_id else None
-            ultimate_id = uuid.UUID(entity.ultimate_parent_id) if entity.ultimate_parent_id else None
+            ultimate_id = (
+                uuid.UUID(entity.ultimate_parent_id) if entity.ultimate_parent_id else None
+            )
 
-            records.append((
-                eid,
-                entity.lei,
-                entity.cik,
-                entity.permid,
-                entity.figi,
-                entity.primary_name,
-                entity.display_name,
-                entity.ticker,
-                entity.ric,
-                entity.exchange,
-                entity.entity_type,
-                entity.entity_status,
-                entity.is_public,
-                entity.country_code,
-                entity.region,
-                entity.city,
-                entity.sic_code,
-                entity.naics_code,
-                entity.gics_sector,
-                parent_id,
-                ultimate_id,
-                entity.data_source,
-                entity.confidence_score,
-                entity.ric_validated,
-                entity.last_verified_at,
-            ))
+            records.append(
+                (
+                    eid,
+                    entity.lei,
+                    entity.cik,
+                    entity.permid,
+                    entity.figi,
+                    entity.primary_name,
+                    entity.display_name,
+                    entity.ticker,
+                    entity.ric,
+                    entity.exchange,
+                    entity.entity_type,
+                    entity.entity_status,
+                    entity.is_public,
+                    entity.country_code,
+                    entity.region,
+                    entity.city,
+                    entity.sic_code,
+                    entity.naics_code,
+                    entity.gics_sector,
+                    parent_id,
+                    ultimate_id,
+                    entity.data_source,
+                    entity.confidence_score,
+                    entity.ric_validated,
+                    entity.last_verified_at,
+                )
+            )
 
         async with self.pool.acquire() as conn:
             async with conn.transaction():
@@ -769,7 +773,7 @@ class PostgresEntityRepository:
         # Build final query with static structure
         sql = f"""
             SELECT * FROM entities
-            WHERE {' AND '.join(conditions)}
+            WHERE {" AND ".join(conditions)}
             ORDER BY
                 ts_rank(to_tsvector('english', primary_name), plainto_tsquery('english', $1)) DESC,
                 primary_name
@@ -878,7 +882,9 @@ class PostgresEntityRepository:
             naics_code=row["naics_code"],
             gics_sector=row["gics_sector"],
             parent_entity_id=str(row["parent_entity_id"]) if row["parent_entity_id"] else None,
-            ultimate_parent_id=str(row["ultimate_parent_id"]) if row["ultimate_parent_id"] else None,
+            ultimate_parent_id=str(row["ultimate_parent_id"])
+            if row["ultimate_parent_id"]
+            else None,
             confidence_score=row["confidence_score"],
             ric_validated=row["ric_validated"],
             last_verified_at=row["last_verified_at"],

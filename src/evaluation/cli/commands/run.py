@@ -32,7 +32,6 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-
 from src.evaluation.core.evaluators import WaterfallEvaluator
 
 logger = logging.getLogger(__name__)
@@ -48,27 +47,32 @@ def run_command(
     ),
     test_id: str | None = typer.Option(
         None,
-        "--test-id", "-t",
+        "--test-id",
+        "-t",
         help="Test case ID to fetch from storage",
     ),
     response_file: Path | None = typer.Option(
         None,
-        "--response", "-r",
+        "--response",
+        "-r",
         help="Path to system response JSON file (optional, uses 'response' from test file if not provided)",
     ),
     save: bool = typer.Option(
         False,
-        "--save", "-s",
+        "--save",
+        "-s",
         help="Save scorecard to storage after evaluation",
     ),
     batch_id: str | None = typer.Option(
         None,
-        "--batch-id", "-b",
+        "--batch-id",
+        "-b",
         help="Batch ID to associate with the scorecard (requires --save)",
     ),
     verbose: bool = typer.Option(
         False,
-        "--verbose", "-v",
+        "--verbose",
+        "-v",
         help="Show detailed output including artifacts",
     ),
 ) -> None:
@@ -100,7 +104,7 @@ async def _run_async(
     verbose: bool,
 ) -> None:
     """Async implementation of run command."""
-    from src.common.storage import StorageConfig, create_repositories, close_repositories
+    from src.common.storage import StorageConfig, close_repositories, create_repositories
 
     test_case: TestCase | None = None
     test_case_repo = None
@@ -133,10 +137,14 @@ async def _run_async(
             elif "system_response" in test_data:
                 response_data = test_data["system_response"]
             else:
-                console.print("[red]Error:[/red] No response file provided and test case has no 'response' field")
+                console.print(
+                    "[red]Error:[/red] No response file provided and test case has no 'response' field"
+                )
                 raise typer.Exit(1)
         else:
-            console.print("[red]Error:[/red] No response provided. Use --response or include 'response' in test file")
+            console.print(
+                "[red]Error:[/red] No response provided. Use --response or include 'response' in test file"
+            )
             raise typer.Exit(1)
 
         system_response = _parse_system_response(response_data)
@@ -197,10 +205,12 @@ def _parse_test_case(data: dict[str, Any]) -> TestCase:
     # Handle expected_tool_calls
     tool_calls = []
     for tc in data.get("expected_tool_calls", []):
-        tool_calls.append(ToolCall(
-            tool_name=tc.get("tool_name") or tc.get("name"),
-            arguments=tc.get("arguments", {}),
-        ))
+        tool_calls.append(
+            ToolCall(
+                tool_name=tc.get("tool_name") or tc.get("name"),
+                arguments=tc.get("arguments", {}),
+            )
+        )
 
     # Handle metadata
     metadata_data = data.get("metadata", {})
@@ -243,11 +253,13 @@ def _display_results(test_case: TestCase, scorecard: Any, verbose: bool) -> None
     """Display evaluation results in a formatted way."""
     # Header
     console.print()
-    console.print(Panel(
-        f"[bold]Test:[/bold] {test_case.id}\n"
-        f"[bold]Query:[/bold] {test_case.nl_query[:80]}{'...' if len(test_case.nl_query) > 80 else ''}",
-        title="Evaluation Results",
-    ))
+    console.print(
+        Panel(
+            f"[bold]Test:[/bold] {test_case.id}\n"
+            f"[bold]Query:[/bold] {test_case.nl_query[:80]}{'...' if len(test_case.nl_query) > 80 else ''}",
+            title="Evaluation Results",
+        )
+    )
 
     # Results table
     table = Table(show_header=True, header_style="bold")
@@ -310,9 +322,13 @@ def _display_results(test_case: TestCase, scorecard: Any, verbose: bool) -> None
     # Overall result
     console.print()
     if scorecard.overall_passed:
-        console.print("[bold green]Overall: PASS[/bold green]", f"(score: {scorecard.overall_score:.2f})")
+        console.print(
+            "[bold green]Overall: PASS[/bold green]", f"(score: {scorecard.overall_score:.2f})"
+        )
     else:
-        console.print("[bold red]Overall: FAIL[/bold red]", f"(score: {scorecard.overall_score:.2f})")
+        console.print(
+            "[bold red]Overall: FAIL[/bold red]", f"(score: {scorecard.overall_score:.2f})"
+        )
 
     # Verbose output
     if verbose:

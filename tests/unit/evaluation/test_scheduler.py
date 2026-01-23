@@ -4,7 +4,7 @@ Unit tests for evaluation scheduler.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -66,26 +66,26 @@ class TestShouldRunNow:
     def test_should_run_at_matching_time(self):
         """Test that schedule runs at matching time."""
         # 2 AM on any day
-        now = datetime(2024, 1, 15, 2, 0, tzinfo=timezone.utc)
+        now = datetime(2024, 1, 15, 2, 0, tzinfo=UTC)
         assert should_run_now("0 2 * * *", now) is True
 
     def test_should_not_run_wrong_minute(self):
         """Test schedule doesn't run at wrong minute."""
-        now = datetime(2024, 1, 15, 2, 1, tzinfo=timezone.utc)
+        now = datetime(2024, 1, 15, 2, 1, tzinfo=UTC)
         assert should_run_now("0 2 * * *", now) is False
 
     def test_should_not_run_wrong_hour(self):
         """Test schedule doesn't run at wrong hour."""
-        now = datetime(2024, 1, 15, 3, 0, tzinfo=timezone.utc)
+        now = datetime(2024, 1, 15, 3, 0, tzinfo=UTC)
         assert should_run_now("0 2 * * *", now) is False
 
     def test_should_run_every_30_minutes(self):
         """Test schedule runs every 30 minutes."""
         cron = "0,30 * * * *"
 
-        assert should_run_now(cron, datetime(2024, 1, 15, 10, 0, tzinfo=timezone.utc)) is True
-        assert should_run_now(cron, datetime(2024, 1, 15, 10, 30, tzinfo=timezone.utc)) is True
-        assert should_run_now(cron, datetime(2024, 1, 15, 10, 15, tzinfo=timezone.utc)) is False
+        assert should_run_now(cron, datetime(2024, 1, 15, 10, 0, tzinfo=UTC)) is True
+        assert should_run_now(cron, datetime(2024, 1, 15, 10, 30, tzinfo=UTC)) is True
+        assert should_run_now(cron, datetime(2024, 1, 15, 10, 15, tzinfo=UTC)) is False
 
 
 class TestScheduleConfig:
@@ -287,29 +287,29 @@ class TestShouldRunNowEdgeCases:
 
     def test_should_run_at_midnight_new_year(self):
         """Test schedule runs at midnight on New Year's."""
-        now = datetime(2024, 1, 1, 0, 0, tzinfo=timezone.utc)
+        now = datetime(2024, 1, 1, 0, 0, tzinfo=UTC)
         assert should_run_now("0 0 1 1 *", now) is True
 
     def test_should_run_on_leap_year_feb_29(self):
         """Test schedule on leap year February 29."""
-        now = datetime(2024, 2, 29, 0, 0, tzinfo=timezone.utc)  # 2024 is a leap year
+        now = datetime(2024, 2, 29, 0, 0, tzinfo=UTC)  # 2024 is a leap year
         assert should_run_now("0 0 29 2 *", now) is True
 
     def test_should_not_run_on_non_leap_year_feb_29(self):
         """Test schedule doesn't exist for Feb 29 in non-leap year."""
         # February 29 doesn't exist in 2025, so this just tests the pattern
-        now = datetime(2025, 2, 28, 0, 0, tzinfo=timezone.utc)
+        now = datetime(2025, 2, 28, 0, 0, tzinfo=UTC)
         assert should_run_now("0 0 29 2 *", now) is False
 
     def test_should_run_last_minute_of_day(self):
         """Test schedule at last minute of day."""
-        now = datetime(2024, 1, 15, 23, 59, tzinfo=timezone.utc)
+        now = datetime(2024, 1, 15, 23, 59, tzinfo=UTC)
         assert should_run_now("59 23 * * *", now) is True
 
     def test_should_run_with_complex_day_pattern(self):
         """Test schedule with day-of-week constraint."""
         # Monday (weekday 0 in Python)
-        monday = datetime(2024, 1, 15, 9, 0, tzinfo=timezone.utc)
+        monday = datetime(2024, 1, 15, 9, 0, tzinfo=UTC)
         # Check if it's actually a Monday
         assert monday.weekday() == 0
 
@@ -320,7 +320,7 @@ class TestShouldRunNowEdgeCases:
     def test_should_not_run_on_weekend_with_weekday_schedule(self):
         """Test weekday schedule doesn't run on weekend."""
         # Saturday (weekday 5 in Python)
-        saturday = datetime(2024, 1, 13, 9, 0, tzinfo=timezone.utc)
+        saturday = datetime(2024, 1, 13, 9, 0, tzinfo=UTC)
         assert saturday.weekday() == 5
 
         # Schedule for Monday (0 in scheduler which uses Python weekday)

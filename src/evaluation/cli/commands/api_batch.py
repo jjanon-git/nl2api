@@ -77,6 +77,7 @@ def _get_anthropic_client():
 
     try:
         import anthropic
+
         return anthropic.Anthropic()
     except ImportError:
         console.print("[red]Error:[/red] anthropic package not installed")
@@ -100,26 +101,32 @@ def _get_agent_config(agent_type: str = "datastream") -> tuple[str, list[dict]]:
     This ensures batch evaluation uses the exact same prompts as the agents.
     """
     import sys
+
     project_root = _get_project_root()
     sys.path.insert(0, str(project_root))
 
     # Import agents dynamically to get their actual prompts
     if agent_type == "datastream":
         from src.nl2api.agents.datastream import DatastreamAgent
+
         # Create a minimal agent instance just to get prompts
         # We pass None for llm since we only need the prompt methods
         agent = DatastreamAgent(llm=None)  # type: ignore
     elif agent_type == "estimates":
         from src.nl2api.agents.estimates import EstimatesAgent
+
         agent = EstimatesAgent(llm=None)  # type: ignore
     elif agent_type == "fundamentals":
         from src.nl2api.agents.fundamentals import FundamentalsAgent
+
         agent = FundamentalsAgent(llm=None)  # type: ignore
     elif agent_type == "screening":
         from src.nl2api.agents.screening import ScreeningAgent
+
         agent = ScreeningAgent(llm=None)  # type: ignore
     elif agent_type == "officers":
         from src.nl2api.agents.officers import OfficersAgent
+
         agent = OfficersAgent(llm=None)  # type: ignore
     else:
         raise ValueError(f"Unknown agent type: {agent_type}")
@@ -130,11 +137,13 @@ def _get_agent_config(agent_type: str = "datastream") -> tuple[str, list[dict]]:
     # Get tools and convert to API format
     tools = []
     for tool_def in agent.get_tools():
-        tools.append({
-            "name": tool_def.name,
-            "description": tool_def.description,
-            "input_schema": tool_def.parameters,
-        })
+        tools.append(
+            {
+                "name": tool_def.name,
+                "description": tool_def.description,
+                "input_schema": tool_def.parameters,
+            }
+        )
 
     return system_prompt, tools
 
@@ -151,7 +160,11 @@ def api_submit(
     ] = None,
     agent: Annotated[
         str,
-        typer.Option("--agent", "-a", help="Agent to evaluate (datastream, estimates, fundamentals, screening, officers)"),
+        typer.Option(
+            "--agent",
+            "-a",
+            help="Agent to evaluate (datastream, estimates, fundamentals, screening, officers)",
+        ),
     ] = "datastream",
     model: Annotated[
         str,
@@ -170,6 +183,7 @@ def api_submit(
     Use 'batch api status' or 'batch api poll' to track progress.
     """
     import sys
+
     project_root = _get_project_root()
     sys.path.insert(0, str(project_root))
 
@@ -182,7 +196,7 @@ def api_submit(
     }
     model_id = model_map.get(model, model)
 
-    console.print(f"\n[bold]Anthropic Batch API Evaluation[/bold]")
+    console.print("\n[bold]Anthropic Batch API Evaluation[/bold]")
     console.print(f"  Agent: {agent}")
     console.print(f"  Model: {model_id}")
     console.print(f"  Limit: {limit}")
@@ -226,8 +240,8 @@ def api_submit(
                     "system": system_prompt,
                     "messages": [{"role": "user", "content": tc.nl_query}],
                     "tools": tools,
-                    "tool_choice": {"type": "auto"}
-                }
+                    "tool_choice": {"type": "auto"},
+                },
             }
             f.write(json.dumps(request) + "\n")
 
@@ -243,11 +257,9 @@ def api_submit(
 
     with console.status("Submitting batch to Anthropic..."):
         with open(batch_file, "rb") as f:
-            batch = client.beta.messages.batches.create(
-                requests=[json.loads(line) for line in f]
-            )
+            batch = client.beta.messages.batches.create(requests=[json.loads(line) for line in f])
 
-    console.print(f"\n[green]Batch submitted successfully![/green]")
+    console.print("\n[green]Batch submitted successfully![/green]")
     console.print(f"  Batch ID: [cyan]{batch.id}[/cyan]")
     console.print(f"  Status: {batch.processing_status}")
 
@@ -265,10 +277,12 @@ def api_submit(
         json.dump(batch_info, f, indent=2)
 
     console.print(f"\n[dim]Batch info saved to: {batch_info_file}[/dim]")
-    console.print(f"\n[bold]Next steps:[/bold]")
+    console.print("\n[bold]Next steps:[/bold]")
     console.print(f"  Check status:  python -m src.evaluation.cli.main batch api status {batch.id}")
     console.print(f"  Poll progress: python -m src.evaluation.cli.main batch api poll {batch.id}")
-    console.print(f"  Get results:   python -m src.evaluation.cli.main batch api results {batch.id}")
+    console.print(
+        f"  Get results:   python -m src.evaluation.cli.main batch api results {batch.id}"
+    )
 
 
 @api_app.command("status")
@@ -302,7 +316,10 @@ def api_status(
     table.add_row("Status", status_display)
     table.add_row("Processing", str(batch.request_counts.processing))
     table.add_row("Succeeded", f"[green]{batch.request_counts.succeeded}[/green]")
-    table.add_row("Errored", f"[red]{batch.request_counts.errored}[/red]" if batch.request_counts.errored > 0 else "0")
+    table.add_row(
+        "Errored",
+        f"[red]{batch.request_counts.errored}[/red]" if batch.request_counts.errored > 0 else "0",
+    )
     table.add_row("Canceled", str(batch.request_counts.canceled))
     table.add_row("Expired", str(batch.request_counts.expired))
 
@@ -345,13 +362,17 @@ def api_poll(
         timestamp = datetime.now().strftime("%H:%M:%S")
 
         if batch.processing_status == "ended":
-            console.print(f"  [{timestamp}] [green]Complete![/green] Succeeded: {succeeded}/{total}, Errors: {errored}")
-            console.print(f"\n[green]Batch complete![/green]")
-            console.print(f"\nGet results with:")
+            console.print(
+                f"  [{timestamp}] [green]Complete![/green] Succeeded: {succeeded}/{total}, Errors: {errored}"
+            )
+            console.print("\n[green]Batch complete![/green]")
+            console.print("\nGet results with:")
             console.print(f"  python -m src.evaluation.cli.main batch api results {batch_id}")
             break
         else:
-            console.print(f"  [{timestamp}] Processing... Succeeded: {succeeded}/{total}, Errors: {errored}")
+            console.print(
+                f"  [{timestamp}] Processing... Succeeded: {succeeded}/{total}, Errors: {errored}"
+            )
             time.sleep(interval)
 
 
@@ -378,11 +399,12 @@ def api_results(
     and displays summary statistics.
     """
     import sys
+
     project_root = _get_project_root()
     sys.path.insert(0, str(project_root))
 
-    from tests.unit.nl2api.fixture_loader import FixtureLoader
     from CONTRACTS import ToolRegistry
+    from tests.unit.nl2api.fixture_loader import FixtureLoader
 
     client = _get_anthropic_client()
 
@@ -394,10 +416,17 @@ def api_results(
     with console.status("Downloading from Anthropic..."):
         with open(results_file, "w") as f:
             for result in client.beta.messages.batches.results(batch_id):
-                f.write(json.dumps({
-                    "custom_id": result.custom_id,
-                    "result": result.result.model_dump() if hasattr(result.result, 'model_dump') else result.result
-                }) + "\n")
+                f.write(
+                    json.dumps(
+                        {
+                            "custom_id": result.custom_id,
+                            "result": result.result.model_dump()
+                            if hasattr(result.result, "model_dump")
+                            else result.result,
+                        }
+                    )
+                    + "\n"
+                )
 
     console.print(f"  Saved to: {results_file}")
 
@@ -440,11 +469,13 @@ def api_results(
         # Check for API errors
         if result_data.get("type") == "error":
             errors += 1
-            failures.append({
-                "id": custom_id,
-                "query": expected.nl_query[:50],
-                "error": result_data.get("error", {}).get("message", "Unknown error")
-            })
+            failures.append(
+                {
+                    "id": custom_id,
+                    "query": expected.nl_query[:50],
+                    "error": result_data.get("error", {}).get("message", "Unknown error"),
+                }
+            )
             continue
 
         # Extract tool calls
@@ -454,16 +485,22 @@ def api_results(
 
         if not tool_calls:
             failed += 1
-            failures.append({
-                "id": custom_id,
-                "query": expected.nl_query[:50],
-                "error": "No tool calls returned"
-            })
+            failures.append(
+                {
+                    "id": custom_id,
+                    "query": expected.nl_query[:50],
+                    "error": "No tool calls returned",
+                }
+            )
             continue
 
         # Compare tool calls
         actual_func = tool_calls[0].get("name", "")
-        expected_func = expected.expected_tool_calls[0].get("function", "") if expected.expected_tool_calls else ""
+        expected_func = (
+            expected.expected_tool_calls[0].get("function", "")
+            if expected.expected_tool_calls
+            else ""
+        )
 
         actual_normalized = ToolRegistry.normalize(actual_func)
         expected_normalized = ToolRegistry.normalize(expected_func)
@@ -480,18 +517,22 @@ def api_results(
                 passed += 1
             else:
                 failed += 1
-                failures.append({
-                    "id": custom_id,
-                    "query": expected.nl_query[:50],
-                    "error": f"Fields mismatch: expected {expected_fields}, got {actual_fields}"
-                })
+                failures.append(
+                    {
+                        "id": custom_id,
+                        "query": expected.nl_query[:50],
+                        "error": f"Fields mismatch: expected {expected_fields}, got {actual_fields}",
+                    }
+                )
         else:
             failed += 1
-            failures.append({
-                "id": custom_id,
-                "query": expected.nl_query[:50],
-                "error": f"Function mismatch: expected {expected_func}, got {actual_func}"
-            })
+            failures.append(
+                {
+                    "id": custom_id,
+                    "query": expected.nl_query[:50],
+                    "error": f"Function mismatch: expected {expected_func}, got {actual_func}",
+                }
+            )
 
     total = passed + failed + errors
     pass_rate = (passed / total * 100) if total > 0 else 0
@@ -514,7 +555,7 @@ def api_results(
     console.print(table)
 
     if failures:
-        console.print(f"\n[bold]Sample Failures (first 10):[/bold]")
+        console.print("\n[bold]Sample Failures (first 10):[/bold]")
         for f in failures[:10]:
             console.print(f"  - {f['query']}...")
             console.print(f"    [dim]{f['error']}[/dim]")

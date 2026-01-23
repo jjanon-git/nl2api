@@ -161,18 +161,18 @@ class TestSemanticsEvaluatorComparison:
     """Tests for semantic comparison functionality."""
 
     @pytest.mark.asyncio
-    async def test_comparison_passes_similar_responses(
-        self, mock_llm, test_case_with_nl
-    ):
+    async def test_comparison_passes_similar_responses(self, mock_llm, test_case_with_nl):
         """Should pass when expected and actual responses are semantically similar."""
         # Mock LLM response indicating high similarity
         mock_llm.complete_with_retry.return_value = MagicMock(
-            content=json.dumps({
-                "meaning_match": 0.95,
-                "completeness": 0.90,
-                "accuracy": 1.0,
-                "reasoning": "Both responses convey the same Apple stock price information.",
-            })
+            content=json.dumps(
+                {
+                    "meaning_match": 0.95,
+                    "completeness": 0.90,
+                    "accuracy": 1.0,
+                    "reasoning": "Both responses convey the same Apple stock price information.",
+                }
+            )
         )
 
         evaluator = SemanticsEvaluator(llm=mock_llm)
@@ -187,18 +187,18 @@ class TestSemanticsEvaluatorComparison:
         assert result.stage == EvaluationStage.SEMANTICS
 
     @pytest.mark.asyncio
-    async def test_comparison_fails_different_responses(
-        self, mock_llm, test_case_with_nl
-    ):
+    async def test_comparison_fails_different_responses(self, mock_llm, test_case_with_nl):
         """Should fail when expected and actual responses are semantically different."""
         # Mock LLM response indicating low similarity
         mock_llm.complete_with_retry.return_value = MagicMock(
-            content=json.dumps({
-                "meaning_match": 0.2,
-                "completeness": 0.3,
-                "accuracy": 0.1,
-                "reasoning": "The actual response discusses Microsoft, not Apple.",
-            })
+            content=json.dumps(
+                {
+                    "meaning_match": 0.2,
+                    "completeness": 0.3,
+                    "accuracy": 0.1,
+                    "reasoning": "The actual response discusses Microsoft, not Apple.",
+                }
+            )
         )
 
         evaluator = SemanticsEvaluator(llm=mock_llm)
@@ -213,18 +213,18 @@ class TestSemanticsEvaluatorComparison:
         assert result.error_code == ErrorCode.SEMANTIC_LOW_SCORE
 
     @pytest.mark.asyncio
-    async def test_comparison_partial_match_scores_correctly(
-        self, mock_llm, test_case_with_nl
-    ):
+    async def test_comparison_partial_match_scores_correctly(self, mock_llm, test_case_with_nl):
         """Should return intermediate score for partial matches."""
         # Mock LLM response indicating partial similarity
         mock_llm.complete_with_retry.return_value = MagicMock(
-            content=json.dumps({
-                "meaning_match": 0.7,
-                "completeness": 0.6,
-                "accuracy": 0.8,
-                "reasoning": "The response mentions Apple but price is slightly different.",
-            })
+            content=json.dumps(
+                {
+                    "meaning_match": 0.7,
+                    "completeness": 0.6,
+                    "accuracy": 0.8,
+                    "reasoning": "The response mentions Apple but price is slightly different.",
+                }
+            )
         )
 
         evaluator = SemanticsEvaluator(llm=mock_llm)
@@ -242,12 +242,14 @@ class TestSemanticsEvaluatorComparison:
     async def test_score_weighted_average(self, mock_llm, test_case_with_nl):
         """Should calculate score as weighted average of criteria."""
         mock_llm.complete_with_retry.return_value = MagicMock(
-            content=json.dumps({
-                "meaning_match": 1.0,
-                "completeness": 0.5,
-                "accuracy": 0.5,
-                "reasoning": "Perfect meaning match but incomplete.",
-            })
+            content=json.dumps(
+                {
+                    "meaning_match": 1.0,
+                    "completeness": 0.5,
+                    "accuracy": 0.5,
+                    "reasoning": "Perfect meaning match but incomplete.",
+                }
+            )
         )
 
         # Custom weights
@@ -270,9 +272,7 @@ class TestSemanticsEvaluatorErrorHandling:
     """Tests for error handling in SemanticsEvaluator."""
 
     @pytest.mark.asyncio
-    async def test_llm_error_returns_semantic_llm_error_code(
-        self, mock_llm, test_case_with_nl
-    ):
+    async def test_llm_error_returns_semantic_llm_error_code(self, mock_llm, test_case_with_nl):
         """Should return SEMANTIC_LLM_ERROR when LLM call fails."""
         mock_llm.complete_with_retry.side_effect = Exception("API Error")
 
@@ -288,13 +288,9 @@ class TestSemanticsEvaluatorErrorHandling:
         assert "LLM error" in result.reason
 
     @pytest.mark.asyncio
-    async def test_parse_invalid_json_returns_error(
-        self, mock_llm, test_case_with_nl
-    ):
+    async def test_parse_invalid_json_returns_error(self, mock_llm, test_case_with_nl):
         """Should handle invalid JSON response from LLM."""
-        mock_llm.complete_with_retry.return_value = MagicMock(
-            content="This is not valid JSON"
-        )
+        mock_llm.complete_with_retry.return_value = MagicMock(content="This is not valid JSON")
 
         evaluator = SemanticsEvaluator(llm=mock_llm)
         result = await evaluator.evaluate_direct(
@@ -307,9 +303,7 @@ class TestSemanticsEvaluatorErrorHandling:
         assert "LLM error" in result.reason
 
     @pytest.mark.asyncio
-    async def test_timeout_returns_system_timeout_code(
-        self, mock_llm, test_case_with_nl
-    ):
+    async def test_timeout_returns_system_timeout_code(self, mock_llm, test_case_with_nl):
         """Should return SYSTEM_TIMEOUT when LLM call times out."""
         mock_llm.complete_with_retry.side_effect = TimeoutError()
 
@@ -328,9 +322,7 @@ class TestSemanticsEvaluatorWithGenerator:
     """Tests for SemanticsEvaluator with NL generator."""
 
     @pytest.mark.asyncio
-    async def test_generates_nl_from_expected_response(
-        self, mock_llm, test_case_with_nl
-    ):
+    async def test_generates_nl_from_expected_response(self, mock_llm, test_case_with_nl):
         """Should call nl_generator with expected_response and compare result."""
         # Mock the generator
         generator_called_with = None
@@ -342,12 +334,14 @@ class TestSemanticsEvaluatorWithGenerator:
 
         # Mock LLM comparison
         mock_llm.complete_with_retry.return_value = MagicMock(
-            content=json.dumps({
-                "meaning_match": 0.95,
-                "completeness": 0.95,
-                "accuracy": 1.0,
-                "reasoning": "Semantically equivalent responses.",
-            })
+            content=json.dumps(
+                {
+                    "meaning_match": 0.95,
+                    "completeness": 0.95,
+                    "accuracy": 1.0,
+                    "reasoning": "Semantically equivalent responses.",
+                }
+            )
         )
 
         evaluator = SemanticsEvaluator(llm=mock_llm)
@@ -362,9 +356,7 @@ class TestSemanticsEvaluatorWithGenerator:
         assert result.artifacts["actual_nl"] == "Generated: Apple's stock price is $185.42."
 
     @pytest.mark.asyncio
-    async def test_nl_generator_receives_expected_response(
-        self, mock_llm, test_case_with_nl
-    ):
+    async def test_nl_generator_receives_expected_response(self, mock_llm, test_case_with_nl):
         """Verifies nl_generator is called with correct data."""
         received_data = None
 
@@ -374,12 +366,14 @@ class TestSemanticsEvaluatorWithGenerator:
             return "Some response"
 
         mock_llm.complete_with_retry.return_value = MagicMock(
-            content=json.dumps({
-                "meaning_match": 0.9,
-                "completeness": 0.9,
-                "accuracy": 0.9,
-                "reasoning": "Good match.",
-            })
+            content=json.dumps(
+                {
+                    "meaning_match": 0.9,
+                    "completeness": 0.9,
+                    "accuracy": 0.9,
+                    "reasoning": "Good match.",
+                }
+            )
         )
 
         evaluator = SemanticsEvaluator(llm=mock_llm)
@@ -395,12 +389,14 @@ class TestSemanticsEvaluatorConfig:
     async def test_custom_pass_threshold(self, mock_llm, test_case_with_nl):
         """Should respect custom pass threshold."""
         mock_llm.complete_with_retry.return_value = MagicMock(
-            content=json.dumps({
-                "meaning_match": 0.8,
-                "completeness": 0.8,
-                "accuracy": 0.8,
-                "reasoning": "Good but not perfect.",
-            })
+            content=json.dumps(
+                {
+                    "meaning_match": 0.8,
+                    "completeness": 0.8,
+                    "accuracy": 0.8,
+                    "reasoning": "Good but not perfect.",
+                }
+            )
         )
 
         # Score will be 0.8 (all weights equal)
@@ -421,12 +417,14 @@ class TestSemanticsEvaluatorConfig:
     async def test_duration_tracked(self, mock_llm, test_case_with_nl):
         """Should track duration_ms in result."""
         mock_llm.complete_with_retry.return_value = MagicMock(
-            content=json.dumps({
-                "meaning_match": 0.9,
-                "completeness": 0.9,
-                "accuracy": 0.9,
-                "reasoning": "Match.",
-            })
+            content=json.dumps(
+                {
+                    "meaning_match": 0.9,
+                    "completeness": 0.9,
+                    "accuracy": 0.9,
+                    "reasoning": "Match.",
+                }
+            )
         )
 
         evaluator = SemanticsEvaluator(llm=mock_llm)

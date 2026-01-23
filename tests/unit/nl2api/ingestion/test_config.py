@@ -2,7 +2,6 @@
 Unit tests for ingestion configuration.
 """
 
-import os
 import tempfile
 from pathlib import Path
 

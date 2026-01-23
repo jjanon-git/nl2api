@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
@@ -118,17 +118,31 @@ class PostgresScorecardRepository:
 
             # Serialize stage results
             syntax_json = self._stage_result_to_json(scorecard.syntax_result)
-            logic_json = self._stage_result_to_json(scorecard.logic_result) if scorecard.logic_result else None
-            execution_json = self._stage_result_to_json(scorecard.execution_result) if scorecard.execution_result else None
-            semantics_json = self._stage_result_to_json(scorecard.semantics_result) if scorecard.semantics_result else None
+            logic_json = (
+                self._stage_result_to_json(scorecard.logic_result)
+                if scorecard.logic_result
+                else None
+            )
+            execution_json = (
+                self._stage_result_to_json(scorecard.execution_result)
+                if scorecard.execution_result
+                else None
+            )
+            semantics_json = (
+                self._stage_result_to_json(scorecard.semantics_result)
+                if scorecard.semantics_result
+                else None
+            )
 
             # Serialize tool calls
             tool_calls_json = None
             if scorecard.generated_tool_calls:
-                tool_calls_json = json.dumps([
-                    {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
-                    for tc in scorecard.generated_tool_calls
-                ])
+                tool_calls_json = json.dumps(
+                    [
+                        {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+                        for tc in scorecard.generated_tool_calls
+                    ]
+                )
 
             await self.pool.execute(
                 """
@@ -279,44 +293,60 @@ class PostgresScorecardRepository:
 
             # Serialize stage results
             syntax_json = self._stage_result_to_json(scorecard.syntax_result)
-            logic_json = self._stage_result_to_json(scorecard.logic_result) if scorecard.logic_result else None
-            execution_json = self._stage_result_to_json(scorecard.execution_result) if scorecard.execution_result else None
-            semantics_json = self._stage_result_to_json(scorecard.semantics_result) if scorecard.semantics_result else None
+            logic_json = (
+                self._stage_result_to_json(scorecard.logic_result)
+                if scorecard.logic_result
+                else None
+            )
+            execution_json = (
+                self._stage_result_to_json(scorecard.execution_result)
+                if scorecard.execution_result
+                else None
+            )
+            semantics_json = (
+                self._stage_result_to_json(scorecard.semantics_result)
+                if scorecard.semantics_result
+                else None
+            )
 
             # Serialize tool calls
             tool_calls_json = None
             if scorecard.generated_tool_calls:
-                tool_calls_json = json.dumps([
-                    {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
-                    for tc in scorecard.generated_tool_calls
-                ])
+                tool_calls_json = json.dumps(
+                    [
+                        {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+                        for tc in scorecard.generated_tool_calls
+                    ]
+                )
 
-            records.append((
-                sc_uuid,
-                tc_uuid,
-                scorecard.batch_id,
-                None,  # run_id placeholder
-                syntax_json,
-                logic_json,
-                execution_json,
-                semantics_json,
-                tool_calls_json,
-                scorecard.generated_nl_response,
-                scorecard.overall_passed,
-                scorecard.overall_score,
-                scorecard.worker_id,
-                scorecard.attempt_number,
-                scorecard.message_id,
-                scorecard.total_latency_ms,
-                scorecard.timestamp,
-                scorecard.completed_at,
-                scorecard.client_type,
-                scorecard.client_version,
-                scorecard.eval_mode,
-                scorecard.input_tokens,
-                scorecard.output_tokens,
-                scorecard.estimated_cost_usd,
-            ))
+            records.append(
+                (
+                    sc_uuid,
+                    tc_uuid,
+                    scorecard.batch_id,
+                    None,  # run_id placeholder
+                    syntax_json,
+                    logic_json,
+                    execution_json,
+                    semantics_json,
+                    tool_calls_json,
+                    scorecard.generated_nl_response,
+                    scorecard.overall_passed,
+                    scorecard.overall_score,
+                    scorecard.worker_id,
+                    scorecard.attempt_number,
+                    scorecard.message_id,
+                    scorecard.total_latency_ms,
+                    scorecard.timestamp,
+                    scorecard.completed_at,
+                    scorecard.client_type,
+                    scorecard.client_version,
+                    scorecard.eval_mode,
+                    scorecard.input_tokens,
+                    scorecard.output_tokens,
+                    scorecard.estimated_cost_usd,
+                )
+            )
 
         # Execute batch insert in a transaction
         async with self.pool.acquire() as conn:
@@ -399,9 +429,15 @@ class PostgresScorecardRepository:
         """Convert database row to Scorecard model."""
         # Parse stage results
         syntax_result = self._json_to_stage_result(row["syntax_result"])
-        logic_result = self._json_to_stage_result(row["logic_result"]) if row["logic_result"] else None
-        execution_result = self._json_to_stage_result(row["execution_result"]) if row["execution_result"] else None
-        semantics_result = self._json_to_stage_result(row["semantics_result"]) if row["semantics_result"] else None
+        logic_result = (
+            self._json_to_stage_result(row["logic_result"]) if row["logic_result"] else None
+        )
+        execution_result = (
+            self._json_to_stage_result(row["execution_result"]) if row["execution_result"] else None
+        )
+        semantics_result = (
+            self._json_to_stage_result(row["semantics_result"]) if row["semantics_result"] else None
+        )
 
         # Parse tool calls
         generated_tool_calls = None
@@ -417,11 +453,11 @@ class PostgresScorecardRepository:
         # Handle timestamps
         timestamp = row["created_at"]
         if timestamp and timestamp.tzinfo is None:
-            timestamp = timestamp.replace(tzinfo=timezone.utc)
+            timestamp = timestamp.replace(tzinfo=UTC)
 
         completed_at = row["completed_at"]
         if completed_at and completed_at.tzinfo is None:
-            completed_at = completed_at.replace(tzinfo=timezone.utc)
+            completed_at = completed_at.replace(tzinfo=UTC)
 
         # Handle Decimal to float conversion for estimated_cost_usd
         estimated_cost = row.get("estimated_cost_usd")
@@ -532,9 +568,9 @@ class PostgresScorecardRepository:
             span.set_attribute("db.client_types", ",".join(client_types))
 
             if start_date is None:
-                start_date = datetime.now(timezone.utc) - timedelta(days=7)
+                start_date = datetime.now(UTC) - timedelta(days=7)
             if end_date is None:
-                end_date = datetime.now(timezone.utc)
+                end_date = datetime.now(UTC)
 
             rows = await self.pool.fetch(
                 """
@@ -567,19 +603,25 @@ class PostgresScorecardRepository:
 
             results = []
             for row in rows:
-                results.append({
-                    "client_type": row["client_type"],
-                    "client_version": row["client_version"],
-                    "total_tests": row["total_tests"],
-                    "passed_count": row["passed_count"],
-                    "failed_count": row["failed_count"],
-                    "avg_score": float(row["avg_score"]) if row["avg_score"] else 0.0,
-                    "pass_rate": float(row["pass_rate"]) if row["pass_rate"] else 0.0,
-                    "total_input_tokens": int(row["total_input_tokens"]),
-                    "total_output_tokens": int(row["total_output_tokens"]),
-                    "total_cost_usd": float(row["total_cost_usd"]) if row["total_cost_usd"] else 0.0,
-                    "avg_latency_ms": float(row["avg_latency_ms"]) if row["avg_latency_ms"] else 0.0,
-                })
+                results.append(
+                    {
+                        "client_type": row["client_type"],
+                        "client_version": row["client_version"],
+                        "total_tests": row["total_tests"],
+                        "passed_count": row["passed_count"],
+                        "failed_count": row["failed_count"],
+                        "avg_score": float(row["avg_score"]) if row["avg_score"] else 0.0,
+                        "pass_rate": float(row["pass_rate"]) if row["pass_rate"] else 0.0,
+                        "total_input_tokens": int(row["total_input_tokens"]),
+                        "total_output_tokens": int(row["total_output_tokens"]),
+                        "total_cost_usd": float(row["total_cost_usd"])
+                        if row["total_cost_usd"]
+                        else 0.0,
+                        "avg_latency_ms": float(row["avg_latency_ms"])
+                        if row["avg_latency_ms"]
+                        else 0.0,
+                    }
+                )
 
             return results
 
@@ -606,7 +648,7 @@ class PostgresScorecardRepository:
             span.set_attribute("db.metric", metric)
             span.set_attribute("db.days", days)
 
-            start_date = datetime.now(timezone.utc) - timedelta(days=days)
+            start_date = datetime.now(UTC) - timedelta(days=days)
 
             rows = await self.pool.fetch(
                 """
@@ -644,9 +686,13 @@ class PostgresScorecardRepository:
                 elif metric == "avg_score":
                     data_point["value"] = float(row["avg_score"]) if row["avg_score"] else 0.0
                 elif metric == "avg_latency_ms":
-                    data_point["value"] = float(row["avg_latency_ms"]) if row["avg_latency_ms"] else 0.0
+                    data_point["value"] = (
+                        float(row["avg_latency_ms"]) if row["avg_latency_ms"] else 0.0
+                    )
                 elif metric == "total_cost_usd":
-                    data_point["value"] = float(row["total_cost_usd"]) if row["total_cost_usd"] else 0.0
+                    data_point["value"] = (
+                        float(row["total_cost_usd"]) if row["total_cost_usd"] else 0.0
+                    )
                 else:
                     data_point["value"] = float(row["pass_rate"]) if row["pass_rate"] else 0.0
 

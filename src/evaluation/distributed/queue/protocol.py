@@ -9,7 +9,8 @@ and Azure Service Bus (future).
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import AsyncIterator, Protocol, runtime_checkable
+from collections.abc import AsyncIterator
+from typing import Protocol, runtime_checkable
 
 from src.contracts.worker import WorkerTask
 from src.evaluation.distributed.models import QueueMessage

@@ -9,8 +9,8 @@ Target: ~500 test cases
 """
 
 import random
-from typing import List, Dict, Any
 from pathlib import Path
+
 from .base_generator import BaseGenerator, TestCase
 
 
@@ -21,7 +21,7 @@ class ScreeningGenerator(BaseGenerator):
         super().__init__(data_dir)
         self.category = "screening"
 
-    def _generate_index_constituent_queries(self) -> List[TestCase]:
+    def _generate_index_constituent_queries(self) -> list[TestCase]:
         """Generate index constituent list queries."""
         test_cases = []
 
@@ -55,8 +55,8 @@ class ScreeningGenerator(BaseGenerator):
                     "arguments": {
                         "tickers": f"{constituent_code}|L",
                         "fields": ["MNEM", "NAME"],
-                        "kind": 0
-                    }
+                        "kind": 0,
+                    },
                 }
 
                 test_case = self._create_test_case(
@@ -69,8 +69,8 @@ class ScreeningGenerator(BaseGenerator):
                     metadata={
                         "index_name": index_name,
                         "index_code": index_code,
-                        "constituent_code": constituent_code
-                    }
+                        "constituent_code": constituent_code,
+                    },
                 )
 
                 if test_case:
@@ -78,7 +78,7 @@ class ScreeningGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_top_n_queries(self) -> List[TestCase]:
+    def _generate_top_n_queries(self) -> list[TestCase]:
         """Generate top N by metric queries."""
         test_cases = []
 
@@ -104,16 +104,13 @@ class ScreeningGenerator(BaseGenerator):
             for n in top_ns:
                 for universe in universes:
                     template = random.choice(templates)
-                    nl_query = template.format(
-                        n=n,
-                        metric=metric["name"]
-                    )
+                    nl_query = template.format(n=n, metric=metric["name"])
 
                     if universe["name"] != "companies":
                         nl_query = nl_query.replace("companies", universe["name"])
 
                     # Build SCREEN expression
-                    screen_parts = ['U(IN(Equity(active,public,primary)))']
+                    screen_parts = ["U(IN(Equity(active,public,primary)))"]
                     if universe["filter"]:
                         screen_parts.append(universe["filter"])
                     screen_parts.append(f"TOP({metric['field']}, {n}, nnumber)")
@@ -125,8 +122,8 @@ class ScreeningGenerator(BaseGenerator):
                         "tool_name": "get_data",
                         "arguments": {
                             "tickers": screen_exp,
-                            "fields": ["TR.CommonName", metric["field"]]
-                        }
+                            "fields": ["TR.CommonName", metric["field"]],
+                        },
                     }
 
                     test_case = self._create_test_case(
@@ -136,11 +133,7 @@ class ScreeningGenerator(BaseGenerator):
                         subcategory="top_n",
                         complexity=4,
                         tags=["screening", "top_n", metric["name"].replace(" ", "_")],
-                        metadata={
-                            "metric": metric["name"],
-                            "n": n,
-                            "universe": universe["name"]
-                        }
+                        metadata={"metric": metric["name"], "n": n, "universe": universe["name"]},
                     )
 
                     if test_case:
@@ -148,7 +141,7 @@ class ScreeningGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_single_criteria_screens(self) -> List[TestCase]:
+    def _generate_single_criteria_screens(self) -> list[TestCase]:
         """Generate single-criteria filter queries."""
         test_cases = []
 
@@ -166,14 +159,16 @@ class ScreeningGenerator(BaseGenerator):
                 template = random.choice(templates)
                 nl_query = template.format(criteria=criteria["nl"])
 
-                screen_exp = f"SCREEN(U(IN(Equity(active,public,primary))), {criteria['filter']}, CURN=USD)"
+                screen_exp = (
+                    f"SCREEN(U(IN(Equity(active,public,primary))), {criteria['filter']}, CURN=USD)"
+                )
 
                 tool_call = {
                     "tool_name": "get_data",
                     "arguments": {
                         "tickers": screen_exp,
-                        "fields": ["TR.CommonName", "TR.CompanyMarketCap"]
-                    }
+                        "fields": ["TR.CommonName", "TR.CompanyMarketCap"],
+                    },
                 }
 
                 test_case = self._create_test_case(
@@ -186,8 +181,8 @@ class ScreeningGenerator(BaseGenerator):
                     metadata={
                         "criteria_name": criteria["name"],
                         "filter": criteria["filter"],
-                        "category": category
-                    }
+                        "category": category,
+                    },
                 )
 
                 if test_case:
@@ -195,7 +190,7 @@ class ScreeningGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_multi_criteria_screens(self) -> List[TestCase]:
+    def _generate_multi_criteria_screens(self) -> list[TestCase]:
         """Generate multi-criteria filter queries."""
         test_cases = []
 
@@ -205,14 +200,16 @@ class ScreeningGenerator(BaseGenerator):
             nl_query = f"Find {screen_def['nl']}"
 
             filters = screen_def["filters"]
-            screen_exp = f"SCREEN(U(IN(Equity(active,public,primary))), {', '.join(filters)}, CURN=USD)"
+            screen_exp = (
+                f"SCREEN(U(IN(Equity(active,public,primary))), {', '.join(filters)}, CURN=USD)"
+            )
 
             tool_call = {
                 "tool_name": "get_data",
                 "arguments": {
                     "tickers": screen_exp,
-                    "fields": ["TR.CommonName", "TR.CompanyMarketCap"]
-                }
+                    "fields": ["TR.CommonName", "TR.CompanyMarketCap"],
+                },
             }
 
             test_case = self._create_test_case(
@@ -222,10 +219,7 @@ class ScreeningGenerator(BaseGenerator):
                 subcategory="multi_criteria",
                 complexity=6,
                 tags=["screening", "multi_criteria", screen_key],
-                metadata={
-                    "screen_name": screen_def["name"],
-                    "filters": filters
-                }
+                metadata={"screen_name": screen_def["name"], "filters": filters},
             )
 
             if test_case:
@@ -233,17 +227,12 @@ class ScreeningGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_sector_screens(self) -> List[TestCase]:
+    def _generate_sector_screens(self) -> list[TestCase]:
         """Generate sector-specific screening queries."""
         test_cases = []
 
-        sector_screens = self.screening_criteria.get("sector_screens", {})
+        self.screening_criteria.get("sector_screens", {})
 
-        templates = [
-            "What are the top {sector} stocks by {metric}?",
-            "Show the largest {sector} companies",
-            "Find {screen_desc}",
-        ]
 
         # Sector codes
         sector_codes = {
@@ -273,8 +262,8 @@ class ScreeningGenerator(BaseGenerator):
                     "tool_name": "get_data",
                     "arguments": {
                         "tickers": screen_exp,
-                        "fields": ["TR.CommonName", metric["field"]]
-                    }
+                        "fields": ["TR.CommonName", metric["field"]],
+                    },
                 }
 
                 test_case = self._create_test_case(
@@ -284,11 +273,7 @@ class ScreeningGenerator(BaseGenerator):
                     subcategory="sector_screen",
                     complexity=5,
                     tags=["screening", "sector", sector.replace(" ", "_")],
-                    metadata={
-                        "sector": sector,
-                        "sector_code": code,
-                        "metric": metric["name"]
-                    }
+                    metadata={"sector": sector, "sector_code": code, "metric": metric["name"]},
                 )
 
                 if test_case:
@@ -296,7 +281,7 @@ class ScreeningGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_index_ranked_queries(self) -> List[TestCase]:
+    def _generate_index_ranked_queries(self) -> list[TestCase]:
         """Generate index constituent ranked by metric queries."""
         test_cases = []
 
@@ -324,16 +309,16 @@ class ScreeningGenerator(BaseGenerator):
                         "arguments": {
                             "tickers": f"{index['code']}|L",
                             "fields": ["RIC"],
-                            "kind": 0
-                        }
+                            "kind": 0,
+                        },
                     },
                     {
                         "tool_name": "get_data",
                         "arguments": {
                             "tickers": "{{constituents}}",
-                            "fields": ["TR.CommonName", metric["field"]]
-                        }
-                    }
+                            "fields": ["TR.CommonName", metric["field"]],
+                        },
+                    },
                 ]
 
                 test_case = self._create_test_case(
@@ -346,8 +331,8 @@ class ScreeningGenerator(BaseGenerator):
                     metadata={
                         "index_name": index["name"],
                         "index_code": index["code"],
-                        "metric": metric["name"]
-                    }
+                        "metric": metric["name"],
+                    },
                 )
 
                 if test_case:
@@ -355,7 +340,7 @@ class ScreeningGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_historical_constituent_queries(self) -> List[TestCase]:
+    def _generate_historical_constituent_queries(self) -> list[TestCase]:
         """Generate historical index constituent queries."""
         test_cases = []
 
@@ -380,8 +365,8 @@ class ScreeningGenerator(BaseGenerator):
                     "arguments": {
                         "tickers": f"{index['base']}{date['code']}|L",
                         "fields": ["MNEM", "NAME"],
-                        "kind": 0
-                    }
+                        "kind": 0,
+                    },
                 }
 
                 test_case = self._create_test_case(
@@ -391,10 +376,7 @@ class ScreeningGenerator(BaseGenerator):
                     subcategory="historical_constituents",
                     complexity=5,
                     tags=["screening", "index", "historical"],
-                    metadata={
-                        "index_name": index["name"],
-                        "date": date["nl"]
-                    }
+                    metadata={"index_name": index["name"], "date": date["nl"]},
                 )
 
                 if test_case:
@@ -402,7 +384,7 @@ class ScreeningGenerator(BaseGenerator):
 
         return test_cases
 
-    def generate(self) -> List[TestCase]:
+    def generate(self) -> list[TestCase]:
         """Generate all screening test cases."""
         test_cases = []
 

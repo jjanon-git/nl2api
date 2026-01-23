@@ -6,10 +6,8 @@ Requires: docker compose up -d
 """
 
 import uuid
-from datetime import UTC, datetime
 
 import pytest
-
 import pytest_asyncio
 
 from src.evaluation.continuous.alerts import AlertHandler, RegressionAlert
@@ -28,9 +26,7 @@ async def cleanup_alerts(db_pool):
     yield
     async with db_pool.acquire() as conn:
         # Clean up test alerts (those with 'test-' prefix in batch_id)
-        await conn.execute(
-            "DELETE FROM regression_alerts WHERE batch_id LIKE 'test-%'"
-        )
+        await conn.execute("DELETE FROM regression_alerts WHERE batch_id LIKE 'test-%'")
 
 
 @pytest.mark.asyncio(loop_scope="session")

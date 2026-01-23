@@ -12,8 +12,8 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass, field
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def _utc_now() -> str:
     """Return current UTC timestamp in ISO format."""
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _generate_request_id() -> str:
@@ -128,8 +128,7 @@ class RequestMetrics:
         if self.entities_extracted and self.entities_resolved:
             resolved_names = set(self.entities_resolved.keys())
             self.entities_unresolved = [
-                e for e in self.entities_extracted
-                if e not in resolved_names
+                e for e in self.entities_extracted if e not in resolved_names
             ]
 
     def finalize(self, total_latency_ms: int) -> None:
@@ -247,10 +246,14 @@ class RequestMetrics:
             if hasattr(tc, "tool_name"):
                 # ToolCall object
                 self.tool_names.append(tc.tool_name)
-                self.tool_calls.append({
-                    "tool_name": tc.tool_name,
-                    "arguments": dict(tc.arguments) if hasattr(tc.arguments, "items") else tc.arguments,
-                })
+                self.tool_calls.append(
+                    {
+                        "tool_name": tc.tool_name,
+                        "arguments": dict(tc.arguments)
+                        if hasattr(tc.arguments, "items")
+                        else tc.arguments,
+                    }
+                )
             elif isinstance(tc, dict):
                 self.tool_names.append(tc.get("tool_name", "unknown"))
                 self.tool_calls.append(tc)

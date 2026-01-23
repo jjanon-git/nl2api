@@ -272,12 +272,10 @@ class EscalatingLLMRouter:
             tool_name = tool_call.name
 
             if tool_name.startswith("route_to_"):
-                domain = tool_name[len("route_to_"):]
+                domain = tool_name[len("route_to_") :]
 
                 if domain in self._get_provider_names():
-                    confidence = tool_call.arguments.get(
-                        "confidence", self._default_confidence
-                    )
+                    confidence = tool_call.arguments.get("confidence", self._default_confidence)
                     reasoning = tool_call.arguments.get("reasoning")
 
                     return RouterResult(

@@ -24,7 +24,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from tests.accuracy.core.config import AccuracyConfig, DEFAULT_CONFIG
+from tests.accuracy.core.config import DEFAULT_CONFIG, AccuracyConfig
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,7 @@ def _get_metrics():
     if _accuracy_metrics is None:
         try:
             from src.common.telemetry import get_accuracy_metrics
+
             _accuracy_metrics = get_accuracy_metrics()
         except ImportError:
             logger.debug("Telemetry not available, metrics disabled")
@@ -179,7 +180,9 @@ class AccuracyEvaluator:
         if self._llm is None:
             from src.nl2api.llm.claude import ClaudeProvider
 
-            api_key = os.environ.get("NL2API_ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+            api_key = os.environ.get("NL2API_ANTHROPIC_API_KEY") or os.environ.get(
+                "ANTHROPIC_API_KEY"
+            )
             if not api_key:
                 raise ValueError("ANTHROPIC_API_KEY not set")
 
@@ -197,7 +200,9 @@ class AccuracyEvaluator:
             # Load .env if needed
             _load_env()
 
-            api_key = os.environ.get("NL2API_ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+            api_key = os.environ.get("NL2API_ANTHROPIC_API_KEY") or os.environ.get(
+                "ANTHROPIC_API_KEY"
+            )
             if not api_key:
                 raise ValueError("ANTHROPIC_API_KEY not set")
 
@@ -206,7 +211,7 @@ class AccuracyEvaluator:
 
     def _calculate_retry_delay(self, attempt: int) -> float:
         """Calculate delay with exponential backoff and jitter."""
-        base_delay = self.config.retry_base_delay * (2 ** attempt)
+        base_delay = self.config.retry_base_delay * (2**attempt)
         capped_delay = min(base_delay, self.config.retry_max_delay)
         jitter = random.uniform(0, self.config.retry_jitter * capped_delay)
         return capped_delay + jitter
@@ -239,17 +244,23 @@ class AccuracyEvaluator:
             except anthropic.RateLimitError as e:
                 last_error = e
                 delay = self._calculate_retry_delay(attempt)
-                logger.warning(f"Rate limited, retrying in {delay:.1f}s (attempt {attempt + 1}/{self.config.max_retries})")
+                logger.warning(
+                    f"Rate limited, retrying in {delay:.1f}s (attempt {attempt + 1}/{self.config.max_retries})"
+                )
                 await asyncio.sleep(delay)
             except anthropic.APIConnectionError as e:
                 last_error = e
                 delay = self._calculate_retry_delay(attempt)
-                logger.warning(f"Connection error, retrying in {delay:.1f}s (attempt {attempt + 1}/{self.config.max_retries})")
+                logger.warning(
+                    f"Connection error, retrying in {delay:.1f}s (attempt {attempt + 1}/{self.config.max_retries})"
+                )
                 await asyncio.sleep(delay)
             except anthropic.InternalServerError as e:
                 last_error = e
                 delay = self._calculate_retry_delay(attempt)
-                logger.warning(f"Server error, retrying in {delay:.1f}s (attempt {attempt + 1}/{self.config.max_retries})")
+                logger.warning(
+                    f"Server error, retrying in {delay:.1f}s (attempt {attempt + 1}/{self.config.max_retries})"
+                )
                 await asyncio.sleep(delay)
             except Exception as e:
                 # Non-retryable error
@@ -286,11 +297,9 @@ class AccuracyEvaluator:
                 "model": self.config.model,
                 "max_tokens": 1024,
                 "temperature": 0.0,
-                "messages": [
-                    {"role": "user", "content": user_prompt}
-                ],
+                "messages": [{"role": "user", "content": user_prompt}],
                 "system": system_prompt,
-            }
+            },
         }
 
     async def evaluate_batch(
@@ -625,10 +634,8 @@ class RoutingAccuracyEvaluator(AccuracyEvaluator):
                     "max_tokens": 256,
                     "temperature": 0.0,
                     "system": BATCH_ROUTING_SYSTEM_PROMPT,
-                    "messages": [
-                        {"role": "user", "content": tc.query}
-                    ],
-                }
+                    "messages": [{"role": "user", "content": tc.query}],
+                },
             }
             requests.append(request)
 
@@ -709,7 +716,8 @@ class RoutingAccuracyEvaluator(AccuracyEvaluator):
         except json.JSONDecodeError:
             # Try to extract JSON object from content
             import re
-            match = re.search(r'\{[^}]+\}', content)
+
+            match = re.search(r"\{[^}]+\}", content)
             if match:
                 try:
                     return json.loads(match.group())
@@ -717,7 +725,11 @@ class RoutingAccuracyEvaluator(AccuracyEvaluator):
                     pass
 
             # Return unknown if parsing fails
-            return {"domain": "unknown", "confidence": 0.0, "reasoning": f"Failed to parse: {content[:100]}"}
+            return {
+                "domain": "unknown",
+                "confidence": 0.0,
+                "reasoning": f"Failed to parse: {content[:100]}",
+            }
 
     async def _get_router(self):
         """Get or create the router."""
@@ -729,7 +741,13 @@ class RoutingAccuracyEvaluator(AccuracyEvaluator):
 
             # Create mock providers for each domain
             class MockProvider(ToolProvider):
-                def __init__(self, name: str, description: str, capabilities: tuple = (), example_queries: tuple = ()):
+                def __init__(
+                    self,
+                    name: str,
+                    description: str,
+                    capabilities: tuple = (),
+                    example_queries: tuple = (),
+                ):
                     self._name = name
                     self._description = description
                     self._capabilities = capabilities
@@ -761,20 +779,43 @@ class RoutingAccuracyEvaluator(AccuracyEvaluator):
                 MockProvider(
                     "datastream",
                     "Stock prices, market data, trading volume, historical time series, indices",
-                    capabilities=("stock prices", "market cap", "PE ratio", "volume", "historical prices"),
+                    capabilities=(
+                        "stock prices",
+                        "market cap",
+                        "PE ratio",
+                        "volume",
+                        "historical prices",
+                    ),
                     example_queries=("What is the price of AAPL?", "Show me MSFT's 52-week high"),
                 ),
                 MockProvider(
                     "estimates",
                     "Analyst forecasts, FUTURE EPS estimates, revenue projections, recommendations, price targets",
-                    capabilities=("EPS forecasts", "revenue estimates", "analyst recommendations", "price targets"),
-                    example_queries=("What is the EPS forecast for Apple?", "Show analyst recommendations"),
+                    capabilities=(
+                        "EPS forecasts",
+                        "revenue estimates",
+                        "analyst recommendations",
+                        "price targets",
+                    ),
+                    example_queries=(
+                        "What is the EPS forecast for Apple?",
+                        "Show analyst recommendations",
+                    ),
                 ),
                 MockProvider(
                     "fundamentals",
                     "HISTORICAL financial statements, balance sheet, income statement, past financial ratios",
-                    capabilities=("balance sheet", "income statement", "ROE", "ROA", "historical financials"),
-                    example_queries=("What was Apple's revenue last year?", "Show MSFT's debt ratio"),
+                    capabilities=(
+                        "balance sheet",
+                        "income statement",
+                        "ROE",
+                        "ROA",
+                        "historical financials",
+                    ),
+                    example_queries=(
+                        "What was Apple's revenue last year?",
+                        "Show MSFT's debt ratio",
+                    ),
                 ),
                 MockProvider(
                     "officers",

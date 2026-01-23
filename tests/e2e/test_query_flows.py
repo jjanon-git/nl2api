@@ -18,7 +18,9 @@ class TestDatastreamQueries:
         """Query: 'What is Apple's stock price?'"""
         result = await orchestrator.process("What is Apple's stock price?")
 
-        assert not result.needs_clarification, f"Unexpected clarification: {result.clarification_questions}"
+        assert not result.needs_clarification, (
+            f"Unexpected clarification: {result.clarification_questions}"
+        )
         assert result.domain == "datastream"
         assert len(result.tool_calls) >= 1
 
@@ -29,14 +31,14 @@ class TestDatastreamQueries:
         # Should resolve Apple to an Apple-related ticker
         tickers = tool_call.arguments["tickers"]
         ticker_str = str(tickers).upper()
-        assert "AAPL" in ticker_str or "APPLE" in ticker_str, f"Expected Apple ticker, got {tickers}"
+        assert "AAPL" in ticker_str or "APPLE" in ticker_str, (
+            f"Expected Apple ticker, got {tickers}"
+        )
 
     @pytest.mark.asyncio
     async def test_multi_field_query(self, orchestrator):
         """Query: 'Get Microsoft's price, volume, and market cap'"""
-        result = await orchestrator.process(
-            "Get Microsoft's price, volume, and market cap"
-        )
+        result = await orchestrator.process("Get Microsoft's price, volume, and market cap")
 
         assert not result.needs_clarification
         assert result.domain == "datastream"
@@ -54,9 +56,7 @@ class TestDatastreamQueries:
         Note: 'last month' is ambiguous and may trigger clarification.
         This is expected behavior.
         """
-        result = await orchestrator.process(
-            "Apple's closing prices for the last month"
-        )
+        result = await orchestrator.process("Apple's closing prices for the last month")
 
         assert result.domain == "datastream"
 
@@ -75,9 +75,7 @@ class TestEstimatesQueries:
     @pytest.mark.asyncio
     async def test_eps_estimate_query(self, orchestrator):
         """Query: 'What are analyst EPS estimates for Apple?'"""
-        result = await orchestrator.process(
-            "What are analyst EPS estimates for Apple?"
-        )
+        result = await orchestrator.process("What are analyst EPS estimates for Apple?")
 
         assert not result.needs_clarification
         assert result.domain == "estimates"
@@ -92,9 +90,7 @@ class TestEstimatesQueries:
     @pytest.mark.asyncio
     async def test_price_target_query(self, orchestrator):
         """Query: 'What is Tesla's analyst price target?'"""
-        result = await orchestrator.process(
-            "What is Tesla's analyst price target?"
-        )
+        result = await orchestrator.process("What is Tesla's analyst price target?")
 
         assert not result.needs_clarification
         assert result.domain == "estimates"
@@ -106,9 +102,7 @@ class TestEstimatesQueries:
     @pytest.mark.asyncio
     async def test_recommendation_query(self, orchestrator):
         """Query: 'What is the analyst rating for Amazon?'"""
-        result = await orchestrator.process(
-            "What is the analyst rating for Amazon?"
-        )
+        result = await orchestrator.process("What is the analyst rating for Amazon?")
 
         assert not result.needs_clarification
         assert result.domain == "estimates"
@@ -128,14 +122,14 @@ class TestFundamentalsQueries:
 
         fields = result.tool_calls[0].arguments.get("fields", [])
         # Should include PE-related field
-        assert any("PE" in f.upper() or "P/E" in f.upper() for f in fields), f"Expected PE field, got {fields}"
+        assert any("PE" in f.upper() or "P/E" in f.upper() for f in fields), (
+            f"Expected PE field, got {fields}"
+        )
 
     @pytest.mark.asyncio
     async def test_revenue_query(self, orchestrator):
         """Query: 'What was Microsoft's revenue last year?'"""
-        result = await orchestrator.process(
-            "What was Microsoft's revenue last year?"
-        )
+        result = await orchestrator.process("What was Microsoft's revenue last year?")
 
         assert not result.needs_clarification
         assert result.domain == "fundamentals"
@@ -190,9 +184,7 @@ class TestOfficersQueries:
     @pytest.mark.asyncio
     async def test_compensation_query(self, orchestrator):
         """Query: 'What is the CEO compensation at Microsoft?'"""
-        result = await orchestrator.process(
-            "What is the CEO compensation at Microsoft?"
-        )
+        result = await orchestrator.process("What is the CEO compensation at Microsoft?")
 
         assert not result.needs_clarification
         assert result.domain == "officers"
@@ -204,9 +196,7 @@ class TestCrossAgentQueries:
     @pytest.mark.asyncio
     async def test_ambiguous_price_query(self, orchestrator):
         """Query that could be datastream or estimates."""
-        result = await orchestrator.process(
-            "What is Apple's current stock price?"
-        )
+        result = await orchestrator.process("What is Apple's current stock price?")
 
         # Should route to datastream for current price
         assert result.domain == "datastream"
@@ -215,9 +205,7 @@ class TestCrossAgentQueries:
     @pytest.mark.asyncio
     async def test_multiple_companies(self, orchestrator):
         """Query with multiple companies."""
-        result = await orchestrator.process(
-            "Compare Apple and Microsoft stock prices"
-        )
+        result = await orchestrator.process("Compare Apple and Microsoft stock prices")
 
         assert not result.needs_clarification
         assert len(result.tool_calls) >= 1
@@ -242,7 +230,12 @@ class TestEntityResolution:
             tickers = result.tool_calls[0].arguments.get("tickers", [])
             ticker_str = str(tickers).upper()
             # Should be RIC format or recognized ticker
-            assert ".O" in ticker_str or ".N" in ticker_str or "AAPL" in ticker_str or "APPLE" in ticker_str
+            assert (
+                ".O" in ticker_str
+                or ".N" in ticker_str
+                or "AAPL" in ticker_str
+                or "APPLE" in ticker_str
+            )
 
     @pytest.mark.asyncio
     async def test_ticker_passthrough(self, orchestrator):

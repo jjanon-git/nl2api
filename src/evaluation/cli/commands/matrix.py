@@ -93,8 +93,9 @@ def matrix_run(
     component: Annotated[
         str,
         typer.Option(
-            "--component", "-c",
-            help="Component to evaluate (orchestrator, router, resolver, or agent name)"
+            "--component",
+            "-c",
+            help="Component to evaluate (orchestrator, router, resolver, or agent name)",
         ),
     ],
     llm: Annotated[
@@ -144,15 +145,17 @@ def matrix_run(
         # Test full orchestrator with different models
         eval matrix run --component orchestrator --llm gpt-4o --limit 20
     """
-    asyncio.run(_matrix_run_async(
-        component=component,
-        llm=llm,
-        client=client,
-        tags=tags,
-        limit=limit,
-        concurrency=concurrency,
-        verbose=verbose,
-    ))
+    asyncio.run(
+        _matrix_run_async(
+            component=component,
+            llm=llm,
+            client=client,
+            tags=tags,
+            limit=limit,
+            concurrency=concurrency,
+            verbose=verbose,
+        )
+    )
 
 
 async def _matrix_run_async(
@@ -242,32 +245,37 @@ async def _matrix_run_async(
                     return self._capabilities
 
                 def get_routing_tools(self) -> list[RoutingToolDefinition]:
-                    return [RoutingToolDefinition(
-                        name=f"route_to_{self._name}",
-                        description=self._description,
-                        domain=self._name,
-                    )]
+                    return [
+                        RoutingToolDefinition(
+                            name=f"route_to_{self._name}",
+                            description=self._description,
+                            domain=self._name,
+                        )
+                    ]
 
             tool_providers = [
                 StubToolProvider(
-                    "datastream", "Stock prices, market data, trading volume",
-                    ("prices", "volume")
+                    "datastream", "Stock prices, market data, trading volume", ("prices", "volume")
                 ),
                 StubToolProvider(
-                    "estimates", "Analyst forecasts, EPS estimates, price targets",
-                    ("eps", "forecasts")
+                    "estimates",
+                    "Analyst forecasts, EPS estimates, price targets",
+                    ("eps", "forecasts"),
                 ),
                 StubToolProvider(
-                    "fundamentals", "Financial statements, balance sheet, income statement",
-                    ("revenue", "financials")
+                    "fundamentals",
+                    "Financial statements, balance sheet, income statement",
+                    ("revenue", "financials"),
                 ),
                 StubToolProvider(
-                    "officers", "Executives, board members, CEO, CFO, compensation",
-                    ("ceo", "board")
+                    "officers",
+                    "Executives, board members, CEO, CFO, compensation",
+                    ("ceo", "board"),
                 ),
                 StubToolProvider(
-                    "screening", "Stock screening, rankings, top N queries",
-                    ("screening", "ranking")
+                    "screening",
+                    "Stock screening, rankings, top N queries",
+                    ("screening", "ranking"),
                 ),
             ]
 
@@ -462,11 +470,13 @@ async def _matrix_compare_async(runs: str, metric: str) -> None:
             ]
 
             if metric in ("all", "cost"):
-                row.extend([
-                    f"{total_input:,}",
-                    f"{total_output:,}",
-                    format_cost(total_cost),
-                ])
+                row.extend(
+                    [
+                        f"{total_input:,}",
+                        f"{total_output:,}",
+                        format_cost(total_cost),
+                    ]
+                )
 
             if metric in ("all", "latency"):
                 row.append(f"{avg_latency:.0f}ms")

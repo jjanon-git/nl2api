@@ -70,11 +70,7 @@ class ComparisonScores:
     @property
     def weighted_score(self) -> float:
         """Calculate weighted score (default weights: 0.4, 0.3, 0.3)."""
-        return (
-            self.meaning_match * 0.4 +
-            self.completeness * 0.3 +
-            self.accuracy * 0.3
-        )
+        return self.meaning_match * 0.4 + self.completeness * 0.3 + self.accuracy * 0.3
 
 
 class SemanticsEvaluator:
@@ -199,9 +195,9 @@ class SemanticsEvaluator:
 
                 # Calculate weighted score using config weights
                 score = (
-                    comparison_result.meaning_match * self.config.meaning_weight +
-                    comparison_result.completeness * self.config.completeness_weight +
-                    comparison_result.accuracy * self.config.accuracy_weight
+                    comparison_result.meaning_match * self.config.meaning_weight
+                    + comparison_result.completeness * self.config.completeness_weight
+                    + comparison_result.accuracy * self.config.accuracy_weight
                 )
 
                 duration_ms = int((time.perf_counter() - start_time) * 1000)
@@ -319,9 +315,9 @@ class SemanticsEvaluator:
 
                 # Calculate weighted score
                 score = (
-                    comparison_result.meaning_match * self.config.meaning_weight +
-                    comparison_result.completeness * self.config.completeness_weight +
-                    comparison_result.accuracy * self.config.accuracy_weight
+                    comparison_result.meaning_match * self.config.meaning_weight
+                    + comparison_result.completeness * self.config.completeness_weight
+                    + comparison_result.accuracy * self.config.accuracy_weight
                 )
 
                 duration_ms = int((time.perf_counter() - start_time) * 1000)

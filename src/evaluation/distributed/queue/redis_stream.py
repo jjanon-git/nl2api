@@ -12,23 +12,23 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from typing import AsyncIterator, Any
+from collections.abc import AsyncIterator
+from typing import Any
 
 import redis.asyncio as redis
 from redis.asyncio import Redis
 from redis.exceptions import ResponseError
 
-from src.contracts.core import _now_utc, _generate_id
+from src.contracts.core import _now_utc
 from src.contracts.worker import WorkerTask
 from src.evaluation.distributed.config import QueueConfig
 from src.evaluation.distributed.models import QueueMessage
 from src.evaluation.distributed.queue.protocol import (
-    TaskQueue,
-    QueueError,
-    QueueConnectionError,
-    QueueEnqueueError,
-    QueueConsumeError,
     QueueAckError,
+    QueueConnectionError,
+    QueueConsumeError,
+    QueueEnqueueError,
+    QueueError,
 )
 
 # Telemetry imports (optional)
@@ -40,19 +40,19 @@ try:
 
     # Queue metrics
     _enqueue_counter = meter.create_counter(
-        "eval.queue.enqueued",
+        "eval_queue_enqueued",
         description="Number of tasks enqueued",
     )
     _ack_counter = meter.create_counter(
-        "eval.queue.acked",
+        "eval_queue_acked",
         description="Number of tasks acknowledged (completed)",
     )
     _nack_counter = meter.create_counter(
-        "eval.queue.nacked",
+        "eval_queue_nacked",
         description="Number of tasks nacked (requeued or DLQ)",
     )
     _dlq_counter = meter.create_counter(
-        "eval.queue.dlq",
+        "eval_queue_dlq",
         description="Number of tasks moved to DLQ",
     )
 except ImportError:
@@ -93,7 +93,7 @@ class RedisStreamQueue:
         self._closed = False
 
     @classmethod
-    async def create(cls, config: QueueConfig) -> "RedisStreamQueue":
+    async def create(cls, config: QueueConfig) -> RedisStreamQueue:
         """
         Factory method to create and connect a RedisStreamQueue.
 
@@ -255,9 +255,7 @@ class RedisStreamQueue:
                                 stream_name=stream_name,
                                 consumer_id=consumer_id,
                             )
-                            logger.debug(
-                                f"Consumer {consumer_id} received message {message_id}"
-                            )
+                            logger.debug(f"Consumer {consumer_id} received message {message_id}")
                             yield queue_message
 
                 except ResponseError as e:
@@ -450,7 +448,7 @@ class RedisStreamQueue:
                 message_id = entry.get("message_id", entry.get("id", ""))
                 consumer = entry.get("consumer", "")
                 idle_time = entry.get("time_since_delivered", entry.get("idle", 0))
-                deliveries = entry.get("times_delivered", entry.get("deliveries", 1))
+                entry.get("times_delivered", entry.get("deliveries", 1))
 
                 if idle_time >= min_idle_ms:
                     # Fetch the actual message data
@@ -490,8 +488,7 @@ class RedisStreamQueue:
 
             if not result:
                 raise QueueError(
-                    f"Failed to claim message {message.message_id} "
-                    "(may have been acked or deleted)"
+                    f"Failed to claim message {message.message_id} (may have been acked or deleted)"
                 )
 
             # result is list of (message_id, fields)
@@ -640,6 +637,7 @@ class RedisStreamQueue:
         payload = fields.get("payload", "{}")
         if isinstance(payload, str):
             import json
+
             try:
                 payload_dict = json.loads(payload)
             except json.JSONDecodeError:
@@ -648,11 +646,13 @@ class RedisStreamQueue:
             payload_dict = payload
 
         # Merge top-level fields into payload for compatibility
-        payload_dict.update({
-            "task_id": fields.get("task_id", payload_dict.get("task_id")),
-            "test_case_id": fields.get("test_case_id", payload_dict.get("test_case_id")),
-            "batch_id": fields.get("batch_id", payload_dict.get("batch_id")),
-        })
+        payload_dict.update(
+            {
+                "task_id": fields.get("task_id", payload_dict.get("task_id")),
+                "test_case_id": fields.get("test_case_id", payload_dict.get("test_case_id")),
+                "batch_id": fields.get("batch_id", payload_dict.get("batch_id")),
+            }
+        )
 
         attempt = int(fields.get("attempt", "1"))
         enqueued_str = fields.get("enqueued_at", "")

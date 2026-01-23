@@ -28,14 +28,14 @@ import json
 import os
 import sys
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
 
 # Load .env file
 def _load_env():
@@ -50,12 +50,14 @@ def _load_env():
                 if key and key not in os.environ:
                     os.environ[key] = value
 
+
 _load_env()
 
 
 @dataclass
 class BatchRequest:
     """A single request in the batch."""
+
     custom_id: str
     params: dict
 
@@ -69,18 +71,23 @@ def get_agent_config(agent_type: str = "datastream") -> tuple[str, list[dict]]:
     # Import agents dynamically to get their actual prompts
     if agent_type == "datastream":
         from src.nl2api.agents.datastream import DatastreamAgent
+
         agent = DatastreamAgent(llm=None)  # type: ignore
     elif agent_type == "estimates":
         from src.nl2api.agents.estimates import EstimatesAgent
+
         agent = EstimatesAgent(llm=None)  # type: ignore
     elif agent_type == "fundamentals":
         from src.nl2api.agents.fundamentals import FundamentalsAgent
+
         agent = FundamentalsAgent(llm=None)  # type: ignore
     elif agent_type == "screening":
         from src.nl2api.agents.screening import ScreeningAgent
+
         agent = ScreeningAgent(llm=None)  # type: ignore
     elif agent_type == "officers":
         from src.nl2api.agents.officers import OfficersAgent
+
         agent = OfficersAgent(llm=None)  # type: ignore
     else:
         raise ValueError(f"Unknown agent type: {agent_type}")
@@ -91,11 +98,13 @@ def get_agent_config(agent_type: str = "datastream") -> tuple[str, list[dict]]:
     # Get tools and convert to API format
     tools = []
     for tool_def in agent.get_tools():
-        tools.append({
-            "name": tool_def.name,
-            "description": tool_def.description,
-            "input_schema": tool_def.parameters,
-        })
+        tools.append(
+            {
+                "name": tool_def.name,
+                "description": tool_def.description,
+                "input_schema": tool_def.parameters,
+            }
+        )
 
     return system_prompt, tools
 
@@ -119,7 +128,7 @@ def create_batch_file(
     system_prompt, tools = get_agent_config(agent_type)
     print(f"  Loaded prompt ({len(system_prompt)} chars) and {len(tools)} tools")
 
-    print(f"Loading test fixtures...")
+    print("Loading test fixtures...")
     loader = FixtureLoader()
 
     if category:
@@ -145,8 +154,8 @@ def create_batch_file(
                     "system": system_prompt,
                     "messages": [{"role": "user", "content": tc.nl_query}],
                     "tools": tools,
-                    "tool_choice": {"type": "auto"}
-                }
+                    "tool_choice": {"type": "auto"},
+                },
             }
             f.write(json.dumps(request) + "\n")
 
@@ -166,13 +175,11 @@ def submit_batch(batch_file: Path) -> str:
 
     client = anthropic.Anthropic()
 
-    print(f"\nSubmitting batch to Anthropic...")
+    print("\nSubmitting batch to Anthropic...")
 
     # Upload the batch file
     with open(batch_file, "rb") as f:
-        batch = client.beta.messages.batches.create(
-            requests=[json.loads(line) for line in f]
-        )
+        batch = client.beta.messages.batches.create(requests=[json.loads(line) for line in f])
 
     print(f"  Batch ID: {batch.id}")
     print(f"  Status: {batch.processing_status}")
@@ -199,7 +206,7 @@ def check_batch_status(batch_id: str) -> dict:
             "errored": batch.request_counts.errored,
             "canceled": batch.request_counts.canceled,
             "expired": batch.request_counts.expired,
-        }
+        },
     }
 
 
@@ -216,13 +223,15 @@ def poll_until_complete(batch_id: str, poll_interval: int = 30) -> dict:
         processing = status["request_counts"]["processing"]
         total = succeeded + errored + processing
 
-        print(f"  [{datetime.now().strftime('%H:%M:%S')}] "
-              f"Status: {status['status']} | "
-              f"Succeeded: {succeeded}/{total} | "
-              f"Errors: {errored}")
+        print(
+            f"  [{datetime.now().strftime('%H:%M:%S')}] "
+            f"Status: {status['status']} | "
+            f"Succeeded: {succeeded}/{total} | "
+            f"Errors: {errored}"
+        )
 
         if status["status"] == "ended":
-            print(f"\n  Batch complete!")
+            print("\n  Batch complete!")
             return status
 
         time.sleep(poll_interval)
@@ -240,10 +249,17 @@ def download_results(batch_id: str) -> Path:
 
     with open(results_file, "w") as f:
         for result in client.beta.messages.batches.results(batch_id):
-            f.write(json.dumps({
-                "custom_id": result.custom_id,
-                "result": result.result.model_dump() if hasattr(result.result, 'model_dump') else result.result
-            }) + "\n")
+            f.write(
+                json.dumps(
+                    {
+                        "custom_id": result.custom_id,
+                        "result": result.result.model_dump()
+                        if hasattr(result.result, "model_dump")
+                        else result.result,
+                    }
+                )
+                + "\n"
+            )
 
     print(f"  Saved to: {results_file}")
     return results_file
@@ -255,10 +271,10 @@ def evaluate_results(results_file: Path, limit: int = 100, category: str | None 
 
     Returns summary statistics.
     """
-    from tests.unit.nl2api.fixture_loader import FixtureLoader
     from CONTRACTS import ToolRegistry
+    from tests.unit.nl2api.fixture_loader import FixtureLoader
 
-    print(f"\nEvaluating results...")
+    print("\nEvaluating results...")
 
     # Load test cases to get expected values
     loader = FixtureLoader()
@@ -298,11 +314,13 @@ def evaluate_results(results_file: Path, limit: int = 100, category: str | None 
         # Check for API errors
         if result_data.get("type") == "error":
             errors += 1
-            failures.append({
-                "id": custom_id,
-                "query": expected.nl_query[:50],
-                "error": result_data.get("error", {}).get("message", "Unknown error")
-            })
+            failures.append(
+                {
+                    "id": custom_id,
+                    "query": expected.nl_query[:50],
+                    "error": result_data.get("error", {}).get("message", "Unknown error"),
+                }
+            )
             continue
 
         # Extract tool calls from response
@@ -313,16 +331,22 @@ def evaluate_results(results_file: Path, limit: int = 100, category: str | None 
 
         if not tool_calls:
             failed += 1
-            failures.append({
-                "id": custom_id,
-                "query": expected.nl_query[:50],
-                "error": "No tool calls returned"
-            })
+            failures.append(
+                {
+                    "id": custom_id,
+                    "query": expected.nl_query[:50],
+                    "error": "No tool calls returned",
+                }
+            )
             continue
 
         # Compare tool calls
         actual_func = tool_calls[0].get("name", "")
-        expected_func = expected.expected_tool_calls[0].get("function", "") if expected.expected_tool_calls else ""
+        expected_func = (
+            expected.expected_tool_calls[0].get("function", "")
+            if expected.expected_tool_calls
+            else ""
+        )
 
         actual_normalized = ToolRegistry.normalize(actual_func)
         expected_normalized = ToolRegistry.normalize(expected_func)
@@ -339,18 +363,22 @@ def evaluate_results(results_file: Path, limit: int = 100, category: str | None 
                 passed += 1
             else:
                 failed += 1
-                failures.append({
-                    "id": custom_id,
-                    "query": expected.nl_query[:50],
-                    "error": f"Fields mismatch: expected {expected_fields}, got {actual_fields}"
-                })
+                failures.append(
+                    {
+                        "id": custom_id,
+                        "query": expected.nl_query[:50],
+                        "error": f"Fields mismatch: expected {expected_fields}, got {actual_fields}",
+                    }
+                )
         else:
             failed += 1
-            failures.append({
-                "id": custom_id,
-                "query": expected.nl_query[:50],
-                "error": f"Function mismatch: expected {expected_func}, got {actual_func}"
-            })
+            failures.append(
+                {
+                    "id": custom_id,
+                    "query": expected.nl_query[:50],
+                    "error": f"Function mismatch: expected {expected_func}, got {actual_func}",
+                }
+            )
 
     total = passed + failed + errors
     pass_rate = (passed / total * 100) if total > 0 else 0
@@ -361,7 +389,7 @@ def evaluate_results(results_file: Path, limit: int = 100, category: str | None 
         "failed": failed,
         "errors": errors,
         "pass_rate": pass_rate,
-        "failures": failures[:20]  # Keep first 20
+        "failures": failures[:20],  # Keep first 20
     }
 
     return summary
@@ -373,7 +401,7 @@ def print_summary(summary: dict):
     print("BATCH EVALUATION COMPLETE")
     print("=" * 60)
 
-    print(f"\nOverall Results:")
+    print("\nOverall Results:")
     print(f"  Total:      {summary['total']}")
     print(f"  Passed:     {summary['passed']} ({summary['pass_rate']:.1f}%)")
     print(f"  Failed:     {summary['failed']}")
@@ -392,16 +420,26 @@ def main():
     parser = argparse.ArgumentParser(description="Run NL2API batch evaluation")
     parser.add_argument("--limit", type=int, default=100, help="Number of test cases")
     parser.add_argument("--category", type=str, help="Specific category to test")
-    parser.add_argument("--agent", type=str, default="datastream",
-                        choices=["datastream", "estimates", "fundamentals", "screening", "officers"],
-                        help="Agent to evaluate (default: datastream)")
-    parser.add_argument("--model", type=str, default="haiku",
-                        choices=["haiku", "sonnet"],
-                        help="Model to use (default: haiku)")
+    parser.add_argument(
+        "--agent",
+        type=str,
+        default="datastream",
+        choices=["datastream", "estimates", "fundamentals", "screening", "officers"],
+        help="Agent to evaluate (default: datastream)",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="haiku",
+        choices=["haiku", "sonnet"],
+        help="Model to use (default: haiku)",
+    )
     parser.add_argument("--status", type=str, help="Check status of batch ID")
     parser.add_argument("--results", type=str, help="Process results from batch ID")
     parser.add_argument("--poll", type=str, help="Poll batch ID until complete")
-    parser.add_argument("--no-submit", action="store_true", help="Create batch file but don't submit")
+    parser.add_argument(
+        "--no-submit", action="store_true", help="Create batch file but don't submit"
+    )
     args = parser.parse_args()
 
     # Model mapping
@@ -467,8 +505,8 @@ def main():
         # Submit batch
         batch_id = submit_batch(batch_file)
 
-        print(f"\nBatch submitted successfully!")
-        print(f"\nNext steps:")
+        print("\nBatch submitted successfully!")
+        print("\nNext steps:")
         print(f"  1. Check status:  python scripts/run_batch_haiku_eval.py --status {batch_id}")
         print(f"  2. Poll progress: python scripts/run_batch_haiku_eval.py --poll {batch_id}")
         print(f"  3. Get results:   python scripts/run_batch_haiku_eval.py --results {batch_id}")
@@ -490,6 +528,7 @@ def main():
     except Exception as e:
         print(f"\nERROR: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

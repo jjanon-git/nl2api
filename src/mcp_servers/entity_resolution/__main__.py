@@ -46,17 +46,20 @@ def setup_logging(level: str) -> None:
 def main(
     transport: Literal["stdio", "sse"] = typer.Option(
         "sse",
-        "--transport", "-t",
+        "--transport",
+        "-t",
         help="Transport mode: 'stdio' for Claude Desktop, 'sse' for HTTP",
     ),
     host: str = typer.Option(
         "0.0.0.0",
-        "--host", "-h",
+        "--host",
+        "-h",
         help="Host to bind for SSE transport",
     ),
     port: int = typer.Option(
         8080,
-        "--port", "-p",
+        "--port",
+        "-p",
         help="Port for SSE transport",
     ),
     postgres_url: str = typer.Option(
@@ -78,7 +81,8 @@ def main(
     ),
     log_level: str = typer.Option(
         "INFO",
-        "--log-level", "-l",
+        "--log-level",
+        "-l",
         help="Logging level",
     ),
 ) -> None:

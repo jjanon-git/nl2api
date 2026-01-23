@@ -12,9 +12,9 @@ import time
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
+    from src.nl2api.agents.protocols import DomainAgent
     from src.nl2api.llm.protocols import LLMProvider
     from src.nl2api.orchestrator import NL2APIOrchestrator
-    from src.nl2api.agents.protocols import DomainAgent
     from src.nl2api.resolution.protocols import EntityResolver
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ NL2API_TOOL_DEFINITIONS = [
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "Natural language financial query. Examples: 'What is Apple's P/E ratio?', 'Compare Tesla and Ford revenue'"
+                    "description": "Natural language financial query. Examples: 'What is Apple's P/E ratio?', 'Compare Tesla and Ford revenue'",
                 },
             },
             "required": ["query"],
@@ -55,12 +55,12 @@ NL2API_TOOL_DEFINITIONS = [
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "Natural language query for price/time series data"
+                    "description": "Natural language query for price/time series data",
                 },
                 "rics": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Optional pre-resolved RICs. If not provided, entities will be resolved from the query."
+                    "description": "Optional pre-resolved RICs. If not provided, entities will be resolved from the query.",
                 },
             },
             "required": ["query"],
@@ -78,12 +78,12 @@ NL2API_TOOL_DEFINITIONS = [
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "Natural language query for estimates/forecasts"
+                    "description": "Natural language query for estimates/forecasts",
                 },
                 "rics": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Optional pre-resolved RICs"
+                    "description": "Optional pre-resolved RICs",
                 },
             },
             "required": ["query"],
@@ -101,12 +101,12 @@ NL2API_TOOL_DEFINITIONS = [
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "Natural language query for fundamental data"
+                    "description": "Natural language query for fundamental data",
                 },
                 "rics": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Optional pre-resolved RICs"
+                    "description": "Optional pre-resolved RICs",
                 },
             },
             "required": ["query"],
@@ -124,12 +124,12 @@ NL2API_TOOL_DEFINITIONS = [
             "properties": {
                 "query": {
                     "type": "string",
-                    "description": "Natural language query for officer/executive data"
+                    "description": "Natural language query for officer/executive data",
                 },
                 "rics": {
                     "type": "array",
                     "items": {"type": "string"},
-                    "description": "Optional pre-resolved RICs"
+                    "description": "Optional pre-resolved RICs",
                 },
             },
             "required": ["query"],
@@ -145,10 +145,7 @@ NL2API_TOOL_DEFINITIONS = [
         "inputSchema": {
             "type": "object",
             "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "Natural language screening query"
-                },
+                "query": {"type": "string", "description": "Natural language screening query"},
             },
             "required": ["query"],
         },
@@ -159,6 +156,7 @@ NL2API_TOOL_DEFINITIONS = [
 # =============================================================================
 # Tool Handlers
 # =============================================================================
+
 
 class NL2APIToolHandlers:
     """Handlers for NL2API MCP tools."""
@@ -209,14 +207,12 @@ class NL2APIToolHandlers:
                 return {
                     "success": True,
                     "needs_clarification": True,
-                    "clarification_questions": [
-                        q.question for q in result.clarification_questions
-                    ],
+                    "clarification_questions": [q.question for q in result.clarification_questions],
                     "processing_time_ms": int((time.time() - start_time) * 1000),
                 }
 
             # Build step-by-step response
-            steps = {
+            {
                 "entity_resolution": {
                     "resolved": dict(result.resolved_entities),
                 },
@@ -281,6 +277,7 @@ class NL2APIToolHandlers:
 
             # Build agent context
             from src.nl2api.agents.protocols import AgentContext
+
             context = AgentContext(
                 query=query,
                 resolved_entities=resolved_entities,
@@ -331,10 +328,10 @@ class NL2APIToolHandlers:
         """Generate illustrative execution data and NL response using Haiku."""
         from src.nl2api.llm.protocols import LLMMessage, MessageRole
 
-        tool_calls_json = json.dumps([
-            {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
-            for tc in tool_calls
-        ], indent=2)
+        tool_calls_json = json.dumps(
+            [{"tool_name": tc.tool_name, "arguments": dict(tc.arguments)} for tc in tool_calls],
+            indent=2,
+        )
 
         prompt = f"""You are generating illustrative sample data for a financial data API demo.
 
@@ -379,5 +376,5 @@ Respond with valid JSON only, no markdown formatting."""
             logger.warning(f"Failed to generate placeholder response: {e}")
             return (
                 {"error": "Failed to generate illustrative data"},
-                f"Unable to generate sample response for: {query}"
+                f"Unable to generate sample response for: {query}",
             )

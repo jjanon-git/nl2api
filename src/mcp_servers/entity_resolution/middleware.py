@@ -11,8 +11,9 @@ import asyncio
 import logging
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -66,9 +67,7 @@ class InMemoryRateLimiter:
         async with self._lock:
             # Clean old entries
             self._requests[client_id] = [
-                (ts, count)
-                for ts, count in self._requests[client_id]
-                if ts > window_start
+                (ts, count) for ts, count in self._requests[client_id] if ts > window_start
             ]
 
             # Count requests in window

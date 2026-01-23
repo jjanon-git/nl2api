@@ -47,9 +47,7 @@ class ClaudeProvider:
         try:
             import anthropic
         except ImportError:
-            raise ImportError(
-                "anthropic package required. Install with: pip install anthropic"
-            )
+            raise ImportError("anthropic package required. Install with: pip install anthropic")
 
         self._model = model
         self._client = anthropic.AsyncAnthropic(
@@ -97,10 +95,12 @@ class ClaudeProvider:
                 if msg.role == MessageRole.SYSTEM:
                     system_message = msg.content
                 elif msg.role == MessageRole.USER:
-                    anthropic_messages.append({
-                        "role": "user",
-                        "content": msg.content,
-                    })
+                    anthropic_messages.append(
+                        {
+                            "role": "user",
+                            "content": msg.content,
+                        }
+                    )
                 elif msg.role == MessageRole.ASSISTANT:
                     if msg.tool_calls:
                         # Assistant message with tool use
@@ -108,31 +108,41 @@ class ClaudeProvider:
                         if msg.content:
                             content.append({"type": "text", "text": msg.content})
                         for tc in msg.tool_calls:
-                            content.append({
-                                "type": "tool_use",
-                                "id": tc.id,
-                                "name": tc.name,
-                                "input": tc.arguments,
-                            })
-                        anthropic_messages.append({
-                            "role": "assistant",
-                            "content": content,
-                        })
+                            content.append(
+                                {
+                                    "type": "tool_use",
+                                    "id": tc.id,
+                                    "name": tc.name,
+                                    "input": tc.arguments,
+                                }
+                            )
+                        anthropic_messages.append(
+                            {
+                                "role": "assistant",
+                                "content": content,
+                            }
+                        )
                     else:
-                        anthropic_messages.append({
-                            "role": "assistant",
-                            "content": msg.content,
-                        })
+                        anthropic_messages.append(
+                            {
+                                "role": "assistant",
+                                "content": msg.content,
+                            }
+                        )
                 elif msg.role == MessageRole.TOOL:
                     # Tool result message
-                    anthropic_messages.append({
-                        "role": "user",
-                        "content": [{
-                            "type": "tool_result",
-                            "tool_use_id": msg.tool_call_id,
-                            "content": msg.content,
-                        }],
-                    })
+                    anthropic_messages.append(
+                        {
+                            "role": "user",
+                            "content": [
+                                {
+                                    "type": "tool_result",
+                                    "tool_use_id": msg.tool_call_id,
+                                    "content": msg.content,
+                                }
+                            ],
+                        }
+                    )
 
             # Build request kwargs
             kwargs: dict[str, Any] = {
@@ -159,16 +169,20 @@ class ClaudeProvider:
                 if block.type == "text":
                     content = block.text
                 elif block.type == "tool_use":
-                    tool_calls.append(LLMToolCall(
-                        id=block.id,
-                        name=block.name,
-                        arguments=block.input if isinstance(block.input, dict) else {},
-                    ))
+                    tool_calls.append(
+                        LLMToolCall(
+                            id=block.id,
+                            name=block.name,
+                            arguments=block.input if isinstance(block.input, dict) else {},
+                        )
+                    )
 
             # Record usage metrics
             span.set_attribute("llm.prompt_tokens", response.usage.input_tokens)
             span.set_attribute("llm.completion_tokens", response.usage.output_tokens)
-            span.set_attribute("llm.total_tokens", response.usage.input_tokens + response.usage.output_tokens)
+            span.set_attribute(
+                "llm.total_tokens", response.usage.input_tokens + response.usage.output_tokens
+            )
             span.set_attribute("llm.tool_calls_count", len(tool_calls))
             span.set_attribute("llm.finish_reason", response.stop_reason or "stop")
 
@@ -219,33 +233,48 @@ class ClaudeProvider:
                     return result
                 except anthropic.RateLimitError as e:
                     last_error = e
-                    wait_time = 2 ** attempt  # Exponential backoff
-                    span.add_event("retry", {
-                        "attempt": attempt + 1,
-                        "error_type": "rate_limit",
-                        "wait_time": wait_time,
-                    })
-                    logger.warning(f"Rate limited, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    wait_time = 2**attempt  # Exponential backoff
+                    span.add_event(
+                        "retry",
+                        {
+                            "attempt": attempt + 1,
+                            "error_type": "rate_limit",
+                            "wait_time": wait_time,
+                        },
+                    )
+                    logger.warning(
+                        f"Rate limited, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})"
+                    )
                     await asyncio.sleep(wait_time)
                 except anthropic.APIConnectionError as e:
                     last_error = e
-                    wait_time = 2 ** attempt
-                    span.add_event("retry", {
-                        "attempt": attempt + 1,
-                        "error_type": "connection_error",
-                        "wait_time": wait_time,
-                    })
-                    logger.warning(f"Connection error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    wait_time = 2**attempt
+                    span.add_event(
+                        "retry",
+                        {
+                            "attempt": attempt + 1,
+                            "error_type": "connection_error",
+                            "wait_time": wait_time,
+                        },
+                    )
+                    logger.warning(
+                        f"Connection error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})"
+                    )
                     await asyncio.sleep(wait_time)
                 except anthropic.InternalServerError as e:
                     last_error = e
-                    wait_time = 2 ** attempt
-                    span.add_event("retry", {
-                        "attempt": attempt + 1,
-                        "error_type": "server_error",
-                        "wait_time": wait_time,
-                    })
-                    logger.warning(f"Server error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    wait_time = 2**attempt
+                    span.add_event(
+                        "retry",
+                        {
+                            "attempt": attempt + 1,
+                            "error_type": "server_error",
+                            "wait_time": wait_time,
+                        },
+                    )
+                    logger.warning(
+                        f"Server error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})"
+                    )
                     await asyncio.sleep(wait_time)
 
             # All retries exhausted

@@ -8,9 +8,9 @@ from __future__ import annotations
 
 import logging
 
-from src.evaluation.distributed.config import QueueConfig, QueueBackend
-from src.evaluation.distributed.queue.protocol import TaskQueue, QueueError
+from src.evaluation.distributed.config import QueueBackend, QueueConfig
 from src.evaluation.distributed.queue.memory import InMemoryQueue
+from src.evaluation.distributed.queue.protocol import QueueError, TaskQueue
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +56,7 @@ async def create_queue(config: QueueConfig | None = None) -> TaskQueue:
             from src.evaluation.distributed.queue.redis_stream import RedisStreamQueue
         except ImportError as e:
             raise QueueError(
-                "Redis backend requires 'redis' package. "
-                "Install with: pip install redis"
+                "Redis backend requires 'redis' package. Install with: pip install redis"
             ) from e
 
         return await RedisStreamQueue.create(config)

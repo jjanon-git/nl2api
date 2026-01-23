@@ -219,9 +219,7 @@ class TestLLMResponse:
         no_tools = LLMResponse(content="test")
         assert not no_tools.has_tool_calls
 
-        with_tools = LLMResponse(
-            tool_calls=(LLMToolCall(id="1", name="test"),)
-        )
+        with_tools = LLMResponse(tool_calls=(LLMToolCall(id="1", name="test"),))
         assert with_tools.has_tool_calls
 
     def test_usage_tracking(self) -> None:
@@ -268,7 +266,9 @@ class TestLLMProviderProtocol:
             async def complete(self, messages, tools=None, temperature=0.0, max_tokens=4096):
                 return LLMResponse(content="test")
 
-            async def complete_with_retry(self, messages, tools=None, temperature=0.0, max_tokens=4096, max_retries=3):
+            async def complete_with_retry(
+                self, messages, tools=None, temperature=0.0, max_tokens=4096, max_retries=3
+            ):
                 return LLMResponse(content="test")
 
         provider = MinimalProvider()

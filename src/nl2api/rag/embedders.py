@@ -111,9 +111,7 @@ class LocalEmbedder(Embedder):
         """Generate embedding for a single text."""
         # Run in thread pool to not block event loop
         loop = asyncio.get_event_loop()
-        embedding = await loop.run_in_executor(
-            None, self._embed_sync, text
-        )
+        embedding = await loop.run_in_executor(None, self._embed_sync, text)
         self._total_requests += 1
         self._total_texts += 1
         return embedding
@@ -125,9 +123,7 @@ class LocalEmbedder(Embedder):
 
         # Run in thread pool to not block event loop
         loop = asyncio.get_event_loop()
-        embeddings = await loop.run_in_executor(
-            None, self._embed_batch_sync, texts
-        )
+        embeddings = await loop.run_in_executor(None, self._embed_batch_sync, texts)
         self._total_requests += 1
         self._total_texts += len(texts)
         return embeddings
@@ -182,9 +178,7 @@ class OpenAIEmbedder(Embedder):
         try:
             import openai
         except ImportError:
-            raise ImportError(
-                "openai package required. Install with: pip install openai"
-            )
+            raise ImportError("openai package required. Install with: pip install openai")
 
         self._model = model
         self._client = openai.AsyncOpenAI(api_key=api_key)
@@ -258,7 +252,7 @@ class OpenAIEmbedder(Embedder):
                 error_str = str(e).lower()
                 if "rate_limit" in error_str or "429" in error_str:
                     self._rate_limit_hits += 1
-                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    delay = base_delay * (2**attempt) + random.uniform(0, 1)
                     logger.warning(
                         f"OpenAI rate limit hit, retrying in {delay:.1f}s "
                         f"(attempt {attempt + 1}/{max_retries})"
@@ -293,7 +287,7 @@ class OpenAIEmbedder(Embedder):
                 error_str = str(e).lower()
                 if "rate_limit" in error_str or "429" in error_str:
                     self._rate_limit_hits += 1
-                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    delay = base_delay * (2**attempt) + random.uniform(0, 1)
                     logger.warning(
                         f"OpenAI rate limit hit, retrying in {delay:.1f}s "
                         f"(attempt {attempt + 1}/{max_retries})"

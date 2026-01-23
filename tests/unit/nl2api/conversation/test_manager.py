@@ -47,10 +47,12 @@ class TestInMemoryConversationStorage:
         session = ConversationSession()
 
         for i in range(5):
-            session.add_turn(ConversationTurn(
-                turn_number=i + 1,
-                user_query=f"query {i}",
-            ))
+            session.add_turn(
+                ConversationTurn(
+                    turn_number=i + 1,
+                    user_query=f"query {i}",
+                )
+            )
 
         await storage.save_session(session)
 
@@ -173,12 +175,14 @@ class TestConversationManager:
         manager = ConversationManager()
         session = ConversationSession()
 
-        session.add_turn(ConversationTurn(
-            turn_number=1,
-            user_query="Apple's EPS?",
-            resolved_entities={"Apple": "AAPL.O"},
-            domain="estimates",
-        ))
+        session.add_turn(
+            ConversationTurn(
+                turn_number=1,
+                user_query="Apple's EPS?",
+                resolved_entities={"Apple": "AAPL.O"},
+                domain="estimates",
+            )
+        )
 
         context = manager.get_context(session)
 
@@ -194,12 +198,14 @@ class TestConversationManager:
             tool_name="get_data",
             arguments={"fields": ["TR.EPSMean"]},
         )
-        session.add_turn(ConversationTurn(
-            turn_number=1,
-            user_query="What is Apple's EPS?",
-            tool_calls=(tool_call,),
-            resolved_entities={"Apple": "AAPL.O"},
-        ))
+        session.add_turn(
+            ConversationTurn(
+                turn_number=1,
+                user_query="What is Apple's EPS?",
+                tool_calls=(tool_call,),
+                resolved_entities={"Apple": "AAPL.O"},
+            )
+        )
 
         # Follow-up with pronoun reference
         result = manager.expand_query("What about their revenue?", session)
@@ -280,17 +286,21 @@ class TestConversationManager:
             tool_name="get_data",
             arguments={"fields": ["P"]},
         )
-        session.add_turn(ConversationTurn(
-            turn_number=1,
-            user_query="Apple's price?",
-            tool_calls=(tool_call,),
-            resolved_entities={"Apple": "AAPL.O"},
-        ))
-        session.add_turn(ConversationTurn(
-            turn_number=2,
-            user_query="What about volume?",
-            needs_clarification=True,
-        ))
+        session.add_turn(
+            ConversationTurn(
+                turn_number=1,
+                user_query="Apple's price?",
+                tool_calls=(tool_call,),
+                resolved_entities={"Apple": "AAPL.O"},
+            )
+        )
+        session.add_turn(
+            ConversationTurn(
+                turn_number=2,
+                user_query="What about volume?",
+                needs_clarification=True,
+            )
+        )
 
         prompt = manager.build_history_prompt(session)
 
@@ -304,10 +314,12 @@ class TestConversationManager:
         session = ConversationSession()
 
         for i in range(10):
-            session.add_turn(ConversationTurn(
-                turn_number=i + 1,
-                user_query=f"query {i}",
-            ))
+            session.add_turn(
+                ConversationTurn(
+                    turn_number=i + 1,
+                    user_query=f"query {i}",
+                )
+            )
 
         prompt = manager.build_history_prompt(session, max_turns=2)
 

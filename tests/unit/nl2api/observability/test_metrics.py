@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import json
-import pytest
-from datetime import datetime
 
 from src.nl2api.observability.metrics import RequestMetrics
 
@@ -154,10 +152,12 @@ class TestRequestMetricsSetters:
     def test_set_tool_calls_with_dicts(self) -> None:
         """Test tool calls setter with dictionaries."""
         metrics = RequestMetrics()
-        metrics.set_tool_calls([
-            {"tool_name": "get_prices", "arguments": {"ric": "AAPL.O"}},
-            {"tool_name": "get_fundamentals", "arguments": {"ric": "MSFT.O"}},
-        ])
+        metrics.set_tool_calls(
+            [
+                {"tool_name": "get_prices", "arguments": {"ric": "AAPL.O"}},
+                {"tool_name": "get_fundamentals", "arguments": {"ric": "MSFT.O"}},
+            ]
+        )
 
         assert metrics.tool_calls_count == 2
         assert metrics.tool_names == ["get_prices", "get_fundamentals"]

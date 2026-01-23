@@ -6,12 +6,13 @@ tool discovery, and caching.
 """
 
 import pytest
+
 from src.nl2api.mcp.client import (
     MCPClient,
     MCPClientConfig,
     MCPConnectionError,
 )
-from src.nl2api.mcp.protocols import MCPCapabilities, MCPServer
+from src.nl2api.mcp.protocols import MCPServer
 
 
 class TestMCPClientConfig:
@@ -224,10 +225,12 @@ class TestMCPClientCaching:
     @pytest.fixture
     def caching_client(self):
         """Create a client with caching enabled."""
-        return MCPClient(MCPClientConfig(
-            enable_caching=True,
-            cache_ttl_seconds=60,
-        ))
+        return MCPClient(
+            MCPClientConfig(
+                enable_caching=True,
+                cache_ttl_seconds=60,
+            )
+        )
 
     @pytest.fixture
     def test_server(self):

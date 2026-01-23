@@ -12,8 +12,9 @@ import json
 import logging
 import time
 from collections import OrderedDict
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any, TypeVar, Callable, Awaitable
+from typing import Any, TypeVar
 
 from src.common.telemetry import get_tracer
 
@@ -26,6 +27,7 @@ T = TypeVar("T")
 @dataclass
 class CacheConfig:
     """Configuration for Redis cache."""
+
     redis_url: str = "redis://localhost:6379/0"
     default_ttl_seconds: int = 3600  # 1 hour
     key_prefix: str = "nl2api:"
@@ -39,6 +41,7 @@ class CacheConfig:
 @dataclass
 class CacheStats:
     """Statistics for cache operations."""
+
     hits: int = 0
     misses: int = 0
     sets: int = 0

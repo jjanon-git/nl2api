@@ -3,13 +3,14 @@ Tests for resilience patterns (circuit breaker and retry).
 """
 
 import asyncio
+
 import pytest
 
 from src.common.resilience import (
     CircuitBreaker,
     CircuitOpenError,
-    retry_with_backoff,
     RetryConfig,
+    retry_with_backoff,
 )
 from src.common.resilience.circuit_breaker import CircuitState
 
@@ -30,6 +31,7 @@ class TestCircuitBreaker:
     @pytest.mark.asyncio
     async def test_closed_state_allows_requests(self, breaker):
         """Circuit breaker in closed state should allow requests."""
+
         async def success():
             return "success"
 
@@ -40,6 +42,7 @@ class TestCircuitBreaker:
     @pytest.mark.asyncio
     async def test_opens_after_failure_threshold(self, breaker):
         """Circuit breaker should open after failure threshold."""
+
         async def failing():
             raise ConnectionError("Connection failed")
 
@@ -59,6 +62,7 @@ class TestCircuitBreaker:
     @pytest.mark.asyncio
     async def test_open_state_rejects_requests(self, breaker):
         """Open circuit should reject requests immediately."""
+
         async def failing():
             raise ConnectionError("Connection failed")
 
@@ -74,6 +78,7 @@ class TestCircuitBreaker:
     @pytest.mark.asyncio
     async def test_transitions_to_half_open(self, breaker):
         """Circuit should transition to half-open after recovery timeout."""
+
         async def failing():
             raise ConnectionError("Connection failed")
 
@@ -97,6 +102,7 @@ class TestCircuitBreaker:
     @pytest.mark.asyncio
     async def test_closes_after_success_threshold(self, breaker):
         """Circuit should close after success threshold in half-open."""
+
         async def failing():
             raise ConnectionError("Connection failed")
 
@@ -120,6 +126,7 @@ class TestCircuitBreaker:
     @pytest.mark.asyncio
     async def test_failure_in_half_open_reopens(self, breaker):
         """Failure in half-open should reopen the circuit."""
+
         async def failing():
             raise ConnectionError("Connection failed")
 
@@ -158,6 +165,7 @@ class TestCircuitBreaker:
     @pytest.mark.asyncio
     async def test_reset_closes_circuit(self, breaker):
         """Manual reset should close the circuit."""
+
         async def failing():
             raise ConnectionError("Connection failed")
 
@@ -259,9 +267,7 @@ class TestRetryWithBackoff:
             retries.append((attempt, str(error), delay))
 
         config = RetryConfig(max_attempts=3, base_delay=0.01)
-        result = await retry_with_backoff(
-            fail_twice, config=config, on_retry=on_retry
-        )
+        result = await retry_with_backoff(fail_twice, config=config, on_retry=on_retry)
         assert result == "success"
         assert len(retries) == 2
 

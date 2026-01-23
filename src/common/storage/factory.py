@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 _test_case_repo: TestCaseRepository | None = None
 _scorecard_repo: ScorecardRepository | None = None
 _batch_repo: BatchJobRepository | None = None
-_pool: "asyncpg.Pool | None" = None
+_pool: asyncpg.Pool | None = None
 
 
 async def create_repositories(
@@ -90,6 +90,7 @@ async def close_repositories() -> None:
 
     if _pool is not None:
         from src.common.storage.postgres import close_pool
+
         await close_pool()
         _pool = None
 
@@ -106,9 +107,7 @@ def get_repositories() -> tuple[TestCaseRepository, ScorecardRepository, BatchJo
         RuntimeError: If repositories haven't been created yet.
     """
     if _test_case_repo is None or _scorecard_repo is None or _batch_repo is None:
-        raise RuntimeError(
-            "Repositories not initialized. Call create_repositories() first."
-        )
+        raise RuntimeError("Repositories not initialized. Call create_repositories() first.")
     return _test_case_repo, _scorecard_repo, _batch_repo
 
 

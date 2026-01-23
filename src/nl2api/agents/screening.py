@@ -116,21 +116,53 @@ class ScreeningAgent(BaseDomainAgent):
     # Keywords for domain classification
     DOMAIN_KEYWORDS = [
         # Ranking
-        "top", "largest", "biggest", "highest", "best",
-        "smallest", "lowest", "bottom",
+        "top",
+        "largest",
+        "biggest",
+        "highest",
+        "best",
+        "smallest",
+        "lowest",
+        "bottom",
         # Screening
-        "find", "screen", "filter", "show me", "list",
-        "companies with", "stocks with",
+        "find",
+        "screen",
+        "filter",
+        "show me",
+        "list",
+        "companies with",
+        "stocks with",
         # Criteria
-        "above", "below", "over", "under", "greater than", "less than",
-        "more than", "at least",
+        "above",
+        "below",
+        "over",
+        "under",
+        "greater than",
+        "less than",
+        "more than",
+        "at least",
         # Index
-        "in the", "constituents", "members of", "members",
-        "s&p 500", "s&p500", "sp500", "nasdaq", "dow jones", "ftse", "russell",
+        "in the",
+        "constituents",
+        "members of",
+        "members",
+        "s&p 500",
+        "s&p500",
+        "sp500",
+        "nasdaq",
+        "dow jones",
+        "ftse",
+        "russell",
         # Sectors
-        "tech", "healthcare", "financial", "energy",
+        "tech",
+        "healthcare",
+        "financial",
+        "energy",
         # Styles
-        "value", "growth", "dividend", "undervalued",
+        "value",
+        "growth",
+        "dividend",
+        "undervalued",
     ]
 
     def __init__(
@@ -454,27 +486,51 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
         # Patterns for numeric comparisons
         patterns = [
             # "PE ratio below 15", "PE under 15"
-            (r'(pe ratio?|pe|p/e)\s+(?:below|under|less than)\s+(\d+(?:\.\d+)?)', 'TR.PE', '<'),
+            (r"(pe ratio?|pe|p/e)\s+(?:below|under|less than)\s+(\d+(?:\.\d+)?)", "TR.PE", "<"),
             # "PE ratio above 15", "PE over 15"
-            (r'(pe ratio?|pe|p/e)\s+(?:above|over|greater than|more than)\s+(\d+(?:\.\d+)?)', 'TR.PE', '>'),
+            (
+                r"(pe ratio?|pe|p/e)\s+(?:above|over|greater than|more than)\s+(\d+(?:\.\d+)?)",
+                "TR.PE",
+                ">",
+            ),
             # "dividend yield above 2%"
-            (r'dividend yield\s+(?:above|over|greater than|more than)\s+(\d+(?:\.\d+)?)', 'TR.DividendYield', '>'),
+            (
+                r"dividend yield\s+(?:above|over|greater than|more than)\s+(\d+(?:\.\d+)?)",
+                "TR.DividendYield",
+                ">",
+            ),
             # "dividend yield below 5%"
-            (r'dividend yield\s+(?:below|under|less than)\s+(\d+(?:\.\d+)?)', 'TR.DividendYield', '<'),
+            (
+                r"dividend yield\s+(?:below|under|less than)\s+(\d+(?:\.\d+)?)",
+                "TR.DividendYield",
+                "<",
+            ),
             # "ROE above 15%"
-            (r'roe\s+(?:above|over|greater than)\s+(\d+(?:\.\d+)?)', 'TR.ROE', '>'),
-            (r'return on equity\s+(?:above|over|greater than)\s+(\d+(?:\.\d+)?)', 'TR.ROE', '>'),
+            (r"roe\s+(?:above|over|greater than)\s+(\d+(?:\.\d+)?)", "TR.ROE", ">"),
+            (r"return on equity\s+(?:above|over|greater than)\s+(\d+(?:\.\d+)?)", "TR.ROE", ">"),
             # "ROE below 10%"
-            (r'roe\s+(?:below|under|less than)\s+(\d+(?:\.\d+)?)', 'TR.ROE', '<'),
+            (r"roe\s+(?:below|under|less than)\s+(\d+(?:\.\d+)?)", "TR.ROE", "<"),
             # "revenue growth over 20%"
-            (r'revenue growth\s+(?:above|over|greater than|more than)\s+(\d+(?:\.\d+)?)', 'TR.RevenueGrowth', '>'),
+            (
+                r"revenue growth\s+(?:above|over|greater than|more than)\s+(\d+(?:\.\d+)?)",
+                "TR.RevenueGrowth",
+                ">",
+            ),
             # "free cash flow" / "fcf" positive
-            (r'(?:free cash flow|fcf)\s*(?:>|positive)', 'TR.FreeCashFlow', '>0'),
-            (r'positive\s+(?:free cash flow|fcf)', 'TR.FreeCashFlow', '>0'),
+            (r"(?:free cash flow|fcf)\s*(?:>|positive)", "TR.FreeCashFlow", ">0"),
+            (r"positive\s+(?:free cash flow|fcf)", "TR.FreeCashFlow", ">0"),
             # "beat earnings by more than 10%", "beat earnings estimates by more than 10%"
-            (r'(?:beat|earnings surprise|eps surprise).*?(?:by\s+)?(?:more than|over|above)\s+(\d+(?:\.\d+)?)', 'TR.EPSSurprisePct(Period=FQ0)', '>'),
+            (
+                r"(?:beat|earnings surprise|eps surprise).*?(?:by\s+)?(?:more than|over|above)\s+(\d+(?:\.\d+)?)",
+                "TR.EPSSurprisePct(Period=FQ0)",
+                ">",
+            ),
             # "beat estimates by 10%" - simpler pattern
-            (r'beat.*?(?:more than|over|by)\s+(\d+(?:\.\d+)?)\s*%?', 'TR.EPSSurprisePct(Period=FQ0)', '>'),
+            (
+                r"beat.*?(?:more than|over|by)\s+(\d+(?:\.\d+)?)\s*%?",
+                "TR.EPSSurprisePct(Period=FQ0)",
+                ">",
+            ),
         ]
 
         for pattern_tuple in patterns:
@@ -482,25 +538,29 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
                 pattern, field, op = pattern_tuple
                 match = re.search(pattern, query_lower)
                 if match:
-                    if op == '>0':
-                        filters.append({
-                            "filter": f"{field}>0",
-                            "field": field,
-                        })
+                    if op == ">0":
+                        filters.append(
+                            {
+                                "filter": f"{field}>0",
+                                "field": field,
+                            }
+                        )
                     else:
                         # Get the numeric value from the match
                         groups = match.groups()
                         # Find the numeric value (last group that looks like a number)
                         value = None
                         for g in reversed(groups):
-                            if g and re.match(r'^\d+(?:\.\d+)?$', g):
+                            if g and re.match(r"^\d+(?:\.\d+)?$", g):
                                 value = g
                                 break
                         if value:
-                            filters.append({
-                                "filter": f"{field}{op}{value}",
-                                "field": field,
-                            })
+                            filters.append(
+                                {
+                                    "filter": f"{field}{op}{value}",
+                                    "field": field,
+                                }
+                            )
 
         return filters
 
@@ -510,7 +570,7 @@ Generate the most appropriate refinitiv_get_data tool call for the user's query.
 
         # Detect count (top N)
         count = 10  # default
-        count_match = re.search(r'(?:top|largest|biggest|highest)\s+(\d+)', query_lower)
+        count_match = re.search(r"(?:top|largest|biggest|highest)\s+(\d+)", query_lower)
         if count_match:
             count = int(count_match.group(1))
 

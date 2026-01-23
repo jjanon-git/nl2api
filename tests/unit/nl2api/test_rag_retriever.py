@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -112,19 +110,21 @@ class TestHybridRAGRetriever:
         from src.nl2api.rag.retriever import HybridRAGRetriever
 
         pool, conn = mock_pool
-        conn.fetch = AsyncMock(return_value=[
-            {
-                "id": "1",
-                "content": "Mean EPS estimate",
-                "document_type": "field_code",
-                "domain": "estimates",
-                "field_code": "TR.EPSMean",
-                "example_query": None,
-                "example_api_call": None,
-                "metadata": {},
-                "combined_score": 0.95,
-            }
-        ])
+        conn.fetch = AsyncMock(
+            return_value=[
+                {
+                    "id": "1",
+                    "content": "Mean EPS estimate",
+                    "document_type": "field_code",
+                    "domain": "estimates",
+                    "field_code": "TR.EPSMean",
+                    "example_query": None,
+                    "example_api_call": None,
+                    "metadata": {},
+                    "combined_score": 0.95,
+                }
+            ]
+        )
 
         retriever = HybridRAGRetriever(pool=pool)
         retriever.set_embedder(mock_embedder)
@@ -144,19 +144,21 @@ class TestHybridRAGRetriever:
         from src.nl2api.rag.retriever import HybridRAGRetriever
 
         pool, conn = mock_pool
-        conn.fetch = AsyncMock(return_value=[
-            {
-                "id": "2",
-                "content": "Q: Get EPS\nA: get_data(...)",
-                "document_type": "query_example",
-                "domain": "estimates",
-                "field_code": None,
-                "example_query": "Get EPS",
-                "example_api_call": "get_data(RICs=['AAPL.O'])",
-                "metadata": {},
-                "combined_score": 0.88,
-            }
-        ])
+        conn.fetch = AsyncMock(
+            return_value=[
+                {
+                    "id": "2",
+                    "content": "Q: Get EPS\nA: get_data(...)",
+                    "document_type": "query_example",
+                    "domain": "estimates",
+                    "field_code": None,
+                    "example_query": "Get EPS",
+                    "example_api_call": "get_data(RICs=['AAPL.O'])",
+                    "metadata": {},
+                    "combined_score": 0.88,
+                }
+            ]
+        )
 
         retriever = HybridRAGRetriever(pool=pool)
         retriever.set_embedder(mock_embedder)
@@ -177,30 +179,32 @@ class TestHybridRAGRetriever:
 
         pool, conn = mock_pool
         # Return results with both vector and text scores
-        conn.fetch = AsyncMock(return_value=[
-            {
-                "id": "1",
-                "content": "Mean EPS estimate",
-                "document_type": "field_code",
-                "field_code": "TR.EPSMean",
-                "domain": "estimates",
-                "example_query": None,
-                "example_api_call": None,
-                "metadata": {},
-                "combined_score": 0.90,
-            },
-            {
-                "id": "2",
-                "content": "Revenue mean",
-                "document_type": "field_code",
-                "field_code": "TR.RevenueMean",
-                "domain": "estimates",
-                "example_query": None,
-                "example_api_call": None,
-                "metadata": {},
-                "combined_score": 0.75,
-            },
-        ])
+        conn.fetch = AsyncMock(
+            return_value=[
+                {
+                    "id": "1",
+                    "content": "Mean EPS estimate",
+                    "document_type": "field_code",
+                    "field_code": "TR.EPSMean",
+                    "domain": "estimates",
+                    "example_query": None,
+                    "example_api_call": None,
+                    "metadata": {},
+                    "combined_score": 0.90,
+                },
+                {
+                    "id": "2",
+                    "content": "Revenue mean",
+                    "document_type": "field_code",
+                    "field_code": "TR.RevenueMean",
+                    "domain": "estimates",
+                    "example_query": None,
+                    "example_api_call": None,
+                    "metadata": {},
+                    "combined_score": 0.75,
+                },
+            ]
+        )
 
         retriever = HybridRAGRetriever(pool=pool)
         retriever.set_embedder(mock_embedder)
@@ -284,6 +288,7 @@ class TestOpenAIEmbedder:
     async def test_embed_single_text(self, mock_openai) -> None:
         """Test embedding a single text."""
         import asyncio
+
         from src.nl2api.rag.retriever import OpenAIEmbedder
 
         # Add usage tracking to mock response
@@ -308,6 +313,7 @@ class TestOpenAIEmbedder:
     async def test_embed_batch(self, mock_openai) -> None:
         """Test embedding a batch of texts."""
         import asyncio
+
         from src.nl2api.rag.retriever import OpenAIEmbedder
 
         mock_embedding1 = MagicMock()
@@ -360,7 +366,9 @@ class TestRAGRetrieverProtocol:
 
         # Create a minimal implementation with correct signatures
         class MinimalRetriever:
-            async def retrieve(self, query, domain=None, document_types=None, limit=10, threshold=0.5):
+            async def retrieve(
+                self, query, domain=None, document_types=None, limit=10, threshold=0.5
+            ):
                 return []
 
             async def retrieve_field_codes(self, query, domain, limit=5):
@@ -378,14 +386,14 @@ class TestLocalEmbedder:
 
     def test_local_embedder_imports(self) -> None:
         """Test that LocalEmbedder can be imported."""
-        from src.nl2api.rag.embedders import LocalEmbedder, Embedder
+        from src.nl2api.rag.embedders import Embedder, LocalEmbedder
 
         # LocalEmbedder should be a subclass of Embedder
         assert issubclass(LocalEmbedder, Embedder)
 
     def test_create_embedder_local(self) -> None:
         """Test create_embedder factory with local provider."""
-        from src.nl2api.rag.embedders import create_embedder, LocalEmbedder
+        from src.nl2api.rag.embedders import LocalEmbedder, create_embedder
 
         embedder = create_embedder("local")
         assert isinstance(embedder, LocalEmbedder)

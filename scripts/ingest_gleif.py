@@ -37,17 +37,17 @@ import argparse
 import asyncio
 import csv
 import gzip
-import zipfile
-import hashlib
 import json
 import logging
 import os
 import re
 import sys
 import uuid
-from datetime import datetime, timedelta, timezone
+import zipfile
+from collections.abc import Iterator
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 import httpx
 
@@ -56,12 +56,12 @@ PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import ingestion telemetry (after path setup)
-from src.nl2api.ingestion.telemetry import (
-    trace_ingestion_operation,
-    record_ingestion_metric,
-    SpanAttributes,
-)
 from src.nl2api.ingestion.errors import DownloadError, LoadError
+from src.nl2api.ingestion.telemetry import (
+    SpanAttributes,
+    record_ingestion_metric,
+    trace_ingestion_operation,
+)
 
 
 def _load_env():
@@ -103,15 +103,43 @@ GLEIF_HEADERS = {
 
 # Company suffixes to strip for alias generation
 COMPANY_SUFFIXES = [
-    "Inc", "Inc.", "Incorporated",
-    "Corp", "Corp.", "Corporation",
-    "Ltd", "Ltd.", "Limited",
-    "LLC", "L.L.C.", "L.L.C",
-    "PLC", "P.L.C.", "P.L.C",
-    "Co", "Co.", "Company",
-    "Holdings", "Group", "International", "Intl",
-    "SA", "S.A.", "AG", "A.G.", "GmbH", "NV", "N.V.", "BV", "B.V.",
-    "SE", "S.E.", "LP", "L.P.", "LLP", "L.L.P.",
+    "Inc",
+    "Inc.",
+    "Incorporated",
+    "Corp",
+    "Corp.",
+    "Corporation",
+    "Ltd",
+    "Ltd.",
+    "Limited",
+    "LLC",
+    "L.L.C.",
+    "L.L.C",
+    "PLC",
+    "P.L.C.",
+    "P.L.C",
+    "Co",
+    "Co.",
+    "Company",
+    "Holdings",
+    "Group",
+    "International",
+    "Intl",
+    "SA",
+    "S.A.",
+    "AG",
+    "A.G.",
+    "GmbH",
+    "NV",
+    "N.V.",
+    "BV",
+    "B.V.",
+    "SE",
+    "S.E.",
+    "LP",
+    "L.P.",
+    "LLP",
+    "L.L.P.",
 ]
 
 
@@ -201,7 +229,7 @@ async def get_gleif_delta_files(since_date: datetime, timeout: int = 30) -> list
     async with httpx.AsyncClient(timeout=timeout, headers=GLEIF_HEADERS) as client:
         # GLEIF delta files are organized by date
         current_date = since_date.date()
-        today = datetime.now(timezone.utc).date()
+        today = datetime.now(UTC).date()
 
         while current_date <= today:
             date_str = current_date.strftime("%Y/%m/%d")
@@ -213,12 +241,14 @@ async def get_gleif_delta_files(since_date: datetime, timeout: int = 30) -> list
                     data = response.json()
                     for item in data.get("data", {}).get("deltaFiles", []):
                         if item.get("fileExtension") == "csv.gz":
-                            delta_files.append({
-                                "date": current_date.isoformat(),
-                                "url": item.get("url"),
-                                "record_count": item.get("recordCount", 0),
-                                "type": item.get("deltaType", "unknown"),
-                            })
+                            delta_files.append(
+                                {
+                                    "date": current_date.isoformat(),
+                                    "url": item.get("url"),
+                                    "record_count": item.get("recordCount", 0),
+                                    "type": item.get("deltaType", "unknown"),
+                                }
+                            )
             except httpx.HTTPError:
                 # Skip dates with no delta files
                 pass
@@ -258,7 +288,9 @@ async def download_file_streaming(
         {SpanAttributes.SOURCE: "gleif", SpanAttributes.SOURCE_URL: url},
     ) as span:
         try:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(timeout), headers=GLEIF_HEADERS) as client:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(timeout), headers=GLEIF_HEADERS
+            ) as client:
                 async with client.stream("GET", url, follow_redirects=True) as response:
                     response.raise_for_status()
                     total_size = int(response.headers.get("content-length", 0))
@@ -318,7 +350,7 @@ def _open_compressed_csv(csv_path: Path):
         return gzip.open(csv_path, "rt", encoding="utf-8"), None
     else:
         # Plain CSV
-        return open(csv_path, "r", encoding="utf-8"), None
+        return open(csv_path, encoding="utf-8"), None
 
 
 def parse_gleif_csv_streaming(
@@ -400,31 +432,31 @@ def transform_to_db_records(
         entity_type = "fund" if category == "fund" else "company"
 
         yield (
-            entity_id,                          # id
-            entity.get("lei"),                  # lei
-            None,                               # cik
-            None,                               # permid
-            None,                               # figi
-            entity.get("primary_name"),         # primary_name
-            None,                               # display_name
-            None,                               # ticker
-            None,                               # ric
-            None,                               # exchange
-            entity_type,                        # entity_type
+            entity_id,  # id
+            entity.get("lei"),  # lei
+            None,  # cik
+            None,  # permid
+            None,  # figi
+            entity.get("primary_name"),  # primary_name
+            None,  # display_name
+            None,  # ticker
+            None,  # ric
+            None,  # exchange
+            entity_type,  # entity_type
             entity.get("entity_status", "active"),  # entity_status
-            False,                              # is_public
-            entity.get("country_code") or None, # country_code
-            entity.get("region") or None,       # region
-            entity.get("city") or None,         # city
-            None,                               # sic_code
-            None,                               # naics_code
-            None,                               # gics_sector
-            None,                               # parent_entity_id
-            None,                               # ultimate_parent_id
-            "gleif",                            # data_source
-            1.0,                                # confidence_score
-            False,                              # ric_validated
-            None,                               # last_verified_at
+            False,  # is_public
+            entity.get("country_code") or None,  # country_code
+            entity.get("region") or None,  # region
+            entity.get("city") or None,  # city
+            None,  # sic_code
+            None,  # naics_code
+            None,  # gics_sector
+            None,  # parent_entity_id
+            None,  # ultimate_parent_id
+            "gleif",  # data_source
+            1.0,  # confidence_score
+            False,  # ric_validated
+            None,  # last_verified_at
         )
 
 
@@ -467,14 +499,31 @@ async def bulk_load_entities(
         LoadError: If bulk load fails
     """
     columns = [
-        "id", "lei", "cik", "permid", "figi",
-        "primary_name", "display_name",
-        "ticker", "ric", "exchange",
-        "entity_type", "entity_status", "is_public",
-        "country_code", "region", "city",
-        "sic_code", "naics_code", "gics_sector",
-        "parent_entity_id", "ultimate_parent_id",
-        "data_source", "confidence_score", "ric_validated", "last_verified_at",
+        "id",
+        "lei",
+        "cik",
+        "permid",
+        "figi",
+        "primary_name",
+        "display_name",
+        "ticker",
+        "ric",
+        "exchange",
+        "entity_type",
+        "entity_status",
+        "is_public",
+        "country_code",
+        "region",
+        "city",
+        "sic_code",
+        "naics_code",
+        "gics_sector",
+        "parent_entity_id",
+        "ultimate_parent_id",
+        "data_source",
+        "confidence_score",
+        "ric_validated",
+        "last_verified_at",
     ]
 
     total_loaded = 0
@@ -716,13 +765,15 @@ async def generate_aliases_for_entities(
 
                 aliases = generate_aliases(name)
                 for i, alias in enumerate(aliases):
-                    alias_records.append((
-                        uuid.uuid4(),
-                        entity_id,
-                        alias,
-                        "generated" if i > 0 else "legal_name",
-                        i == 0,
-                    ))
+                    alias_records.append(
+                        (
+                            uuid.uuid4(),
+                            entity_id,
+                            alias,
+                            "generated" if i > 0 else "legal_name",
+                            i == 0,
+                        )
+                    )
 
             if alias_records:
                 await conn.executemany(
@@ -841,7 +892,7 @@ async def run_full_ingestion(
         return {"mode": "full", "dry_run": True, "total": total_records}
 
     # Load
-    from src.nl2api.ingestion import CheckpointManager, ProgressTracker
+    from src.nl2api.ingestion import ProgressTracker
 
     checkpoint = checkpoint_mgr.load() or checkpoint_mgr.create_new()
     checkpoint.mark_loading(total_records)
@@ -875,8 +926,8 @@ async def run_full_ingestion(
         aliases = 0
 
     # Update state
-    state.last_full_ingestion = datetime.now(timezone.utc)
-    state.last_delta_date = datetime.now(timezone.utc)
+    state.last_full_ingestion = datetime.now(UTC)
+    state.last_delta_date = datetime.now(UTC)
     state.save()
 
     checkpoint.mark_complete()
@@ -922,10 +973,14 @@ async def run_delta_ingestion(
     total_stats = {"inserted": 0, "updated": 0, "retired": 0, "files": 0}
 
     for delta_file in delta_files:
-        logger.info("Processing delta: %s (%d records)", delta_file["date"], delta_file["record_count"])
+        logger.info(
+            "Processing delta: %s (%d records)", delta_file["date"], delta_file["record_count"]
+        )
 
         # Download delta file
-        delta_path = config.download_dir / f"gleif_delta_{delta_file['date'].replace('-', '')}.csv.zip"
+        delta_path = (
+            config.download_dir / f"gleif_delta_{delta_file['date'].replace('-', '')}.csv.zip"
+        )
 
         await download_file_streaming(
             url=delta_file["url"],
@@ -966,9 +1021,7 @@ async def run_delta_ingestion(
 
 
 async def main():
-    parser = argparse.ArgumentParser(
-        description="Ingest GLEIF LEI data into entity database"
-    )
+    parser = argparse.ArgumentParser(description="Ingest GLEIF LEI data into entity database")
     parser.add_argument(
         "--mode",
         choices=["auto", "full", "delta"],
@@ -1005,6 +1058,7 @@ async def main():
 
     # Import dependencies
     import asyncpg
+
     from src.nl2api.ingestion import CheckpointManager, EntityIngestionConfig
 
     print("=" * 60)

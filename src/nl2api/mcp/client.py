@@ -294,8 +294,7 @@ class MCPClient:
         # Placeholder: In production, this would make actual MCP protocol calls
         logger.debug(f"Executing tool {tool_name} on {server.uri} with args: {arguments}")
         raise MCPToolError(
-            f"MCP tool execution not yet implemented. "
-            f"Tool: {tool_name}, Server: {server.uri}"
+            f"MCP tool execution not yet implemented. Tool: {tool_name}, Server: {server.uri}"
         )
 
     async def list_resources(self, server_uri: str) -> list[MCPResource]:
@@ -399,9 +398,7 @@ class MCPClient:
                        If None, invalidate all cached data.
         """
         if server_uri:
-            keys_to_remove = [
-                k for k in self._cache_timestamps if server_uri in k
-            ]
+            keys_to_remove = [k for k in self._cache_timestamps if server_uri in k]
             for key in keys_to_remove:
                 del self._cache_timestamps[key]
             self._tool_cache.pop(server_uri, None)

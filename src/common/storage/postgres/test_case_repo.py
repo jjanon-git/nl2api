@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 import asyncpg
@@ -92,11 +92,15 @@ class PostgresTestCaseRepository:
             test_uuid = uuid.UUID(test_case.id)
 
             # Serialize complex fields
-            tool_calls_json = json.dumps([
-                {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
-                for tc in test_case.expected_tool_calls
-            ])
-            raw_data_json = json.dumps(test_case.expected_response) if test_case.expected_response else None
+            tool_calls_json = json.dumps(
+                [
+                    {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+                    for tc in test_case.expected_tool_calls
+                ]
+            )
+            raw_data_json = (
+                json.dumps(test_case.expected_response) if test_case.expected_response else None
+            )
             tags_list = list(test_case.metadata.tags)
 
             # Convert embedding to list if present
@@ -331,8 +335,12 @@ class PostgresTestCaseRepository:
             api_version=row["api_version"],
             complexity_level=row["complexity_level"],
             tags=tuple(row["tags"] or []),
-            created_at=row["created_at"].replace(tzinfo=timezone.utc) if row["created_at"] else datetime.now(timezone.utc),
-            updated_at=row["updated_at"].replace(tzinfo=timezone.utc) if row["updated_at"] else datetime.now(timezone.utc),
+            created_at=row["created_at"].replace(tzinfo=UTC)
+            if row["created_at"]
+            else datetime.now(UTC),
+            updated_at=row["updated_at"].replace(tzinfo=UTC)
+            if row["updated_at"]
+            else datetime.now(UTC),
             author=row["author"],
             source=row["source"],
         )

@@ -98,9 +98,7 @@ class AgentToolProvider:
             return self._agent.get_tools()
 
         # Fallback: return empty list
-        logger.warning(
-            f"Agent {self.provider_name} does not implement get_tools()"
-        )
+        logger.warning(f"Agent {self.provider_name} does not implement get_tools()")
         return []
 
     async def get_tool_description(self, tool_name: str) -> str | None:
@@ -344,13 +342,10 @@ class MCPToolProvider:
             mcp_tools = await self._mcp_client.list_tools(self._server_uri)
 
             # Convert MCP tool definitions to LLM tool definitions
-            self._cached_tools = [
-                tool.to_llm_tool_definition() for tool in mcp_tools
-            ]
+            self._cached_tools = [tool.to_llm_tool_definition() for tool in mcp_tools]
 
             logger.info(
-                f"Discovered {len(self._cached_tools)} tools from MCP server "
-                f"{self._server_uri}"
+                f"Discovered {len(self._cached_tools)} tools from MCP server {self._server_uri}"
             )
             return self._cached_tools
 
@@ -488,5 +483,3 @@ class MCPToolExecutor:
                 "error": str(e),
                 "is_error": True,
             }
-
-

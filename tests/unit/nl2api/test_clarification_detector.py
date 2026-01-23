@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import pytest
 
-from src.nl2api.clarification.detector import AmbiguityDetector, AmbiguityAnalysis
-from src.nl2api.llm.protocols import LLMMessage, LLMResponse, LLMToolDefinition
+from src.nl2api.clarification.detector import AmbiguityAnalysis, AmbiguityDetector
+from src.nl2api.llm.protocols import LLMResponse
 from src.nl2api.models import ClarificationQuestion
 
 
@@ -21,7 +21,9 @@ class MockLLMProvider:
     async def complete(self, messages, tools=None, temperature=0.0, max_tokens=4096):
         return LLMResponse(content=self.response_content)
 
-    async def complete_with_retry(self, messages, tools=None, temperature=0.0, max_tokens=4096, max_retries=3):
+    async def complete_with_retry(
+        self, messages, tools=None, temperature=0.0, max_tokens=4096, max_retries=3
+    ):
         return LLMResponse(content=self.response_content)
 
 
@@ -40,9 +42,7 @@ class TestAmbiguityAnalysis:
 
     def test_ambiguous_query(self) -> None:
         """Test analysis for ambiguous query."""
-        questions = (
-            ClarificationQuestion(question="Which company?", category="entity"),
-        )
+        questions = (ClarificationQuestion(question="Which company?", category="entity"),)
         analysis = AmbiguityAnalysis(
             is_ambiguous=True,
             ambiguity_types=("entity",),
@@ -311,6 +311,7 @@ class TestAmbiguityDetectorLLMIntegration:
     @pytest.mark.asyncio
     async def test_llm_error_handling(self) -> None:
         """Test handling of LLM errors."""
+
         async def raise_error(*args, **kwargs):
             raise RuntimeError("LLM error")
 
@@ -370,10 +371,7 @@ class TestClarificationQuestionGeneration:
             resolved_entities={"Apple": "AAPL.O"},
         )
 
-        time_questions = [
-            q for q in result.clarification_questions
-            if q.category == "time_period"
-        ]
+        time_questions = [q for q in result.clarification_questions if q.category == "time_period"]
         assert len(time_questions) > 0
         assert len(time_questions[0].options) > 0
 
@@ -385,10 +383,7 @@ class TestClarificationQuestionGeneration:
             resolved_entities={"Apple": "AAPL.O"},
         )
 
-        metric_questions = [
-            q for q in result.clarification_questions
-            if q.category == "metric"
-        ]
+        metric_questions = [q for q in result.clarification_questions if q.category == "metric"]
         assert len(metric_questions) > 0
         assert len(metric_questions[0].options) > 0
 

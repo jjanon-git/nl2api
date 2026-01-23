@@ -10,17 +10,16 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections import defaultdict
+from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import AsyncIterator
+from datetime import UTC, datetime
 
-from src.contracts.core import _now_utc, _generate_id
+from src.contracts.core import _generate_id, _now_utc
 from src.contracts.worker import WorkerTask
 from src.evaluation.distributed.models import QueueMessage
 from src.evaluation.distributed.queue.protocol import (
-    TaskQueue,
-    QueueError,
     QueueAckError,
+    QueueError,
 )
 
 logger = logging.getLogger(__name__)
@@ -31,9 +30,7 @@ class StreamState:
     """State for a single stream (batch)."""
 
     # Main queue: messages waiting to be consumed
-    pending: asyncio.Queue[QueueMessage] = field(
-        default_factory=lambda: asyncio.Queue()
-    )
+    pending: asyncio.Queue[QueueMessage] = field(default_factory=lambda: asyncio.Queue())
 
     # Processing: messages claimed by consumers (message_id -> message)
     processing: dict[str, QueueMessage] = field(default_factory=dict)
@@ -167,12 +164,10 @@ class InMemoryQueue:
                     async with self._lock:
                         stream.processing[message.message_id] = claimed_message
 
-                    logger.debug(
-                        f"Consumer {consumer_id} claimed message {message.message_id}"
-                    )
+                    logger.debug(f"Consumer {consumer_id} claimed message {message.message_id}")
                     yield claimed_message
 
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     # No message available, continue polling
                     continue
 
@@ -189,9 +184,7 @@ class InMemoryQueue:
                 stream.completed.add(message.message_id)
                 logger.debug(f"Acked message {message.message_id}")
             else:
-                raise QueueAckError(
-                    f"Message {message.message_id} not found in processing"
-                )
+                raise QueueAckError(f"Message {message.message_id} not found in processing")
 
     async def nack(
         self,
@@ -234,8 +227,7 @@ class InMemoryQueue:
                 )
                 stream.dlq.append(dlq_message)
                 logger.debug(
-                    f"Moved message {message.message_id} to DLQ "
-                    f"(error: {error or 'none'})"
+                    f"Moved message {message.message_id} to DLQ (error: {error or 'none'})"
                 )
 
     # =========================================================================
@@ -278,8 +270,8 @@ class InMemoryQueue:
                     claimed_at = message.claimed_at
                     if claimed_at.tzinfo is None:
                         # Assume naive datetime is UTC
-                        from datetime import timezone
-                        claimed_at = claimed_at.replace(tzinfo=timezone.utc)
+
+                        claimed_at = claimed_at.replace(tzinfo=UTC)
                     idle_ms = (now - claimed_at).total_seconds() * 1000
                     if idle_ms >= min_idle_ms:
                         stalled.append(message)
@@ -297,9 +289,7 @@ class InMemoryQueue:
 
         async with self._lock:
             if message.message_id not in stream.processing:
-                raise QueueError(
-                    f"Message {message.message_id} not found in processing"
-                )
+                raise QueueError(f"Message {message.message_id} not found in processing")
 
             # Update the message with new consumer
             claimed_message = message.with_claimed_by(new_consumer_id)
@@ -348,9 +338,7 @@ class InMemoryQueue:
             )
             await stream.pending.put(retry_message)
 
-            logger.info(
-                f"Retried DLQ message {message.message_id} as {retry_message.message_id}"
-            )
+            logger.info(f"Retried DLQ message {message.message_id} as {retry_message.message_id}")
             return retry_message.message_id
 
     async def delete_from_dlq(

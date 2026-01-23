@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 import pytest
 
-from CONTRACTS import ToolCall
+from src.nl2api.agents.protocols import AgentContext
 from src.nl2api.agents.screening import ScreeningAgent
-from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import (
     LLMMessage,
     LLMResponse,
@@ -23,19 +21,21 @@ class MockLLMProvider:
     """Mock LLM provider for testing."""
 
     model_name: str = "mock-model"
-    response: LLMResponse = field(default_factory=lambda: LLMResponse(
-        content="screening",
-        tool_calls=[
-            LLMToolCall(
-                id="tc_123",
-                name="get_data",
-                arguments={
-                    "tickers": "SCREEN(U(IN(Equity(active,public,primary))),CURN=USD)",
-                    "fields": ["TR.CommonName"],
-                },
-            )
-        ],
-    ))
+    response: LLMResponse = field(
+        default_factory=lambda: LLMResponse(
+            content="screening",
+            tool_calls=[
+                LLMToolCall(
+                    id="tc_123",
+                    name="get_data",
+                    arguments={
+                        "tickers": "SCREEN(U(IN(Equity(active,public,primary))),CURN=USD)",
+                        "fields": ["TR.CommonName"],
+                    },
+                )
+            ],
+        )
+    )
 
     async def complete(
         self,
@@ -88,9 +88,7 @@ class TestScreeningAgentCanHandle:
     @pytest.mark.asyncio
     async def test_zero_confidence_for_unrelated_query(self) -> None:
         """Test zero confidence for unrelated queries."""
-        score = await self.agent.can_handle(
-            "Who is the CEO of Apple?"
-        )
+        score = await self.agent.can_handle("Who is the CEO of Apple?")
         assert score == 0.0
 
     @pytest.mark.asyncio

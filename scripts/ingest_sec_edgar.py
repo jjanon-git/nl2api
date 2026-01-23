@@ -37,7 +37,7 @@ import os
 import re
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
@@ -47,12 +47,12 @@ PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Import ingestion telemetry (after path setup)
+from src.nl2api.ingestion.errors import DownloadError
 from src.nl2api.ingestion.telemetry import (
-    trace_ingestion_operation,
-    record_ingestion_metric,
     SpanAttributes,
+    record_ingestion_metric,
+    trace_ingestion_operation,
 )
-from src.nl2api.ingestion.errors import DownloadError, LoadError
 
 
 def _load_env():
@@ -109,12 +109,25 @@ EXCHANGE_SUFFIX_MAP = {
 
 # Company suffixes to strip for alias generation
 COMPANY_SUFFIXES = [
-    "Inc", "Inc.", "Incorporated",
-    "Corp", "Corp.", "Corporation",
-    "Ltd", "Ltd.", "Limited",
-    "LLC", "L.L.C.",
-    "Co", "Co.", "Company",
-    "/DE", "/DE/", "/NV", "/MD", "/CA",  # State suffixes
+    "Inc",
+    "Inc.",
+    "Incorporated",
+    "Corp",
+    "Corp.",
+    "Corporation",
+    "Ltd",
+    "Ltd.",
+    "Limited",
+    "LLC",
+    "L.L.C.",
+    "Co",
+    "Co.",
+    "Company",
+    "/DE",
+    "/DE/",
+    "/NV",
+    "/MD",
+    "/CA",  # State suffixes
 ]
 
 
@@ -217,7 +230,9 @@ async def fetch_sec_tickers(timeout: int = 30) -> dict:
                 if span:
                     span.set_attribute(SpanAttributes.RECORDS_PROCESSED, len(data))
 
-                record_ingestion_metric("fetch_records_total", len(data), {"source": "sec_edgar", "type": "tickers"})
+                record_ingestion_metric(
+                    "fetch_records_total", len(data), {"source": "sec_edgar", "type": "tickers"}
+                )
                 return data
 
         except httpx.HTTPStatusError as e:
@@ -293,16 +308,18 @@ def transform_sec_companies(
         exchange = exchange_map.get(ticker, "")
         ric = generate_ric(ticker, exchange)
 
-        entities.append({
-            "cik": cik,
-            "ticker": ticker,
-            "primary_name": name,
-            "ric": ric,
-            "exchange": exchange or None,
-            "is_public": True,
-            "country_code": "US",
-            "data_source": "sec_edgar",
-        })
+        entities.append(
+            {
+                "cik": cik,
+                "ticker": ticker,
+                "primary_name": name,
+                "ric": ric,
+                "exchange": exchange or None,
+                "is_public": True,
+                "country_code": "US",
+                "data_source": "sec_edgar",
+            }
+        )
 
     return entities
 
@@ -349,7 +366,7 @@ async def upsert_sec_entities(
     ) as span:
         async with pool.acquire() as conn:
             for i in range(0, len(entities), batch_size):
-                batch = entities[i:i + batch_size]
+                batch = entities[i : i + batch_size]
 
                 for entity in batch:
                     cik = entity["cik"]
@@ -419,7 +436,9 @@ async def upsert_sec_entities(
             span.set_attribute(SpanAttributes.RECORDS_INSERTED, stats["inserted"])
             span.set_attribute(SpanAttributes.RECORDS_UPDATED, stats["updated"])
 
-        record_ingestion_metric("entities_inserted_total", stats["inserted"], {"source": "sec_edgar"})
+        record_ingestion_metric(
+            "entities_inserted_total", stats["inserted"], {"source": "sec_edgar"}
+        )
         record_ingestion_metric("entities_updated_total", stats["updated"], {"source": "sec_edgar"})
 
     return stats
@@ -464,15 +483,17 @@ async def generate_aliases_for_sec_entities(
 
                 aliases = generate_aliases(name, ticker)
                 for i, alias in enumerate(aliases):
-                    alias_records.append((
-                        uuid.uuid4(),
-                        entity_id,
-                        alias,
-                        "ticker" if alias == normalize_alias(ticker or "") else (
-                            "legal_name" if i == 0 else "generated"
-                        ),
-                        i == 0,
-                    ))
+                    alias_records.append(
+                        (
+                            uuid.uuid4(),
+                            entity_id,
+                            alias,
+                            "ticker"
+                            if alias == normalize_alias(ticker or "")
+                            else ("legal_name" if i == 0 else "generated"),
+                            i == 0,
+                        )
+                    )
 
             if alias_records:
                 await conn.executemany(
@@ -552,6 +573,7 @@ async def main():
 
     # Import dependencies
     import asyncpg
+
     from src.nl2api.ingestion import EntityIngestionConfig
 
     print("=" * 60)
@@ -579,7 +601,9 @@ async def main():
     if args.dry_run:
         print("\n[DRY RUN] Sample entities:")
         for entity in entities[:10]:
-            print(f"  {entity['cik']}: {entity['ticker']:6} {entity['ric']:10} {entity['primary_name'][:40]}...")
+            print(
+                f"  {entity['cik']}: {entity['ticker']:6} {entity['ric']:10} {entity['primary_name'][:40]}..."
+            )
         print(f"\nTotal: {len(entities)} entities would be loaded")
         return
 
@@ -599,7 +623,7 @@ async def main():
             aliases = 0
 
         # Update state
-        state.last_ingestion = datetime.now(timezone.utc)
+        state.last_ingestion = datetime.now(UTC)
         state.last_entity_count = len(entities)
         state.save()
 

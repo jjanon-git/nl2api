@@ -43,6 +43,7 @@ from typing import Any
 def _get_asyncpg():
     try:
         import asyncpg
+
         return asyncpg
     except ImportError:
         raise ImportError(
@@ -54,6 +55,7 @@ def _get_asyncpg():
 @dataclass
 class EntityTestCase:
     """A single entity resolution test case."""
+
     id: str
     nl_query: str
     expected_tool_calls: list[dict[str, Any]]
@@ -93,21 +95,51 @@ class EntityResolutionGenerator:
 
     # Typo patterns for fuzzy matching tests
     TYPO_PATTERNS = [
-        "swap_adjacent",     # Microsoft -> Mircosoft
-        "delete_char",       # Apple -> Aple
-        "double_char",       # Google -> Googgle
-        "wrong_char",        # Tesla -> Telsa
-        "missing_space",     # Home Depot -> HomeDepot
-        "extra_space",       # IBM -> I B M
+        "swap_adjacent",  # Microsoft -> Mircosoft
+        "delete_char",  # Apple -> Aple
+        "double_char",  # Google -> Googgle
+        "wrong_char",  # Tesla -> Telsa
+        "missing_space",  # Home Depot -> HomeDepot
+        "extra_space",  # IBM -> I B M
     ]
 
     # Common words that should NOT be resolved
     NEGATIVE_COMMON_WORDS = [
-        "THE", "FOR", "AND", "EPS", "ROE", "GDP", "IPO", "CEO", "CFO",
-        "NYSE", "NASDAQ", "ETF", "USD", "EUR", "GBP", "JPY",
-        "BUY", "SELL", "HOLD", "LONG", "SHORT",
-        "Q1", "Q2", "Q3", "Q4", "FY", "YTD", "MOM", "YOY",
-        "DIV", "VOL", "AVG", "MAX", "MIN", "SUM",
+        "THE",
+        "FOR",
+        "AND",
+        "EPS",
+        "ROE",
+        "GDP",
+        "IPO",
+        "CEO",
+        "CFO",
+        "NYSE",
+        "NASDAQ",
+        "ETF",
+        "USD",
+        "EUR",
+        "GBP",
+        "JPY",
+        "BUY",
+        "SELL",
+        "HOLD",
+        "LONG",
+        "SHORT",
+        "Q1",
+        "Q2",
+        "Q3",
+        "Q4",
+        "FY",
+        "YTD",
+        "MOM",
+        "YOY",
+        "DIV",
+        "VOL",
+        "AVG",
+        "MAX",
+        "MIN",
+        "SUM",
     ]
 
     # Fictional company names for negative tests
@@ -165,13 +197,15 @@ class EntityResolutionGenerator:
 
         # Build expected tool call (using tool_name per CONTRACTS.py)
         if expected_ric:
-            expected_tool_calls = [{
-                "tool_name": "get_data",
-                "arguments": {
-                    "tickers": [expected_ric],
-                    "fields": ["TR.Revenue"]  # Placeholder field
+            expected_tool_calls = [
+                {
+                    "tool_name": "get_data",
+                    "arguments": {
+                        "tickers": [expected_ric],
+                        "fields": ["TR.Revenue"],  # Placeholder field
+                    },
                 }
-            }]
+            ]
         else:
             # Negative case - should not resolve
             expected_tool_calls = []
@@ -186,11 +220,7 @@ class EntityResolutionGenerator:
             category=self.category,
             subcategory=subcategory,
             tags=tags,
-            metadata={
-                "input_entity": input_entity,
-                "expected_ric": expected_ric,
-                **metadata
-            }
+            metadata={"input_entity": input_entity, "expected_ric": expected_ric, **metadata},
         )
 
     def _select_random_template(self) -> str:
@@ -212,7 +242,7 @@ class EntityResolutionGenerator:
         elif pattern == "delete_char":
             # Delete a character
             idx = random.randint(1, len(name) - 2)
-            return name[:idx] + name[idx + 1:]
+            return name[:idx] + name[idx + 1 :]
 
         elif pattern == "double_char":
             # Double a character
@@ -222,12 +252,32 @@ class EntityResolutionGenerator:
         elif pattern == "wrong_char":
             # Replace with a nearby keyboard character
             keyboard_nearby = {
-                'a': 'sq', 'b': 'vn', 'c': 'xv', 'd': 'sf', 'e': 'wr',
-                'f': 'dg', 'g': 'fh', 'h': 'gj', 'i': 'uo', 'j': 'hk',
-                'k': 'jl', 'l': 'k;', 'm': 'n,', 'n': 'bm', 'o': 'ip',
-                'p': 'o[', 'q': 'wa', 'r': 'et', 's': 'ad', 't': 'ry',
-                'u': 'yi', 'v': 'cb', 'w': 'qe', 'x': 'zc', 'y': 'tu',
-                'z': 'xa'
+                "a": "sq",
+                "b": "vn",
+                "c": "xv",
+                "d": "sf",
+                "e": "wr",
+                "f": "dg",
+                "g": "fh",
+                "h": "gj",
+                "i": "uo",
+                "j": "hk",
+                "k": "jl",
+                "l": "k;",
+                "m": "n,",
+                "n": "bm",
+                "o": "ip",
+                "p": "o[",
+                "q": "wa",
+                "r": "et",
+                "s": "ad",
+                "t": "ry",
+                "u": "yi",
+                "v": "cb",
+                "w": "qe",
+                "x": "zc",
+                "y": "tu",
+                "z": "xa",
             }
             # Find a letter to replace
             letters = [(i, c) for i, c in enumerate(name.lower()) if c.isalpha()]
@@ -238,13 +288,13 @@ class EntityResolutionGenerator:
                     # Preserve case
                     if name[idx].isupper():
                         replacement = replacement.upper()
-                    return name[:idx] + replacement + name[idx + 1:]
+                    return name[:idx] + replacement + name[idx + 1 :]
 
         elif pattern == "missing_space":
             # Remove a space
             if " " in name:
                 idx = name.index(" ")
-                return name[:idx] + name[idx + 1:]
+                return name[:idx] + name[idx + 1 :]
 
         elif pattern == "extra_space":
             # Add a space
@@ -253,9 +303,7 @@ class EntityResolutionGenerator:
 
         return name
 
-    async def _generate_exact_matches(
-        self, pool, count: int = 800
-    ) -> list[EntityTestCase]:
+    async def _generate_exact_matches(self, pool, count: int = 800) -> list[EntityTestCase]:
         """Generate exact match test cases from database."""
         test_cases = []
 
@@ -311,9 +359,7 @@ class EntityResolutionGenerator:
 
         return test_cases
 
-    async def _generate_ticker_lookups(
-        self, pool, count: int = 500
-    ) -> list[EntityTestCase]:
+    async def _generate_ticker_lookups(self, pool, count: int = 500) -> list[EntityTestCase]:
         """Generate ticker lookup test cases, emphasizing short tickers."""
         test_cases = []
 
@@ -367,9 +413,7 @@ class EntityResolutionGenerator:
 
         return test_cases
 
-    async def _generate_alias_matches(
-        self, pool, count: int = 600
-    ) -> list[EntityTestCase]:
+    async def _generate_alias_matches(self, pool, count: int = 600) -> list[EntityTestCase]:
         """Generate alias match test cases (legal names, ticker aliases)."""
         test_cases = []
 
@@ -422,9 +466,7 @@ class EntityResolutionGenerator:
 
         return test_cases
 
-    async def _generate_suffix_variations(
-        self, pool, count: int = 400
-    ) -> list[EntityTestCase]:
+    async def _generate_suffix_variations(self, pool, count: int = 400) -> list[EntityTestCase]:
         """Generate suffix variation test cases (Inc, Corp, Ltd, SE, AG, GmbH, N.V.)."""
         test_cases = []
 
@@ -460,10 +502,26 @@ class EntityResolutionGenerator:
 
         # Suffixes to strip for test variations
         suffixes = [
-            " Inc", " Inc.", " Corp", " Corp.", " Corporation",
-            " Ltd", " Ltd.", " Limited", " Co", " Co.",
-            " PLC", " SE", " AG", " GmbH", " N.V.", " NV",
-            " SARL", " S.A.", " SA", " LLC"
+            " Inc",
+            " Inc.",
+            " Corp",
+            " Corp.",
+            " Corporation",
+            " Ltd",
+            " Ltd.",
+            " Limited",
+            " Co",
+            " Co.",
+            " PLC",
+            " SE",
+            " AG",
+            " GmbH",
+            " N.V.",
+            " NV",
+            " SARL",
+            " S.A.",
+            " SA",
+            " LLC",
         ]
 
         for row in rows:
@@ -473,7 +531,7 @@ class EntityResolutionGenerator:
             stripped_name = full_name
             for suffix in suffixes:
                 if stripped_name.lower().endswith(suffix.lower()):
-                    stripped_name = stripped_name[:-len(suffix)].strip()
+                    stripped_name = stripped_name[: -len(suffix)].strip()
                     break
 
             # Only create test if we actually stripped something
@@ -508,9 +566,7 @@ class EntityResolutionGenerator:
 
         return test_cases
 
-    async def _generate_fuzzy_misspellings(
-        self, pool, count: int = 500
-    ) -> list[EntityTestCase]:
+    async def _generate_fuzzy_misspellings(self, pool, count: int = 500) -> list[EntityTestCase]:
         """Generate fuzzy misspelling test cases with programmatic typos."""
         test_cases = []
 
@@ -570,9 +626,7 @@ class EntityResolutionGenerator:
 
         return test_cases
 
-    async def _generate_abbreviations(
-        self, pool, count: int = 300
-    ) -> list[EntityTestCase]:
+    async def _generate_abbreviations(self, pool, count: int = 300) -> list[EntityTestCase]:
         """Generate abbreviation test cases (IBM, J&J, P&G, etc.)."""
         test_cases = []
 
@@ -601,7 +655,7 @@ class EntityResolutionGenerator:
                 ("HP", "HPQ.N"),
                 ("3M", "MMM.N"),
             ]
-            for abbrev, ric in known_abbrevs[:count - len(rows)]:
+            for abbrev, ric in known_abbrevs[: count - len(rows)]:
                 template = self._select_random_template()
                 nl_query = template.format(entity=abbrev)
 
@@ -649,9 +703,7 @@ class EntityResolutionGenerator:
 
         return test_cases
 
-    async def _generate_international(
-        self, pool, count: int = 600
-    ) -> list[EntityTestCase]:
+    async def _generate_international(self, pool, count: int = 600) -> list[EntityTestCase]:
         """Generate international company test cases (non-US)."""
         test_cases = []
 
@@ -678,12 +730,25 @@ class EntityResolutionGenerator:
 
         # Map country codes to regions
         region_map = {
-            "GB": "europe", "DE": "europe", "FR": "europe", "CH": "europe",
-            "NL": "europe", "ES": "europe", "IT": "europe", "SE": "europe",
-            "JP": "asia_pacific", "CN": "asia_pacific", "HK": "asia_pacific",
-            "KR": "asia_pacific", "TW": "asia_pacific", "SG": "asia_pacific",
-            "AU": "asia_pacific", "IN": "asia_pacific",
-            "CA": "americas", "BR": "americas", "MX": "americas",
+            "GB": "europe",
+            "DE": "europe",
+            "FR": "europe",
+            "CH": "europe",
+            "NL": "europe",
+            "ES": "europe",
+            "IT": "europe",
+            "SE": "europe",
+            "JP": "asia_pacific",
+            "CN": "asia_pacific",
+            "HK": "asia_pacific",
+            "KR": "asia_pacific",
+            "TW": "asia_pacific",
+            "SG": "asia_pacific",
+            "AU": "asia_pacific",
+            "IN": "asia_pacific",
+            "CA": "americas",
+            "BR": "americas",
+            "MX": "americas",
         }
 
         for row in rows:
@@ -719,9 +784,7 @@ class EntityResolutionGenerator:
 
         return test_cases
 
-    async def _generate_ambiguous(
-        self, pool, count: int = 400
-    ) -> list[EntityTestCase]:
+    async def _generate_ambiguous(self, pool, count: int = 400) -> list[EntityTestCase]:
         """Generate ambiguous entity test cases (same name, different companies)."""
         test_cases = []
 
@@ -777,9 +840,7 @@ class EntityResolutionGenerator:
 
         return test_cases
 
-    async def _generate_ticker_collisions(
-        self, pool, count: int = 200
-    ) -> list[EntityTestCase]:
+    async def _generate_ticker_collisions(self, pool, count: int = 200) -> list[EntityTestCase]:
         """Generate ticker collision test cases (same ticker, multiple exchanges)."""
         test_cases = []
 
@@ -838,9 +899,7 @@ class EntityResolutionGenerator:
 
         return test_cases
 
-    async def _generate_edge_case_names(
-        self, pool, count: int = 300
-    ) -> list[EntityTestCase]:
+    async def _generate_edge_case_names(self, pool, count: int = 300) -> list[EntityTestCase]:
         """Generate edge case name tests (3M, Coca-Cola, McDonald's, AT&T)."""
         test_cases = []
 
@@ -1003,10 +1062,12 @@ class EntityResolutionGenerator:
                         COUNT(DISTINCT country_code) as countries
                     FROM entities WHERE entity_status = 'active'
                 """)
-                print(f"Database stats: {counts['total']:,} entities, "
-                      f"{counts['with_ric']:,} with RIC, "
-                      f"{counts['public']:,} public, "
-                      f"{counts['countries']} countries")
+                print(
+                    f"Database stats: {counts['total']:,} entities, "
+                    f"{counts['with_ric']:,} with RIC, "
+                    f"{counts['public']:,} public, "
+                    f"{counts['countries']} countries"
+                )
 
             test_cases = []
 
@@ -1075,7 +1136,7 @@ class EntityResolutionGenerator:
         self,
         test_cases: list[EntityTestCase],
         output_path: Path,
-        source_counts: dict[str, int] | None = None
+        source_counts: dict[str, int] | None = None,
     ):
         """Save test cases to a JSON file with _meta block."""
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1104,7 +1165,7 @@ class EntityResolutionGenerator:
                 "generator": self.__class__.__name__,
                 "count": len(test_cases),
             },
-            "test_cases": [tc.to_dict() for tc in test_cases]
+            "test_cases": [tc.to_dict() for tc in test_cases],
         }
 
         with open(output_path, "w") as f:
@@ -1117,24 +1178,21 @@ async def main():
     parser = argparse.ArgumentParser(
         description="Generate entity resolution test cases",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__
+        epilog=__doc__,
     )
 
     parser.add_argument(
         "--db-url",
         type=str,
-        default=os.environ.get(
-            "DATABASE_URL",
-            "postgresql://nl2api:nl2api@localhost:5432/nl2api"
-        ),
-        help="PostgreSQL connection URL"
+        default=os.environ.get("DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"),
+        help="PostgreSQL connection URL",
     )
 
     parser.add_argument(
         "--output",
         type=Path,
         default=Path("tests/fixtures/lseg/generated/entity_resolution/entity_resolution.json"),
-        help="Output JSON file path"
+        help="Output JSON file path",
     )
 
     args = parser.parse_args()

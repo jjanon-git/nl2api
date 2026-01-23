@@ -136,9 +136,7 @@ class NL2APITargetAdapter:
 
         # Handle clarification responses as errors
         if nl2api_response.needs_clarification:
-            questions = [
-                q.question for q in nl2api_response.clarification_questions
-            ]
+            questions = [q.question for q in nl2api_response.clarification_questions]
             error_msg = f"Needs clarification: {'; '.join(questions)}"
 
             return SystemResponse(
@@ -176,7 +174,9 @@ class NL2APITargetAdapter:
             latency_ms=latency_ms,
             # Pass through token counts for cost calculation
             input_tokens=nl2api_response.input_tokens if nl2api_response.input_tokens > 0 else None,
-            output_tokens=nl2api_response.output_tokens if nl2api_response.output_tokens > 0 else None,
+            output_tokens=nl2api_response.output_tokens
+            if nl2api_response.output_tokens > 0
+            else None,
         )
 
     def reset_conversation(self) -> None:

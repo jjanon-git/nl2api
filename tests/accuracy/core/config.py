@@ -35,21 +35,25 @@ class AccuracyConfig:
     global_threshold: float = 0.80
 
     # Per-category thresholds
-    category_thresholds: dict[str, float] = field(default_factory=lambda: {
-        "lookups": 0.85,
-        "temporal": 0.80,
-        "comparisons": 0.75,
-        "screening": 0.75,
-        "complex": 0.70,
-        "errors": 0.90,
-    })
+    category_thresholds: dict[str, float] = field(
+        default_factory=lambda: {
+            "lookups": 0.85,
+            "temporal": 0.80,
+            "comparisons": 0.75,
+            "screening": 0.75,
+            "complex": 0.70,
+            "errors": 0.90,
+        }
+    )
 
     # Tier sample sizes
-    tier_samples: dict[Tier, int] = field(default_factory=lambda: {
-        Tier.TIER1: 50,
-        Tier.TIER2: 200,
-        Tier.TIER3: -1,  # -1 means all
-    })
+    tier_samples: dict[Tier, int] = field(
+        default_factory=lambda: {
+            Tier.TIER1: 50,
+            Tier.TIER2: 200,
+            Tier.TIER3: -1,  # -1 means all
+        }
+    )
 
     # LLM settings
     model: str = "claude-3-haiku-20240307"

@@ -6,9 +6,8 @@ Requires: docker compose up -d
 """
 
 import os
-from typing import AsyncGenerator
+from collections.abc import AsyncGenerator
 
-import pytest
 import pytest_asyncio
 
 
@@ -21,10 +20,7 @@ async def db_pool():
     """
     import asyncpg
 
-    database_url = os.getenv(
-        "DATABASE_URL",
-        "postgresql://nl2api:nl2api@localhost:5432/nl2api"
-    )
+    database_url = os.getenv("DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api")
 
     pool = await asyncpg.create_pool(database_url, min_size=1, max_size=5)
     yield pool

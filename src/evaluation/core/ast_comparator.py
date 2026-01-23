@@ -139,20 +139,20 @@ class ASTComparator:
                 matched_actual_indices.add(best_match_idx)
                 matched_pairs.append((exp_call, actual_list[best_match_idx]))
                 if best_match_diff:
-                    argument_diffs.append({
-                        "expected_call": exp_call.tool_name,
-                        "diff": best_match_diff,
-                    })
+                    argument_diffs.append(
+                        {
+                            "expected_call": exp_call.tool_name,
+                            "diff": best_match_diff,
+                        }
+                    )
 
         # Determine missing and extra calls
         missing_calls = [
-            exp for i, exp in enumerate(expected_list)
+            exp
+            for i, exp in enumerate(expected_list)
             if not any(exp == pair[0] for pair in matched_pairs)
         ]
-        extra_calls = [
-            act for i, act in enumerate(actual_list)
-            if i not in matched_actual_indices
-        ]
+        extra_calls = [act for i, act in enumerate(actual_list) if i not in matched_actual_indices]
 
         # Calculate score
         total_expected = len(expected_list)
@@ -167,11 +167,7 @@ class ASTComparator:
             matched_count = len(matched_pairs) - len(argument_diffs)
             score = matched_count / max(total_expected, total_actual)
 
-        matches = (
-            len(missing_calls) == 0
-            and len(extra_calls) == 0
-            and len(argument_diffs) == 0
-        )
+        matches = len(missing_calls) == 0 and len(extra_calls) == 0 and len(argument_diffs) == 0
 
         return ComparisonResult(
             matches=matches,
@@ -282,19 +278,13 @@ class ASTComparator:
         """Compare dictionaries recursively."""
         if set(expected.keys()) != set(actual.keys()):
             return False
-        return all(
-            self._values_equal(expected[k], actual[k])
-            for k in expected.keys()
-        )
+        return all(self._values_equal(expected[k], actual[k]) for k in expected.keys())
 
     def _lists_equal(self, expected: list, actual: list) -> bool:
         """Compare lists element by element."""
         if len(expected) != len(actual):
             return False
-        return all(
-            self._values_equal(e, a)
-            for e, a in zip(expected, actual)
-        )
+        return all(self._values_equal(e, a) for e, a in zip(expected, actual))
 
 
 def compare_tool_calls(

@@ -11,11 +11,11 @@ Manages multi-turn conversations including:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, Protocol, runtime_checkable
 from uuid import UUID, uuid4
 
-from src.nl2api.conversation.expander import QueryExpander, ExpansionResult
+from src.nl2api.conversation.expander import ExpansionResult, QueryExpander
 from src.nl2api.conversation.models import (
     ConversationContext,
     ConversationSession,
@@ -89,7 +89,7 @@ class InMemoryConversationStorage:
         self,
         inactive_threshold: timedelta,
     ) -> int:
-        cutoff = datetime.now(timezone.utc) - inactive_threshold
+        cutoff = datetime.now(UTC) - inactive_threshold
         expired = 0
         for session in self._sessions.values():
             if session.is_active and session.last_activity_at < cutoff:
@@ -261,8 +261,7 @@ class ConversationManager:
         await self._storage.save_turn(session.id, turn)
 
         logger.debug(
-            f"Added turn {turn.turn_number} to session {session.id}: "
-            f"{turn.user_query[:50]}..."
+            f"Added turn {turn.turn_number} to session {session.id}: {turn.user_query[:50]}..."
         )
 
     async def end_session(self, session_id: UUID) -> None:
@@ -300,9 +299,7 @@ class ConversationManager:
             del self._active_sessions[session_id]
 
         # Clean storage
-        storage_expired = await self._storage.expire_inactive_sessions(
-            self._session_ttl
-        )
+        storage_expired = await self._storage.expire_inactive_sessions(self._session_ttl)
 
         total = len(expired_ids) + storage_expired
         if total > 0:
@@ -315,7 +312,7 @@ class ConversationManager:
         if not session.is_active:
             return True
 
-        age = datetime.now(timezone.utc) - session.last_activity_at
+        age = datetime.now(UTC) - session.last_activity_at
         return age > self._session_ttl
 
     def build_history_prompt(
@@ -348,9 +345,7 @@ class ConversationManager:
                 # Summarize the response
                 entities = list(turn.resolved_entities.keys())
                 fields = turn.get_fields()[:3]
-                lines.append(
-                    f"Assistant: Retrieved {', '.join(fields)} for {', '.join(entities)}"
-                )
+                lines.append(f"Assistant: Retrieved {', '.join(fields)} for {', '.join(entities)}")
             elif turn.needs_clarification:
                 lines.append("Assistant: Asked for clarification")
 

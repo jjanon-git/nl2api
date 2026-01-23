@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 import pytest
 
-from CONTRACTS import ToolCall
 from src.nl2api.agents.officers import OfficersAgent
-from src.nl2api.agents.protocols import AgentContext, AgentResult
+from src.nl2api.agents.protocols import AgentContext
 from src.nl2api.llm.protocols import (
     LLMMessage,
     LLMResponse,
@@ -23,19 +21,21 @@ class MockLLMProvider:
     """Mock LLM provider for testing."""
 
     model_name: str = "mock-model"
-    response: LLMResponse = field(default_factory=lambda: LLMResponse(
-        content="officers",
-        tool_calls=[
-            LLMToolCall(
-                id="tc_123",
-                name="get_data",
-                arguments={
-                    "tickers": ["AAPL.O"],
-                    "fields": ["TR.CEOName"],
-                },
-            )
-        ],
-    ))
+    response: LLMResponse = field(
+        default_factory=lambda: LLMResponse(
+            content="officers",
+            tool_calls=[
+                LLMToolCall(
+                    id="tc_123",
+                    name="get_data",
+                    arguments={
+                        "tickers": ["AAPL.O"],
+                        "fields": ["TR.CEOName"],
+                    },
+                )
+            ],
+        )
+    )
 
     async def complete(
         self,
@@ -74,9 +74,7 @@ class TestOfficersAgentCanHandle:
     @pytest.mark.asyncio
     async def test_high_confidence_with_multiple_keywords(self) -> None:
         """Test higher confidence with multiple keywords."""
-        score = await self.agent.can_handle(
-            "Who are the board members and independent directors?"
-        )
+        score = await self.agent.can_handle("Who are the board members and independent directors?")
         assert score >= 0.7
 
     @pytest.mark.asyncio
@@ -88,9 +86,7 @@ class TestOfficersAgentCanHandle:
     @pytest.mark.asyncio
     async def test_zero_confidence_for_unrelated_query(self) -> None:
         """Test zero confidence for unrelated queries."""
-        score = await self.agent.can_handle(
-            "What is the current stock price?"
-        )
+        score = await self.agent.can_handle("What is the current stock price?")
         assert score == 0.0
 
     @pytest.mark.asyncio

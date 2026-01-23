@@ -4,21 +4,17 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any
 
 import pytest
 
 from CONTRACTS import SystemResponse, ToolCall
 from src.nl2api.agents.protocols import AgentContext, AgentResult
-from src.nl2api.evaluation.adapter import NL2APITargetAdapter, NL2APIBatchAdapter
+from src.nl2api.evaluation.adapter import NL2APIBatchAdapter, NL2APITargetAdapter
 from src.nl2api.llm.protocols import (
     LLMMessage,
-    LLMProvider,
     LLMResponse,
-    LLMToolCall,
     LLMToolDefinition,
 )
-from src.nl2api.models import ClarificationQuestion, NL2APIResponse
 from src.nl2api.orchestrator import NL2APIOrchestrator
 
 
@@ -57,14 +53,18 @@ class MockAgent:
     domain_description: str = "Test estimates agent"
     capabilities: tuple[str, ...] = ("EPS estimates", "revenue forecasts")
     example_queries: tuple[str, ...] = ("What is Apple's EPS?",)
-    result: AgentResult = field(default_factory=lambda: AgentResult(
-        tool_calls=(
-            ToolCall(tool_name="get_data", arguments={"RICs": ["AAPL.O"], "fields": ["TR.EPSMean"]}),
-        ),
-        confidence=0.9,
-        reasoning="Test reasoning",
-        domain="estimates",
-    ))
+    result: AgentResult = field(
+        default_factory=lambda: AgentResult(
+            tool_calls=(
+                ToolCall(
+                    tool_name="get_data", arguments={"RICs": ["AAPL.O"], "fields": ["TR.EPSMean"]}
+                ),
+            ),
+            confidence=0.9,
+            reasoning="Test reasoning",
+            domain="estimates",
+        )
+    )
     can_handle_score: float = 0.9
 
     async def process(self, context: AgentContext) -> AgentResult:
@@ -151,6 +151,7 @@ class TestNL2APITargetAdapter:
     @pytest.mark.asyncio
     async def test_error_returns_empty_response(self) -> None:
         """Test that errors return empty response with error message."""
+
         # Configure agent to raise exception
         async def raise_error(context):
             raise ValueError("Test error")

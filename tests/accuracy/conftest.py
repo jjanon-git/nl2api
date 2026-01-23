@@ -9,11 +9,10 @@ import os
 
 import pytest
 
-
 # Marker for tests that require LLM access
 requires_llm = pytest.mark.skipif(
     not (os.environ.get("NL2API_ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")),
-    reason="ANTHROPIC_API_KEY not set"
+    reason="ANTHROPIC_API_KEY not set",
 )
 
 
@@ -28,6 +27,7 @@ def pytest_configure(config):
     # Metrics will be sent to OTEL collector if available
     try:
         from src.common.telemetry import init_telemetry
+
         endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
         initialized = init_telemetry(
             service_name="nl2api-accuracy-tests",
@@ -45,6 +45,7 @@ def pytest_unconfigure(config):
     """Shutdown telemetry and flush pending metrics."""
     try:
         from src.common.telemetry import shutdown_telemetry
+
         shutdown_telemetry()
         print("\n[Telemetry] Shutdown complete, metrics flushed")
     except ImportError:

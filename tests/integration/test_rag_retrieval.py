@@ -30,9 +30,7 @@ async def db_pool():
     """Create database connection pool."""
     import asyncpg
 
-    db_url = os.environ.get(
-        "DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"
-    )
+    db_url = os.environ.get("DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api")
     pool = await asyncpg.create_pool(db_url)
     yield pool
     await pool.close()
@@ -88,9 +86,7 @@ class TestRAGKeywordRetrieval:
         assert "TR.Revenue" in codes, f"Expected TR.Revenue in results, got: {codes}"
 
     @pytest.mark.asyncio
-    async def test_analyst_recommendations_retrieves_recmean(
-        self, retriever, has_indexed_data
-    ):
+    async def test_analyst_recommendations_retrieves_recmean(self, retriever, has_indexed_data):
         """Test that 'analyst recommendations' retrieves TR.RecMean."""
         if not has_indexed_data:
             pytest.skip("No RAG documents indexed")

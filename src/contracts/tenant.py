@@ -14,7 +14,6 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from src.contracts.core import _generate_id, _now_utc
 
-
 # =============================================================================
 # Enumerations
 # =============================================================================
@@ -114,7 +113,9 @@ class TestSuite(BaseModel):
 
     # Identity
     id: str = Field(default_factory=_generate_id)
-    name: str = Field(..., min_length=1, description="Suite name", examples=["search-api-v2", "checkout-flow"])
+    name: str = Field(
+        ..., min_length=1, description="Suite name", examples=["search-api-v2", "checkout-flow"]
+    )
     description: str | None = Field(default=None)
 
     # Test case references (IDs, not full objects for efficiency)
@@ -146,12 +147,14 @@ class TestSuite(BaseModel):
     @property
     def is_dynamic(self) -> bool:
         """True if suite uses filters instead of explicit IDs."""
-        return any([
-            self.filter_tags,
-            self.filter_api_version,
-            self.filter_min_complexity is not None,
-            self.filter_max_complexity is not None,
-        ])
+        return any(
+            [
+                self.filter_tags,
+                self.filter_api_version,
+                self.filter_min_complexity is not None,
+                self.filter_max_complexity is not None,
+            ]
+        )
 
 
 # =============================================================================

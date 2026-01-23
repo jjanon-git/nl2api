@@ -168,14 +168,16 @@ class DateResolver:
 
         expr = expr.strip()
 
-        return any([
-            ABSOLUTE_DATE_PATTERN.match(expr),
-            RELATIVE_DAY_PATTERN.match(expr),
-            RELATIVE_MONTH_PATTERN.match(expr),
-            RELATIVE_YEAR_PATTERN.match(expr),
-            FISCAL_YEAR_PATTERN.match(expr),
-            FISCAL_QUARTER_PATTERN.match(expr),
-        ])
+        return any(
+            [
+                ABSOLUTE_DATE_PATTERN.match(expr),
+                RELATIVE_DAY_PATTERN.match(expr),
+                RELATIVE_MONTH_PATTERN.match(expr),
+                RELATIVE_YEAR_PATTERN.match(expr),
+                FISCAL_YEAR_PATTERN.match(expr),
+                FISCAL_QUARTER_PATTERN.match(expr),
+            ]
+        )
 
     def _add_months(self, d: date, months: int) -> date:
         """Add months to a date, handling month/year overflow."""

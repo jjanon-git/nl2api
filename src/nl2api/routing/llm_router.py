@@ -11,6 +11,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
+from src.common.telemetry import trace_span
 from src.nl2api.llm.protocols import (
     LLMMessage,
     LLMProvider,
@@ -22,7 +23,6 @@ from src.nl2api.routing.protocols import (
     RoutingToolDefinition,
     ToolProvider,
 )
-from src.common.telemetry import trace_span
 
 if TYPE_CHECKING:
     from src.nl2api.routing.cache import RoutingCache
@@ -195,8 +195,13 @@ class LLMToolRouter:
                         temperature=0.0,
                         max_tokens=150,
                     )
-                    if hasattr(response, 'usage') and response.usage:
-                        llm_span.set_attribute("llm.tokens_total", response.usage.total_tokens if hasattr(response.usage, 'total_tokens') else 0)
+                    if hasattr(response, "usage") and response.usage:
+                        llm_span.set_attribute(
+                            "llm.tokens_total",
+                            response.usage.total_tokens
+                            if hasattr(response.usage, "total_tokens")
+                            else 0,
+                        )
                 except Exception as e:
                     logger.error(f"LLM routing call failed: {e}")
                     llm_span.set_attribute("llm.error", str(e))
@@ -248,9 +253,13 @@ class LLMToolRouter:
         # or input_tokens/output_tokens
         input_tokens = 0
         output_tokens = 0
-        if hasattr(response, 'usage') and response.usage:
-            input_tokens = response.usage.get("input_tokens") or response.usage.get("prompt_tokens", 0)
-            output_tokens = response.usage.get("output_tokens") or response.usage.get("completion_tokens", 0)
+        if hasattr(response, "usage") and response.usage:
+            input_tokens = response.usage.get("input_tokens") or response.usage.get(
+                "prompt_tokens", 0
+            )
+            output_tokens = response.usage.get("output_tokens") or response.usage.get(
+                "completion_tokens", 0
+            )
 
         if response.has_tool_calls:
             tool_call = response.tool_calls[0]
@@ -258,13 +267,11 @@ class LLMToolRouter:
 
             # Extract domain from tool name (route_to_<domain>)
             if tool_name.startswith("route_to_"):
-                domain = tool_name[len("route_to_"):]
+                domain = tool_name[len("route_to_") :]
 
                 # Validate domain exists
                 if domain in self._get_provider_names():
-                    confidence = tool_call.arguments.get(
-                        "confidence", self._default_confidence
-                    )
+                    confidence = tool_call.arguments.get("confidence", self._default_confidence)
                     reasoning = tool_call.arguments.get("reasoning")
 
                     return RouterResult(

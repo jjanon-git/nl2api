@@ -35,7 +35,6 @@ import json
 import logging
 import os
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 
 # Add project root to path
@@ -143,6 +142,7 @@ async def ingest_sec_edgar(config, args):
 async def cmd_status(args):
     """Show ingestion status."""
     import asyncpg
+
     from src.nl2api.ingestion import EntityIngestionConfig
 
     config = EntityIngestionConfig()
@@ -304,7 +304,7 @@ def main():
     )
 
     # Status command
-    status_parser = subparsers.add_parser("status", help="Show ingestion status")
+    subparsers.add_parser("status", help="Show ingestion status")
 
     # Reset command
     reset_parser = subparsers.add_parser("reset", help="Reset ingestion state")

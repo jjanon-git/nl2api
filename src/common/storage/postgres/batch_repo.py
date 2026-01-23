@@ -7,7 +7,7 @@ Implements BatchJobRepository protocol for PostgreSQL.
 from __future__ import annotations
 
 import uuid
-from datetime import timezone
+from datetime import UTC
 
 import asyncpg
 
@@ -42,7 +42,7 @@ class PostgresBatchJobRepository:
             batch_uuid = uuid.UUID(batch_job.batch_id)
 
             await self.pool.execute(
-            """
+                """
             INSERT INTO batch_jobs (
                 id, total_tests, completed_count, failed_count,
                 status, submitted_by, priority, tags,
@@ -53,18 +53,18 @@ class PostgresBatchJobRepository:
                 $9, $10, $11
             )
             """,
-            batch_uuid,
-            batch_job.total_tests,
-            batch_job.completed_count,
-            batch_job.failed_count,
-            batch_job.status.value,
-            batch_job.submitted_by,
-            batch_job.priority.value,
-            list(batch_job.tags),
-            batch_job.created_at,
-            batch_job.started_at,
-            batch_job.completed_at,
-        )
+                batch_uuid,
+                batch_job.total_tests,
+                batch_job.completed_count,
+                batch_job.failed_count,
+                batch_job.status.value,
+                batch_job.submitted_by,
+                batch_job.priority.value,
+                list(batch_job.tags),
+                batch_job.created_at,
+                batch_job.started_at,
+                batch_job.completed_at,
+            )
 
     async def get(self, batch_id: str) -> BatchJob | None:
         """Fetch a batch job by ID."""
@@ -131,15 +131,15 @@ class PostgresBatchJobRepository:
         # Handle timestamps
         created_at = row["created_at"]
         if created_at and created_at.tzinfo is None:
-            created_at = created_at.replace(tzinfo=timezone.utc)
+            created_at = created_at.replace(tzinfo=UTC)
 
         started_at = row["started_at"]
         if started_at and started_at.tzinfo is None:
-            started_at = started_at.replace(tzinfo=timezone.utc)
+            started_at = started_at.replace(tzinfo=UTC)
 
         completed_at = row["completed_at"]
         if completed_at and completed_at.tzinfo is None:
-            completed_at = completed_at.replace(tzinfo=timezone.utc)
+            completed_at = completed_at.replace(tzinfo=UTC)
 
         return BatchJob(
             batch_id=str(row["id"]),

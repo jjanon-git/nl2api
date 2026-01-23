@@ -3,7 +3,6 @@ Tests for security middleware (rate limiting, input validation).
 """
 
 import asyncio
-import time
 
 import pytest
 

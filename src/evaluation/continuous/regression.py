@@ -117,9 +117,7 @@ class RegressionDetector:
             previous_metrics = await self._get_batch_metrics(previous_batch_id)
         else:
             # Find previous batch for same client type
-            previous_metrics = await self._get_previous_batch_metrics(
-                current_batch_id, client_type
-            )
+            previous_metrics = await self._get_previous_batch_metrics(current_batch_id, client_type)
 
         # Compare metrics
         for metric_name in ["pass_rate", "avg_score", "avg_latency_ms"]:
@@ -289,7 +287,7 @@ class RegressionDetector:
         if p_pooled == 0 or p_pooled == 1:
             return None
 
-        se = math.sqrt(p_pooled * (1 - p_pooled) * (1/n1 + 1/n2))
+        se = math.sqrt(p_pooled * (1 - p_pooled) * (1 / n1 + 1 / n2))
 
         if se == 0:
             return None

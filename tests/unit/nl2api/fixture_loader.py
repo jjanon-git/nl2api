@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from CONTRACTS import TestCaseSetConfig
 
@@ -153,19 +154,15 @@ class FixtureLoader:
         for tc in test_cases:
             if config.requires_nl_response and not tc.expected_nl_response:
                 errors.append(
-                    f"Test case {tc.id} missing expected_nl_response "
-                    f"(required by {config.name})"
+                    f"Test case {tc.id} missing expected_nl_response (required by {config.name})"
                 )
             if config.requires_expected_response and not tc.expected_response:
                 errors.append(
-                    f"Test case {tc.id} missing expected_response "
-                    f"(required by {config.name})"
+                    f"Test case {tc.id} missing expected_response (required by {config.name})"
                 )
 
         if errors:
-            logger.warning(
-                f"Validation errors in {config.name}: {len(errors)} issues found"
-            )
+            logger.warning(f"Validation errors in {config.name}: {len(errors)} issues found")
 
         return errors
 
@@ -181,8 +178,7 @@ class FixtureLoader:
     def iterate_all(self) -> Iterator[GeneratedTestCase]:
         """Iterate over all test cases from all categories."""
         for category in self.CATEGORIES:
-            for case in self.load_category(category):
-                yield case
+            yield from self.load_category(category)
 
     def load_by_tag(self, tag: str) -> list[GeneratedTestCase]:
         """Load test cases with a specific tag."""
@@ -241,7 +237,10 @@ def compare_tool_calls(
 
     # Check function name
     if actual_norm.get("function") != expected_norm.get("function"):
-        return False, f"Function mismatch: {actual_norm.get('function')} != {expected_norm.get('function')}"
+        return (
+            False,
+            f"Function mismatch: {actual_norm.get('function')} != {expected_norm.get('function')}",
+        )
 
     actual_args = actual_norm.get("arguments", {})
     expected_args = expected_norm.get("arguments", {})
@@ -303,7 +302,7 @@ def extract_ticker_symbol(ticker: str) -> str:
     prefixes = ["@", "U:", "C:", "D:", "J:", "K:", "H:"]
     for prefix in prefixes:
         if ticker.startswith(prefix):
-            ticker = ticker[len(prefix):]
+            ticker = ticker[len(prefix) :]
             break
 
     # Remove common suffixes (.O, .N, .L, etc.)

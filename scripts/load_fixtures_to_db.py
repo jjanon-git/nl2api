@@ -65,10 +65,7 @@ async def load_fixtures_to_db(
     if clear_existing:
         async with pool.acquire() as conn:
             # Clear by tag since we don't have category column
-            result = await conn.execute(
-                "DELETE FROM test_cases WHERE $1 = ANY(tags)",
-                category
-            )
+            result = await conn.execute("DELETE FROM test_cases WHERE $1 = ANY(tags)", category)
             print(f"  Cleared existing test cases: {result}")
 
     loaded = 0
@@ -168,35 +165,19 @@ async def load_fixtures_to_db(
 
 async def main():
     parser = argparse.ArgumentParser(description="Load fixtures to database")
-    parser.add_argument(
-        "--category",
-        type=str,
-        help="Category to load (e.g., entity_resolution)"
-    )
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Load all categories"
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        help="Maximum fixtures per category"
-    )
+    parser.add_argument("--category", type=str, help="Category to load (e.g., entity_resolution)")
+    parser.add_argument("--all", action="store_true", help="Load all categories")
+    parser.add_argument("--limit", type=int, default=None, help="Maximum fixtures per category")
     parser.add_argument(
         "--clear",
         action="store_true",
-        help="Clear existing test cases for the category before loading"
+        help="Clear existing test cases for the category before loading",
     )
     parser.add_argument(
         "--db-url",
         type=str,
-        default=os.environ.get(
-            "DATABASE_URL",
-            "postgresql://nl2api:nl2api@localhost:5432/nl2api"
-        ),
-        help="Database URL"
+        default=os.environ.get("DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"),
+        help="Database URL",
     )
 
     args = parser.parse_args()
@@ -215,13 +196,11 @@ async def main():
         total_loaded = 0
         for category in categories:
             print(f"\nProcessing category: {category}")
-            loaded = await load_fixtures_to_db(
-                pool, category, args.limit, args.clear
-            )
+            loaded = await load_fixtures_to_db(pool, category, args.limit, args.clear)
             total_loaded += loaded
             print(f"  Loaded {loaded} test cases")
 
-        print(f"\n{'='*50}")
+        print(f"\n{'=' * 50}")
         print(f"Total loaded: {total_loaded} test cases")
 
     finally:

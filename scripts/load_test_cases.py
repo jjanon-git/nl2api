@@ -32,7 +32,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
 from CONTRACTS import TestCase, TestCaseMetadata, ToolCall
-from src.storage import StorageConfig, create_repositories, close_repositories
+from src.storage import StorageConfig, close_repositories, create_repositories
 
 console = Console()
 
@@ -51,10 +51,12 @@ def parse_test_case(data: dict[str, Any], source_file: str) -> TestCase:
     # Handle expected_tool_calls
     tool_calls = []
     for tc in data.get("expected_tool_calls", []):
-        tool_calls.append(ToolCall(
-            tool_name=tc.get("tool_name") or tc.get("name"),
-            arguments=tc.get("arguments", {}),
-        ))
+        tool_calls.append(
+            ToolCall(
+                tool_name=tc.get("tool_name") or tc.get("name"),
+                arguments=tc.get("arguments", {}),
+            )
+        )
 
     # Handle metadata
     metadata_data = data.get("metadata", {})
@@ -164,7 +166,9 @@ async def load_test_cases(
 
                     if dry_run:
                         if verbose:
-                            console.print(f"  [green]Valid:[/green] {test_case.id} - {test_case.nl_query[:50]}...")
+                            console.print(
+                                f"  [green]Valid:[/green] {test_case.id} - {test_case.nl_query[:50]}..."
+                            )
                         loaded += 1
                     else:
                         await test_case_repo.save(test_case)
@@ -209,7 +213,8 @@ def main():
         help="Validate without saving to database",
     )
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="store_true",
         help="Show detailed output",
     )
@@ -223,9 +228,7 @@ def main():
             sys.exit(1)
 
     # Run loader
-    loaded, skipped, errors = asyncio.run(
-        load_test_cases(args.paths, args.dry_run, args.verbose)
-    )
+    loaded, skipped, errors = asyncio.run(load_test_cases(args.paths, args.dry_run, args.verbose))
 
     # Summary
     console.print()

@@ -115,9 +115,7 @@ class InMemoryMCPCache:
         arguments: dict[str, Any],
     ) -> str:
         """Generate cache key for tool result."""
-        args_hash = hashlib.md5(
-            json.dumps(arguments, sort_keys=True).encode()
-        ).hexdigest()
+        args_hash = hashlib.md5(json.dumps(arguments, sort_keys=True).encode()).hexdigest()
         return f"{server_uri}:{tool_name}:{args_hash}"
 
     async def get_tools(self, server_uri: str) -> list[MCPToolDefinition] | None:
@@ -222,9 +220,7 @@ class InMemoryMCPCache:
             self._tools.pop(server_uri, None)
             self._resources.pop(server_uri, None)
             # Remove result entries for this server
-            keys_to_remove = [
-                k for k in self._results if k.startswith(server_uri)
-            ]
+            keys_to_remove = [k for k in self._results if k.startswith(server_uri)]
             for key in keys_to_remove:
                 del self._results[key]
             logger.debug(f"Cleared MCP cache entries for {server_uri}")
@@ -240,10 +236,7 @@ class InMemoryMCPCache:
         now = time.time()
 
         for cache in [self._tools, self._resources, self._results]:
-            expired_keys = [
-                k for k, v in cache.items()
-                if v.expires_at < now
-            ]
+            expired_keys = [k for k, v in cache.items() if v.expires_at < now]
             for key in expired_keys:
                 del cache[key]
                 removed += 1
@@ -298,9 +291,7 @@ class RedisMCPCache:
         arguments: dict[str, Any],
     ) -> str:
         """Generate cache key for tool result."""
-        args_hash = hashlib.md5(
-            json.dumps(arguments, sort_keys=True).encode()
-        ).hexdigest()
+        args_hash = hashlib.md5(json.dumps(arguments, sort_keys=True).encode()).hexdigest()
         return self._key("result", server_uri, tool_name, args_hash)
 
     async def get_tools(self, server_uri: str) -> list[MCPToolDefinition] | None:
@@ -310,10 +301,7 @@ class RedisMCPCache:
         if data:
             try:
                 items = json.loads(data)
-                return [
-                    MCPToolDefinition.from_mcp_response(item)
-                    for item in items
-                ]
+                return [MCPToolDefinition.from_mcp_response(item) for item in items]
             except (json.JSONDecodeError, KeyError) as e:
                 logger.warning(f"Failed to decode cached tools: {e}")
         return None

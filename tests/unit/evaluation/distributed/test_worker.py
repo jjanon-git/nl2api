@@ -5,15 +5,15 @@ Tests worker behavior with mocked queue and dependencies.
 """
 
 import asyncio
-import pytest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.config import WorkerConfig, EvalMode
+from src.evaluation.distributed.config import EvalMode, WorkerConfig
 from src.evaluation.distributed.models import QueueMessage
 from src.evaluation.distributed.worker import EvalWorker
-
 
 # =============================================================================
 # Fixtures
@@ -60,7 +60,7 @@ def sample_message(sample_task: WorkerTask) -> QueueMessage:
         stream_name=f"eval:tasks:{sample_task.batch_id}",
         payload=sample_task.model_dump(),
         attempt=1,
-        enqueued_at=datetime.now(timezone.utc),
+        enqueued_at=datetime.now(UTC),
     )
 
 
@@ -92,9 +92,7 @@ def mock_scorecard():
 class TestWorkerInit:
     """Tests for worker initialization."""
 
-    def test_worker_initializes_with_required_args(
-        self, mock_queue, worker_config
-    ):
+    def test_worker_initializes_with_required_args(self, mock_queue, worker_config):
         """Worker should initialize with required arguments."""
         worker = EvalWorker(
             worker_id="test-worker",
@@ -137,9 +135,7 @@ class TestWorkerInit:
 class TestWorkerStatus:
     """Tests for worker status reporting."""
 
-    def test_status_reports_idle_when_not_running(
-        self, mock_queue, worker_config
-    ):
+    def test_status_reports_idle_when_not_running(self, mock_queue, worker_config):
         """Status should be 'stopped' when worker is not running."""
         worker = EvalWorker(
             worker_id="test-worker",
@@ -249,16 +245,14 @@ class TestTaskProcessing:
             await worker._process_task(sample_message)
 
     @pytest.mark.asyncio
-    async def test_process_task_raises_on_missing_test_case_id(
-        self, mock_queue, worker_config
-    ):
+    async def test_process_task_raises_on_missing_test_case_id(self, mock_queue, worker_config):
         """Task processing should fail if message has no test_case_id."""
         message = QueueMessage(
             message_id="msg-001",
             stream_name="eval:tasks:batch-001",
             payload={"task_id": "task-001", "batch_id": "batch-001"},  # Missing test_case_id
             attempt=1,
-            enqueued_at=datetime.now(timezone.utc),
+            enqueued_at=datetime.now(UTC),
         )
 
         worker = EvalWorker(
@@ -294,6 +288,7 @@ class TestWorkerLoop:
         mock_scorecard,
     ):
         """Worker should process messages from queue until shutdown."""
+
         # Set up mock consumer that yields one message then stops
         async def mock_consume(*args, **kwargs):
             yield sample_message
@@ -320,10 +315,9 @@ class TestWorkerLoop:
         assert worker._tasks_failed == 0
 
     @pytest.mark.asyncio
-    async def test_worker_nacks_on_failure(
-        self, mock_queue, worker_config, sample_message
-    ):
+    async def test_worker_nacks_on_failure(self, mock_queue, worker_config, sample_message):
         """Worker should nack message on processing failure."""
+
         async def mock_consume(*args, **kwargs):
             yield sample_message
 
@@ -364,9 +358,13 @@ class TestWorkerLoop:
             QueueMessage(
                 message_id=f"msg-{i}",
                 stream_name="eval:tasks:batch-001",
-                payload={"task_id": f"task-{i}", "test_case_id": f"tc-{i}", "batch_id": "batch-001"},
+                payload={
+                    "task_id": f"task-{i}",
+                    "test_case_id": f"tc-{i}",
+                    "batch_id": "batch-001",
+                },
                 attempt=1,
-                enqueued_at=datetime.now(timezone.utc),
+                enqueued_at=datetime.now(UTC),
             )
             for i in range(5)
         ]
@@ -449,9 +447,13 @@ class TestWorkerShutdown:
                 yield QueueMessage(
                     message_id=f"msg-{message_count}",
                     stream_name="eval:tasks:batch-001",
-                    payload={"task_id": f"task-{message_count}", "test_case_id": f"tc-{message_count}", "batch_id": "batch-001"},
+                    payload={
+                        "task_id": f"task-{message_count}",
+                        "test_case_id": f"tc-{message_count}",
+                        "batch_id": "batch-001",
+                    },
                     attempt=1,
-                    enqueued_at=datetime.now(timezone.utc),
+                    enqueued_at=datetime.now(UTC),
                 )
                 # After yielding a few messages, mark shutdown requested
                 if message_count >= 3:
@@ -497,9 +499,13 @@ class TestWorkerShutdown:
             QueueMessage(
                 message_id=f"msg-{i}",
                 stream_name="eval:tasks:batch-001",
-                payload={"task_id": f"task-{i}", "test_case_id": f"tc-{i}", "batch_id": "batch-001"},
+                payload={
+                    "task_id": f"task-{i}",
+                    "test_case_id": f"tc-{i}",
+                    "batch_id": "batch-001",
+                },
                 attempt=1,
-                enqueued_at=datetime.now(timezone.utc),
+                enqueued_at=datetime.now(UTC),
             )
             for i in range(3)
         ]
@@ -542,9 +548,8 @@ class TestWorkerShutdown:
 
         # Check that nack was called with requeue=True for interrupted message
         # (The worker should nack the message it was about to process when shutdown detected)
-        nack_calls = [
-            call for call in mock_queue.nack.call_args_list
-            if call[1].get("requeue") is True
+        [
+            call for call in mock_queue.nack.call_args_list if call[1].get("requeue") is True
         ]
         # May or may not have nacked depending on timing
         # The key is that no messages are lost
@@ -576,7 +581,7 @@ class TestWorkerHeartbeat:
                 stream_name="eval:tasks:batch-001",
                 payload={"task_id": "task-001", "test_case_id": "tc-001", "batch_id": "batch-001"},
                 attempt=1,
-                enqueued_at=datetime.now(timezone.utc),
+                enqueued_at=datetime.now(UTC),
             )
 
         mock_queue.consume = mock_consume
@@ -643,6 +648,6 @@ class TestWorkerTelemetry:
 
             mock_span.side_effect = noop_span
 
-            async with worker._span("test.span") as span:
+            async with worker._span("test.span"):
                 # Should get None when telemetry not available
                 pass  # Just verify it doesn't raise

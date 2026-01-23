@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 import pytest
 
-from CONTRACTS import ToolCall
 from src.nl2api.agents.fundamentals import FundamentalsAgent
-from src.nl2api.agents.protocols import AgentContext, AgentResult
+from src.nl2api.agents.protocols import AgentContext
 from src.nl2api.llm.protocols import (
     LLMMessage,
     LLMResponse,
@@ -23,20 +21,22 @@ class MockLLMProvider:
     """Mock LLM provider for testing."""
 
     model_name: str = "mock-model"
-    response: LLMResponse = field(default_factory=lambda: LLMResponse(
-        content="fundamentals",
-        tool_calls=[
-            LLMToolCall(
-                id="tc_123",
-                name="get_data",
-                arguments={
-                    "tickers": ["AAPL.O"],
-                    "fields": ["TR.Revenue"],
-                    "parameters": {"Period": "FY0"},
-                },
-            )
-        ],
-    ))
+    response: LLMResponse = field(
+        default_factory=lambda: LLMResponse(
+            content="fundamentals",
+            tool_calls=[
+                LLMToolCall(
+                    id="tc_123",
+                    name="get_data",
+                    arguments={
+                        "tickers": ["AAPL.O"],
+                        "fields": ["TR.Revenue"],
+                        "parameters": {"Period": "FY0"},
+                    },
+                )
+            ],
+        )
+    )
 
     async def complete(
         self,
@@ -89,9 +89,7 @@ class TestFundamentalsAgentCanHandle:
     @pytest.mark.asyncio
     async def test_zero_confidence_for_unrelated_query(self) -> None:
         """Test zero confidence for unrelated queries."""
-        score = await self.agent.can_handle(
-            "What is the weather forecast for tomorrow?"
-        )
+        score = await self.agent.can_handle("What is the weather forecast for tomorrow?")
         assert score == 0.0
 
     @pytest.mark.asyncio

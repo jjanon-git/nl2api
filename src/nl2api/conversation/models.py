@@ -7,7 +7,7 @@ Data models for multi-turn conversation tracking.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
@@ -41,7 +41,7 @@ class ConversationTurn:
 
     # Metadata
     processing_time_ms: int = 0
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def get_entities(self) -> dict[str, str]:
         """Get resolved entities from this turn."""
@@ -67,8 +67,8 @@ class ConversationSession:
 
     id: UUID = field(default_factory=uuid4)
     user_id: str | None = None
-    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_activity_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_activity_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     is_active: bool = True
 
     turns: list[ConversationTurn] = field(default_factory=list)
@@ -78,7 +78,7 @@ class ConversationSession:
     def add_turn(self, turn: ConversationTurn) -> None:
         """Add a turn to the conversation."""
         self.turns.append(turn)
-        self.last_activity_at = datetime.now(timezone.utc)
+        self.last_activity_at = datetime.now(UTC)
 
     def get_last_turn(self) -> ConversationTurn | None:
         """Get the most recent turn."""
@@ -167,10 +167,21 @@ class ConversationContext:
                 query = turn.expanded_query or turn.user_query
                 # Pattern for capitalized words that look like company names
                 # Matches: "Apple", "Microsoft", "JP Morgan"
-                cap_pattern = r'\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b'
+                cap_pattern = r"\b([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\b"
                 matches = re.findall(cap_pattern, query)
                 # Filter out common words and keep potential entity names
-                common_words = {"What", "How", "Show", "Get", "The", "For", "And", "Which", "When", "Where"}
+                common_words = {
+                    "What",
+                    "How",
+                    "Show",
+                    "Get",
+                    "The",
+                    "For",
+                    "And",
+                    "Which",
+                    "When",
+                    "Where",
+                }
                 for match in matches:
                     if match not in common_words:
                         # Store with placeholder RIC - the key is the entity name

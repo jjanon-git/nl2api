@@ -22,8 +22,9 @@ Fix: Use Pydantic models for request bodies (see ResolveRequest, etc.).
 import asyncio
 import json
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -33,7 +34,6 @@ from src.mcp_servers.entity_resolution.context import (
     set_client_context,
 )
 from src.mcp_servers.entity_resolution.middleware import (
-    InputValidator,
     RateLimitConfig,
     create_rate_limiter,
     create_security_middleware,
@@ -56,18 +56,22 @@ DEFAULT_RATE_LIMIT_CONFIG = RateLimitConfig(
 # Pydantic models for REST API requests with validation
 class ResolveRequest(BaseModel):
     """Request body for /api/resolve endpoint."""
+
     entity: str = Field(..., min_length=1, max_length=500)
-    entity_type: Optional[str] = Field(None, max_length=50)
+    entity_type: str | None = Field(None, max_length=50)
 
 
 class BatchResolveRequest(BaseModel):
     """Request body for /api/resolve/batch endpoint."""
+
     entities: list[str] = Field(..., min_length=1, max_length=100)
 
 
 class ExtractRequest(BaseModel):
     """Request body for /api/extract endpoint."""
+
     query: str = Field(..., min_length=1, max_length=2000)
+
 
 # Global server instance for the FastAPI app
 _server: EntityResolutionMCPServer | None = None
@@ -98,8 +102,7 @@ def create_app(
         from fastapi.responses import JSONResponse, Response, StreamingResponse
     except ImportError as e:
         raise ImportError(
-            "FastAPI is required for SSE transport. "
-            "Install with: pip install 'nl2api[mcp-server]'"
+            "FastAPI is required for SSE transport. Install with: pip install 'nl2api[mcp-server]'"
         ) from e
 
     global _server
@@ -139,9 +142,7 @@ def create_app(
     rate_limiter = create_rate_limiter(rate_limit_config, redis_client=None)
 
     # Add security middleware (rate limiting, request size limits)
-    security_middleware = create_security_middleware(
-        rate_limit_config, rate_limiter, EXEMPT_PATHS
-    )
+    security_middleware = create_security_middleware(rate_limit_config, rate_limiter, EXEMPT_PATHS)
     app.middleware("http")(security_middleware)
 
     @app.middleware("http")
@@ -352,7 +353,7 @@ def create_app(
             try:
                 while True:
                     await asyncio.sleep(30)
-                    yield f"event: ping\ndata: {{}}\n\n"
+                    yield "event: ping\ndata: {}\n\n"
             except asyncio.CancelledError:
                 logger.debug("SSE connection closed")
                 return
@@ -447,8 +448,7 @@ async def run_sse_server(
         import uvicorn
     except ImportError as e:
         raise ImportError(
-            "Uvicorn is required for SSE transport. "
-            "Install with: pip install 'nl2api[mcp-server]'"
+            "Uvicorn is required for SSE transport. Install with: pip install 'nl2api[mcp-server]'"
         ) from e
 
     _config = config or EntityServerConfig()

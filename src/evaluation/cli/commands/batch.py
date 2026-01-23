@@ -71,13 +71,16 @@ def batch_run(
     mode: Annotated[
         str,
         typer.Option(
-            "--mode", "-m",
-            help="Response mode: resolver, orchestrator, routing, tool_only, or simulated"
+            "--mode",
+            "-m",
+            help="Response mode: resolver, orchestrator, routing, tool_only, or simulated",
         ),
     ] = "resolver",
     agent: Annotated[
         str | None,
-        typer.Option("--agent", "-a", help="Agent name for tool_only mode (datastream, estimates, etc.)"),
+        typer.Option(
+            "--agent", "-a", help="Agent name for tool_only mode (datastream, estimates, etc.)"
+        ),
     ] = None,
     verbose: Annotated[
         bool,
@@ -89,7 +92,9 @@ def batch_run(
     ] = None,
     client: Annotated[
         str,
-        typer.Option("--client", help="Client type (internal, mcp_claude, mcp_chatgpt, mcp_custom)"),
+        typer.Option(
+            "--client", help="Client type (internal, mcp_claude, mcp_chatgpt, mcp_custom)"
+        ),
     ] = "internal",
     client_version: Annotated[
         str | None,
@@ -105,7 +110,9 @@ def batch_run(
     ] = None,
     semantics_threshold: Annotated[
         float,
-        typer.Option("--semantics-threshold", help="Minimum score to pass semantic evaluation (0.0-1.0)"),
+        typer.Option(
+            "--semantics-threshold", help="Minimum score to pass semantic evaluation (0.0-1.0)"
+        ),
     ] = 0.7,
     eval_date: Annotated[
         str | None,
@@ -113,7 +120,9 @@ def batch_run(
     ] = None,
     temporal_mode: Annotated[
         str,
-        typer.Option("--temporal-mode", help="Temporal validation mode: behavioral, structural, or data"),
+        typer.Option(
+            "--temporal-mode", help="Temporal validation mode: behavioral, structural, or data"
+        ),
     ] = "structural",
 ) -> None:
     """
@@ -174,24 +183,26 @@ def batch_run(
             console.print("Use YYYY-MM-DD format (e.g., 2026-01-21).")
             raise typer.Exit(1)
 
-    asyncio.run(_batch_run_async(
-        tags=tags,
-        complexity_min=complexity_min,
-        complexity_max=complexity_max,
-        limit=limit,
-        concurrency=concurrency,
-        mode=mode,
-        agent_name=agent,
-        verbose=verbose,
-        model=model,
-        client=client,
-        client_version=client_version,
-        semantics_enabled=semantics,
-        semantics_model=semantics_model,
-        semantics_threshold=semantics_threshold,
-        evaluation_date=parsed_eval_date,
-        temporal_mode=temporal_mode,
-    ))
+    asyncio.run(
+        _batch_run_async(
+            tags=tags,
+            complexity_min=complexity_min,
+            complexity_max=complexity_max,
+            limit=limit,
+            concurrency=concurrency,
+            mode=mode,
+            agent_name=agent,
+            verbose=verbose,
+            model=model,
+            client=client,
+            client_version=client_version,
+            semantics_enabled=semantics,
+            semantics_model=semantics_model,
+            semantics_threshold=semantics_threshold,
+            evaluation_date=parsed_eval_date,
+            temporal_mode=temporal_mode,
+        )
+    )
 
 
 async def _batch_run_async(
@@ -246,11 +257,15 @@ async def _batch_run_async(
             try:
                 db_pool = await get_pool()
                 resolver = ExternalEntityResolver(db_pool=db_pool)
-                console.print("[green]Using EntityResolver with database (2.9M entities).[/green]\n")
+                console.print(
+                    "[green]Using EntityResolver with database (2.9M entities).[/green]\n"
+                )
             except RuntimeError:
                 # Pool not initialized (e.g., using memory backend)
                 resolver = ExternalEntityResolver()
-                console.print("[yellow]Using EntityResolver without database (static mappings only).[/yellow]\n")
+                console.print(
+                    "[yellow]Using EntityResolver without database (static mappings only).[/yellow]\n"
+                )
 
             response_generator = create_entity_resolver_generator(resolver)
         elif mode == "orchestrator":
@@ -273,7 +288,9 @@ async def _batch_run_async(
 
             orchestrator = NL2APIOrchestrator(llm=llm, agents=agents)
             response_generator = create_nl2api_generator(orchestrator)
-            console.print(f"[green]Using full NL2API orchestrator ({cfg.llm_provider}/{llm_model}).[/green]\n")
+            console.print(
+                f"[green]Using full NL2API orchestrator ({cfg.llm_provider}/{llm_model}).[/green]\n"
+            )
 
             # Override client_version with model for cost tracking
             if client_version is None:
@@ -305,18 +322,40 @@ async def _batch_run_async(
                     return self._capabilities
 
                 def get_routing_tools(self) -> list[RoutingToolDefinition]:
-                    return [RoutingToolDefinition(
-                        name=f"route_to_{self._name}",
-                        description=self._description,
-                        domain=self._name,
-                    )]
+                    return [
+                        RoutingToolDefinition(
+                            name=f"route_to_{self._name}",
+                            description=self._description,
+                            domain=self._name,
+                        )
+                    ]
 
             tool_providers = [
-                StubToolProvider("datastream", "Stock prices, market data, trading volume, historical prices", ("prices", "volume", "market_cap")),
-                StubToolProvider("estimates", "Analyst forecasts, EPS estimates, revenue projections, price targets", ("eps_forecast", "recommendations", "price_targets")),
-                StubToolProvider("fundamentals", "Financial statements, balance sheet, income statement, reported data", ("revenue", "net_income", "balance_sheet")),
-                StubToolProvider("officers", "Executives, board members, CEO, CFO, compensation", ("ceo", "board", "compensation")),
-                StubToolProvider("screening", "Stock screening, rankings, top N queries, filtering", ("top_n", "ranking", "screening")),
+                StubToolProvider(
+                    "datastream",
+                    "Stock prices, market data, trading volume, historical prices",
+                    ("prices", "volume", "market_cap"),
+                ),
+                StubToolProvider(
+                    "estimates",
+                    "Analyst forecasts, EPS estimates, revenue projections, price targets",
+                    ("eps_forecast", "recommendations", "price_targets"),
+                ),
+                StubToolProvider(
+                    "fundamentals",
+                    "Financial statements, balance sheet, income statement, reported data",
+                    ("revenue", "net_income", "balance_sheet"),
+                ),
+                StubToolProvider(
+                    "officers",
+                    "Executives, board members, CEO, CFO, compensation",
+                    ("ceo", "board", "compensation"),
+                ),
+                StubToolProvider(
+                    "screening",
+                    "Stock screening, rankings, top N queries, filtering",
+                    ("top_n", "ranking", "screening"),
+                ),
             ]
 
             cfg = NL2APIConfig()
@@ -357,12 +396,9 @@ async def _batch_run_async(
                 resolver = ExternalEntityResolver()
                 console.print("[dim]Entity resolver: static mappings only[/dim]")
 
-            response_generator = create_tool_only_generator(
-                agent, entity_resolver=resolver
-            )
+            response_generator = create_tool_only_generator(agent, entity_resolver=resolver)
             console.print(
-                f"[green]Using {agent_name} agent "
-                f"({cfg.llm_provider}/{llm_model}).[/green]\n"
+                f"[green]Using {agent_name} agent ({cfg.llm_provider}/{llm_model}).[/green]\n"
             )
 
             # Override client_version with model for cost tracking
@@ -406,6 +442,7 @@ async def _batch_run_async(
                 console.print(f"  Reference date: {evaluation_date}")
             else:
                 from datetime import date as date_class
+
                 console.print(f"  Reference date: {date_class.today()} (today)")
             console.print(f"  Validation mode: {temporal_mode}\n")
 
@@ -585,22 +622,24 @@ async def _batch_results_async(
             for sc in scorecards:
                 # Get test case for query text
                 test_case = await test_case_repo.get(sc.test_case_id)
-                export_data["results"].append({
-                    "test_case_id": sc.test_case_id,
-                    "scorecard_id": sc.scorecard_id,
-                    "nl_query": test_case.nl_query if test_case else "Unknown",
-                    "passed": sc.overall_passed,
-                    "score": sc.overall_score,
-                    "syntax_passed": sc.syntax_result.passed,
-                    "logic_passed": sc.logic_result.passed if sc.logic_result else None,
-                    "logic_score": sc.logic_result.score if sc.logic_result else None,
-                    "error_code": (
-                        sc.logic_result.error_code.value
-                        if sc.logic_result and sc.logic_result.error_code
-                        else None
-                    ),
-                    "reason": sc.logic_result.reason if sc.logic_result else None,
-                })
+                export_data["results"].append(
+                    {
+                        "test_case_id": sc.test_case_id,
+                        "scorecard_id": sc.scorecard_id,
+                        "nl_query": test_case.nl_query if test_case else "Unknown",
+                        "passed": sc.overall_passed,
+                        "score": sc.overall_score,
+                        "syntax_passed": sc.syntax_result.passed,
+                        "logic_passed": sc.logic_result.passed if sc.logic_result else None,
+                        "logic_score": sc.logic_result.score if sc.logic_result else None,
+                        "error_code": (
+                            sc.logic_result.error_code.value
+                            if sc.logic_result and sc.logic_result.error_code
+                            else None
+                        ),
+                        "reason": sc.logic_result.reason if sc.logic_result else None,
+                    }
+                )
 
             export.write_text(json.dumps(export_data, indent=2))
             console.print(f"[green]Exported {len(scorecards)} results to {export}[/green]")
@@ -853,7 +892,11 @@ def batch_trend(
     ],
     metric: Annotated[
         str,
-        typer.Option("--metric", "-m", help="Metric to track (pass_rate, avg_score, avg_latency_ms, total_cost_usd)"),
+        typer.Option(
+            "--metric",
+            "-m",
+            help="Metric to track (pass_rate, avg_score, avg_latency_ms, total_cost_usd)",
+        ),
     ] = "pass_rate",
     days: Annotated[
         int,
@@ -884,14 +927,16 @@ async def _batch_trend_async(
         trend_data = await scorecard_repo.get_client_trend(client, metric, days)
 
         if not trend_data:
-            console.print(f"[yellow]No data found for client '{client}' in the last {days} days[/yellow]")
+            console.print(
+                f"[yellow]No data found for client '{client}' in the last {days} days[/yellow]"
+            )
             raise typer.Exit(0)
 
         console.print()
         table = Table(
             title=f"Trend: {client} - {metric} (last {days} days)",
             show_header=True,
-            header_style="bold"
+            header_style="bold",
         )
         table.add_column("Date", width=15)
         table.add_column("Tests", width=10, justify="right")

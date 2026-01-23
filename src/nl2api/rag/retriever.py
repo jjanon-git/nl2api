@@ -20,6 +20,7 @@ from src.nl2api.rag.protocols import DocumentType, RetrievalResult
 
 if TYPE_CHECKING:
     import asyncpg
+
     from src.common.cache import RedisCache
 
 logger = logging.getLogger(__name__)
@@ -40,11 +41,11 @@ class HybridRAGRetriever:
 
     def __init__(
         self,
-        pool: "asyncpg.Pool",
+        pool: asyncpg.Pool,
         embedding_dimension: int = 1536,
         vector_weight: float = 0.7,
         keyword_weight: float = 0.3,
-        redis_cache: "RedisCache | None" = None,
+        redis_cache: RedisCache | None = None,
         cache_ttl_seconds: int = 3600,
     ):
         """
@@ -120,7 +121,9 @@ class HybridRAGRetriever:
             if document_types:
                 span.set_attribute("rag.document_types", [dt.value for dt in document_types])
 
-            return await self._retrieve_impl(query, domain, document_types, limit, threshold, use_cache, span)
+            return await self._retrieve_impl(
+                query, domain, document_types, limit, threshold, use_cache, span
+            )
 
     async def _retrieve_impl(
         self,
@@ -247,17 +250,19 @@ class HybridRAGRetriever:
 
         results = []
         for row in rows:
-            results.append(RetrievalResult(
-                id=row["id"],
-                content=row["content"],
-                document_type=DocumentType(row["document_type"]),
-                score=float(row["combined_score"]),
-                domain=row["domain"],
-                field_code=row["field_code"],
-                example_query=row["example_query"],
-                example_api_call=row["example_api_call"],
-                metadata=row["metadata"] or {},
-            ))
+            results.append(
+                RetrievalResult(
+                    id=row["id"],
+                    content=row["content"],
+                    document_type=DocumentType(row["document_type"]),
+                    score=float(row["combined_score"]),
+                    domain=row["domain"],
+                    field_code=row["field_code"],
+                    example_query=row["example_query"],
+                    example_api_call=row["example_api_call"],
+                    metadata=row["metadata"] or {},
+                )
+            )
 
         # Cache results in Redis
         if use_cache and self._redis_cache and results:
@@ -372,17 +377,19 @@ class HybridRAGRetriever:
 
             results = []
             for row in rows:
-                results.append(RetrievalResult(
-                    id=row["id"],
-                    content=row["content"],
-                    document_type=DocumentType(row["document_type"]),
-                    score=float(row["score"]),
-                    domain=row["domain"],
-                    field_code=row["field_code"],
-                    example_query=row["example_query"],
-                    example_api_call=row["example_api_call"],
-                    metadata=row["metadata"] or {},
-                ))
+                results.append(
+                    RetrievalResult(
+                        id=row["id"],
+                        content=row["content"],
+                        document_type=DocumentType(row["document_type"]),
+                        score=float(row["score"]),
+                        domain=row["domain"],
+                        field_code=row["field_code"],
+                        example_query=row["example_query"],
+                        example_api_call=row["example_api_call"],
+                        metadata=row["metadata"] or {},
+                    )
+                )
 
             span.set_attribute("rag.result_count", len(results))
             logger.debug(f"Keyword search found {len(results)} results for: {query[:50]}...")

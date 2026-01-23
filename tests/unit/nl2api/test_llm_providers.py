@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from src.nl2api.llm.protocols import (
     LLMMessage,
-    LLMResponse,
     LLMToolCall,
     LLMToolDefinition,
     MessageRole,
@@ -47,8 +44,9 @@ class TestClaudeProvider:
         # We can't easily test this without actually having anthropic uninstalled
         # so we'll test that the class exists and has the expected structure
         from src.nl2api.llm.claude import ClaudeProvider
-        assert hasattr(ClaudeProvider, 'complete')
-        assert hasattr(ClaudeProvider, 'model_name')
+
+        assert hasattr(ClaudeProvider, "complete")
+        assert hasattr(ClaudeProvider, "model_name")
 
     @pytest.mark.asyncio
     async def test_complete_text_response(self, mock_anthropic) -> None:
@@ -215,12 +213,13 @@ class TestLLMFactory:
 
     def test_create_claude_provider_structure(self) -> None:
         """Test that create_llm_provider accepts claude provider type."""
-        from src.nl2api.llm.factory import create_llm_provider
-
         # We can't easily mock the import inside the function,
         # so we test the ValueError for invalid providers instead
         # and verify the function exists with correct signature
         import inspect
+
+        from src.nl2api.llm.factory import create_llm_provider
+
         sig = inspect.signature(create_llm_provider)
         params = list(sig.parameters.keys())
         assert "provider" in params
@@ -229,11 +228,12 @@ class TestLLMFactory:
 
     def test_create_openai_provider_structure(self) -> None:
         """Test that create_llm_provider accepts openai provider type."""
-        from src.nl2api.llm.factory import create_llm_provider
-
         # Verify the function accepts openai as a valid provider type
         # by checking that it doesn't raise ValueError
         import inspect
+
+        from src.nl2api.llm.factory import create_llm_provider
+
         sig = inspect.signature(create_llm_provider)
         # Function signature check
         assert "provider" in sig.parameters
@@ -263,17 +263,17 @@ class TestLLMProviderProtocol:
         """Test that ClaudeProvider has required protocol methods."""
         from src.nl2api.llm.claude import ClaudeProvider
 
-        assert hasattr(ClaudeProvider, 'complete')
-        assert hasattr(ClaudeProvider, 'complete_with_retry')
-        assert hasattr(ClaudeProvider, 'model_name')
+        assert hasattr(ClaudeProvider, "complete")
+        assert hasattr(ClaudeProvider, "complete_with_retry")
+        assert hasattr(ClaudeProvider, "model_name")
 
     def test_openai_provider_has_required_methods(self) -> None:
         """Test that OpenAIProvider has required protocol methods."""
         from src.nl2api.llm.openai import OpenAIProvider
 
-        assert hasattr(OpenAIProvider, 'complete')
-        assert hasattr(OpenAIProvider, 'complete_with_retry')
-        assert hasattr(OpenAIProvider, 'model_name')
+        assert hasattr(OpenAIProvider, "complete")
+        assert hasattr(OpenAIProvider, "complete_with_retry")
+        assert hasattr(OpenAIProvider, "model_name")
 
 
 class TestMessageConversion:

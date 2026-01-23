@@ -27,18 +27,18 @@ Usage:
 """
 
 from src.evaluation.distributed.config import (
+    AlertConfig,
+    CoordinatorConfig,
     QueueConfig,
     WorkerConfig,
-    CoordinatorConfig,
-    AlertConfig,
 )
 from src.evaluation.distributed.models import QueueMessage
 
 # Queue imports (protocol and factory)
 from src.evaluation.distributed.queue import (
+    InMemoryQueue,
     TaskQueue,
     create_queue,
-    InMemoryQueue,
 )
 
 __all__ = [

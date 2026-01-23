@@ -14,11 +14,13 @@ import asyncio
 import os
 import sys
 from pathlib import Path
+
 import asyncpg
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
 
 def _load_env():
     """Load environment variables from .env file."""
@@ -33,13 +35,19 @@ def _load_env():
                 if key and key not in os.environ:
                     os.environ[key] = value
 
+
 _load_env()
 
 MIGRATIONS_DIR = PROJECT_ROOT / "src" / "common" / "storage" / "postgres" / "migrations"
-DATABASE_URL = os.environ.get("DATABASE_URL") or os.environ.get("EVAL_POSTGRES_URL") or "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+DATABASE_URL = (
+    os.environ.get("DATABASE_URL")
+    or os.environ.get("EVAL_POSTGRES_URL")
+    or "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+)
+
 
 async def run_migrations():
-    print(f"Connecting to database...")
+    print("Connecting to database...")
     try:
         conn = await asyncpg.connect(DATABASE_URL)
     except Exception as e:
@@ -61,7 +69,7 @@ async def run_migrations():
 
         # Get all migration files
         migration_files = sorted(MIGRATIONS_DIR.glob("*.sql"))
-        
+
         if not migration_files:
             print(f"No migration files found in {MIGRATIONS_DIR}")
             return
@@ -74,14 +82,13 @@ async def run_migrations():
 
             print(f"Applying {name}...")
             sql = migration_file.read_text()
-            
+
             # Start transaction for each migration
             async with conn.transaction():
                 try:
                     await conn.execute(sql)
                     await conn.execute(
-                        "INSERT INTO migration_history (migration_name) VALUES ($1)",
-                        name
+                        "INSERT INTO migration_history (migration_name) VALUES ($1)", name
                     )
                     print(f"Successfully applied {name}")
                 except Exception as e:
@@ -89,6 +96,7 @@ async def run_migrations():
                     raise
     finally:
         await conn.close()
+
 
 if __name__ == "__main__":
     asyncio.run(run_migrations())

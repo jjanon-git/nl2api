@@ -6,8 +6,8 @@ Target: ~3,000 test cases
 """
 
 import random
-from typing import List, Dict, Any
 from pathlib import Path
+
 from .base_generator import BaseGenerator, TestCase
 
 
@@ -18,8 +18,9 @@ class ComparisonGenerator(BaseGenerator):
         super().__init__(data_dir)
         self.category = "comparisons"
 
-    def _build_tool_call(self, tickers: List[str], fields: List[str],
-                         start: str = "0D", end: str = "0D") -> Dict:
+    def _build_tool_call(
+        self, tickers: list[str], fields: list[str], start: str = "0D", end: str = "0D"
+    ) -> dict:
         """Build a tool call for comparison query."""
         return {
             "tool_name": "get_data",
@@ -28,18 +29,24 @@ class ComparisonGenerator(BaseGenerator):
                 "fields": fields,
                 "start": start,
                 "end": end,
-                "kind": 0
-            }
+                "kind": 0,
+            },
         }
 
-    def _generate_two_stock_comparisons(self) -> List[TestCase]:
+    def _generate_two_stock_comparisons(self) -> list[TestCase]:
         """Generate 2-stock comparison queries."""
         test_cases = []
 
         # Get comparison pairs from data
         pair_categories = [
-            "tech_giants", "financials", "healthcare", "consumer",
-            "energy", "industrials", "auto", "international"
+            "tech_giants",
+            "financials",
+            "healthcare",
+            "consumer",
+            "energy",
+            "industrials",
+            "auto",
+            "international",
         ]
 
         metrics = [
@@ -83,20 +90,14 @@ class ComparisonGenerator(BaseGenerator):
                 for metric in metrics:
                     template = random.choice(templates)
                     nl_query = template.format(
-                        company_a=name_a,
-                        company_b=name_b,
-                        metric=metric["name"]
+                        company_a=name_a, company_b=name_b, metric=metric["name"]
                     )
 
                     tool_call = self._build_tool_call(
-                        tickers=[ticker_a, ticker_b],
-                        fields=[metric["field"]]
+                        tickers=[ticker_a, ticker_b], fields=[metric["field"]]
                     )
 
-                    complexity = self._calculate_complexity(
-                        num_tickers=2,
-                        num_fields=1
-                    )
+                    complexity = self._calculate_complexity(num_tickers=2, num_fields=1)
 
                     test_case = self._create_test_case(
                         nl_query=nl_query,
@@ -108,8 +109,8 @@ class ComparisonGenerator(BaseGenerator):
                         metadata={
                             "tickers": [ticker_a, ticker_b],
                             "metric": metric["name"],
-                            "sector": category
-                        }
+                            "sector": category,
+                        },
                     )
 
                     if test_case:
@@ -117,7 +118,7 @@ class ComparisonGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_group_comparisons(self) -> List[TestCase]:
+    def _generate_group_comparisons(self) -> list[TestCase]:
         """Generate multi-stock group comparison queries."""
         test_cases = []
 
@@ -146,14 +147,10 @@ class ComparisonGenerator(BaseGenerator):
                 for metric in metrics:
                     nl_query = f"Compare {metric['name']} for {group_name}"
 
-                    tool_call = self._build_tool_call(
-                        tickers=companies,
-                        fields=[metric["field"]]
-                    )
+                    tool_call = self._build_tool_call(tickers=companies, fields=[metric["field"]])
 
                     complexity = self._calculate_complexity(
-                        num_tickers=len(companies),
-                        num_fields=1
+                        num_tickers=len(companies), num_fields=1
                     )
 
                     test_case = self._create_test_case(
@@ -166,8 +163,8 @@ class ComparisonGenerator(BaseGenerator):
                         metadata={
                             "tickers": companies,
                             "group_name": group_name,
-                            "metric": metric["name"]
-                        }
+                            "metric": metric["name"],
+                        },
                     )
 
                     if test_case:
@@ -175,7 +172,7 @@ class ComparisonGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_sector_comparisons(self) -> List[TestCase]:
+    def _generate_sector_comparisons(self) -> list[TestCase]:
         """Generate sector-based comparison queries."""
         test_cases = []
 
@@ -196,14 +193,10 @@ class ComparisonGenerator(BaseGenerator):
             for metric in metrics:
                 nl_query = f"Compare {metric['name']} for {sector} companies"
 
-                tool_call = self._build_tool_call(
-                    tickers=ticker_symbols,
-                    fields=[metric["field"]]
-                )
+                tool_call = self._build_tool_call(tickers=ticker_symbols, fields=[metric["field"]])
 
                 complexity = self._calculate_complexity(
-                    num_tickers=len(ticker_symbols),
-                    num_fields=1
+                    num_tickers=len(ticker_symbols), num_fields=1
                 )
 
                 test_case = self._create_test_case(
@@ -216,8 +209,8 @@ class ComparisonGenerator(BaseGenerator):
                     metadata={
                         "sector": sector,
                         "tickers": ticker_symbols,
-                        "metric": metric["name"]
-                    }
+                        "metric": metric["name"],
+                    },
                 )
 
                 if test_case:
@@ -225,7 +218,7 @@ class ComparisonGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_index_comparisons(self) -> List[TestCase]:
+    def _generate_index_comparisons(self) -> list[TestCase]:
         """Generate index comparison queries."""
         test_cases = []
 
@@ -258,14 +251,12 @@ class ComparisonGenerator(BaseGenerator):
                             "fields": [metric["field"]],
                             "start": time_range["start"],
                             "end": time_range["end"],
-                            "freq": time_range["freq"]
-                        }
+                            "freq": time_range["freq"],
+                        },
                     }
 
                     complexity = self._calculate_complexity(
-                        num_tickers=2,
-                        num_fields=1,
-                        is_time_series=True
+                        num_tickers=2, num_fields=1, is_time_series=True
                     )
 
                     test_case = self._create_test_case(
@@ -278,8 +269,8 @@ class ComparisonGenerator(BaseGenerator):
                         metadata={
                             "indices": [index_a, index_b],
                             "pair_name": pair_name,
-                            "time_range": time_range["nl"]
-                        }
+                            "time_range": time_range["nl"],
+                        },
                     )
 
                     if test_case:
@@ -287,7 +278,7 @@ class ComparisonGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_historical_comparisons(self) -> List[TestCase]:
+    def _generate_historical_comparisons(self) -> list[TestCase]:
         """Generate historical comparison queries."""
         test_cases = []
 
@@ -315,7 +306,9 @@ class ComparisonGenerator(BaseGenerator):
 
                 for metric in metrics:
                     for time_range in time_ranges:
-                        nl_query = f"Compare {metric['name']} growth for {pair_name} {time_range['nl']}"
+                        nl_query = (
+                            f"Compare {metric['name']} growth for {pair_name} {time_range['nl']}"
+                        )
 
                         tool_call = {
                             "tool_name": "get_data",
@@ -324,14 +317,12 @@ class ComparisonGenerator(BaseGenerator):
                                 "fields": [metric["field"]],
                                 "start": time_range["start"],
                                 "end": time_range["end"],
-                                "freq": time_range["freq"]
-                            }
+                                "freq": time_range["freq"],
+                            },
                         }
 
                         complexity = self._calculate_complexity(
-                            num_tickers=2,
-                            num_fields=1,
-                            is_time_series=True
+                            num_tickers=2, num_fields=1, is_time_series=True
                         )
 
                         test_case = self._create_test_case(
@@ -344,8 +335,8 @@ class ComparisonGenerator(BaseGenerator):
                             metadata={
                                 "tickers": [ticker_a, ticker_b],
                                 "metric": metric["name"],
-                                "time_range": time_range["nl"]
-                            }
+                                "time_range": time_range["nl"],
+                            },
                         )
 
                         if test_case:
@@ -353,22 +344,16 @@ class ComparisonGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_multi_metric_comparisons(self) -> List[TestCase]:
+    def _generate_multi_metric_comparisons(self) -> list[TestCase]:
         """Generate comparisons with multiple metrics."""
         test_cases = []
 
         metric_combos = [
-            {
-                "fields": ["WC01001", "WC01751", "WC08301"],
-                "name": "revenue, net income, and ROE"
-            },
-            {
-                "fields": ["PE", "PTBV", "DY"],
-                "name": "PE, price-to-book, and dividend yield"
-            },
+            {"fields": ["WC01001", "WC01751", "WC08301"], "name": "revenue, net income, and ROE"},
+            {"fields": ["PE", "PTBV", "DY"], "name": "PE, price-to-book, and dividend yield"},
             {
                 "fields": ["WC08316", "WC08366", "WC08301"],
-                "name": "operating margin, net margin, and ROE"
+                "name": "operating margin, net margin, and ROE",
             },
         ]
 
@@ -383,13 +368,11 @@ class ComparisonGenerator(BaseGenerator):
                 nl_query = f"Compare {combo['name']} for {pair['name']}"
 
                 tool_call = self._build_tool_call(
-                    tickers=[pair["a"], pair["b"]],
-                    fields=combo["fields"]
+                    tickers=[pair["a"], pair["b"]], fields=combo["fields"]
                 )
 
                 complexity = self._calculate_complexity(
-                    num_tickers=2,
-                    num_fields=len(combo["fields"])
+                    num_tickers=2, num_fields=len(combo["fields"])
                 )
 
                 test_case = self._create_test_case(
@@ -399,10 +382,7 @@ class ComparisonGenerator(BaseGenerator):
                     subcategory="multi_metric",
                     complexity=complexity,
                     tags=["comparison", "multi_metric"],
-                    metadata={
-                        "tickers": [pair["a"], pair["b"]],
-                        "metrics": combo["name"]
-                    }
+                    metadata={"tickers": [pair["a"], pair["b"]], "metrics": combo["name"]},
                 )
 
                 if test_case:
@@ -410,7 +390,7 @@ class ComparisonGenerator(BaseGenerator):
 
         return test_cases
 
-    def generate(self) -> List[TestCase]:
+    def generate(self) -> list[TestCase]:
         """Generate all comparison test cases."""
         test_cases = []
 

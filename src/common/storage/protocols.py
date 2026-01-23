@@ -165,9 +165,7 @@ class ScorecardRepository(Protocol):
         """Count scorecards in a batch."""
         ...
 
-    async def get_batch_summary(
-        self, batch_id: str
-    ) -> dict[str, int | float]:
+    async def get_batch_summary(self, batch_id: str) -> dict[str, int | float]:
         """
         Get summary statistics for a batch.
 
@@ -187,19 +185,19 @@ class BatchJobRepository(Protocol):
     Production implementation will use Azure Table Storage.
     """
 
-    async def create(self, batch_job: "BatchJob") -> None:
+    async def create(self, batch_job: BatchJob) -> None:
         """Create a new batch job record."""
         ...
 
-    async def get(self, batch_id: str) -> "BatchJob | None":
+    async def get(self, batch_id: str) -> BatchJob | None:
         """Fetch a batch job by ID."""
         ...
 
-    async def update(self, batch_job: "BatchJob") -> None:
+    async def update(self, batch_job: BatchJob) -> None:
         """Update an existing batch job."""
         ...
 
-    async def list_recent(self, limit: int = 10) -> list["BatchJob"]:
+    async def list_recent(self, limit: int = 10) -> list[BatchJob]:
         """
         List recent batch jobs.
 

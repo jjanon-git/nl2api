@@ -66,7 +66,7 @@ class TestTraceIngestionOperation:
             SpanAttributes.SOURCE: "test",
             SpanAttributes.RECORDS_PROCESSED: 100,
         }
-        with trace_ingestion_operation("test_op", attrs) as span:
+        with trace_ingestion_operation("test_op", attrs):
             # Should complete without error
             pass
 

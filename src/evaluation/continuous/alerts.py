@@ -240,7 +240,8 @@ class AlertHandler:
                             "type": "mrkdwn",
                             "text": (
                                 f"*Previous:*\n{alert.previous_value:.4f}"
-                                if alert.previous_value else "*Previous:*\nN/A"
+                                if alert.previous_value
+                                else "*Previous:*\nN/A"
                             ),
                         },
                         {
@@ -251,7 +252,8 @@ class AlertHandler:
                             "type": "mrkdwn",
                             "text": (
                                 f"*Change:*\n{alert.delta_pct:+.2f}%"
-                                if alert.delta_pct else "*Change:*\nN/A"
+                                if alert.delta_pct
+                                else "*Change:*\nN/A"
                             ),
                         },
                         {

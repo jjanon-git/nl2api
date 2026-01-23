@@ -11,14 +11,11 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any
 
 import pytest
 
-from CONTRACTS import ToolCall
 from src.nl2api import NL2APIOrchestrator, NL2APITargetAdapter
 from src.nl2api.agents.estimates import EstimatesAgent
-from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import (
     LLMMessage,
     LLMResponse,
@@ -55,10 +52,7 @@ class MockLLMProvider:
         # If tools are provided, return a tool call
         if tools:
             # Extract info from messages to generate appropriate response
-            user_message = next(
-                (m.content for m in messages if m.role.value == "user"),
-                ""
-            )
+            user_message = next((m.content for m in messages if m.role.value == "user"), "")
 
             # Generate tool call based on query
             if "eps" in user_message.lower() or "earnings" in user_message.lower():
@@ -95,16 +89,18 @@ class MockLLMProvider:
 class MockEntityResolver:
     """Mock entity resolver for company to RIC mapping."""
 
-    mappings: dict[str, str] = field(default_factory=lambda: {
-        "Apple": "AAPL.O",
-        "AAPL": "AAPL.O",
-        "Microsoft": "MSFT.O",
-        "MSFT": "MSFT.O",
-        "Tesla": "TSLA.O",
-        "Amazon": "AMZN.O",
-        "Google": "GOOGL.O",
-        "Alphabet": "GOOGL.O",
-    })
+    mappings: dict[str, str] = field(
+        default_factory=lambda: {
+            "Apple": "AAPL.O",
+            "AAPL": "AAPL.O",
+            "Microsoft": "MSFT.O",
+            "MSFT": "MSFT.O",
+            "Tesla": "TSLA.O",
+            "Amazon": "AMZN.O",
+            "Google": "GOOGL.O",
+            "Alphabet": "GOOGL.O",
+        }
+    )
 
     async def resolve(self, query: str) -> dict[str, str]:
         """Resolve entities in the query."""
@@ -159,9 +155,7 @@ class TestSampleEPSQueries:
     @pytest.mark.asyncio
     async def test_simple_eps_query(self) -> None:
         """Test: 'What is Apple's EPS estimate?'"""
-        result = await self.orchestrator.process(
-            "What is Apple's EPS estimate?"
-        )
+        result = await self.orchestrator.process("What is Apple's EPS estimate?")
 
         assert not result.needs_clarification
         assert len(result.tool_calls) == 1
@@ -173,9 +167,7 @@ class TestSampleEPSQueries:
     @pytest.mark.asyncio
     async def test_earnings_estimate_query(self) -> None:
         """Test: 'Get Microsoft's earnings forecast'"""
-        result = await self.orchestrator.process(
-            "Get Microsoft's earnings forecast"
-        )
+        result = await self.orchestrator.process("Get Microsoft's earnings forecast")
 
         assert not result.needs_clarification
         assert len(result.tool_calls) == 1
@@ -190,9 +182,7 @@ class TestSampleEPSQueries:
         Note: "next quarter" is ambiguous - the system asks for clarification
         to get a specific time period like Q1 2024 or FQ1.
         """
-        result = await self.orchestrator.process(
-            "What is Tesla's EPS estimate for next quarter?"
-        )
+        result = await self.orchestrator.process("What is Tesla's EPS estimate for next quarter?")
 
         # Ambiguous temporal reference triggers clarification
         assert result.needs_clarification
@@ -205,9 +195,7 @@ class TestSampleEPSQueries:
     async def test_eps_with_explicit_period(self) -> None:
         """Test: 'Get Apple's EPS estimate for FY2'"""
         # Note: Rule-based extraction should detect "two years"
-        result = await self.orchestrator.process(
-            "Get Apple's EPS estimate for two years ahead"
-        )
+        result = await self.orchestrator.process("Get Apple's EPS estimate for two years ahead")
 
         assert not result.needs_clarification
         fields = result.tool_calls[0].arguments["fields"]
@@ -231,9 +219,7 @@ class TestSampleRevenueQueries:
     @pytest.mark.asyncio
     async def test_simple_revenue_query(self) -> None:
         """Test: 'What is Apple's revenue estimate?'"""
-        result = await self.orchestrator.process(
-            "What is Apple's revenue estimate?"
-        )
+        result = await self.orchestrator.process("What is Apple's revenue estimate?")
 
         assert not result.needs_clarification
         assert len(result.tool_calls) == 1
@@ -243,9 +229,7 @@ class TestSampleRevenueQueries:
     @pytest.mark.asyncio
     async def test_sales_forecast_query(self) -> None:
         """Test: 'Get Microsoft's sales forecast'"""
-        result = await self.orchestrator.process(
-            "Get Microsoft's sales forecast"
-        )
+        result = await self.orchestrator.process("Get Microsoft's sales forecast")
 
         assert not result.needs_clarification
         # "sales" should map to revenue
@@ -286,9 +270,7 @@ class TestSampleAnalystQueries:
     @pytest.mark.asyncio
     async def test_analyst_rating_query(self) -> None:
         """Test: 'What is Tesla's analyst rating?'"""
-        result = await self.orchestrator.process(
-            "What is Tesla's analyst rating?"
-        )
+        result = await self.orchestrator.process("What is Tesla's analyst rating?")
 
         assert not result.needs_clarification
         fields = result.tool_calls[0].arguments["fields"]
@@ -298,9 +280,7 @@ class TestSampleAnalystQueries:
     @pytest.mark.asyncio
     async def test_price_target_query(self) -> None:
         """Test: 'What is Apple's price target?'"""
-        result = await self.orchestrator.process(
-            "What is Apple's price target?"
-        )
+        result = await self.orchestrator.process("What is Apple's price target?")
 
         assert not result.needs_clarification
         fields = result.tool_calls[0].arguments["fields"]
@@ -328,9 +308,7 @@ class TestSampleSurpriseQueries:
         Note: "last quarter" is ambiguous - the system asks for clarification
         to get a specific time period like Q4 2023.
         """
-        result = await self.orchestrator.process(
-            "Did Amazon beat earnings last quarter?"
-        )
+        result = await self.orchestrator.process("Did Amazon beat earnings last quarter?")
 
         # Ambiguous temporal reference triggers clarification
         assert result.needs_clarification
@@ -341,9 +319,7 @@ class TestSampleSurpriseQueries:
     @pytest.mark.asyncio
     async def test_eps_surprise_query(self) -> None:
         """Test: 'What was Tesla's EPS surprise?'"""
-        result = await self.orchestrator.process(
-            "What was Tesla's EPS surprise?"
-        )
+        result = await self.orchestrator.process("What was Tesla's EPS surprise?")
 
         assert not result.needs_clarification
         fields = result.tool_calls[0].arguments["fields"]
@@ -409,9 +385,7 @@ class TestMultipleCompanies:
     @pytest.mark.asyncio
     async def test_two_company_comparison(self) -> None:
         """Test: 'Compare EPS estimates for Apple and Microsoft'"""
-        result = await self.orchestrator.process(
-            "Compare EPS estimates for Apple and Microsoft"
-        )
+        result = await self.orchestrator.process("Compare EPS estimates for Apple and Microsoft")
 
         assert not result.needs_clarification
         rics = result.tool_calls[0].arguments["tickers"]

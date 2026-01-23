@@ -1,6 +1,5 @@
 """Tests for QueryExpander."""
 
-
 from src.nl2api.conversation.expander import ExpansionResult, QueryExpander
 from src.nl2api.conversation.models import ConversationContext
 

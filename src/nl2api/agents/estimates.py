@@ -11,7 +11,6 @@ Handles I/B/E/S Estimates API queries including:
 
 from __future__ import annotations
 
-
 from CONTRACTS import ToolCall, ToolRegistry
 from src.nl2api.agents.base import BaseDomainAgent
 from src.nl2api.agents.protocols import AgentContext, AgentResult
@@ -97,14 +96,34 @@ class EstimatesAgent(BaseDomainAgent):
 
     # Keywords for domain classification
     DOMAIN_KEYWORDS = [
-        "estimate", "forecast", "projection", "consensus",
-        "eps", "earnings", "revenue", "sales", "ebitda",
-        "analyst", "rating", "recommendation", "buy", "sell", "hold",
-        "price target", "target price",
-        "surprise", "beat", "miss",
-        "revision", "upgrade", "downgrade",
-        "forward pe", "peg ratio", "valuation",
-        "ltg", "long-term growth",
+        "estimate",
+        "forecast",
+        "projection",
+        "consensus",
+        "eps",
+        "earnings",
+        "revenue",
+        "sales",
+        "ebitda",
+        "analyst",
+        "rating",
+        "recommendation",
+        "buy",
+        "sell",
+        "hold",
+        "price target",
+        "target price",
+        "surprise",
+        "beat",
+        "miss",
+        "revision",
+        "upgrade",
+        "downgrade",
+        "forward pe",
+        "peg ratio",
+        "valuation",
+        "ltg",
+        "long-term growth",
     ]
 
     def __init__(
@@ -262,9 +281,18 @@ Generate the most appropriate get_data tool call for the user's query."""
                             "type": "object",
                             "description": "Optional parameters for time series data (SDate, EDate, Frq)",
                             "properties": {
-                                "SDate": {"type": "string", "description": "Start date (e.g., '-1Y', '2023-01-01')"},
-                                "EDate": {"type": "string", "description": "End date (e.g., '0D', '2024-12-31')"},
-                                "Frq": {"type": "string", "description": "Frequency (D, W, M, Q, Y)"},
+                                "SDate": {
+                                    "type": "string",
+                                    "description": "Start date (e.g., '-1Y', '2023-01-01')",
+                                },
+                                "EDate": {
+                                    "type": "string",
+                                    "description": "End date (e.g., '0D', '2024-12-31')",
+                                },
+                                "Frq": {
+                                    "type": "string",
+                                    "description": "Frequency (D, W, M, Q, Y)",
+                                },
                             },
                         },
                     },
@@ -400,8 +428,9 @@ Generate the most appropriate get_data tool call for the user's query."""
         def word_match(keyword: str, text: str) -> bool:
             """Check if keyword matches as a word (not substring)."""
             import re
+
             # Escape special regex chars in keyword
-            pattern = r'\b' + re.escape(keyword) + r'\b'
+            pattern = r"\b" + re.escape(keyword) + r"\b"
             return bool(re.search(pattern, text))
 
         # Check for estimate types - order by specificity (longer keywords first)

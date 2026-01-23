@@ -8,20 +8,19 @@ Tests the FM-first routing implementation including:
 - Fallback behavior
 """
 
-import pytest
-from dataclasses import dataclass
 from typing import Any
+
+import pytest
 
 from src.nl2api.llm.protocols import (
     LLMMessage,
     LLMResponse,
     LLMToolCall,
     LLMToolDefinition,
-    MessageRole,
 )
-from src.nl2api.routing.llm_router import LLMToolRouter
 from src.nl2api.routing.cache import InMemoryRoutingCache
-from src.nl2api.routing.protocols import RouterResult, ToolProvider
+from src.nl2api.routing.llm_router import LLMToolRouter
+from src.nl2api.routing.protocols import RouterResult
 
 
 class MockLLMProvider:
@@ -43,12 +42,14 @@ class MockLLMProvider:
         temperature: float = 0.0,
         max_tokens: int = 4096,
     ) -> LLMResponse:
-        self.calls.append({
-            "messages": messages,
-            "tools": tools,
-            "temperature": temperature,
-            "max_tokens": max_tokens,
-        })
+        self.calls.append(
+            {
+                "messages": messages,
+                "tools": tools,
+                "temperature": temperature,
+                "max_tokens": max_tokens,
+            }
+        )
 
         if self._call_index < len(self._responses):
             response = self._responses[self._call_index]
@@ -157,18 +158,20 @@ class TestLLMToolRouter:
         estimates_provider: MockToolProvider,
     ):
         """Test that router selects correct domain based on LLM tool call."""
-        llm = MockLLMProvider([
-            LLMResponse(
-                content="",
-                tool_calls=(
-                    LLMToolCall(
-                        id="call_1",
-                        name="route_to_datastream",
-                        arguments={"reasoning": "Query about stock price", "confidence": 0.95},
+        llm = MockLLMProvider(
+            [
+                LLMResponse(
+                    content="",
+                    tool_calls=(
+                        LLMToolCall(
+                            id="call_1",
+                            name="route_to_datastream",
+                            arguments={"reasoning": "Query about stock price", "confidence": 0.95},
+                        ),
                     ),
-                ),
-            )
-        ])
+                )
+            ]
+        )
 
         router = LLMToolRouter(
             llm=llm,
@@ -188,18 +191,20 @@ class TestLLMToolRouter:
         datastream_provider: MockToolProvider,
     ):
         """Test that default confidence is used when LLM doesn't provide one."""
-        llm = MockLLMProvider([
-            LLMResponse(
-                content="",
-                tool_calls=(
-                    LLMToolCall(
-                        id="call_1",
-                        name="route_to_datastream",
-                        arguments={"reasoning": "Stock price query"},
+        llm = MockLLMProvider(
+            [
+                LLMResponse(
+                    content="",
+                    tool_calls=(
+                        LLMToolCall(
+                            id="call_1",
+                            name="route_to_datastream",
+                            arguments={"reasoning": "Stock price query"},
+                        ),
                     ),
-                ),
-            )
-        ])
+                )
+            ]
+        )
 
         router = LLMToolRouter(
             llm=llm,
@@ -218,18 +223,20 @@ class TestLLMToolRouter:
         datastream_provider: MockToolProvider,
     ):
         """Test that cache hits return cached results without LLM call."""
-        llm = MockLLMProvider([
-            LLMResponse(
-                content="",
-                tool_calls=(
-                    LLMToolCall(
-                        id="call_1",
-                        name="route_to_datastream",
-                        arguments={"reasoning": "Stock price", "confidence": 0.9},
+        llm = MockLLMProvider(
+            [
+                LLMResponse(
+                    content="",
+                    tool_calls=(
+                        LLMToolCall(
+                            id="call_1",
+                            name="route_to_datastream",
+                            arguments={"reasoning": "Stock price", "confidence": 0.9},
+                        ),
                     ),
-                ),
-            )
-        ])
+                )
+            ]
+        )
 
         cache = InMemoryRoutingCache()
         router = LLMToolRouter(
@@ -281,12 +288,14 @@ class TestLLMToolRouter:
         datastream_provider: MockToolProvider,
     ):
         """Test fallback to content parsing when no tool call."""
-        llm = MockLLMProvider([
-            LLMResponse(
-                content="I think this should go to datastream",
-                tool_calls=(),
-            )
-        ])
+        llm = MockLLMProvider(
+            [
+                LLMResponse(
+                    content="I think this should go to datastream",
+                    tool_calls=(),
+                )
+            ]
+        )
 
         router = LLMToolRouter(
             llm=llm,
@@ -358,18 +367,20 @@ class TestLLMToolRouter:
         datastream_provider: MockToolProvider,
     ):
         """Test that latency is recorded in result."""
-        llm = MockLLMProvider([
-            LLMResponse(
-                content="",
-                tool_calls=(
-                    LLMToolCall(
-                        id="call_1",
-                        name="route_to_datastream",
-                        arguments={"reasoning": "Stock price", "confidence": 0.9},
+        llm = MockLLMProvider(
+            [
+                LLMResponse(
+                    content="",
+                    tool_calls=(
+                        LLMToolCall(
+                            id="call_1",
+                            name="route_to_datastream",
+                            arguments={"reasoning": "Stock price", "confidence": 0.9},
+                        ),
                     ),
-                ),
-            )
-        ])
+                )
+            ]
+        )
 
         router = LLMToolRouter(
             llm=llm,
@@ -386,18 +397,20 @@ class TestLLMToolRouter:
         datastream_provider: MockToolProvider,
     ):
         """Test that model name is recorded in result."""
-        llm = MockLLMProvider([
-            LLMResponse(
-                content="",
-                tool_calls=(
-                    LLMToolCall(
-                        id="call_1",
-                        name="route_to_datastream",
-                        arguments={"reasoning": "Stock price", "confidence": 0.9},
+        llm = MockLLMProvider(
+            [
+                LLMResponse(
+                    content="",
+                    tool_calls=(
+                        LLMToolCall(
+                            id="call_1",
+                            name="route_to_datastream",
+                            arguments={"reasoning": "Stock price", "confidence": 0.9},
+                        ),
                     ),
-                ),
-            )
-        ])
+                )
+            ]
+        )
 
         router = LLMToolRouter(
             llm=llm,

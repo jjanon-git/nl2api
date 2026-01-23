@@ -1,6 +1,7 @@
 """Unit tests for ExternalEntityResolver normalization and entity extraction."""
 
 import pytest
+
 from src.nl2api.resolution.resolver import ExternalEntityResolver
 
 
@@ -119,7 +120,7 @@ class TestResolverCaching:
         """Test resolver works with cache disabled."""
         resolver = ExternalEntityResolver(use_cache=False)
         # Should not raise even without cache
-        result = await resolver.resolve_single("some_company")
+        await resolver.resolve_single("some_company")
         # Result depends on external APIs, just verify no exception
 
 

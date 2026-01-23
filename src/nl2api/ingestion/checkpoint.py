@@ -10,7 +10,7 @@ from __future__ import annotations
 import json
 import os
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 
@@ -83,13 +83,13 @@ class IngestionCheckpoint:
     def mark_downloading(self) -> None:
         """Mark state as downloading."""
         self.state = "downloading"
-        self.last_updated_at = datetime.now(timezone.utc)
+        self.last_updated_at = datetime.now(UTC)
 
     def mark_loading(self, total_records: int) -> None:
         """Mark state as loading with total record count."""
         self.state = "loading"
         self.total_records = total_records
-        self.last_updated_at = datetime.now(timezone.utc)
+        self.last_updated_at = datetime.now(UTC)
 
     def update_progress(
         self,
@@ -106,19 +106,19 @@ class IngestionCheckpoint:
         self.error_count += errors
         if last_entity_id:
             self.last_entity_id = last_entity_id
-        self.last_updated_at = datetime.now(timezone.utc)
+        self.last_updated_at = datetime.now(UTC)
 
     def mark_complete(self) -> None:
         """Mark ingestion as complete."""
         self.state = "complete"
-        self.completed_at = datetime.now(timezone.utc)
+        self.completed_at = datetime.now(UTC)
         self.last_updated_at = self.completed_at
 
     def mark_failed(self, error_message: str) -> None:
         """Mark ingestion as failed."""
         self.state = "failed"
         self.error_message = error_message
-        self.last_updated_at = datetime.now(timezone.utc)
+        self.last_updated_at = datetime.now(UTC)
 
 
 class CheckpointManager:
@@ -174,7 +174,7 @@ class CheckpointManager:
         """Create a new checkpoint for this source."""
         return IngestionCheckpoint(
             source=self.source,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
         )
 
     def delete(self) -> bool:

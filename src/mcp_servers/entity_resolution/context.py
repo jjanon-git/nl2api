@@ -30,10 +30,10 @@ class ClientContext:
     """
 
     session_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    client_id: Optional[str] = None
-    client_name: Optional[str] = None
+    client_id: str | None = None
+    client_name: str | None = None
     transport: str = "unknown"
-    request_id: Optional[str] = None
+    request_id: str | None = None
 
     def with_request(self, request_id: str) -> "ClientContext":
         """Create a new context with a specific request ID."""
@@ -60,7 +60,7 @@ class ClientContext:
         return attrs
 
 
-def get_client_context() -> Optional[ClientContext]:
+def get_client_context() -> ClientContext | None:
     """Get the current client context."""
     return _current_context.get()
 
@@ -76,9 +76,9 @@ def clear_client_context() -> None:
 
 
 def create_sse_context(
-    client_id: Optional[str] = None,
-    client_name: Optional[str] = None,
-    user_agent: Optional[str] = None,
+    client_id: str | None = None,
+    client_name: str | None = None,
+    user_agent: str | None = None,
 ) -> ClientContext:
     """
     Create client context for SSE/HTTP transport.
@@ -108,7 +108,7 @@ def create_stdio_context() -> ClientContext:
     )
 
 
-def _parse_user_agent(user_agent: Optional[str]) -> Optional[str]:
+def _parse_user_agent(user_agent: str | None) -> str | None:
     """Extract meaningful client name from User-Agent."""
     if not user_agent:
         return None

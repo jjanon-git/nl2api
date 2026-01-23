@@ -10,7 +10,7 @@ import json
 import logging
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 class CheckpointStatus(Enum):
     """Status of an indexing checkpoint."""
+
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
@@ -35,6 +36,7 @@ class IndexingCheckpoint:
 
     Tracks progress and allows resumption after failures or interruptions.
     """
+
     job_id: str
     total_items: int = 0
     processed_items: int = 0
@@ -45,8 +47,8 @@ class IndexingCheckpoint:
     domain: str | None = None
     batch_size: int = 100
     metadata: dict[str, Any] = field(default_factory=dict)
-    started_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
-    last_updated: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
 
     @property
@@ -69,7 +71,11 @@ class IndexingCheckpoint:
     @property
     def is_resumable(self) -> bool:
         """Check if job can be resumed."""
-        return self.status in (CheckpointStatus.RUNNING, CheckpointStatus.PAUSED, CheckpointStatus.FAILED)
+        return self.status in (
+            CheckpointStatus.RUNNING,
+            CheckpointStatus.PAUSED,
+            CheckpointStatus.FAILED,
+        )
 
 
 class CheckpointManager:
@@ -82,7 +88,7 @@ class CheckpointManager:
     - Track progress and errors
     """
 
-    def __init__(self, pool: "asyncpg.Pool"):
+    def __init__(self, pool: asyncpg.Pool):
         """
         Initialize checkpoint manager.
 
@@ -300,15 +306,15 @@ class CheckpointManager:
         """Convert database row to IndexingCheckpoint."""
         started_at = row["started_at"]
         if started_at and started_at.tzinfo is None:
-            started_at = started_at.replace(tzinfo=timezone.utc)
+            started_at = started_at.replace(tzinfo=UTC)
 
         last_updated = row["last_updated"]
         if last_updated and last_updated.tzinfo is None:
-            last_updated = last_updated.replace(tzinfo=timezone.utc)
+            last_updated = last_updated.replace(tzinfo=UTC)
 
         completed_at = row["completed_at"]
         if completed_at and completed_at.tzinfo is None:
-            completed_at = completed_at.replace(tzinfo=timezone.utc)
+            completed_at = completed_at.replace(tzinfo=UTC)
 
         return IndexingCheckpoint(
             job_id=row["job_id"],

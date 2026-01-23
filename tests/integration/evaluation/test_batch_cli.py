@@ -6,20 +6,15 @@ Requires: docker compose up -d
 """
 
 import uuid
-from datetime import UTC, datetime, timedelta
 
 import pytest
+import pytest_asyncio
 
 from CONTRACTS import (
     EvaluationStage,
     Scorecard,
     StageResult,
-    TestCase,
-    TestCaseMetadata,
-    ToolCall,
 )
-import pytest_asyncio
-
 from src.common.storage.postgres import (
     PostgresScorecardRepository,
     PostgresTestCaseRepository,
@@ -96,12 +91,14 @@ class TestScorecardRepositoryClientMethods:
 
         # Create scorecards for different clients
         sc1 = create_test_scorecard(
-            test_case_id, batch_id,
+            test_case_id,
+            batch_id,
             client_type="test_internal",
             passed=True,
         )
         sc2 = create_test_scorecard(
-            test_case_id, batch_id,
+            test_case_id,
+            batch_id,
             client_type="test_mcp_claude",
             client_version="claude-3-5-sonnet",
             passed=False,
@@ -126,12 +123,14 @@ class TestScorecardRepositoryClientMethods:
 
         # Create scorecards with different versions
         sc1 = create_test_scorecard(
-            test_case_id, batch_id,
+            test_case_id,
+            batch_id,
             client_type="test_mcp_claude",
             client_version="claude-3-5-sonnet",
         )
         sc2 = create_test_scorecard(
-            test_case_id, batch_id,
+            test_case_id,
+            batch_id,
             client_type="test_mcp_claude",
             client_version="claude-3-5-haiku",
         )
@@ -140,12 +139,8 @@ class TestScorecardRepositoryClientMethods:
         await scorecard_repo.save(sc2)
 
         # Fetch by client type and version
-        sonnet_cards = await scorecard_repo.get_by_client(
-            "test_mcp_claude", "claude-3-5-sonnet"
-        )
-        haiku_cards = await scorecard_repo.get_by_client(
-            "test_mcp_claude", "claude-3-5-haiku"
-        )
+        sonnet_cards = await scorecard_repo.get_by_client("test_mcp_claude", "claude-3-5-sonnet")
+        haiku_cards = await scorecard_repo.get_by_client("test_mcp_claude", "claude-3-5-haiku")
 
         assert len(sonnet_cards) >= 1
         assert len(haiku_cards) >= 1
@@ -160,7 +155,8 @@ class TestScorecardRepositoryClientMethods:
         # Create scorecards for different clients with different results
         for i in range(5):
             sc = create_test_scorecard(
-                test_case_id, batch_id,
+                test_case_id,
+                batch_id,
                 client_type="test_internal",
                 passed=True,
                 score=0.9,
@@ -172,7 +168,8 @@ class TestScorecardRepositoryClientMethods:
 
         for i in range(5):
             sc = create_test_scorecard(
-                test_case_id, batch_id,
+                test_case_id,
+                batch_id,
                 client_type="test_mcp_claude",
                 passed=i < 3,  # 3 pass, 2 fail
                 score=0.8 if i < 3 else 0.2,
@@ -189,12 +186,8 @@ class TestScorecardRepositoryClientMethods:
 
         assert len(summaries) >= 2
 
-        internal_summary = next(
-            (s for s in summaries if s["client_type"] == "test_internal"), None
-        )
-        claude_summary = next(
-            (s for s in summaries if s["client_type"] == "test_mcp_claude"), None
-        )
+        internal_summary = next((s for s in summaries if s["client_type"] == "test_internal"), None)
+        claude_summary = next((s for s in summaries if s["client_type"] == "test_mcp_claude"), None)
 
         assert internal_summary is not None
         assert claude_summary is not None
@@ -210,7 +203,8 @@ class TestScorecardRepositoryClientMethods:
         for i in range(3):
             batch_id = str(uuid.uuid4())
             sc = create_test_scorecard(
-                test_case_id, batch_id,
+                test_case_id,
+                batch_id,
                 client_type="test_internal",
                 passed=True,
                 score=0.9,
@@ -218,22 +212,19 @@ class TestScorecardRepositoryClientMethods:
             await scorecard_repo.save(sc)
 
         # Get trend data
-        trend = await scorecard_repo.get_client_trend(
-            "test_internal", "pass_rate", days=7
-        )
+        trend = await scorecard_repo.get_client_trend("test_internal", "pass_rate", days=7)
 
         assert len(trend) >= 1
         assert all("date" in point and "value" in point for point in trend)
 
-    async def test_scorecard_preserves_token_and_cost_data(
-        self, scorecard_repo, cleanup_test_data
-    ):
+    async def test_scorecard_preserves_token_and_cost_data(self, scorecard_repo, cleanup_test_data):
         """Test that token and cost data is properly saved and retrieved."""
         batch_id = str(uuid.uuid4())
         test_case_id = str(uuid.uuid4())
 
         sc = create_test_scorecard(
-            test_case_id, batch_id,
+            test_case_id,
+            batch_id,
             client_type="test_internal",
             input_tokens=1500,
             output_tokens=500,

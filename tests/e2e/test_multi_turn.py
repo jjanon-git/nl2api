@@ -38,7 +38,9 @@ class TestConversationContinuity:
         tickers = result2.tool_calls[0].arguments.get("tickers", [])
         ticker_str = str(tickers).upper()
         # Should still be Apple-related
-        assert "AAPL" in ticker_str or "APPLE" in ticker_str, f"Expected Apple ticker, got {tickers}"
+        assert "AAPL" in ticker_str or "APPLE" in ticker_str, (
+            f"Expected Apple ticker, got {tickers}"
+        )
 
     @pytest.mark.asyncio
     async def test_domain_switch(self, fresh_orchestrator):
@@ -109,9 +111,7 @@ class TestClarificationFlow:
         """Ambiguous temporal reference should request clarification."""
         orchestrator = fresh_orchestrator
 
-        result = await orchestrator.process(
-            "What was Apple's revenue last quarter?"
-        )
+        result = await orchestrator.process("What was Apple's revenue last quarter?")
 
         # May or may not trigger clarification depending on implementation
         # If it does, verify the flow
@@ -135,7 +135,7 @@ class TestClarificationFlow:
             session_id = result1.session_id
 
             # Provide clarification
-            result2 = await orchestrator.process(
+            await orchestrator.process(
                 "Apple",  # Clarify which stock
                 session_id=session_id,
             )

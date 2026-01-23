@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import pytest
 
-from tests.accuracy.conftest import requires_llm
 from tests.accuracy.core.config import CATEGORY_THRESHOLDS, DEFAULT_MIN_ACCURACY
 
 
@@ -131,7 +130,9 @@ class TestDatastreamAccuracy:
             pytest.skip("No fixtures available")
 
         overall_accuracy = overall_correct / overall_total
-        print(f"\nOverall Datastream Accuracy: {overall_accuracy:.1%} ({overall_correct}/{overall_total})")
+        print(
+            f"\nOverall Datastream Accuracy: {overall_accuracy:.1%} ({overall_correct}/{overall_total})"
+        )
 
         assert overall_accuracy >= DEFAULT_MIN_ACCURACY, (
             f"Overall Datastream accuracy {overall_accuracy:.1%} below {DEFAULT_MIN_ACCURACY:.0%}"

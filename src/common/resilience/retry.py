@@ -21,6 +21,7 @@ T = TypeVar("T")
 @dataclass(frozen=True)
 class RetryConfig:
     """Configuration for retry behavior."""
+
     max_attempts: int = 3
     base_delay: float = 1.0
     max_delay: float = 30.0
@@ -79,9 +80,7 @@ async def retry_with_backoff(
             last_exception = e
 
             if attempt == config.max_attempts:
-                logger.warning(
-                    f"Retry exhausted after {attempt} attempts: {e}"
-                )
+                logger.warning(f"Retry exhausted after {attempt} attempts: {e}")
                 raise
 
             # Calculate delay with exponential backoff
@@ -139,6 +138,4 @@ class RetryableOperation:
 
     async def execute(self, func: Callable[..., Awaitable[T]], *args, **kwargs) -> T:
         """Execute function with retry logic."""
-        return await retry_with_backoff(
-            func, *args, config=self.config, **kwargs
-        )
+        return await retry_with_backoff(func, *args, config=self.config, **kwargs)

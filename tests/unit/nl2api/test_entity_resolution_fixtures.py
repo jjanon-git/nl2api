@@ -20,6 +20,7 @@ from tests.unit.nl2api.test_fixture_coverage import CoverageRegistry
 # Fixtures
 # =============================================================================
 
+
 @pytest.fixture
 def loader() -> FixtureLoader:
     """Create a fixture loader."""
@@ -36,14 +37,13 @@ def resolver() -> MockEntityResolver:
 # Helper Functions
 # =============================================================================
 
+
 def get_entity_resolution_cases(loader: FixtureLoader) -> list[GeneratedTestCase]:
     """Load all entity resolution test cases."""
     return loader.load_category("entity_resolution")
 
 
-def get_subcategory_cases(
-    loader: FixtureLoader, subcategory: str
-) -> list[GeneratedTestCase]:
+def get_subcategory_cases(loader: FixtureLoader, subcategory: str) -> list[GeneratedTestCase]:
     """Load entity resolution test cases for a specific subcategory."""
     all_cases = get_entity_resolution_cases(loader)
     return [c for c in all_cases if c.subcategory == subcategory]
@@ -63,6 +63,7 @@ def extract_expected_ric(case: GeneratedTestCase) -> str | None:
 # Test Classes
 # =============================================================================
 
+
 class TestEntityResolutionFixtureDiscovery:
     """Tests for entity resolution fixture discovery."""
 
@@ -79,7 +80,7 @@ class TestEntityResolutionFixtureDiscovery:
 
     @pytest.mark.skipif(
         not FixtureLoader().load_category("entity_resolution"),
-        reason="Entity resolution fixtures not generated yet"
+        reason="Entity resolution fixtures not generated yet",
     )
     def test_fixture_structure(self, loader: FixtureLoader):
         """Verify fixture structure is correct."""
@@ -95,7 +96,7 @@ class TestEntityResolutionFixtureDiscovery:
 
     @pytest.mark.skipif(
         not FixtureLoader().load_category("entity_resolution"),
-        reason="Entity resolution fixtures not generated yet"
+        reason="Entity resolution fixtures not generated yet",
     )
     def test_all_subcategories_present(self, loader: FixtureLoader):
         """Verify all expected subcategories are present."""
@@ -109,7 +110,9 @@ class TestEntityResolutionFixtureDiscovery:
         assert len(missing) <= 3, f"Too many missing subcategories: {missing}"
 
 
-@pytest.mark.skip(reason="MockEntityResolver (~150 companies) cannot meaningfully test coverage against fixtures from 2.9M entities. Use tests/accuracy/ with real database.")
+@pytest.mark.skip(
+    reason="MockEntityResolver (~150 companies) cannot meaningfully test coverage against fixtures from 2.9M entities. Use tests/accuracy/ with real database."
+)
 class TestEntityResolutionCoverage:
     """Tests for entity resolution coverage tracking.
 
@@ -123,9 +126,7 @@ class TestEntityResolutionCoverage:
     """
 
     @pytest.mark.asyncio
-    async def test_exact_match_coverage(
-        self, loader: FixtureLoader, resolver: MockEntityResolver
-    ):
+    async def test_exact_match_coverage(self, loader: FixtureLoader, resolver: MockEntityResolver):
         """Test coverage on exact_match subcategory."""
         await self._test_subcategory_coverage(loader, resolver, "exact_match")
 
@@ -148,7 +149,7 @@ class TestEntityResolutionCoverage:
         loader: FixtureLoader,
         resolver: MockEntityResolver,
         subcategory: str,
-        sample_size: int = 50
+        sample_size: int = 50,
     ):
         """Test resolver coverage for a subcategory."""
         cases = get_subcategory_cases(loader, subcategory)
@@ -187,7 +188,9 @@ class TestEntityResolutionCoverage:
         )
 
 
-@pytest.mark.skip(reason="MockEntityResolver (~150 companies) cannot meaningfully test coverage against fixtures from 2.9M entities. Use tests/accuracy/ with real database.")
+@pytest.mark.skip(
+    reason="MockEntityResolver (~150 companies) cannot meaningfully test coverage against fixtures from 2.9M entities. Use tests/accuracy/ with real database."
+)
 class TestEntityResolutionSummary:
     """Generate summary reports for entity resolution coverage.
 
@@ -246,8 +249,7 @@ class TestEntityResolutionSummary:
             total_sampled += len(sample)
 
             print(
-                f"{subcat:<20} {len(subcat_cases):>8,} {len(sample):>8} "
-                f"{correct:>8} {rate:>7.1%}"
+                f"{subcat:<20} {len(subcat_cases):>8,} {len(sample):>8} {correct:>8} {rate:>7.1%}"
             )
 
         overall_rate = total_correct / total_sampled if total_sampled else 0
@@ -259,7 +261,9 @@ class TestEntityResolutionSummary:
         print("=" * 60)
 
 
-@pytest.mark.skip(reason="MockEntityResolver (~150 companies) cannot meaningfully test baseline against fixtures from 2.9M entities. Use tests/accuracy/ with real database.")
+@pytest.mark.skip(
+    reason="MockEntityResolver (~150 companies) cannot meaningfully test baseline against fixtures from 2.9M entities. Use tests/accuracy/ with real database."
+)
 class TestEntityResolutionBaseline:
     """Baseline tests to establish current resolver accuracy.
 
@@ -268,9 +272,7 @@ class TestEntityResolutionBaseline:
     """
 
     @pytest.mark.asyncio
-    async def test_baseline_accuracy(
-        self, loader: FixtureLoader, resolver: MockEntityResolver
-    ):
+    async def test_baseline_accuracy(self, loader: FixtureLoader, resolver: MockEntityResolver):
         """
         Establish baseline accuracy of current resolver.
 
@@ -308,13 +310,10 @@ class TestEntityResolutionBaseline:
                 correct += 1
                 by_subcategory[subcat] = (
                     by_subcategory[subcat][0] + 1,
-                    by_subcategory[subcat][1] + 1
+                    by_subcategory[subcat][1] + 1,
                 )
             else:
-                by_subcategory[subcat] = (
-                    by_subcategory[subcat][0],
-                    by_subcategory[subcat][1] + 1
-                )
+                by_subcategory[subcat] = (by_subcategory[subcat][0], by_subcategory[subcat][1] + 1)
 
         overall_rate = correct / len(sample)
 

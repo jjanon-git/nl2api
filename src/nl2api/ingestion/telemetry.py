@@ -7,8 +7,9 @@ Provides OTEL tracing for the entity ingestion pipeline.
 from __future__ import annotations
 
 import logging
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Any, Generator
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,7 @@ _tracer = None
 _meter = None
 
 try:
-    from src.common.telemetry import get_tracer, get_meter
+    from src.common.telemetry import get_meter, get_tracer
 
     _telemetry_available = True
 except ImportError:

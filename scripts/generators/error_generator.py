@@ -10,8 +10,8 @@ Target: ~500 test cases
 """
 
 import random
-from typing import List, Dict, Any
 from pathlib import Path
+
 from .base_generator import BaseGenerator, TestCase
 
 
@@ -22,7 +22,7 @@ class ErrorGenerator(BaseGenerator):
         super().__init__(data_dir)
         self.category = "errors"
 
-    def _generate_invalid_ticker_errors(self) -> List[TestCase]:
+    def _generate_invalid_ticker_errors(self) -> list[TestCase]:
         """Generate invalid ticker error scenarios."""
         test_cases = []
 
@@ -70,14 +70,14 @@ class ErrorGenerator(BaseGenerator):
                         "fields": [field],
                         "start": "0D",
                         "end": "0D",
-                        "kind": 0
-                    }
+                        "kind": 0,
+                    },
                 }
 
                 expected_error = {
                     "error_type": "invalid_ticker",
                     "error_subtype": invalid["type"],
-                    "message_pattern": "Instrument not found|Invalid ticker|No data available"
+                    "message_pattern": "Instrument not found|Invalid ticker|No data available",
                 }
 
                 test_case = self._create_test_case(
@@ -90,8 +90,8 @@ class ErrorGenerator(BaseGenerator):
                     metadata={
                         "ticker": invalid["ticker"],
                         "error_type": invalid["type"],
-                        "expected_error": expected_error
-                    }
+                        "expected_error": expected_error,
+                    },
                 )
 
                 if test_case:
@@ -99,7 +99,7 @@ class ErrorGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_invalid_field_errors(self) -> List[TestCase]:
+    def _generate_invalid_field_errors(self) -> list[TestCase]:
         """Generate invalid field code error scenarios."""
         test_cases = []
 
@@ -135,10 +135,7 @@ class ErrorGenerator(BaseGenerator):
         for ticker in valid_tickers:
             for invalid in invalid_fields:
                 template = random.choice(templates)
-                nl_query = template.format(
-                    company=ticker,
-                    field=invalid["field"]
-                )
+                nl_query = template.format(company=ticker, field=invalid["field"])
 
                 tool_call = {
                     "tool_name": "get_data",
@@ -147,14 +144,14 @@ class ErrorGenerator(BaseGenerator):
                         "fields": [invalid["field"]],
                         "start": "0D",
                         "end": "0D",
-                        "kind": 0
-                    }
+                        "kind": 0,
+                    },
                 }
 
                 expected_error = {
                     "error_type": "invalid_field",
                     "error_subtype": invalid["type"],
-                    "message_pattern": "Data type not recognized|Invalid field|Unknown field code"
+                    "message_pattern": "Data type not recognized|Invalid field|Unknown field code",
                 }
 
                 test_case = self._create_test_case(
@@ -168,8 +165,8 @@ class ErrorGenerator(BaseGenerator):
                         "ticker": ticker,
                         "field": invalid["field"],
                         "error_type": invalid["type"],
-                        "expected_error": expected_error
-                    }
+                        "expected_error": expected_error,
+                    },
                 )
 
                 if test_case:
@@ -177,7 +174,7 @@ class ErrorGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_future_date_errors(self) -> List[TestCase]:
+    def _generate_future_date_errors(self) -> list[TestCase]:
         """Generate future date error scenarios."""
         test_cases = []
 
@@ -205,13 +202,13 @@ class ErrorGenerator(BaseGenerator):
                             "fields": [field],
                             "start": future["date"],
                             "end": future["date"],
-                            "kind": 0
-                        }
+                            "kind": 0,
+                        },
                     }
 
                     expected_error = {
                         "error_type": "future_date",
-                        "message_pattern": "Date in future|No data available|Invalid date range"
+                        "message_pattern": "Date in future|No data available|Invalid date range",
                     }
 
                     test_case = self._create_test_case(
@@ -224,8 +221,8 @@ class ErrorGenerator(BaseGenerator):
                         metadata={
                             "ticker": ticker,
                             "date": future["date"],
-                            "expected_error": expected_error
-                        }
+                            "expected_error": expected_error,
+                        },
                     )
 
                     if test_case:
@@ -233,7 +230,7 @@ class ErrorGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_missing_data_errors(self) -> List[TestCase]:
+    def _generate_missing_data_errors(self) -> list[TestCase]:
         """Generate missing data scenarios."""
         test_cases = []
 
@@ -244,21 +241,21 @@ class ErrorGenerator(BaseGenerator):
                 "name": "JPMorgan",
                 "field": "WC02101",
                 "field_name": "inventory",
-                "reason": "Banks don't have inventory"
+                "reason": "Banks don't have inventory",
             },
             {
                 "ticker": "U:TSLA",
                 "name": "Tesla",
                 "field": "WC01002",
                 "field_name": "premiums earned",
-                "reason": "Tesla is not an insurance company"
+                "reason": "Tesla is not an insurance company",
             },
             {
                 "ticker": "U:PG",
                 "name": "Procter & Gamble",
                 "field": "WC01076",
                 "field_name": "net interest income",
-                "reason": "P&G is not a bank"
+                "reason": "P&G is not a bank",
             },
         ]
 
@@ -272,14 +269,14 @@ class ErrorGenerator(BaseGenerator):
                     "fields": [mismatch["field"]],
                     "start": "0D",
                     "end": "0D",
-                    "kind": 0
-                }
+                    "kind": 0,
+                },
             }
 
             expected_behavior = {
                 "behavior": "null_or_warning",
                 "reason": mismatch["reason"],
-                "message_pattern": "Not applicable|No data|N/A"
+                "message_pattern": "Not applicable|No data|N/A",
             }
 
             test_case = self._create_test_case(
@@ -293,8 +290,8 @@ class ErrorGenerator(BaseGenerator):
                     "ticker": mismatch["ticker"],
                     "field": mismatch["field"],
                     "reason": mismatch["reason"],
-                    "expected_behavior": expected_behavior
-                }
+                    "expected_behavior": expected_behavior,
+                },
             )
 
             if test_case:
@@ -302,7 +299,7 @@ class ErrorGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_private_company_errors(self) -> List[TestCase]:
+    def _generate_private_company_errors(self) -> list[TestCase]:
         """Generate private company query errors."""
         test_cases = []
 
@@ -325,13 +322,13 @@ class ErrorGenerator(BaseGenerator):
                         "fields": [field],
                         "start": "0D",
                         "end": "0D",
-                        "kind": 0
-                    }
+                        "kind": 0,
+                    },
                 }
 
                 expected_error = {
                     "error_type": "private_company",
-                    "message_pattern": "No public filings|Instrument not found|Private company"
+                    "message_pattern": "No public filings|Instrument not found|Private company",
                 }
 
                 test_case = self._create_test_case(
@@ -344,8 +341,8 @@ class ErrorGenerator(BaseGenerator):
                     metadata={
                         "company": company["name"],
                         "ticker": company["ticker"],
-                        "expected_error": expected_error
-                    }
+                        "expected_error": expected_error,
+                    },
                 )
 
                 if test_case:
@@ -353,7 +350,7 @@ class ErrorGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_date_range_errors(self) -> List[TestCase]:
+    def _generate_date_range_errors(self) -> list[TestCase]:
         """Generate invalid date range errors."""
         test_cases = []
 
@@ -375,14 +372,14 @@ class ErrorGenerator(BaseGenerator):
                         "tickers": ticker,
                         "fields": ["P"],
                         "start": date_range["start"],
-                        "end": date_range["end"]
-                    }
+                        "end": date_range["end"],
+                    },
                 }
 
                 expected_error = {
                     "error_type": "invalid_date_range",
                     "error_subtype": date_range["type"],
-                    "message_pattern": "Invalid date|Start date after end|No data available"
+                    "message_pattern": "Invalid date|Start date after end|No data available",
                 }
 
                 test_case = self._create_test_case(
@@ -396,8 +393,8 @@ class ErrorGenerator(BaseGenerator):
                         "ticker": ticker,
                         "start": date_range["start"],
                         "end": date_range["end"],
-                        "expected_error": expected_error
-                    }
+                        "expected_error": expected_error,
+                    },
                 )
 
                 if test_case:
@@ -405,7 +402,7 @@ class ErrorGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_delisted_stock_errors(self) -> List[TestCase]:
+    def _generate_delisted_stock_errors(self) -> list[TestCase]:
         """Generate delisted stock query scenarios."""
         test_cases = []
 
@@ -421,15 +418,15 @@ class ErrorGenerator(BaseGenerator):
                     "fields": ["P"],
                     "start": "0D",
                     "end": "0D",
-                    "kind": 0
-                }
+                    "kind": 0,
+                },
             }
 
             expected_behavior = {
                 "behavior": "historical_only_or_error",
                 "delisting_date": stock.get("delisting_date"),
                 "reason": stock.get("reason"),
-                "message_pattern": "Delisted|No current data|Historical data only"
+                "message_pattern": "Delisted|No current data|Historical data only",
             }
 
             test_case = self._create_test_case(
@@ -444,8 +441,8 @@ class ErrorGenerator(BaseGenerator):
                     "ticker": stock["symbol"],
                     "delisting_date": stock.get("delisting_date"),
                     "reason": stock.get("reason"),
-                    "expected_behavior": expected_behavior
-                }
+                    "expected_behavior": expected_behavior,
+                },
             )
 
             if test_case:
@@ -453,7 +450,7 @@ class ErrorGenerator(BaseGenerator):
 
         return test_cases
 
-    def generate(self) -> List[TestCase]:
+    def generate(self) -> list[TestCase]:
         """Generate all error test cases."""
         test_cases = []
 

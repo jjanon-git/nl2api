@@ -10,8 +10,8 @@ import logging
 import re
 from dataclasses import dataclass
 
-from src.nl2api.models import ClarificationQuestion
 from src.nl2api.llm.protocols import LLMMessage, LLMProvider, MessageRole
+from src.nl2api.models import ClarificationQuestion
 
 logger = logging.getLogger(__name__)
 
@@ -56,17 +56,17 @@ class AmbiguityDetector:
 
         # Ambiguous time references
         self._ambiguous_time_patterns = [
-            r'\b(recent|latest|current|now)\b',
-            r'\bthis (year|quarter|month)\b',
-            r'\blast (year|quarter|month)\b',
-            r'\bnext (year|quarter|month)\b',
+            r"\b(recent|latest|current|now)\b",
+            r"\bthis (year|quarter|month)\b",
+            r"\blast (year|quarter|month)\b",
+            r"\bnext (year|quarter|month)\b",
         ]
 
         # Vague metric references
         self._vague_metric_patterns = [
-            r'\b(performance|results|metrics|numbers)\b',
-            r'\b(how is|how\'s|how are|how did)\b',
-            r'\b(doing|performing|going)\b',
+            r"\b(performance|results|metrics|numbers)\b",
+            r"\b(how is|how\'s|how are|how did)\b",
+            r"\b(doing|performing|going)\b",
         ]
 
     async def analyze(
@@ -133,28 +133,31 @@ class AmbiguityDetector:
 
         # If no entities resolved but query seems to reference a company
         company_indicators = [
-            r'\b(company|firm|stock|ticker|corporation)\b',
-            r'\b(their|its|the company\'s)\b',
+            r"\b(company|firm|stock|ticker|corporation)\b",
+            r"\b(their|its|the company\'s)\b",
         ]
 
         has_company_reference = any(
-            re.search(pattern, query, re.IGNORECASE)
-            for pattern in company_indicators
+            re.search(pattern, query, re.IGNORECASE) for pattern in company_indicators
         )
 
         if has_company_reference and not resolved_entities:
-            questions.append(ClarificationQuestion(
-                question="Which company are you asking about?",
-                category="entity",
-            ))
+            questions.append(
+                ClarificationQuestion(
+                    question="Which company are you asking about?",
+                    category="entity",
+                )
+            )
 
         # Check for pronouns without clear antecedent
-        pronoun_pattern = r'\b(it|they|them|their|its)\b'
+        pronoun_pattern = r"\b(it|they|them|their|its)\b"
         if re.search(pronoun_pattern, query, re.IGNORECASE) and not resolved_entities:
-            questions.append(ClarificationQuestion(
-                question="Could you specify which company or entity you're referring to?",
-                category="entity",
-            ))
+            questions.append(
+                ClarificationQuestion(
+                    question="Could you specify which company or entity you're referring to?",
+                    category="entity",
+                )
+            )
 
         return questions
 
@@ -166,13 +169,15 @@ class AmbiguityDetector:
         for pattern in self._ambiguous_time_patterns:
             if re.search(pattern, query, re.IGNORECASE):
                 # Don't flag if there's also a specific date/period
-                specific_time_pattern = r'\b(20\d{2}|Q[1-4]|FY\d{2,4}|January|February|March|April|May|June|July|August|September|October|November|December)\b'
+                specific_time_pattern = r"\b(20\d{2}|Q[1-4]|FY\d{2,4}|January|February|March|April|May|June|July|August|September|October|November|December)\b"
                 if not re.search(specific_time_pattern, query, re.IGNORECASE):
-                    questions.append(ClarificationQuestion(
-                        question="Could you specify the time period? (e.g., Q4 2023, FY2024, or a specific date range)",
-                        options=("Current quarter", "Current year", "Last year", "Next year"),
-                        category="time_period",
-                    ))
+                    questions.append(
+                        ClarificationQuestion(
+                            question="Could you specify the time period? (e.g., Q4 2023, FY2024, or a specific date range)",
+                            options=("Current quarter", "Current year", "Last year", "Next year"),
+                            category="time_period",
+                        )
+                    )
                     break  # Only ask once
 
         return questions
@@ -185,31 +190,30 @@ class AmbiguityDetector:
             if re.search(pattern, query, re.IGNORECASE):
                 # Check if there's a specific metric mentioned
                 specific_metrics = [
-                    r'\b(EPS|earnings per share)\b',
-                    r'\b(revenue|sales)\b',
-                    r'\b(profit|income|earnings)\b',
-                    r'\b(price|stock price|share price)\b',
-                    r'\b(P/E|PE ratio|price.to.earnings)\b',
-                    r'\b(dividend|yield)\b',
-                    r'\b(market cap|capitalization)\b',
+                    r"\b(EPS|earnings per share)\b",
+                    r"\b(revenue|sales)\b",
+                    r"\b(profit|income|earnings)\b",
+                    r"\b(price|stock price|share price)\b",
+                    r"\b(P/E|PE ratio|price.to.earnings)\b",
+                    r"\b(dividend|yield)\b",
+                    r"\b(market cap|capitalization)\b",
                 ]
 
-                has_specific = any(
-                    re.search(m, query, re.IGNORECASE)
-                    for m in specific_metrics
-                )
+                has_specific = any(re.search(m, query, re.IGNORECASE) for m in specific_metrics)
 
                 if not has_specific:
-                    questions.append(ClarificationQuestion(
-                        question="What specific metrics or data are you looking for?",
-                        options=(
-                            "Earnings (EPS)",
-                            "Revenue",
-                            "Stock price",
-                            "Analyst estimates",
-                        ),
-                        category="metric",
-                    ))
+                    questions.append(
+                        ClarificationQuestion(
+                            question="What specific metrics or data are you looking for?",
+                            options=(
+                                "Earnings (EPS)",
+                                "Revenue",
+                                "Stock price",
+                                "Analyst estimates",
+                            ),
+                            category="metric",
+                        )
+                    )
                     break
 
         return questions
@@ -247,10 +251,12 @@ Do not flag queries that are simply broad or general."""
 
             if content.startswith("AMBIGUOUS:"):
                 question = content.replace("AMBIGUOUS:", "").strip()
-                return [ClarificationQuestion(
-                    question=question,
-                    category="llm_detected",
-                )]
+                return [
+                    ClarificationQuestion(
+                        question=question,
+                        category="llm_detected",
+                    )
+                ]
 
         except Exception as e:
             logger.warning(f"LLM ambiguity detection failed: {e}")

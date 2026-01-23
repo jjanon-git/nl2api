@@ -5,15 +5,15 @@ Requires Redis to be running (docker compose up -d).
 """
 
 import asyncio
-import pytest
-from uuid import uuid4
 from unittest.mock import MagicMock
+from uuid import uuid4
+
+import pytest
 
 from src.contracts.worker import WorkerTask
+from src.evaluation.distributed.config import EvalMode, QueueBackend, QueueConfig, WorkerConfig
 from src.evaluation.distributed.queue import create_queue
-from src.evaluation.distributed.config import QueueConfig, QueueBackend, WorkerConfig, EvalMode
 from src.evaluation.distributed.worker import EvalWorker
-
 
 # Skip all tests if Redis is not available
 pytestmark = pytest.mark.integration
@@ -140,7 +140,7 @@ class TestWorkerIntegration:
         async def run_with_timeout():
             try:
                 await asyncio.wait_for(worker.run(), timeout=2.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
 
         await run_with_timeout()
@@ -206,7 +206,7 @@ class TestWorkerIntegration:
         async def run_with_timeout():
             try:
                 await asyncio.wait_for(worker.run(), timeout=5.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
 
         await run_with_timeout()
@@ -218,9 +218,7 @@ class TestWorkerIntegration:
         await queue.delete_stream(batch_id)
 
     @pytest.mark.asyncio
-    async def test_worker_nacks_failed_tasks(
-        self, queue, batch_id, worker_config
-    ):
+    async def test_worker_nacks_failed_tasks(self, queue, batch_id, worker_config):
         """Worker should nack tasks that fail (test case not found)."""
         await queue.ensure_stream(batch_id)
 
@@ -258,7 +256,7 @@ class TestWorkerIntegration:
         async def run_with_timeout():
             try:
                 await asyncio.wait_for(worker.run(), timeout=2.0)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass
 
         await run_with_timeout()
@@ -320,7 +318,7 @@ class TestWorkerIntegration:
         # Run worker with overall timeout to prevent hanging
         try:
             await asyncio.wait_for(worker.run(), timeout=3.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # Worker may not exit on shutdown if queue blocks
             pass
 

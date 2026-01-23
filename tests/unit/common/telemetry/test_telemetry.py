@@ -3,28 +3,26 @@
 from __future__ import annotations
 
 import pytest
-from unittest.mock import MagicMock, patch
 
+from src.common.telemetry.metrics import (
+    EvalMetrics,
+    NL2APIMetrics,
+)
 from src.common.telemetry.setup import (
     TelemetryConfig,
-    get_tracer,
-    get_meter,
-    is_telemetry_enabled,
-    _NoOpTracer,
-    _NoOpMeter,
-    _NoOpSpan,
     _NoOpCounter,
     _NoOpHistogram,
+    _NoOpMeter,
+    _NoOpSpan,
+    _NoOpTracer,
+    get_meter,
+    get_tracer,
 )
 from src.common.telemetry.tracing import (
-    trace_async,
-    trace_sync,
     add_span_attributes,
     record_exception,
-)
-from src.common.telemetry.metrics import (
-    NL2APIMetrics,
-    EvalMetrics,
+    trace_async,
+    trace_sync,
 )
 
 
@@ -250,9 +248,8 @@ class TestCreateEmitterFromConfig:
     def test_creates_otel_emitter(self) -> None:
         """Test create_emitter_from_config with otel_enabled."""
         from src.nl2api.observability import (
-            create_emitter_from_config,
             OTELEmitter,
-            CompositeEmitter,
+            create_emitter_from_config,
         )
 
         emitter = create_emitter_from_config(
@@ -266,8 +263,8 @@ class TestCreateEmitterFromConfig:
     def test_creates_composite_with_otel(self) -> None:
         """Test create_emitter_from_config creates composite with OTEL."""
         from src.nl2api.observability import (
-            create_emitter_from_config,
             CompositeEmitter,
+            create_emitter_from_config,
         )
 
         emitter = create_emitter_from_config(

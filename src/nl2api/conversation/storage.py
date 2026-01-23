@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
@@ -29,7 +29,7 @@ class PostgresConversationStorage:
     defined in migration 003_conversations.sql.
     """
 
-    def __init__(self, pool: "asyncpg.Pool"):
+    def __init__(self, pool: asyncpg.Pool):
         """
         Initialize with database connection pool.
 
@@ -114,13 +114,15 @@ class PostgresConversationStorage:
             # Convert tool calls to JSON
             tool_calls_json = None
             if turn.tool_calls:
-                tool_calls_json = json.dumps([
-                    {
-                        "tool_name": tc.tool_name,
-                        "arguments": dict(tc.arguments) if tc.arguments else {},
-                    }
-                    for tc in turn.tool_calls
-                ])
+                tool_calls_json = json.dumps(
+                    [
+                        {
+                            "tool_name": tc.tool_name,
+                            "arguments": dict(tc.arguments) if tc.arguments else {},
+                        }
+                        for tc in turn.tool_calls
+                    ]
+                )
 
             await conn.execute(
                 """
@@ -150,7 +152,9 @@ class PostgresConversationStorage:
                 turn.domain,
                 turn.confidence,
                 turn.needs_clarification,
-                json.dumps(list(turn.clarification_questions)) if turn.clarification_questions else None,
+                json.dumps(list(turn.clarification_questions))
+                if turn.clarification_questions
+                else None,
                 turn.clarification_response,
                 turn.processing_time_ms,
                 turn.created_at,
@@ -187,7 +191,7 @@ class PostgresConversationStorage:
         inactive_threshold: timedelta,
     ) -> int:
         """Mark inactive sessions as expired."""
-        cutoff = datetime.now(timezone.utc) - inactive_threshold
+        cutoff = datetime.now(UTC) - inactive_threshold
 
         async with self._pool.acquire() as conn:
             result = await conn.execute(

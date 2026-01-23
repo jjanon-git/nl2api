@@ -12,7 +12,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from src.contracts.core import _now_utc, _generate_id
+from src.contracts.core import _generate_id, _now_utc
 
 
 class QueueMessageStatus(str, Enum):
@@ -109,11 +109,11 @@ class QueueMessage(BaseModel):
         """Extract batch_id from payload."""
         return self.payload.get("batch_id")
 
-    def with_attempt(self, attempt: int) -> "QueueMessage":
+    def with_attempt(self, attempt: int) -> QueueMessage:
         """Create a copy with updated attempt count."""
         return self.model_copy(update={"attempt": attempt})
 
-    def with_claimed_by(self, worker_id: str) -> "QueueMessage":
+    def with_claimed_by(self, worker_id: str) -> QueueMessage:
         """Create a copy marked as claimed by a worker."""
         return self.model_copy(
             update={

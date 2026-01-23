@@ -17,14 +17,13 @@ import os
 import sys
 
 from src.evaluation.distributed.config import (
+    EvalMode,
+    QueueBackend,
     QueueConfig,
     WorkerConfig,
-    QueueBackend,
-    EvalMode,
 )
 from src.evaluation.distributed.queue import create_queue
 from src.evaluation.distributed.worker import EvalWorker
-
 
 # Configure logging
 logging.basicConfig(
@@ -107,8 +106,8 @@ async def create_worker_dependencies(args: argparse.Namespace):
     async def default_evaluator(test_case, response):
         """Evaluate the response against test case."""
         # Import evaluator
-        from src.evaluation.core.evaluators import create_evaluator_pipeline
         from src.evaluation.core.config import EvaluationConfig
+        from src.evaluation.core.evaluators import create_evaluator_pipeline
 
         config = EvaluationConfig()
         pipeline = create_evaluator_pipeline(config)

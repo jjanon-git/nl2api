@@ -4,9 +4,10 @@ Tests for RoutingCache with Redis and pgvector
 Tests the tiered cache implementation with mocked external dependencies.
 """
 
-import pytest
 import json
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
+
+import pytest
 
 from src.nl2api.routing.cache import RoutingCache
 from src.nl2api.routing.protocols import RouterResult
@@ -161,11 +162,13 @@ class TestRoutingCacheGet:
         """Test exact match lookup from Redis."""
         redis = MockRedisClient()
         # Pre-populate Redis with cached data
-        redis._data["route:098f6bcd4621d373cade4e832627b4f6"] = json.dumps({
-            "domain": "datastream",
-            "confidence": 0.9,
-            "reasoning": "Test",
-        }).encode()
+        redis._data["route:098f6bcd4621d373cade4e832627b4f6"] = json.dumps(
+            {
+                "domain": "datastream",
+                "confidence": 0.9,
+                "reasoning": "Test",
+            }
+        ).encode()
 
         cache = RoutingCache(
             redis=redis,
@@ -223,12 +226,14 @@ class TestRoutingCacheGet:
         """Test semantic lookup when exact match misses."""
         redis = MockRedisClient()  # Empty cache
         pg_pool = MockPostgresPool()
-        pg_pool._rows = [{
-            "domain": "estimates",
-            "confidence": 0.85,
-            "reasoning": "Semantic match",
-            "similarity": 0.95,
-        }]
+        pg_pool._rows = [
+            {
+                "domain": "estimates",
+                "confidence": 0.85,
+                "reasoning": "Semantic match",
+                "similarity": 0.95,
+            }
+        ]
 
         cache = RoutingCache(
             redis=redis,

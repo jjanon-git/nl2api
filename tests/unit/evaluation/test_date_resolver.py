@@ -11,8 +11,6 @@ Tests temporal expression resolution including:
 
 from datetime import date
 
-import pytest
-
 from src.evaluation.core.temporal.date_resolver import DateResolver
 
 

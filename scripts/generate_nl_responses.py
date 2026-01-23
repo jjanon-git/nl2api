@@ -21,9 +21,8 @@ import asyncio
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -230,9 +229,7 @@ async def process_category(
             continue
 
         try:
-            response_text, usage = await generate_nl_response(
-                provider, nl_query, tool_calls
-            )
+            response_text, usage = await generate_nl_response(provider, nl_query, tool_calls)
 
             # Update test case
             tc["expected_nl_response"] = response_text
@@ -247,7 +244,9 @@ async def process_category(
 
             # Progress update every batch_size
             if stats["generated"] % batch_size == 0:
-                print(f"    Progress: {stats['generated']}/{total - len(completed_ids) + stats['generated']} (${stats['cost']:.4f})")
+                print(
+                    f"    Progress: {stats['generated']}/{total - len(completed_ids) + stats['generated']} (${stats['cost']:.4f})"
+                )
 
                 # Save checkpoint periodically
                 checkpoint["completed"][category] = list(completed_ids)
@@ -264,7 +263,7 @@ async def process_category(
     # Save updated fixture
     if not dry_run and stats["generated"] > 0:
         # Update _meta with generation info
-        data["_meta"]["nl_response_generated_at"] = datetime.now(timezone.utc).isoformat()
+        data["_meta"]["nl_response_generated_at"] = datetime.now(UTC).isoformat()
         data["_meta"]["nl_response_model"] = HAIKU_MODEL
 
         with open(fixture_path, "w") as f:
@@ -296,7 +295,9 @@ async def main_async(args: argparse.Namespace) -> int:
 
     # Load checkpoint
     checkpoint = load_checkpoint()
-    print(f"Loaded checkpoint: {sum(len(v) for v in checkpoint.get('completed', {}).values())} test cases already processed")
+    print(
+        f"Loaded checkpoint: {sum(len(v) for v in checkpoint.get('completed', {}).values())} test cases already processed"
+    )
 
     # Determine categories to process
     if args.category == "all":
@@ -318,9 +319,9 @@ async def main_async(args: argparse.Namespace) -> int:
     }
 
     for category in categories:
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"Category: {category}")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
 
         stats = await process_category(
             category=category,
@@ -330,14 +331,14 @@ async def main_async(args: argparse.Namespace) -> int:
             batch_size=args.batch_size,
         )
 
-        if not stats.get("skipped") == True:
+        if not stats.get("skipped"):
             for key in ["total", "generated", "skipped", "errors", "cost"]:
                 total_stats[key] += stats.get(key, 0)
 
     # Print summary
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("Summary")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"Total test cases: {total_stats['total']}")
     print(f"Generated: {total_stats['generated']}")
     print(f"Skipped: {total_stats['skipped']}")

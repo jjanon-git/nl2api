@@ -29,8 +29,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.nl2api.observability.metrics import RequestMetrics
     from src.common.telemetry.metrics import NL2APIMetrics
+    from src.nl2api.observability.metrics import RequestMetrics
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class MetricsEmitter(ABC):
     """
 
     @abstractmethod
-    async def emit(self, metrics: "RequestMetrics") -> None:
+    async def emit(self, metrics: RequestMetrics) -> None:
         """
         Emit metrics to the backend.
 
@@ -88,7 +88,7 @@ class LoggingEmitter(MetricsEmitter):
         self._logger = logging.getLogger(logger_name)
         self._include_full_json = include_full_json
 
-    async def emit(self, metrics: "RequestMetrics") -> None:
+    async def emit(self, metrics: RequestMetrics) -> None:
         """Emit metrics to logging."""
         try:
             # Summary log for quick debugging
@@ -137,7 +137,7 @@ class FileEmitter(MetricsEmitter):
         if create_dirs:
             self._file_path.parent.mkdir(parents=True, exist_ok=True)
 
-    async def emit(self, metrics: "RequestMetrics") -> None:
+    async def emit(self, metrics: RequestMetrics) -> None:
         """Emit metrics to file."""
         try:
             json_line = metrics.to_json()
@@ -185,7 +185,7 @@ class CompositeEmitter(MetricsEmitter):
         """
         self._emitters = emitters
 
-    async def emit(self, metrics: "RequestMetrics") -> None:
+    async def emit(self, metrics: RequestMetrics) -> None:
         """Emit to all configured backends."""
         # Fire all emitters concurrently
         tasks = [emitter.emit(metrics) for emitter in self._emitters]
@@ -218,7 +218,7 @@ class OTELEmitter(MetricsEmitter):
         """Initialize OTEL emitter."""
         self._nl2api_metrics = None
 
-    def _get_metrics(self) -> "NL2APIMetrics":
+    def _get_metrics(self) -> NL2APIMetrics:
         """Lazy load NL2API metrics to avoid import cycles."""
         if self._nl2api_metrics is None:
             from src.common.telemetry import get_nl2api_metrics
@@ -226,7 +226,7 @@ class OTELEmitter(MetricsEmitter):
             self._nl2api_metrics = get_nl2api_metrics()
         return self._nl2api_metrics
 
-    async def emit(self, metrics: "RequestMetrics") -> None:
+    async def emit(self, metrics: RequestMetrics) -> None:
         """Emit metrics to OpenTelemetry."""
         try:
             nl2api_metrics = self._get_metrics()
@@ -238,7 +238,7 @@ class OTELEmitter(MetricsEmitter):
 class NullEmitter(MetricsEmitter):
     """No-op emitter for testing or disabled metrics."""
 
-    async def emit(self, metrics: "RequestMetrics") -> None:
+    async def emit(self, metrics: RequestMetrics) -> None:
         """Do nothing."""
         pass
 
@@ -285,7 +285,7 @@ def get_emitter() -> MetricsEmitter:
     return _emitter
 
 
-async def emit_metrics(metrics: "RequestMetrics") -> None:
+async def emit_metrics(metrics: RequestMetrics) -> None:
     """
     Emit metrics using the configured emitter.
 

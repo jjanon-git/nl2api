@@ -43,15 +43,20 @@ def main():
         epilog="For pytest-based testing, use: pytest tests/accuracy/routing/ -m tier1",
     )
     parser.add_argument("--limit", type=int, default=100, help="Number of test cases")
-    parser.add_argument("--model", type=str, default="haiku",
-                        choices=["haiku", "sonnet"],
-                        help="Model to use for routing")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show expected routing without LLM calls")
-    parser.add_argument("--balanced", action="store_true",
-                        help="Balance samples across domains")
-    parser.add_argument("--threshold", type=float, default=0.80,
-                        help="Accuracy threshold (default: 0.80)")
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="haiku",
+        choices=["haiku", "sonnet"],
+        help="Model to use for routing",
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Show expected routing without LLM calls"
+    )
+    parser.add_argument("--balanced", action="store_true", help="Balance samples across domains")
+    parser.add_argument(
+        "--threshold", type=float, default=0.80, help="Accuracy threshold (default: 0.80)"
+    )
     args = parser.parse_args()
 
     # Model mapping
@@ -91,7 +96,9 @@ def main():
     # Progress callback
     def progress(current, total, result):
         if current % 10 == 0:
-            print(f"  [{current}/{total}] Latest: {result.expected} -> {result.predicted} (conf={result.confidence:.2f})")
+            print(
+                f"  [{current}/{total}] Latest: {result.expected} -> {result.predicted} (conf={result.confidence:.2f})"
+            )
 
     # Run evaluation
     print("\nRunning routing evaluation...")

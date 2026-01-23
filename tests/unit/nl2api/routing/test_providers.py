@@ -4,20 +4,21 @@ Tests for Tool Providers
 Tests the AgentToolProvider, MCPToolProvider, and factory functions.
 """
 
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock, PropertyMock
 
 from src.nl2api.llm.protocols import LLMToolDefinition
-from src.nl2api.mcp.client import MCPClient, MCPClientConfig
-from src.nl2api.mcp.protocols import MCPServer, MCPToolDefinition as MCPToolDef, MCPToolParameter
+from src.nl2api.mcp.client import MCPClient
+from src.nl2api.mcp.protocols import MCPToolDefinition as MCPToolDef
+from src.nl2api.mcp.protocols import MCPToolParameter
 from src.nl2api.routing.providers import (
-    AgentToolProvider,
     AgentToolExecutor,
-    MCPToolProvider,
+    AgentToolProvider,
     MCPToolExecutor,
+    MCPToolProvider,
     create_providers_from_agents,
 )
-
 
 # =============================================================================
 # Mock Classes
@@ -383,9 +384,7 @@ class TestMCPToolProvider:
             MCPToolDef(
                 name="get_price",
                 description="Get price",
-                parameters=(
-                    MCPToolParameter(name="ric", description="Code", type="string"),
-                ),
+                parameters=(MCPToolParameter(name="ric", description="Code", type="string"),),
             ),
         ]
         mock_mcp_client.list_tools = AsyncMock(return_value=mcp_tools)

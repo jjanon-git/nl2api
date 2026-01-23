@@ -1,7 +1,7 @@
 """Unit tests for PostgresEntityRepository."""
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -185,9 +185,9 @@ class TestPostgresEntityRepository:
             "data_source": "sec_edgar",
             "confidence_score": 0.99,
             "ric_validated": True,
-            "last_verified_at": datetime.now(timezone.utc),
-            "created_at": datetime.now(timezone.utc),
-            "updated_at": datetime.now(timezone.utc),
+            "last_verified_at": datetime.now(UTC),
+            "created_at": datetime.now(UTC),
+            "updated_at": datetime.now(UTC),
         }
 
     @pytest.mark.asyncio
@@ -463,7 +463,7 @@ class TestPostgresEntityRepository:
                 "alias": "apple",
                 "alias_type": "trade_name",
                 "is_primary": True,
-                "created_at": datetime.now(timezone.utc),
+                "created_at": datetime.now(UTC),
             },
             {
                 "id": uuid.uuid4(),
@@ -471,7 +471,7 @@ class TestPostgresEntityRepository:
                 "alias": "aapl",
                 "alias_type": "ticker",
                 "is_primary": False,
-                "created_at": datetime.now(timezone.utc),
+                "created_at": datetime.now(UTC),
             },
         ]
 
@@ -570,21 +570,87 @@ class TestPostgresEntityRepository:
         repo = PostgresEntityRepository(mock_pool)
 
         records = [
-            (uuid.uuid4(), "LEI1", None, None, None, "Company 1", None, None, None, None,
-             "company", "active", False, "US", None, None, None, None, None, None, None,
-             "gleif", 1.0, False, None),
-            (uuid.uuid4(), "LEI2", None, None, None, "Company 2", None, None, None, None,
-             "company", "active", False, "UK", None, None, None, None, None, None, None,
-             "gleif", 1.0, False, None),
+            (
+                uuid.uuid4(),
+                "LEI1",
+                None,
+                None,
+                None,
+                "Company 1",
+                None,
+                None,
+                None,
+                None,
+                "company",
+                "active",
+                False,
+                "US",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                "gleif",
+                1.0,
+                False,
+                None,
+            ),
+            (
+                uuid.uuid4(),
+                "LEI2",
+                None,
+                None,
+                None,
+                "Company 2",
+                None,
+                None,
+                None,
+                None,
+                "company",
+                "active",
+                False,
+                "UK",
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                "gleif",
+                1.0,
+                False,
+                None,
+            ),
         ]
         columns = [
-            "id", "lei", "cik", "permid", "figi",
-            "primary_name", "display_name", "ticker", "ric", "exchange",
-            "entity_type", "entity_status", "is_public",
-            "country_code", "region", "city",
-            "sic_code", "naics_code", "gics_sector",
-            "parent_entity_id", "ultimate_parent_id",
-            "data_source", "confidence_score", "ric_validated", "last_verified_at",
+            "id",
+            "lei",
+            "cik",
+            "permid",
+            "figi",
+            "primary_name",
+            "display_name",
+            "ticker",
+            "ric",
+            "exchange",
+            "entity_type",
+            "entity_status",
+            "is_public",
+            "country_code",
+            "region",
+            "city",
+            "sic_code",
+            "naics_code",
+            "gics_sector",
+            "parent_entity_id",
+            "ultimate_parent_id",
+            "data_source",
+            "confidence_score",
+            "ric_validated",
+            "last_verified_at",
         ]
 
         count = await repo.bulk_import(records, columns)

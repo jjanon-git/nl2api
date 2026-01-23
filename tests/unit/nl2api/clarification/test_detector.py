@@ -58,8 +58,10 @@ class TestAmbiguityDetectorEntityAmbiguity:
 
         assert analysis.is_ambiguous is True
         assert "entity" in analysis.ambiguity_types
-        assert any("company" in q.question.lower() or "entity" in q.question.lower()
-                   for q in analysis.clarification_questions)
+        assert any(
+            "company" in q.question.lower() or "entity" in q.question.lower()
+            for q in analysis.clarification_questions
+        )
 
     @pytest.mark.asyncio
     async def test_detects_company_reference_without_resolution(self) -> None:
@@ -109,8 +111,10 @@ class TestAmbiguityDetectorTimeAmbiguity:
 
         assert analysis.is_ambiguous is True
         assert "time_period" in analysis.ambiguity_types
-        assert any("time period" in q.question.lower() or "period" in q.question.lower()
-                   for q in analysis.clarification_questions)
+        assert any(
+            "time period" in q.question.lower() or "period" in q.question.lower()
+            for q in analysis.clarification_questions
+        )
 
     @pytest.mark.asyncio
     async def test_detects_this_year_ambiguity(self) -> None:
@@ -157,8 +161,9 @@ class TestAmbiguityDetectorTimeAmbiguity:
 
         analysis = await detector.analyze("What is Apple's current revenue?")
 
-        time_questions = [q for q in analysis.clarification_questions
-                        if q.category == "time_period"]
+        time_questions = [
+            q for q in analysis.clarification_questions if q.category == "time_period"
+        ]
         assert len(time_questions) > 0
         # Time period questions should have predefined options
         assert time_questions[0].options is not None
@@ -177,8 +182,10 @@ class TestAmbiguityDetectorMetricAmbiguity:
 
         assert analysis.is_ambiguous is True
         assert "metric" in analysis.ambiguity_types
-        assert any("metric" in q.question.lower() or "data" in q.question.lower()
-                   for q in analysis.clarification_questions)
+        assert any(
+            "metric" in q.question.lower() or "data" in q.question.lower()
+            for q in analysis.clarification_questions
+        )
 
     @pytest.mark.asyncio
     async def test_detects_vague_results_query(self) -> None:
@@ -234,8 +241,7 @@ class TestAmbiguityDetectorMetricAmbiguity:
 
         analysis = await detector.analyze("How are Apple's numbers?")
 
-        metric_questions = [q for q in analysis.clarification_questions
-                          if q.category == "metric"]
+        metric_questions = [q for q in analysis.clarification_questions if q.category == "metric"]
         assert len(metric_questions) > 0
         assert metric_questions[0].options is not None
         assert "Earnings (EPS)" in metric_questions[0].options
@@ -291,10 +297,12 @@ class TestAmbiguityDetectorLLMIntegration:
     async def test_llm_detection_when_enabled(self) -> None:
         """Test LLM-based detection when enabled."""
         mock_llm = MagicMock(spec=LLMProvider)
-        mock_llm.complete = AsyncMock(return_value=LLMResponse(
-            content="AMBIGUOUS: What specific financial data are you looking for?",
-            usage={"total_tokens": 50},
-        ))
+        mock_llm.complete = AsyncMock(
+            return_value=LLMResponse(
+                content="AMBIGUOUS: What specific financial data are you looking for?",
+                usage={"total_tokens": 50},
+            )
+        )
 
         detector = AmbiguityDetector(llm=mock_llm, use_llm_detection=True)
 
@@ -309,17 +317,18 @@ class TestAmbiguityDetectorLLMIntegration:
 
         # Should have LLM-detected ambiguity
         assert "llm_detected" in analysis.ambiguity_types
-        assert any("financial data" in q.question.lower()
-                   for q in analysis.clarification_questions)
+        assert any("financial data" in q.question.lower() for q in analysis.clarification_questions)
 
     @pytest.mark.asyncio
     async def test_llm_detection_clear_response(self) -> None:
         """Test that CLEAR response from LLM doesn't add ambiguity."""
         mock_llm = MagicMock(spec=LLMProvider)
-        mock_llm.complete = AsyncMock(return_value=LLMResponse(
-            content="CLEAR",
-            usage={"total_tokens": 10},
-        ))
+        mock_llm.complete = AsyncMock(
+            return_value=LLMResponse(
+                content="CLEAR",
+                usage={"total_tokens": 10},
+            )
+        )
 
         detector = AmbiguityDetector(llm=mock_llm, use_llm_detection=True)
 

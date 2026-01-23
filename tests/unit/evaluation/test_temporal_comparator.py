@@ -59,14 +59,18 @@ class TestStructuralMode:
 
     def test_structural_normalizes_relative_to_absolute(self, structural_comparator):
         """Relative and absolute dates should match after normalization."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "-1D", "end": "-1D"}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "2026-01-20", "end": "2026-01-20"}
-        ),)
+        expected = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"tickers": ["AAPL.O"], "start": "-1D", "end": "-1D"},
+            ),
+        )
+        actual = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"tickers": ["AAPL.O"], "start": "2026-01-20", "end": "2026-01-20"},
+            ),
+        )
 
         result = structural_comparator.compare(expected, actual)
 
@@ -76,14 +80,15 @@ class TestStructuralMode:
 
     def test_structural_fails_different_dates(self, structural_comparator):
         """Different dates should not match even after normalization."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "-1D"}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "2026-01-19"}  # Different day
-        ),)
+        expected = (
+            ToolCall(tool_name="get_data", arguments={"tickers": ["AAPL.O"], "start": "-1D"}),
+        )
+        actual = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"tickers": ["AAPL.O"], "start": "2026-01-19"},  # Different day
+            ),
+        )
 
         result = structural_comparator.compare(expected, actual)
 
@@ -91,14 +96,18 @@ class TestStructuralMode:
 
     def test_structural_ignores_non_date_fields(self, structural_comparator):
         """Non-date fields should be compared exactly."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "-1D", "fields": ["P", "MV"]}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "2026-01-20", "fields": ["P", "MV"]}
-        ),)
+        expected = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"tickers": ["AAPL.O"], "start": "-1D", "fields": ["P", "MV"]},
+            ),
+        )
+        actual = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"tickers": ["AAPL.O"], "start": "2026-01-20", "fields": ["P", "MV"]},
+            ),
+        )
 
         result = structural_comparator.compare(expected, actual)
 
@@ -106,14 +115,18 @@ class TestStructuralMode:
 
     def test_structural_fails_different_non_date_fields(self, structural_comparator):
         """Different non-date fields should cause mismatch."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "-1D", "fields": ["P"]}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "2026-01-20", "fields": ["MV"]}
-        ),)
+        expected = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"tickers": ["AAPL.O"], "start": "-1D", "fields": ["P"]},
+            ),
+        )
+        actual = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"tickers": ["AAPL.O"], "start": "2026-01-20", "fields": ["MV"]},
+            ),
+        )
 
         result = structural_comparator.compare(expected, actual)
 
@@ -121,14 +134,10 @@ class TestStructuralMode:
 
     def test_structural_records_normalizations(self, structural_comparator):
         """Normalizations should be recorded in result."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"start": "-1D", "end": "-7D"}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"start": "2026-01-20", "end": "2026-01-14"}
-        ),)
+        expected = (ToolCall(tool_name="get_data", arguments={"start": "-1D", "end": "-7D"}),)
+        actual = (
+            ToolCall(tool_name="get_data", arguments={"start": "2026-01-20", "end": "2026-01-14"}),
+        )
 
         result = structural_comparator.compare(expected, actual)
 
@@ -143,14 +152,15 @@ class TestBehavioralMode:
 
     def test_behavioral_accepts_both_relative(self, behavioral_comparator):
         """Both relative expressions should be accepted."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "-1D"}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "-7D"}  # Different but valid
-        ),)
+        expected = (
+            ToolCall(tool_name="get_data", arguments={"tickers": ["AAPL.O"], "start": "-1D"}),
+        )
+        actual = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"tickers": ["AAPL.O"], "start": "-7D"},  # Different but valid
+            ),
+        )
 
         result = behavioral_comparator.compare(expected, actual)
 
@@ -160,14 +170,15 @@ class TestBehavioralMode:
 
     def test_behavioral_accepts_mixed_formats(self, behavioral_comparator):
         """Mixed relative and absolute should be accepted if both valid."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "-1D"}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "2026-01-15"}  # Different but valid
-        ),)
+        expected = (
+            ToolCall(tool_name="get_data", arguments={"tickers": ["AAPL.O"], "start": "-1D"}),
+        )
+        actual = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"tickers": ["AAPL.O"], "start": "2026-01-15"},  # Different but valid
+            ),
+        )
 
         result = behavioral_comparator.compare(expected, actual)
 
@@ -175,14 +186,13 @@ class TestBehavioralMode:
 
     def test_behavioral_rejects_invalid_expression(self, behavioral_comparator):
         """Invalid temporal expressions should cause failure."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"start": "-1D"}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"start": "invalid-date"}  # Invalid
-        ),)
+        expected = (ToolCall(tool_name="get_data", arguments={"start": "-1D"}),)
+        actual = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"start": "invalid-date"},  # Invalid
+            ),
+        )
 
         result = behavioral_comparator.compare(expected, actual)
 
@@ -191,14 +201,15 @@ class TestBehavioralMode:
 
     def test_behavioral_compares_non_date_fields(self, behavioral_comparator):
         """Non-date fields should still be compared exactly."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["AAPL.O"], "start": "-1D"}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"tickers": ["MSFT.O"], "start": "-1D"}  # Different ticker
-        ),)
+        expected = (
+            ToolCall(tool_name="get_data", arguments={"tickers": ["AAPL.O"], "start": "-1D"}),
+        )
+        actual = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"tickers": ["MSFT.O"], "start": "-1D"},  # Different ticker
+            ),
+        )
 
         result = behavioral_comparator.compare(expected, actual)
 
@@ -210,14 +221,13 @@ class TestDataMode:
 
     def test_data_mode_exact_match_required(self, data_comparator):
         """DATA mode requires exact match, no normalization."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"start": "-1D"}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"start": "2026-01-20"}  # Same date but different format
-        ),)
+        expected = (ToolCall(tool_name="get_data", arguments={"start": "-1D"}),)
+        actual = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"start": "2026-01-20"},  # Same date but different format
+            ),
+        )
 
         result = data_comparator.compare(expected, actual)
 
@@ -226,14 +236,8 @@ class TestDataMode:
 
     def test_data_mode_exact_match_passes(self, data_comparator):
         """DATA mode passes with exact string match."""
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"start": "2026-01-20"}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"start": "2026-01-20"}
-        ),)
+        expected = (ToolCall(tool_name="get_data", arguments={"start": "2026-01-20"}),)
+        actual = (ToolCall(tool_name="get_data", arguments={"start": "2026-01-20"}),)
 
         result = data_comparator.compare(expected, actual)
 
@@ -251,14 +255,8 @@ class TestCustomDateFields:
             relative_date_fields=("custom_start", "custom_end"),
         )
 
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"custom_start": "-1D"}
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"custom_start": "2026-01-20"}
-        ),)
+        expected = (ToolCall(tool_name="get_data", arguments={"custom_start": "-1D"}),)
+        actual = (ToolCall(tool_name="get_data", arguments={"custom_start": "2026-01-20"}),)
 
         result = comparator.compare(expected, actual)
 
@@ -273,14 +271,13 @@ class TestCustomDateFields:
             relative_date_fields=("custom_start",),  # Only custom_start
         )
 
-        expected = (ToolCall(
-            tool_name="get_data",
-            arguments={"start": "-1D"}  # Default field, not in custom list
-        ),)
-        actual = (ToolCall(
-            tool_name="get_data",
-            arguments={"start": "2026-01-20"}
-        ),)
+        expected = (
+            ToolCall(
+                tool_name="get_data",
+                arguments={"start": "-1D"},  # Default field, not in custom list
+            ),
+        )
+        actual = (ToolCall(tool_name="get_data", arguments={"start": "2026-01-20"}),)
 
         result = comparator.compare(expected, actual)
 
@@ -333,7 +330,8 @@ class TestConvenienceFunction:
         actual = (ToolCall(tool_name="get_data", arguments={"start": "2026-01-20"}),)
 
         result = compare_tool_calls_temporal(
-            expected, actual,
+            expected,
+            actual,
             reference_date=date(2026, 1, 21),
         )
 
@@ -345,7 +343,8 @@ class TestConvenienceFunction:
         actual = (ToolCall(tool_name="get_data", arguments={"start": "2026-01-20"}),)
 
         result = compare_tool_calls_temporal(
-            expected, actual,
+            expected,
+            actual,
             reference_date=date(2026, 1, 21),
             validation_mode=TemporalValidationMode.DATA,
         )
@@ -378,9 +377,7 @@ class TestEdgeCases:
             ToolCall(tool_name="get_data", arguments={"start": "-1D"}),
             ToolCall(tool_name="get_price", arguments={"start": "-1D"}),
         )
-        actual = (
-            ToolCall(tool_name="get_data", arguments={"start": "2026-01-20"}),
-        )
+        actual = (ToolCall(tool_name="get_data", arguments={"start": "2026-01-20"}),)
 
         result = structural_comparator.compare(expected, actual)
 
@@ -389,9 +386,7 @@ class TestEdgeCases:
 
     def test_extra_call(self, structural_comparator):
         """Extra calls should be detected."""
-        expected = (
-            ToolCall(tool_name="get_data", arguments={"start": "-1D"}),
-        )
+        expected = (ToolCall(tool_name="get_data", arguments={"start": "-1D"}),)
         actual = (
             ToolCall(tool_name="get_data", arguments={"start": "2026-01-20"}),
             ToolCall(tool_name="extra_call", arguments={}),

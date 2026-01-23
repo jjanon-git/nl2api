@@ -3,16 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 import pytest
 
-from CONTRACTS import ToolCall
 from src.nl2api.agents.estimates import EstimatesAgent
-from src.nl2api.agents.protocols import AgentContext, AgentResult
+from src.nl2api.agents.protocols import AgentContext
 from src.nl2api.llm.protocols import (
     LLMMessage,
-    LLMProvider,
     LLMResponse,
     LLMToolCall,
     LLMToolDefinition,

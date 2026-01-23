@@ -7,10 +7,8 @@ Normalizes relative date expressions before comparison.
 
 from __future__ import annotations
 
-from copy import deepcopy
 from dataclasses import dataclass, field
 from datetime import date
-from typing import Any
 
 from CONTRACTS import TemporalValidationMode, ToolCall
 from src.evaluation.core.ast_comparator import ASTComparator, ComparisonResult
@@ -232,9 +230,7 @@ class TemporalComparator:
 
         return errors
 
-    def _normalize_date_fields(
-        self, tc: ToolCall
-    ) -> tuple[ToolCall, dict[str, str]]:
+    def _normalize_date_fields(self, tc: ToolCall) -> tuple[ToolCall, dict[str, str]]:
         """
         Normalize date fields to absolute dates.
 
@@ -270,10 +266,7 @@ class TemporalComparator:
         Returns:
             New ToolCall without date fields
         """
-        args = {
-            k: v for k, v in tc.arguments.items()
-            if k not in self.relative_date_fields
-        }
+        args = {k: v for k, v in tc.arguments.items() if k not in self.relative_date_fields}
         return ToolCall(tool_name=tc.tool_name, arguments=args)
 
 

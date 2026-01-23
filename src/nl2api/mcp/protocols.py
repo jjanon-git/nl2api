@@ -12,7 +12,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from src.nl2api.llm.protocols import LLMToolDefinition
 
 
 class MCPResourceType(str, Enum):
@@ -99,7 +102,7 @@ class MCPToolDefinition:
             "required": required,
         }
 
-    def to_llm_tool_definition(self) -> "LLMToolDefinition":
+    def to_llm_tool_definition(self) -> LLMToolDefinition:
         """Convert to LLMToolDefinition for use with LLM providers."""
         from src.nl2api.llm.protocols import LLMToolDefinition
 
@@ -110,7 +113,7 @@ class MCPToolDefinition:
         )
 
     @classmethod
-    def from_mcp_response(cls, data: dict[str, Any]) -> "MCPToolDefinition":
+    def from_mcp_response(cls, data: dict[str, Any]) -> MCPToolDefinition:
         """Create from MCP tools/list response item."""
         params = []
         input_schema = data.get("inputSchema", {})

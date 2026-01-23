@@ -16,9 +16,9 @@ import logging
 from typing import TYPE_CHECKING
 
 from src.common.telemetry import (
-    init_telemetry,
-    get_eval_metrics,
     EvalMetrics,
+    get_eval_metrics,
+    init_telemetry,
 )
 
 if TYPE_CHECKING:
@@ -50,7 +50,7 @@ class BatchMetrics:
 
     def record_test_result(
         self,
-        scorecard: "Scorecard",
+        scorecard: Scorecard,
         batch_id: str,
         tags: list[str] | None = None,
         client_type: str | None = None,
@@ -82,7 +82,7 @@ class BatchMetrics:
 
     def record_batch_complete(
         self,
-        batch_job: "BatchJob",
+        batch_job: BatchJob,
         duration_seconds: float,
         client_type: str | None = None,
         client_version: str | None = None,

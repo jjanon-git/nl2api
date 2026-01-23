@@ -77,7 +77,6 @@ class MockEntityResolver:
             "chevron": "CVX.N",
             "conocophillips": "COP.N",
             "shell": "SHEL.N",
-            "bp": "BP.N",
             "british petroleum": "BP.N",
             # Consumer
             "walmart": "WMT.N",
@@ -234,7 +233,9 @@ class MockEntityResolver:
         """
         # Normalize entity name
         normalized = entity.lower().strip()
-        normalized = re.sub(r'\s+(inc\.?|corp\.?|corporation|ltd\.?|llc|plc)$', '', normalized, flags=re.I)
+        normalized = re.sub(
+            r"\s+(inc\.?|corp\.?|corporation|ltd\.?|llc|plc)$", "", normalized, flags=re.I
+        )
         normalized = normalized.strip()
 
         # Check cache
@@ -310,12 +311,16 @@ class MockEntityResolver:
                     entities.append(match.group())
 
         # Pattern 2: Capitalized words (potential company names)
-        cap_pattern = r'\b([A-Z][a-z]+(?:\s+(?:&\s+)?[A-Z][a-z]+)*(?:\s+(?:Inc\.?|Corp\.?|Ltd\.?))?)\b'
+        cap_pattern = (
+            r"\b([A-Z][a-z]+(?:\s+(?:&\s+)?[A-Z][a-z]+)*(?:\s+(?:Inc\.?|Corp\.?|Ltd\.?))?)\b"
+        )
         matches = re.findall(cap_pattern, query)
         for match in matches:
             # Check if this might be a company name
             match_lower = match.lower()
-            if match_lower in self._mappings or any(k in match_lower for k in self._mappings.keys()):
+            if match_lower in self._mappings or any(
+                k in match_lower for k in self._mappings.keys()
+            ):
                 entities.append(match)
 
         # Pattern 3: Possessive forms (Apple's, Microsoft's)

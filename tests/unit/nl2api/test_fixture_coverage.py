@@ -7,19 +7,16 @@ ensuring that as test data grows, test coverage grows with it.
 
 from __future__ import annotations
 
-import json
 import pytest
-from pathlib import Path
-from typing import Any
 
 from src.nl2api.agents.datastream import DatastreamAgent
 from src.nl2api.agents.screening import ScreeningAgent
-from src.nl2api.agents.protocols import AgentContext
-from tests.unit.nl2api.fixture_loader import FixtureLoader, GeneratedTestCase
+from tests.unit.nl2api.fixture_loader import FixtureLoader
 
 
 class MockLLMProvider:
     """Mock LLM provider for testing."""
+
     async def complete(self, messages, tools=None, temperature=0.0):
         return None
 
@@ -27,6 +24,7 @@ class MockLLMProvider:
 # =============================================================================
 # Fixture Discovery - Automatically finds all categories and subcategories
 # =============================================================================
+
 
 def discover_fixture_categories() -> list[str]:
     """Discover all fixture categories from the filesystem."""
@@ -59,6 +57,7 @@ def discover_tags() -> set[str]:
 # Coverage Registry - Tracks which categories/subcategories have coverage
 # =============================================================================
 
+
 class CoverageRegistry:
     """
     Registry that tracks fixture coverage requirements.
@@ -75,11 +74,9 @@ class CoverageRegistry:
         ("lookups", "multi_field", 0.15, DatastreamAgent),  # Lower threshold - complex queries
         ("temporal", "historical_price", 0.4, DatastreamAgent),
         ("comparisons", "two_stock", 0.3, DatastreamAgent),
-
         # ScreeningAgent coverage
         ("screening", "index_constituents", 0.3, ScreeningAgent),
         ("screening", "top_n", 0.5, ScreeningAgent),
-
         # NOTE: entity_resolution coverage is tracked separately in
         # test_entity_resolution_fixtures.py since it tests the EntityResolver
         # component rather than domain agents.
@@ -90,17 +87,17 @@ class CoverageRegistry:
     # against fixtures generated from 2.9M entities. Coverage will be very low.
     # For real accuracy testing, use tests/accuracy/ with the real database resolver.
     ENTITY_RESOLUTION_COVERAGE = {
-        "exact_match": 0.01,        # Mock has ~150 companies vs 2.9M in fixtures
-        "ticker_lookup": 0.01,      # Mock only knows ~150 tickers
-        "alias_match": 0.01,        # Limited alias coverage in mock
+        "exact_match": 0.01,  # Mock has ~150 companies vs 2.9M in fixtures
+        "ticker_lookup": 0.01,  # Mock only knows ~150 tickers
+        "alias_match": 0.01,  # Limited alias coverage in mock
         "suffix_variations": 0.01,  # Mock doesn't handle all suffixes
-        "fuzzy_misspellings": 0.00, # Mock has no fuzzy matching
-        "abbreviations": 0.05,      # Some common ones hardcoded
-        "international": 0.01,      # ~10 international companies in mock
-        "ambiguous": 0.00,          # Non-deterministic
+        "fuzzy_misspellings": 0.00,  # Mock has no fuzzy matching
+        "abbreviations": 0.05,  # Some common ones hardcoded
+        "international": 0.01,  # ~10 international companies in mock
+        "ambiguous": 0.00,  # Non-deterministic
         "ticker_collisions": 0.00,  # No exchange context
-        "edge_case_names": 0.01,    # Limited coverage
-        "negative_cases": 0.30,     # Over-matches common words
+        "edge_case_names": 0.01,  # Limited coverage
+        "negative_cases": 0.30,  # Over-matches common words
     }
 
     @classmethod
@@ -117,6 +114,7 @@ class CoverageRegistry:
 # =============================================================================
 # Dynamic Category Tests - Auto-generated from fixture structure
 # =============================================================================
+
 
 @pytest.fixture
 def loader() -> FixtureLoader:
@@ -234,6 +232,7 @@ class TestCategoryCanHandle:
 # Coverage Enforcement Tests
 # =============================================================================
 
+
 class TestCoverageEnforcement:
     """Tests that enforce minimum coverage thresholds."""
 
@@ -285,7 +284,7 @@ class TestCoverageEnforcement:
                     f"{rate:.1%} < {min_rate:.1%} required"
                 )
 
-        assert not failures, f"Coverage requirements not met:\n" + "\n".join(failures)
+        assert not failures, "Coverage requirements not met:\n" + "\n".join(failures)
 
     @pytest.mark.asyncio
     async def test_new_subcategories_have_some_coverage(
@@ -327,11 +326,12 @@ class TestCoverageEnforcement:
         # These are advanced features not yet implemented
         expected_zero_coverage_prefixes = [
             "complex/",  # Complex multi-step queries
-            "errors/",   # Error handling scenarios
+            "errors/",  # Error handling scenarios
         ]
 
         unexpected_zero_coverage = [
-            sub for sub in zero_coverage
+            sub
+            for sub in zero_coverage
             if not any(sub.startswith(prefix) for prefix in expected_zero_coverage_prefixes)
         ]
 
@@ -347,7 +347,9 @@ class TestCoverageEnforcement:
         if zero_coverage:
             print(f"\nSubcategories with zero coverage ({len(zero_coverage)} total):")
             print(f"  Unexpected: {len(unexpected_zero_coverage)}")
-            print(f"  Expected (complex/errors): {len(zero_coverage) - len(unexpected_zero_coverage)}")
+            print(
+                f"  Expected (complex/errors): {len(zero_coverage) - len(unexpected_zero_coverage)}"
+            )
             if unexpected_zero_coverage:
                 print("\n  Unexpected zero coverage:")
                 for subcat in unexpected_zero_coverage[:5]:
@@ -357,6 +359,7 @@ class TestCoverageEnforcement:
 # =============================================================================
 # Fixture Growth Detection
 # =============================================================================
+
 
 class TestFixtureGrowth:
     """Tests that detect when fixture data grows."""
@@ -385,9 +388,7 @@ class TestFixtureGrowth:
         for category, baseline in self.BASELINE_COUNTS.items():
             actual = len(loader.load_category(category))
             if actual > baseline * 1.1:  # More than 10% growth
-                growth_report.append(
-                    f"{category}: {actual} (was {baseline}, +{actual - baseline})"
-                )
+                growth_report.append(f"{category}: {actual} (was {baseline}, +{actual - baseline})")
 
         if growth_report:
             print("\nFixture growth detected:")
@@ -398,6 +399,7 @@ class TestFixtureGrowth:
 # =============================================================================
 # Tag Coverage Tests
 # =============================================================================
+
 
 class TestTagCoverage:
     """Tests based on fixture tags."""
@@ -448,8 +450,7 @@ class TestTagCoverage:
 
             if rate < min_rate:
                 failures.append(
-                    f"Tag '{tag}' with {agent_class.__name__}: "
-                    f"{rate:.1%} < {min_rate:.1%}"
+                    f"Tag '{tag}' with {agent_class.__name__}: {rate:.1%} < {min_rate:.1%}"
                 )
 
         assert not failures, "Tag coverage requirements not met:\n" + "\n".join(failures)
@@ -467,6 +468,7 @@ class TestTagCoverage:
 # =============================================================================
 # Summary Report Test
 # =============================================================================
+
 
 class TestCoverageSummary:
     """Generate a coverage summary report."""

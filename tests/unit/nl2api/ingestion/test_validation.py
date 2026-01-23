@@ -193,7 +193,9 @@ class TestEntityValidator:
                 "data_source": "gleif",
             }
             result = validator.validate(record)
-            assert any("placeholder" in w.lower() for w in result.warnings), f"Should warn on '{name}'"
+            assert any("placeholder" in w.lower() for w in result.warnings), (
+                f"Should warn on '{name}'"
+            )
 
     def test_strict_mode(self):
         """Test strict mode turns warnings into errors."""

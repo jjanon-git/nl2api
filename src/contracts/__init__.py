@@ -40,18 +40,17 @@ from src.contracts.core import (
 
 # Evaluation models
 from src.contracts.evaluation import (
-    Evaluator,
     EvaluationConfig,
+    Evaluator,
     LLMJudgeConfig,
     Scorecard,
     StageResult,
 )
 
-# Worker models
-from src.contracts.worker import (
-    BatchJob,
-    WorkerConfig,
-    WorkerTask,
+# Storage models
+from src.contracts.storage import (
+    IdempotencyRecord,
+    TableStorageEntity,
 )
 
 # Tenant models
@@ -64,10 +63,11 @@ from src.contracts.tenant import (
     TestSuite,
 )
 
-# Storage models
-from src.contracts.storage import (
-    IdempotencyRecord,
-    TableStorageEntity,
+# Worker models
+from src.contracts.worker import (
+    BatchJob,
+    WorkerConfig,
+    WorkerTask,
 )
 
 __all__ = [

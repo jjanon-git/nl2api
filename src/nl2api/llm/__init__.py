@@ -5,6 +5,7 @@ Provides a unified interface for interacting with different LLM providers
 (Claude, OpenAI) using their native tool-calling APIs.
 """
 
+from src.nl2api.llm.factory import create_llm_provider
 from src.nl2api.llm.protocols import (
     LLMMessage,
     LLMProvider,
@@ -13,7 +14,6 @@ from src.nl2api.llm.protocols import (
     LLMToolDefinition,
     MessageRole,
 )
-from src.nl2api.llm.factory import create_llm_provider
 
 __all__ = [
     "LLMMessage",

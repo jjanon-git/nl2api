@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from src.nl2api.resolution.resolver import ExternalEntityResolver
 from src.nl2api.resolution.protocols import ResolvedEntity
+from src.nl2api.resolution.resolver import ExternalEntityResolver
 
 
 class TestResolvedEntity:
@@ -58,6 +58,7 @@ class TestExternalEntityResolver:
         """Set up test fixtures."""
         # Use MockEntityResolver for unit tests - ExternalEntityResolver needs database
         from src.nl2api.resolution.mock_resolver import MockEntityResolver
+
         self.resolver = MockEntityResolver()
 
     @pytest.mark.asyncio

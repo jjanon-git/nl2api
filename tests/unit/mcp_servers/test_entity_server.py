@@ -29,7 +29,6 @@ from src.mcp_servers.entity_resolution.tools import (
 )
 from src.nl2api.resolution.protocols import ResolvedEntity
 
-
 # =============================================================================
 # Configuration Tests
 # =============================================================================
@@ -109,9 +108,7 @@ class TestToolDefinitions:
 
     def test_resolve_entities_batch_definition(self) -> None:
         """Test resolve_entities_batch tool definition."""
-        tool = next(
-            t for t in TOOL_DEFINITIONS if t["name"] == "resolve_entities_batch"
-        )
+        tool = next(t for t in TOOL_DEFINITIONS if t["name"] == "resolve_entities_batch")
 
         assert "entities" in tool["inputSchema"]["properties"]
         assert tool["inputSchema"]["properties"]["entities"]["type"] == "array"
@@ -457,11 +454,13 @@ class TestServerProtocol:
     @pytest.mark.asyncio
     async def test_handle_ping(self, server: MagicMock) -> None:
         """Test ping message handling."""
-        response = await server.handle_message({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "ping",
-        })
+        response = await server.handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "ping",
+            }
+        )
 
         assert response["jsonrpc"] == "2.0"
         assert response["id"] == 1
@@ -470,11 +469,13 @@ class TestServerProtocol:
     @pytest.mark.asyncio
     async def test_handle_tools_list(self, server: MagicMock) -> None:
         """Test tools/list message handling."""
-        response = await server.handle_message({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "tools/list",
-        })
+        response = await server.handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/list",
+            }
+        )
 
         assert response["jsonrpc"] == "2.0"
         assert "tools" in response["result"]
@@ -482,11 +483,13 @@ class TestServerProtocol:
     @pytest.mark.asyncio
     async def test_handle_unknown_method(self, server: MagicMock) -> None:
         """Test unknown method handling."""
-        response = await server.handle_message({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "unknown/method",
-        })
+        response = await server.handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "unknown/method",
+            }
+        )
 
         assert "error" in response
         assert response["error"]["code"] == -32601  # Method not found
@@ -494,11 +497,13 @@ class TestServerProtocol:
     @pytest.mark.asyncio
     async def test_handle_resources_list(self, server: MagicMock) -> None:
         """Test resources/list message handling."""
-        response = await server.handle_message({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "resources/list",
-        })
+        response = await server.handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/list",
+            }
+        )
 
         assert response["jsonrpc"] == "2.0"
         assert "resources" in response["result"]
@@ -781,11 +786,13 @@ class TestJsonRpcMessageHandling:
             mock_pool.return_value = MagicMock()
             mock_pool.return_value.close = AsyncMock()
 
-            response = await server.handle_message({
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "initialize",
-            })
+            response = await server.handle_message(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "initialize",
+                }
+            )
 
             assert response["jsonrpc"] == "2.0"
             assert response["id"] == 1
@@ -796,11 +803,13 @@ class TestJsonRpcMessageHandling:
     async def test_handle_initialized_message(self, server: MagicMock) -> None:
         """Test initialized notification (no id, no response per JSON-RPC spec)."""
         # 'initialized' is a notification in MCP - it has no id and expects no response
-        response = await server.handle_message({
-            "jsonrpc": "2.0",
-            "method": "initialized",
-            # Note: no 'id' field - this is a notification
-        })
+        response = await server.handle_message(
+            {
+                "jsonrpc": "2.0",
+                "method": "initialized",
+                # Note: no 'id' field - this is a notification
+            }
+        )
 
         # Notifications return None (no response should be sent)
         assert response is None
@@ -808,11 +817,13 @@ class TestJsonRpcMessageHandling:
     @pytest.mark.asyncio
     async def test_handle_shutdown_message(self, server: MagicMock) -> None:
         """Test shutdown message triggers cleanup."""
-        response = await server.handle_message({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "shutdown",
-        })
+        response = await server.handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "shutdown",
+            }
+        )
 
         assert response["jsonrpc"] == "2.0"
         assert response["id"] == 1
@@ -821,15 +832,17 @@ class TestJsonRpcMessageHandling:
     @pytest.mark.asyncio
     async def test_handle_tools_call_uninitialized(self, server: MagicMock) -> None:
         """Test tools/call returns error when not initialized."""
-        response = await server.handle_message({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "tools/call",
-            "params": {
-                "name": "resolve_entity",
-                "arguments": {"entity": "Apple"},
-            },
-        })
+        response = await server.handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {
+                    "name": "resolve_entity",
+                    "arguments": {"entity": "Apple"},
+                },
+            }
+        )
 
         assert "error" in response
         assert response["error"]["code"] == -32603  # Internal error
@@ -837,12 +850,14 @@ class TestJsonRpcMessageHandling:
     @pytest.mark.asyncio
     async def test_handle_resources_read_uninitialized(self, server: MagicMock) -> None:
         """Test resources/read returns error when not initialized."""
-        response = await server.handle_message({
-            "jsonrpc": "2.0",
-            "id": 1,
-            "method": "resources/read",
-            "params": {"uri": "entity://health"},
-        })
+        response = await server.handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "resources/read",
+                "params": {"uri": "entity://health"},
+            }
+        )
 
         assert "error" in response
         assert response["error"]["code"] == -32603  # Internal error
@@ -850,11 +865,13 @@ class TestJsonRpcMessageHandling:
     @pytest.mark.asyncio
     async def test_handle_message_with_none_id(self, server: MagicMock) -> None:
         """Test handling message with None id (notification)."""
-        response = await server.handle_message({
-            "jsonrpc": "2.0",
-            "id": None,
-            "method": "ping",
-        })
+        response = await server.handle_message(
+            {
+                "jsonrpc": "2.0",
+                "id": None,
+                "method": "ping",
+            }
+        )
 
         assert response["id"] is None
         assert "result" in response
@@ -926,17 +943,21 @@ class TestResourceHandlerEdgeCases:
 
         # Mock database pool with async context manager
         mock_conn = MagicMock()
-        mock_conn.fetchrow = AsyncMock(return_value={
-            "total_entities": 100,
-            "total_aliases": 50,
-            "entities_with_ric": 80,
-        })
+        mock_conn.fetchrow = AsyncMock(
+            return_value={
+                "total_entities": 100,
+                "total_aliases": 50,
+                "entities_with_ric": 80,
+            }
+        )
 
         mock_pool = MagicMock()
-        mock_pool.acquire = MagicMock(return_value=AsyncMock(
-            __aenter__=AsyncMock(return_value=mock_conn),
-            __aexit__=AsyncMock(return_value=None),
-        ))
+        mock_pool.acquire = MagicMock(
+            return_value=AsyncMock(
+                __aenter__=AsyncMock(return_value=mock_conn),
+                __aexit__=AsyncMock(return_value=None),
+            )
+        )
 
         handlers = ResourceHandlers(
             resolver=mock_resolver,
@@ -1388,19 +1409,20 @@ class TestClientIdEnforcement:
         app = create_app(config)
 
         # Add a test endpoint that returns the context
-        from fastapi import FastAPI
         from fastapi.responses import JSONResponse
 
         @app.get("/test/context")
         async def get_context() -> JSONResponse:
             ctx = get_client_context()
             if ctx:
-                return JSONResponse(content={
-                    "client_id": ctx.client_id,
-                    "client_name": ctx.client_name,
-                    "transport": ctx.transport,
-                    "session_id": ctx.session_id,
-                })
+                return JSONResponse(
+                    content={
+                        "client_id": ctx.client_id,
+                        "client_name": ctx.client_name,
+                        "transport": ctx.transport,
+                        "session_id": ctx.session_id,
+                    }
+                )
             return JSONResponse(content={"error": "no context"}, status_code=500)
 
         with TestClient(app, raise_server_exceptions=False) as client:

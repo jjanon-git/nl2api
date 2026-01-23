@@ -2,28 +2,27 @@
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import tempfile
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from src.nl2api.observability.metrics import RequestMetrics
 from src.nl2api.observability.emitter import (
-    MetricsEmitter,
-    LoggingEmitter,
-    FileEmitter,
     CompositeEmitter,
+    FileEmitter,
+    LoggingEmitter,
+    MetricsEmitter,
     NullEmitter,
     configure_emitter,
-    get_emitter,
-    emit_metrics,
-    set_metrics_enabled,
     create_emitter_from_config,
+    emit_metrics,
+    get_emitter,
+    set_metrics_enabled,
 )
+from src.nl2api.observability.metrics import RequestMetrics
 
 
 class TestLoggingEmitter:

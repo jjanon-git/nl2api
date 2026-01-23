@@ -10,8 +10,9 @@ from __future__ import annotations
 
 import logging
 import os
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, AsyncIterator
+from typing import TYPE_CHECKING
 
 import anyio
 from mcp.server import Server
@@ -22,15 +23,17 @@ from src.mcp_servers.entity_resolution.context import (
     create_stdio_context,
     set_client_context,
 )
-from src.mcp_servers.entity_resolution.tools import TOOL_DEFINITIONS, ToolHandlers
 from src.mcp_servers.entity_resolution.nl2api_tools import (
     NL2API_TOOL_DEFINITIONS,
     NL2APIToolHandlers,
 )
+from src.mcp_servers.entity_resolution.tools import TOOL_DEFINITIONS, ToolHandlers
 from src.nl2api.resolution.resolver import ExternalEntityResolver
 
 if TYPE_CHECKING:
     import asyncpg
+
+    from src.mcp_servers.entity_resolution.server import EntityResolutionMCPServer
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +54,7 @@ async def server_lifespan(server: Server) -> AsyncIterator[dict]:
     # Load .env file if it exists (for ANTHROPIC_API_KEY etc.)
     try:
         from dotenv import load_dotenv
+
         # Look for .env in the project root (where we're running from)
         env_path = os.path.join(os.getcwd(), ".env")
         if os.path.exists(env_path):
@@ -61,16 +65,18 @@ async def server_lifespan(server: Server) -> AsyncIterator[dict]:
 
     # Get config from environment
     postgres_url = os.environ.get(
-        "ENTITY_MCP_POSTGRES_URL",
-        "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+        "ENTITY_MCP_POSTGRES_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"
     )
     # Check both prefixed and non-prefixed env var names
-    anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("NL2API_ANTHROPIC_API_KEY")
+    anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get(
+        "NL2API_ANTHROPIC_API_KEY"
+    )
 
     # Initialize database pool
     db_pool: asyncpg.Pool | None = None
     try:
         import asyncpg
+
         db_pool = await asyncpg.create_pool(
             postgres_url,
             min_size=1,
@@ -99,12 +105,12 @@ async def server_lifespan(server: Server) -> AsyncIterator[dict]:
 
     if anthropic_api_key:
         try:
-            from src.nl2api.llm.claude import ClaudeProvider
             from src.nl2api.agents.datastream import DatastreamAgent
             from src.nl2api.agents.estimates import EstimatesAgent
             from src.nl2api.agents.fundamentals import FundamentalsAgent
             from src.nl2api.agents.officers import OfficersAgent
             from src.nl2api.agents.screening import ScreeningAgent
+            from src.nl2api.llm.claude import ClaudeProvider
             from src.nl2api.orchestrator import NL2APIOrchestrator
 
             # Initialize LLM provider (use Haiku for placeholder generation)
@@ -206,14 +212,16 @@ def create_mcp_server() -> Server:
 
         # Add NL2API tools if enabled
         if nl2api_enabled:
-            tools.extend([
-                Tool(
-                    name=t["name"],
-                    description=t["description"],
-                    inputSchema=t["inputSchema"],
-                )
-                for t in NL2API_TOOL_DEFINITIONS
-            ])
+            tools.extend(
+                [
+                    Tool(
+                        name=t["name"],
+                        description=t["description"],
+                        inputSchema=t["inputSchema"],
+                    )
+                    for t in NL2API_TOOL_DEFINITIONS
+                ]
+            )
 
         return tools
 
@@ -237,13 +245,16 @@ def create_mcp_server() -> Server:
 
             elif name in nl2api_tool_names:
                 if not nl2api_enabled or not nl2api_handlers:
-                    return [TextContent(
-                        type="text",
-                        text="Error: NL2API tools require ANTHROPIC_API_KEY to be set"
-                    )]
+                    return [
+                        TextContent(
+                            type="text",
+                            text="Error: NL2API tools require ANTHROPIC_API_KEY to be set",
+                        )
+                    ]
                 result = await nl2api_handlers.handle_tool_call(name, arguments)
                 # Return as formatted JSON for readability
                 import json
+
                 return [TextContent(type="text", text=json.dumps(result, indent=2))]
 
             else:
@@ -276,7 +287,7 @@ async def run_stdio_server_sdk() -> None:
     logger.info("stdio transport stopped")
 
 
-async def run_stdio_server(server: "EntityResolutionMCPServer") -> None:
+async def run_stdio_server(server: EntityResolutionMCPServer) -> None:
     """
     Run the MCP server using stdio transport.
 

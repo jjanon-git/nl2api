@@ -5,9 +5,10 @@ Tests the MCP caching implementations.
 """
 
 import asyncio
-import pytest
 import time
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
+
+import pytest
 
 from src.nl2api.mcp.cache import (
     CacheEntry,
@@ -155,19 +156,11 @@ class TestInMemoryMCPCache:
         result1 = MCPToolResult(tool_name="get_price", content={"price": 150})
         result2 = MCPToolResult(tool_name="get_price", content={"price": 200})
 
-        await cache.set_tool_result(
-            "mcp://server1", "get_price", {"ric": "AAPL.O"}, result1
-        )
-        await cache.set_tool_result(
-            "mcp://server1", "get_price", {"ric": "MSFT.O"}, result2
-        )
+        await cache.set_tool_result("mcp://server1", "get_price", {"ric": "AAPL.O"}, result1)
+        await cache.set_tool_result("mcp://server1", "get_price", {"ric": "MSFT.O"}, result2)
 
-        cached1 = await cache.get_tool_result(
-            "mcp://server1", "get_price", {"ric": "AAPL.O"}
-        )
-        cached2 = await cache.get_tool_result(
-            "mcp://server1", "get_price", {"ric": "MSFT.O"}
-        )
+        cached1 = await cache.get_tool_result("mcp://server1", "get_price", {"ric": "AAPL.O"})
+        cached2 = await cache.get_tool_result("mcp://server1", "get_price", {"ric": "MSFT.O"})
 
         assert cached1.content == {"price": 150}
         assert cached2.content == {"price": 200}

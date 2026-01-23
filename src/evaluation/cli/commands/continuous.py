@@ -263,8 +263,7 @@ async def _continuous_alerts_async(days: int, limit: int) -> None:
     try:
         # Create database pool
         database_url = os.environ.get(
-            "DATABASE_URL",
-            "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+            "DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"
         )
         try:
             pool = await create_pool(database_url)
@@ -285,9 +284,7 @@ async def _continuous_alerts_async(days: int, limit: int) -> None:
 
         console.print()
         table = Table(
-            title=f"Regression Alerts (last {days} days)",
-            show_header=True,
-            header_style="bold"
+            title=f"Regression Alerts (last {days} days)", show_header=True, header_style="bold"
         )
         table.add_column("ID", width=15)
         table.add_column("Severity", width=10)
@@ -368,8 +365,7 @@ async def _continuous_acknowledge_async(
     try:
         # Create database pool
         database_url = os.environ.get(
-            "DATABASE_URL",
-            "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+            "DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"
         )
         try:
             pool = await create_pool(database_url)

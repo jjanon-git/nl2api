@@ -10,8 +10,9 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from collections.abc import Awaitable, Callable
 from dataclasses import replace
-from typing import Any, Awaitable, Callable, Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 from src.nl2api.routing.protocols import RouterResult
 
@@ -86,10 +87,7 @@ class RoutingCache:
         self._key_prefix = key_prefix
 
         if self._semantic_enabled:
-            logger.info(
-                f"RoutingCache: semantic cache enabled "
-                f"(threshold={similarity_threshold})"
-            )
+            logger.info(f"RoutingCache: semantic cache enabled (threshold={similarity_threshold})")
         else:
             logger.info("RoutingCache: exact match only (semantic disabled)")
 
@@ -117,7 +115,7 @@ class RoutingCache:
             try:
                 cached = await self._exact_lookup(query)
                 if cached:
-                    logger.debug(f"Exact cache hit for routing")
+                    logger.debug("Exact cache hit for routing")
                     return cached
             except Exception as e:
                 logger.warning(f"Redis cache lookup failed: {e}")
@@ -127,7 +125,7 @@ class RoutingCache:
             try:
                 cached = await self._semantic_lookup(query)
                 if cached:
-                    logger.debug(f"Semantic cache hit for routing")
+                    logger.debug("Semantic cache hit for routing")
                     return cached
             except Exception as e:
                 logger.warning(f"Semantic cache lookup failed: {e}")
@@ -181,8 +179,7 @@ class RoutingCache:
 
             if row:
                 logger.debug(
-                    f"Semantic match: domain={row['domain']}, "
-                    f"similarity={row['similarity']:.3f}"
+                    f"Semantic match: domain={row['domain']}, similarity={row['similarity']:.3f}"
                 )
                 return RouterResult(
                     domain=row["domain"],
@@ -227,11 +224,13 @@ class RoutingCache:
             return
 
         key = self._cache_key(query)
-        data = json.dumps({
-            "domain": result.domain,
-            "confidence": result.confidence,
-            "reasoning": result.reasoning,
-        })
+        data = json.dumps(
+            {
+                "domain": result.domain,
+                "confidence": result.confidence,
+                "reasoning": result.reasoning,
+            }
+        )
         await self._redis.setex(key, self._ttl, data)
 
     async def _semantic_store(self, query: str, result: RouterResult) -> None:

@@ -94,9 +94,9 @@ async def run_temporal_test(limit: int = 250):
     evaluator = WaterfallEvaluator(config=config)
     resolver = DateResolver(reference_date=eval_date)
 
-    print(f"\nRunning evaluation...")
+    print("\nRunning evaluation...")
     print(f"  Reference date: {eval_date}")
-    print(f"  Temporal mode: STRUCTURAL")
+    print("  Temporal mode: STRUCTURAL")
     print()
 
     results = {
@@ -124,11 +124,13 @@ async def run_temporal_test(limit: int = 250):
                 elif scorecard.logic_result and not scorecard.logic_result.passed:
                     results["logic_failed"] += 1
                     if len(results["errors"]) < 5:
-                        results["errors"].append({
-                            "id": test_case.id,
-                            "query": test_case.nl_query[:50],
-                            "reason": scorecard.logic_result.reason,
-                        })
+                        results["errors"].append(
+                            {
+                                "id": test_case.id,
+                                "query": test_case.nl_query[:50],
+                                "reason": scorecard.logic_result.reason,
+                            }
+                        )
 
             if (i + 1) % 50 == 0:
                 print(f"  Processed {i + 1}/{len(fixtures)}...")
@@ -137,10 +139,12 @@ async def run_temporal_test(limit: int = 250):
             results["total"] += 1
             results["failed"] += 1
             if len(results["errors"]) < 5:
-                results["errors"].append({
-                    "id": tc_dict.get("id", "unknown"),
-                    "error": str(e),
-                })
+                results["errors"].append(
+                    {
+                        "id": tc_dict.get("id", "unknown"),
+                        "error": str(e),
+                    }
+                )
 
     # Print results
     print("\n" + "=" * 60)
@@ -151,12 +155,14 @@ async def run_temporal_test(limit: int = 250):
     print(f"Failed:       {results['failed']}")
     print(f"  - Syntax:   {results['syntax_failed']}")
     print(f"  - Logic:    {results['logic_failed']}")
-    print(f"Pass Rate:    {results['passed']/results['total']*100:.1f}%")
+    print(f"Pass Rate:    {results['passed'] / results['total'] * 100:.1f}%")
 
     if results["errors"]:
         print("\nSample Failures:")
         for err in results["errors"]:
-            print(f"  - {err.get('id', 'unknown')}: {err.get('reason', err.get('error', 'unknown'))}")
+            print(
+                f"  - {err.get('id', 'unknown')}: {err.get('reason', err.get('error', 'unknown'))}"
+            )
 
     return results["passed"] == results["total"]
 

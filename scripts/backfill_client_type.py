@@ -60,8 +60,10 @@ async def backfill_scorecards(dry_run: bool = False) -> None:
 
             logger.info("\nSample scorecards that would be updated:")
             for row in samples:
-                logger.info(f"  - {row['scorecard_id']} (batch: {row['batch_id']}, "
-                           f"timestamp: {row['timestamp']})")
+                logger.info(
+                    f"  - {row['scorecard_id']} (batch: {row['batch_id']}, "
+                    f"timestamp: {row['timestamp']})"
+                )
 
             if count_result > 10:
                 logger.info(f"  ... and {count_result - 10} more")
@@ -109,9 +111,7 @@ async def backfill_scorecards(dry_run: bool = False) -> None:
 
 def main() -> None:
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Backfill client_type for existing scorecards"
-    )
+    parser = argparse.ArgumentParser(description="Backfill client_type for existing scorecards")
     parser.add_argument(
         "--dry-run",
         action="store_true",

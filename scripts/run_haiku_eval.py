@@ -19,8 +19,8 @@ Usage:
     python scripts/run_haiku_eval.py --category lookups --limit 500
 """
 
-import asyncio
 import argparse
+import asyncio
 import json
 import os
 import sys
@@ -32,6 +32,7 @@ from pathlib import Path
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+
 
 # Load .env file manually (no external dependency)
 def load_env_file():
@@ -46,12 +47,14 @@ def load_env_file():
                 if key and key not in os.environ:
                     os.environ[key] = value
 
+
 load_env_file()
 
 
 @dataclass
 class EvalResult:
     """Result of a single evaluation."""
+
     test_id: str
     query: str
     category: str
@@ -65,6 +68,7 @@ class EvalResult:
 @dataclass
 class EvalSummary:
     """Summary of evaluation run."""
+
     total: int = 0
     passed: int = 0
     failed: int = 0
@@ -96,12 +100,12 @@ async def run_evaluation(
     """Run the evaluation."""
 
     # Import here to avoid issues if deps missing
-    from src.nl2api.llm.factory import create_llm_provider
     from src.nl2api.agents.datastream import DatastreamAgent
     from src.nl2api.agents.estimates import EstimatesAgent
-    from src.nl2api.agents.screening import ScreeningAgent
     from src.nl2api.agents.fundamentals import FundamentalsAgent
     from src.nl2api.agents.officers import OfficersAgent
+    from src.nl2api.agents.screening import ScreeningAgent
+    from src.nl2api.llm.factory import create_llm_provider
     from src.nl2api.orchestrator import NL2APIOrchestrator
     from tests.unit.nl2api.fixture_loader import FixtureLoader, GeneratedTestCase
 
@@ -116,7 +120,7 @@ async def run_evaluation(
         api_key=api_key,
         model="claude-3-haiku-20240307",
     )
-    print(f"  Model: claude-3-haiku-20240307")
+    print("  Model: claude-3-haiku-20240307")
 
     # 2. Create domain agents
     print("\n[2/4] Initializing domain agents...")
@@ -179,7 +183,9 @@ async def run_evaluation(
                         query=tc.nl_query,
                         category=tc.category,
                         passed=False,
-                        expected_function=tc.expected_tool_calls[0].get("function", "unknown") if tc.expected_tool_calls else "unknown",
+                        expected_function=tc.expected_tool_calls[0].get("function", "unknown")
+                        if tc.expected_tool_calls
+                        else "unknown",
                         actual_function=None,
                         error="No tool calls returned",
                         latency_ms=latency,
@@ -187,10 +193,13 @@ async def run_evaluation(
 
                 # Compare tool calls
                 actual_func = response.tool_calls[0].tool_name
-                expected_func = tc.expected_tool_calls[0].get("function", "") if tc.expected_tool_calls else ""
+                expected_func = (
+                    tc.expected_tool_calls[0].get("function", "") if tc.expected_tool_calls else ""
+                )
 
                 # Normalize using ToolRegistry (single source of truth)
                 from CONTRACTS import ToolRegistry
+
                 actual_normalized = ToolRegistry.normalize(actual_func)
                 expected_normalized = ToolRegistry.normalize(expected_func)
 
@@ -224,7 +233,9 @@ async def run_evaluation(
                     query=tc.nl_query,
                     category=tc.category,
                     passed=False,
-                    expected_function=tc.expected_tool_calls[0].get("function", "unknown") if tc.expected_tool_calls else "unknown",
+                    expected_function=tc.expected_tool_calls[0].get("function", "unknown")
+                    if tc.expected_tool_calls
+                    else "unknown",
                     actual_function=None,
                     error=str(e),
                     latency_ms=latency,
@@ -235,7 +246,7 @@ async def run_evaluation(
     results: list[EvalResult] = []
 
     for i in range(0, len(test_cases), batch_size):
-        batch = test_cases[i:i + batch_size]
+        batch = test_cases[i : i + batch_size]
         batch_results = await asyncio.gather(*[evaluate_one(tc) for tc in batch])
         results.extend(batch_results)
 
@@ -265,8 +276,10 @@ async def run_evaluation(
         # Progress update
         completed = min(i + batch_size, len(test_cases))
         pct = completed / len(test_cases) * 100
-        print(f"  Progress: {completed}/{len(test_cases)} ({pct:.1f}%) - "
-              f"Pass: {summary.passed}, Fail: {summary.failed}, Errors: {summary.errors}")
+        print(
+            f"  Progress: {completed}/{len(test_cases)} ({pct:.1f}%) - "
+            f"Pass: {summary.passed}, Fail: {summary.failed}, Errors: {summary.errors}"
+        )
 
     summary.end_time = datetime.now()
 
@@ -279,14 +292,14 @@ def print_summary(summary: EvalSummary):
     print("EVALUATION COMPLETE")
     print("=" * 60)
 
-    print(f"\nOverall Results:")
+    print("\nOverall Results:")
     print(f"  Total:      {summary.total}")
     print(f"  Passed:     {summary.passed} ({summary.pass_rate:.1f}%)")
     print(f"  Failed:     {summary.failed}")
     print(f"  Errors:     {summary.errors}")
     print(f"  Duration:   {summary.duration_seconds:.1f}s")
 
-    print(f"\nResults by Category:")
+    print("\nResults by Category:")
     for cat, stats in sorted(summary.by_category.items()):
         rate = stats["passed"] / stats["total"] * 100 if stats["total"] > 0 else 0
         print(f"  {cat:15} {stats['passed']:4}/{stats['total']:4} ({rate:5.1f}%)")
@@ -306,7 +319,9 @@ def main():
     parser = argparse.ArgumentParser(description="Run NL2API evaluation with Haiku")
     parser.add_argument("--limit", type=int, help="Limit number of test cases")
     parser.add_argument("--category", type=str, help="Run specific category only")
-    parser.add_argument("--concurrency", type=int, default=5, help="Concurrent requests (default: 5)")
+    parser.add_argument(
+        "--concurrency", type=int, default=5, help="Concurrent requests (default: 5)"
+    )
     parser.add_argument("--verbose", action="store_true", help="Verbose output")
     args = parser.parse_args()
 
@@ -327,39 +342,45 @@ def main():
         print("  1. Export the environment variable:")
         print('     export NL2API_ANTHROPIC_API_KEY="sk-ant-api03-..."')
         print("\n  2. Or create a .env file in the project root:")
-        print('     echo \'NL2API_ANTHROPIC_API_KEY=sk-ant-api03-...\' > .env')
+        print("     echo 'NL2API_ANTHROPIC_API_KEY=sk-ant-api03-...' > .env")
         print("\nGet your API key from: https://console.anthropic.com/settings/keys")
         sys.exit(1)
 
     # Validate API key format
     if not api_key.startswith("sk-ant-"):
-        print(f"WARNING: API key doesn't look like an Anthropic key (should start with 'sk-ant-')")
+        print("WARNING: API key doesn't look like an Anthropic key (should start with 'sk-ant-')")
         print(f"Got: {api_key[:20]}...")
 
     # Run evaluation
     try:
-        summary = asyncio.run(run_evaluation(
-            api_key=api_key,
-            limit=args.limit,
-            category=args.category,
-            concurrency=args.concurrency,
-            verbose=args.verbose,
-        ))
+        summary = asyncio.run(
+            run_evaluation(
+                api_key=api_key,
+                limit=args.limit,
+                category=args.category,
+                concurrency=args.concurrency,
+                verbose=args.verbose,
+            )
+        )
         print_summary(summary)
 
         # Save results to JSON
         results_file = PROJECT_ROOT / "eval_results.json"
         with open(results_file, "w") as f:
-            json.dump({
-                "timestamp": datetime.now().isoformat(),
-                "total": summary.total,
-                "passed": summary.passed,
-                "failed": summary.failed,
-                "errors": summary.errors,
-                "pass_rate": summary.pass_rate,
-                "duration_seconds": summary.duration_seconds,
-                "by_category": summary.by_category,
-            }, f, indent=2)
+            json.dump(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "total": summary.total,
+                    "passed": summary.passed,
+                    "failed": summary.failed,
+                    "errors": summary.errors,
+                    "pass_rate": summary.pass_rate,
+                    "duration_seconds": summary.duration_seconds,
+                    "by_category": summary.by_category,
+                },
+                f,
+                indent=2,
+            )
         print(f"\nResults saved to: {results_file}")
 
         # Exit with appropriate code
@@ -371,6 +392,7 @@ def main():
     except Exception as e:
         print(f"\nERROR: {e}")
         import traceback
+
         traceback.print_exc()
         sys.exit(1)
 

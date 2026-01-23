@@ -27,22 +27,21 @@ import asyncio
 import json
 import os
 import sys
-from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Optional
+from pathlib import Path
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from scripts.generators import (
-    LookupGenerator,
-    TemporalGenerator,
     ComparisonGenerator,
-    ScreeningGenerator,
-    ErrorGenerator,
     ComplexGenerator,
     EntityResolutionGenerator,
+    ErrorGenerator,
+    LookupGenerator,
+    ScreeningGenerator,
+    TemporalGenerator,
 )
 
 
@@ -53,8 +52,7 @@ class TestCaseOrchestrator:
         self.data_dir = data_dir
         self.output_dir = output_dir
         self.db_url = db_url or os.environ.get(
-            "DATABASE_URL",
-            "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+            "DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"
         )
 
         # Initialize sync generators
@@ -70,7 +68,7 @@ class TestCaseOrchestrator:
         # Async generators require special handling
         self.async_generators = ["entity_resolution"]
 
-    def generate_category(self, category: str) -> Dict:
+    def generate_category(self, category: str) -> dict:
         """Generate test cases for a specific category."""
         # Handle async generators (entity_resolution)
         if category in self.async_generators:
@@ -90,13 +88,9 @@ class TestCaseOrchestrator:
 
         print(f"  Generated {len(test_cases)} test cases -> {output_path}")
 
-        return {
-            "category": category,
-            "count": len(test_cases),
-            "output_path": str(output_path)
-        }
+        return {"category": category, "count": len(test_cases), "output_path": str(output_path)}
 
-    async def _generate_async_category(self, category: str) -> Dict:
+    async def _generate_async_category(self, category: str) -> dict:
         """Generate test cases for async categories (entity_resolution)."""
         if category == "entity_resolution":
             print(f"\nGenerating {category} test cases...")
@@ -106,15 +100,11 @@ class TestCaseOrchestrator:
             output_path = self.output_dir / category / f"{category}.json"
             generator.save_test_cases(test_cases, output_path)
 
-            return {
-                "category": category,
-                "count": len(test_cases),
-                "output_path": str(output_path)
-            }
+            return {"category": category, "count": len(test_cases), "output_path": str(output_path)}
         else:
             raise ValueError(f"Unknown async category: {category}")
 
-    def generate_all(self, include_entity_resolution: bool = False) -> Dict:
+    def generate_all(self, include_entity_resolution: bool = False) -> dict:
         """Generate test cases for all categories."""
         results = {}
         total_count = 0
@@ -134,7 +124,7 @@ class TestCaseOrchestrator:
                     total_count += result["count"]
                 except Exception as e:
                     print(f"  Warning: Could not generate {category}: {e}")
-                    print(f"  Ensure DATABASE_URL is set and database has entity data.")
+                    print("  Ensure DATABASE_URL is set and database has entity data.")
 
         # Updated target to include entity_resolution
         target = 16000 if include_entity_resolution else 11000
@@ -145,35 +135,31 @@ class TestCaseOrchestrator:
             "total_test_cases": total_count,
             "categories": results,
             "target": target,
-            "coverage_pct": round(total_count / target * 100, 1)
+            "coverage_pct": round(total_count / target * 100, 1),
         }
 
         summary_path = self.output_dir / "generation_summary.json"
-        with open(summary_path, 'w') as f:
+        with open(summary_path, "w") as f:
             json.dump(summary, f, indent=2)
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print("Generation Summary")
-        print(f"{'='*60}")
+        print(f"{'=' * 60}")
         print(f"Total test cases generated: {total_count:,}")
-        print(f"Target: 11,000")
+        print("Target: 11,000")
         print(f"Coverage: {summary['coverage_pct']}%")
-        print(f"\nBreakdown by category:")
+        print("\nBreakdown by category:")
         for cat, result in results.items():
             print(f"  - {cat}: {result['count']:,} test cases")
         print(f"\nSummary saved to: {summary_path}")
 
         return summary
 
-    def validate_output(self) -> Dict:
+    def validate_output(self) -> dict:
         """Validate generated test cases."""
         print("\nValidating generated test cases...")
 
-        validation_results = {
-            "valid": True,
-            "issues": [],
-            "stats": {}
-        }
+        validation_results = {"valid": True, "issues": [], "stats": {}}
 
         for category_dir in self.output_dir.iterdir():
             if not category_dir.is_dir():
@@ -181,7 +167,7 @@ class TestCaseOrchestrator:
 
             for json_file in category_dir.glob("*.json"):
                 try:
-                    with open(json_file, 'r') as f:
+                    with open(json_file) as f:
                         data = json.load(f)
 
                     test_cases = data.get("test_cases", [])
@@ -189,9 +175,7 @@ class TestCaseOrchestrator:
                     # Check for required fields
                     for tc in test_cases:
                         if not tc.get("id"):
-                            validation_results["issues"].append(
-                                f"Missing ID in {json_file}"
-                            )
+                            validation_results["issues"].append(f"Missing ID in {json_file}")
                             validation_results["valid"] = False
 
                         if not tc.get("nl_query"):
@@ -208,13 +192,11 @@ class TestCaseOrchestrator:
 
                     validation_results["stats"][category_dir.name] = {
                         "file": str(json_file),
-                        "count": len(test_cases)
+                        "count": len(test_cases),
                     }
 
                 except json.JSONDecodeError as e:
-                    validation_results["issues"].append(
-                        f"Invalid JSON in {json_file}: {e}"
-                    )
+                    validation_results["issues"].append(f"Invalid JSON in {json_file}: {e}")
                     validation_results["valid"] = False
 
         if validation_results["valid"]:
@@ -228,7 +210,7 @@ class TestCaseOrchestrator:
 
         return validation_results
 
-    def generate_coverage_report(self) -> Dict:
+    def generate_coverage_report(self) -> dict:
         """Generate a coverage report showing test case distribution."""
         print("\nGenerating coverage report...")
 
@@ -237,7 +219,7 @@ class TestCaseOrchestrator:
             "by_complexity": {},
             "by_tags": {},
             "field_coverage": set(),
-            "ticker_coverage": set()
+            "ticker_coverage": set(),
         }
 
         for category_dir in self.output_dir.iterdir():
@@ -246,7 +228,7 @@ class TestCaseOrchestrator:
 
             for json_file in category_dir.glob("*.json"):
                 try:
-                    with open(json_file, 'r') as f:
+                    with open(json_file) as f:
                         data = json.load(f)
 
                     test_cases = data.get("test_cases", [])
@@ -257,13 +239,13 @@ class TestCaseOrchestrator:
                     for tc in test_cases:
                         # Complexity distribution
                         complexity = tc.get("complexity", 1)
-                        coverage["by_complexity"][complexity] = \
+                        coverage["by_complexity"][complexity] = (
                             coverage["by_complexity"].get(complexity, 0) + 1
+                        )
 
                         # Tag distribution
                         for tag in tc.get("tags", []):
-                            coverage["by_tags"][tag] = \
-                                coverage["by_tags"].get(tag, 0) + 1
+                            coverage["by_tags"][tag] = coverage["by_tags"].get(tag, 0) + 1
 
                         # Field coverage
                         metadata = tc.get("metadata", {})
@@ -287,10 +269,10 @@ class TestCaseOrchestrator:
 
         # Save coverage report
         report_path = self.output_dir / "coverage_report.json"
-        with open(report_path, 'w') as f:
+        with open(report_path, "w") as f:
             json.dump(coverage, f, indent=2)
 
-        print(f"\nCoverage Report:")
+        print("\nCoverage Report:")
         print(f"  - Fields covered: {len(coverage['field_coverage'])}")
         print(f"  - Tickers covered: {len(coverage['ticker_coverage'])}")
         print(f"  - Complexity levels: {len(coverage['by_complexity'])}")
@@ -304,57 +286,55 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate LSEG test cases",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog=__doc__
+        epilog=__doc__,
     )
 
     parser.add_argument(
         "--category",
-        choices=["lookups", "temporal", "comparisons", "screening",
-                 "errors", "complex", "entity_resolution", "all"],
+        choices=[
+            "lookups",
+            "temporal",
+            "comparisons",
+            "screening",
+            "errors",
+            "complex",
+            "entity_resolution",
+            "all",
+        ],
         default="all",
-        help="Category to generate (default: all)"
+        help="Category to generate (default: all)",
     )
 
     parser.add_argument(
-        "--data-dir",
-        type=Path,
-        default=PROJECT_ROOT / "data",
-        help="Path to data directory"
+        "--data-dir", type=Path, default=PROJECT_ROOT / "data", help="Path to data directory"
     )
 
     parser.add_argument(
         "--output-dir",
         type=Path,
         default=PROJECT_ROOT / "tests" / "fixtures" / "lseg" / "generated",
-        help="Path to output directory"
+        help="Path to output directory",
     )
 
     parser.add_argument(
         "--db-url",
         type=str,
-        default=os.environ.get(
-            "DATABASE_URL",
-            "postgresql://nl2api:nl2api@localhost:5432/nl2api"
-        ),
-        help="PostgreSQL connection URL for entity_resolution (default: from DATABASE_URL env)"
+        default=os.environ.get("DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"),
+        help="PostgreSQL connection URL for entity_resolution (default: from DATABASE_URL env)",
     )
 
     parser.add_argument(
         "--include-entity-resolution",
         action="store_true",
-        help="Include entity_resolution when using --category all (requires database)"
+        help="Include entity_resolution when using --category all (requires database)",
     )
 
     parser.add_argument(
-        "--validate",
-        action="store_true",
-        help="Validate generated test cases after generation"
+        "--validate", action="store_true", help="Validate generated test cases after generation"
     )
 
     parser.add_argument(
-        "--coverage",
-        action="store_true",
-        help="Generate coverage report after generation"
+        "--coverage", action="store_true", help="Generate coverage report after generation"
     )
 
     args = parser.parse_args()
@@ -363,8 +343,8 @@ def main():
     args.data_dir.mkdir(parents=True, exist_ok=True)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    print(f"LSEG Test Case Generator")
-    print(f"{'='*60}")
+    print("LSEG Test Case Generator")
+    print(f"{'=' * 60}")
     print(f"Data directory: {args.data_dir}")
     print(f"Output directory: {args.output_dir}")
 
@@ -373,12 +353,11 @@ def main():
 
     # Generate test cases
     if args.category == "all":
-        summary = orchestrator.generate_all(
+        orchestrator.generate_all(
             include_entity_resolution=args.include_entity_resolution
         )
     else:
-        result = orchestrator.generate_category(args.category)
-        summary = {"categories": {args.category: result}}
+        orchestrator.generate_category(args.category)
 
     # Optional validation
     if args.validate:
@@ -388,7 +367,7 @@ def main():
     if args.coverage:
         orchestrator.generate_coverage_report()
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("Generation complete!")
 
     return 0

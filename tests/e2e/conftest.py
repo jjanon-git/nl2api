@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pytest
 
+
 # Load .env file before any imports that might need env vars
 def _load_env():
     """Load environment variables from .env file."""
@@ -28,6 +29,7 @@ def _load_env():
                 if key and key not in os.environ:
                     os.environ[key] = value
 
+
 _load_env()
 
 
@@ -38,8 +40,7 @@ def has_api_key() -> bool:
 
 # Skip all e2e tests if no API key
 pytestmark = pytest.mark.skipif(
-    not has_api_key(),
-    reason="NL2API_ANTHROPIC_API_KEY not set - skipping e2e tests"
+    not has_api_key(), reason="NL2API_ANTHROPIC_API_KEY not set - skipping e2e tests"
 )
 
 

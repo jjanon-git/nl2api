@@ -31,9 +31,7 @@ async def db_pool():
     """Create database connection pool."""
     import asyncpg
 
-    db_url = os.environ.get(
-        "DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"
-    )
+    db_url = os.environ.get("DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api")
     pool = await asyncpg.create_pool(db_url)
     yield pool
     await pool.close()
@@ -265,9 +263,7 @@ class TestEntityCRUD:
         assert deleted_again is False
 
     @pytest.mark.asyncio
-    async def test_get_nonexistent_entity(
-        self, entity_repo, has_entity_tables, cleanup_test_data
-    ):
+    async def test_get_nonexistent_entity(self, entity_repo, has_entity_tables, cleanup_test_data):
         """Test retrieving non-existent entity returns None."""
         if not has_entity_tables:
             pytest.skip("Entity tables not created")
@@ -293,12 +289,8 @@ class TestEntityResolution:
         await entity_repo.save(sample_entity)
         # Use unique alias based on sample_entity name
         alias_name = f"Test Company {sample_entity.ticker}"
-        await entity_repo.add_alias(
-            sample_entity.id, alias_name, "legal_name", is_primary=True
-        )
-        await entity_repo.add_alias(
-            sample_entity.id, f"{sample_entity.ticker} Corp", "trade_name"
-        )
+        await entity_repo.add_alias(sample_entity.id, alias_name, "legal_name", is_primary=True)
+        await entity_repo.add_alias(sample_entity.id, f"{sample_entity.ticker} Corp", "trade_name")
 
         # Exact match on alias
         matches = await entity_repo.resolve(alias_name.lower())
@@ -391,7 +383,9 @@ class TestEntityResolution:
         await entity_repo.save(entity1)
         await entity_repo.save(entity2)
         await entity_repo.add_alias(entity1.id, "apple inc", "legal_name", is_primary=True)
-        await entity_repo.add_alias(entity2.id, "apple hospitality reit", "legal_name", is_primary=True)
+        await entity_repo.add_alias(
+            entity2.id, "apple hospitality reit", "legal_name", is_primary=True
+        )
 
         # Ticker match should be ranked highly
         matches = await entity_repo.resolve("AAPL")
@@ -476,12 +470,8 @@ class TestEntityAliases:
         await entity_repo.save(sample_entity)
 
         # Add same alias twice
-        alias1_id = await entity_repo.add_alias(
-            sample_entity.id, "Duplicate Alias", "trade_name"
-        )
-        alias2_id = await entity_repo.add_alias(
-            sample_entity.id, "Duplicate Alias", "trade_name"
-        )
+        alias1_id = await entity_repo.add_alias(sample_entity.id, "Duplicate Alias", "trade_name")
+        alias2_id = await entity_repo.add_alias(sample_entity.id, "Duplicate Alias", "trade_name")
 
         # Second should still return an ID (ON CONFLICT DO NOTHING)
         assert alias1_id is not None
@@ -543,9 +533,7 @@ class TestEntityBatchOperations:
     """Test batch and bulk operations against real database."""
 
     @pytest.mark.asyncio
-    async def test_save_batch(
-        self, entity_repo, has_entity_tables, cleanup_test_data
-    ):
+    async def test_save_batch(self, entity_repo, has_entity_tables, cleanup_test_data):
         """Test batch entity save."""
         if not has_entity_tables:
             pytest.skip("Entity tables not created")
@@ -573,9 +561,7 @@ class TestEntityBatchOperations:
             assert retrieved.primary_name == entity.primary_name
 
     @pytest.mark.asyncio
-    async def test_bulk_import(
-        self, entity_repo, has_entity_tables, cleanup_test_data
-    ):
+    async def test_bulk_import(self, entity_repo, has_entity_tables, cleanup_test_data):
         """Test COPY protocol bulk import."""
         if not has_entity_tables:
             pytest.skip("Entity tables not created")
@@ -583,44 +569,63 @@ class TestEntityBatchOperations:
         # Prepare records for COPY
         records = []
         columns = [
-            "id", "lei", "cik", "permid", "figi",
-            "primary_name", "display_name",
-            "ticker", "ric", "exchange",
-            "entity_type", "entity_status", "is_public",
-            "country_code", "region", "city",
-            "sic_code", "naics_code", "gics_sector",
-            "parent_entity_id", "ultimate_parent_id",
-            "data_source", "confidence_score", "ric_validated", "last_verified_at",
+            "id",
+            "lei",
+            "cik",
+            "permid",
+            "figi",
+            "primary_name",
+            "display_name",
+            "ticker",
+            "ric",
+            "exchange",
+            "entity_type",
+            "entity_status",
+            "is_public",
+            "country_code",
+            "region",
+            "city",
+            "sic_code",
+            "naics_code",
+            "gics_sector",
+            "parent_entity_id",
+            "ultimate_parent_id",
+            "data_source",
+            "confidence_score",
+            "ric_validated",
+            "last_verified_at",
         ]
 
         for i in range(100):
-            records.append((
-                uuid.uuid4(),  # id
-                None,  # lei
-                None,  # cik
-                None,  # permid
-                None,  # figi
-                f"Bulk Import Company {i}",  # primary_name
-                None,  # display_name
-                f"BULK{i}",  # ticker
-                None,  # ric
-                None,  # exchange
-                "company",  # entity_type
-                "active",  # entity_status
-                True,  # is_public
-                "US",  # country_code
-                None,  # region
-                None,  # city
-                None,  # sic_code
-                None,  # naics_code
-                None,  # gics_sector
-                None,  # parent_entity_id
-                None,  # ultimate_parent_id
-                "test",  # data_source
-                1.0,  # confidence_score
-                False,  # ric_validated
-                None,  # last_verified_at
-            ))
+            records.append(
+                (
+                    uuid.uuid4(),  # id
+                    None,  # lei
+                    None,  # cik
+                    None,  # permid
+                    None,  # figi
+                    f"Bulk Import Company {i}",  # primary_name
+                    None,  # display_name
+                    f"BULK{i}",  # ticker
+                    None,  # ric
+                    None,  # exchange
+                    "company",  # entity_type
+                    "active",  # entity_status
+                    True,  # is_public
+                    "US",  # country_code
+                    None,  # region
+                    None,  # city
+                    None,  # sic_code
+                    None,  # naics_code
+                    None,  # gics_sector
+                    None,  # parent_entity_id
+                    None,  # ultimate_parent_id
+                    "test",  # data_source
+                    1.0,  # confidence_score
+                    False,  # ric_validated
+                    None,  # last_verified_at
+                )
+            )
 
         count = await entity_repo.bulk_import(records, columns)
         assert count == 100
@@ -664,9 +669,7 @@ class TestEntityStats:
         assert isinstance(coverage, list)
 
         # Find test source
-        test_coverage = next(
-            (c for c in coverage if c["data_source"] == "test"), None
-        )
+        test_coverage = next((c for c in coverage if c["data_source"] == "test"), None)
         assert test_coverage is not None
         assert test_coverage["entity_count"] >= 1
         assert test_coverage["with_ric"] >= 1
@@ -787,9 +790,7 @@ class TestEntitySearch:
         assert not any(e.id == sample_entity.id for e in results)
 
     @pytest.mark.asyncio
-    async def test_search_empty_query(
-        self, entity_repo, has_entity_tables, cleanup_test_data
-    ):
+    async def test_search_empty_query(self, entity_repo, has_entity_tables, cleanup_test_data):
         """Test search with nonsense query returns empty."""
         if not has_entity_tables:
             pytest.skip("Entity tables not created")
@@ -817,9 +818,7 @@ class TestEntityEdgeCases:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_empty_batch_operations(
-        self, entity_repo, has_entity_tables, cleanup_test_data
-    ):
+    async def test_empty_batch_operations(self, entity_repo, has_entity_tables, cleanup_test_data):
         """Test empty batch operations return 0."""
         if not has_entity_tables:
             pytest.skip("Entity tables not created")

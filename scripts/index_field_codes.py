@@ -60,23 +60,32 @@ REFERENCE_DOCS = {
 
 async def main():
     parser = argparse.ArgumentParser(description="Index field codes into RAG database")
-    parser.add_argument("--domain", type=str, choices=list(REFERENCE_DOCS.keys()),
-                        help="Index specific domain only")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show what would be indexed without actually indexing")
-    parser.add_argument("--clear", action="store_true",
-                        help="Clear existing documents before indexing")
-    parser.add_argument("--batch-size", type=int, default=50,
-                        help="Batch size for embedding generation")
-    parser.add_argument("--no-embeddings", action="store_true",
-                        help="Skip embedding generation (faster, but no vector search)")
+    parser.add_argument(
+        "--domain", type=str, choices=list(REFERENCE_DOCS.keys()), help="Index specific domain only"
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be indexed without actually indexing",
+    )
+    parser.add_argument(
+        "--clear", action="store_true", help="Clear existing documents before indexing"
+    )
+    parser.add_argument(
+        "--batch-size", type=int, default=50, help="Batch size for embedding generation"
+    )
+    parser.add_argument(
+        "--no-embeddings",
+        action="store_true",
+        help="Skip embedding generation (faster, but no vector search)",
+    )
     args = parser.parse_args()
 
     # Import here to avoid circular imports
     from src.nl2api.rag import indexer as indexer_module
     from src.nl2api.rag.indexer import (
-        RAGIndexer,
         FieldCodeDocument,
+        RAGIndexer,
         index_with_rich_progress,
     )
 
@@ -135,9 +144,10 @@ async def main():
 
     # Connect to database
     import asyncpg
+
     db_url = os.environ.get("DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api")
 
-    print(f"\nConnecting to database...")
+    print("\nConnecting to database...")
     pool = await asyncpg.create_pool(db_url)
 
     try:
@@ -187,7 +197,9 @@ async def main():
         stats = await indexer.get_stats()
         for domain, type_stats in sorted(stats.items()):
             for doc_type, counts in type_stats.items():
-                print(f"  {domain:15} {doc_type:15} {counts['count']:4} docs ({counts['with_embedding']} with embeddings)")
+                print(
+                    f"  {domain:15} {doc_type:15} {counts['count']:4} docs ({counts['with_embedding']} with embeddings)"
+                )
 
     finally:
         await pool.close()

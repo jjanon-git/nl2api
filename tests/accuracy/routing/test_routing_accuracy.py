@@ -16,7 +16,7 @@ from collections import defaultdict
 
 import pytest
 
-from tests.accuracy.core.config import AccuracyConfig, Tier
+from tests.accuracy.core.config import AccuracyConfig
 from tests.accuracy.core.evaluator import (
     AccuracyReport,
     RoutingAccuracyEvaluator,
@@ -48,11 +48,47 @@ def infer_domain_from_fixture(fixture) -> str | None:
             return "screening"
 
     # Infer from category/tags
-    estimates_keywords = ["eps", "consensus", "recommendations", "price-target", "forecast", "analyst", "estimate"]
-    fundamentals_keywords = ["balance-sheet", "cash-flow", "income-statement", "ratios", "revenue", "assets", "debt", "roe", "roa"]
-    officers_keywords = ["ceo", "cfo", "board", "executives", "compensation", "governance", "officers"]
+    estimates_keywords = [
+        "eps",
+        "consensus",
+        "recommendations",
+        "price-target",
+        "forecast",
+        "analyst",
+        "estimate",
+    ]
+    fundamentals_keywords = [
+        "balance-sheet",
+        "cash-flow",
+        "income-statement",
+        "ratios",
+        "revenue",
+        "assets",
+        "debt",
+        "roe",
+        "roa",
+    ]
+    officers_keywords = [
+        "ceo",
+        "cfo",
+        "board",
+        "executives",
+        "compensation",
+        "governance",
+        "officers",
+    ]
     screening_keywords = ["screening", "ranking", "top-", "filter", "find"]
-    datastream_keywords = ["price", "ohlc", "volume", "time-series", "historical", "market-cap", "pe", "dividend-yield", "index"]
+    datastream_keywords = [
+        "price",
+        "ohlc",
+        "volume",
+        "time-series",
+        "historical",
+        "market-cap",
+        "pe",
+        "dividend-yield",
+        "index",
+    ]
 
     all_tags_str = " ".join(tags_lower)
 
@@ -118,7 +154,7 @@ def load_routing_test_cases(
         for domain, cases in by_domain.items():
             if remaining <= 0:
                 break
-            extra = cases[per_domain:per_domain + remaining]
+            extra = cases[per_domain : per_domain + remaining]
             test_cases.extend(extra)
             remaining -= len(extra)
     else:
@@ -141,7 +177,9 @@ def print_report(report: AccuracyReport, threshold: float):
     print(f"  Correct: {report.correct_count}/{report.total_count}")
     print(f"  Failed: {report.failed_count}")
     print(f"  Errors: {report.error_count}")
-    print(f"  Low Confidence (would clarify): {report.low_confidence_count} ({report.low_confidence_rate:.1%})")
+    print(
+        f"  Low Confidence (would clarify): {report.low_confidence_count} ({report.low_confidence_rate:.1%})"
+    )
 
     if report.by_category:
         print("\nBy Category:")
@@ -204,7 +242,9 @@ class TestRoutingAccuracy:
             if result and current % 10 == 0:
                 print(f"  [{current}/{total}] Latest: {result.expected} -> {result.predicted}")
 
-        report = await evaluator.evaluate_batch(test_cases, progress_callback=progress, tier="tier1")
+        report = await evaluator.evaluate_batch(
+            test_cases, progress_callback=progress, tier="tier1"
+        )
         print_report(report, threshold)
 
         assert report.accuracy >= threshold, (
@@ -226,7 +266,9 @@ class TestRoutingAccuracy:
             if result and current % 10 == 0:
                 print(f"  [{current}/{total}] {result.expected} -> {result.predicted}")
 
-        report = await realtime_evaluator.evaluate_batch(test_cases, progress_callback=progress, tier="tier1")
+        report = await realtime_evaluator.evaluate_batch(
+            test_cases, progress_callback=progress, tier="tier1"
+        )
         print_report(report, threshold)
 
         assert report.accuracy >= threshold, (
@@ -249,7 +291,9 @@ class TestRoutingAccuracy:
             if result and current % 20 == 0:
                 print(f"  [{current}/{total}]")
 
-        report = await evaluator.evaluate_batch(test_cases, progress_callback=progress, tier="tier2")
+        report = await evaluator.evaluate_batch(
+            test_cases, progress_callback=progress, tier="tier2"
+        )
         print_report(report, threshold)
 
         assert report.accuracy >= threshold, (
@@ -272,7 +316,9 @@ class TestRoutingAccuracy:
             if current % 100 == 0:
                 print(f"  [{current}/{total}]")
 
-        report = await evaluator.evaluate_batch(test_cases, progress_callback=progress, tier="tier3")
+        report = await evaluator.evaluate_batch(
+            test_cases, progress_callback=progress, tier="tier3"
+        )
         print_report(report, threshold)
 
         assert report.accuracy >= threshold, (
@@ -311,9 +357,7 @@ class TestRoutingAccuracy:
         report = await evaluator.evaluate_batch(ambiguous_cases)
 
         # These ambiguous queries should have low confidence (would trigger clarification)
-        low_confidence_count = sum(
-            1 for r in report.results if r.confidence <= 0.5
-        )
+        low_confidence_count = sum(1 for r in report.results if r.confidence <= 0.5)
 
         assert low_confidence_count >= 2, (
             f"Expected at least 2/3 ambiguous queries to have low confidence, "

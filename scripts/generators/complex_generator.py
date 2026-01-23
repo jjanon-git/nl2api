@@ -11,8 +11,8 @@ Target: ~2000 test cases
 """
 
 import random
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+
 from .base_generator import BaseGenerator, TestCase
 
 
@@ -31,7 +31,7 @@ class ComplexGenerator(BaseGenerator):
     # PHASE 1: Cross-API Workflow Templates (~800 tests)
     # =========================================================================
 
-    def _generate_index_cascades(self) -> List[TestCase]:
+    def _generate_index_cascades(self) -> list[TestCase]:
         """Generate index cascade workflows: get constituents → query all for metrics."""
         test_cases = []
 
@@ -63,7 +63,7 @@ class ComplexGenerator(BaseGenerator):
             "WC04851": "free cash flow",
             "WC08106": "current ratios",
             "WC08101": "quick ratios",
-            "WC02001": "cash positions"
+            "WC02001": "cash positions",
         }
 
         # Flatten all metrics
@@ -86,12 +86,8 @@ class ComplexGenerator(BaseGenerator):
                 steps = [
                     {
                         "tool_name": "get_data",
-                        "arguments": {
-                            "tickers": index_symbol,
-                            "fields": ["RIC"],
-                            "kind": 0
-                        },
-                        "description": f"Get {index_name} constituents"
+                        "arguments": {"tickers": index_symbol, "fields": ["RIC"], "kind": 0},
+                        "description": f"Get {index_name} constituents",
                     },
                     {
                         "tool_name": "get_data",
@@ -100,10 +96,10 @@ class ComplexGenerator(BaseGenerator):
                             "fields": [metric],
                             "start": "0D",
                             "end": "0D",
-                            "kind": 0
+                            "kind": 0,
                         },
-                        "description": f"Get {metric_name} for all constituents"
-                    }
+                        "description": f"Get {metric_name} for all constituents",
+                    },
                 ]
 
                 test_case = self._create_test_case(
@@ -117,8 +113,8 @@ class ComplexGenerator(BaseGenerator):
                         "index": index_name,
                         "index_symbol": index_symbol,
                         "metric": metric,
-                        "step_count": 2
-                    }
+                        "step_count": 2,
+                    },
                 )
 
                 if test_case:
@@ -126,7 +122,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_screen_then_analyze(self) -> List[TestCase]:
+    def _generate_screen_then_analyze(self) -> list[TestCase]:
         """Generate screen-then-analyze workflows: SCREEN → detailed analysis."""
         test_cases = []
 
@@ -157,18 +153,18 @@ class ComplexGenerator(BaseGenerator):
                         "tool_name": "screen",
                         "arguments": {
                             "expression": f"SCREEN(U(IN(Equity(active,public,primary))), {screen_filter}, TOP(100))",
-                            "output_fields": ["TR.CommonName", "RIC"]
+                            "output_fields": ["TR.CommonName", "RIC"],
                         },
-                        "description": f"Screen for {screen_name}"
+                        "description": f"Screen for {screen_name}",
                     },
                     {
                         "tool_name": "get_data",
                         "arguments": {
                             "instruments": "{{screened_securities}}",
-                            "fields": pkg_fields
+                            "fields": pkg_fields,
                         },
-                        "description": f"Get {pkg_name} for screened securities"
-                    }
+                        "description": f"Get {pkg_name} for screened securities",
+                    },
                 ]
 
                 test_case = self._create_test_case(
@@ -182,8 +178,8 @@ class ComplexGenerator(BaseGenerator):
                         "screen_name": screen_name,
                         "screen_filter": screen_filter,
                         "analysis_package": pkg_name,
-                        "step_count": 2
-                    }
+                        "step_count": 2,
+                    },
                 )
 
                 if test_case:
@@ -191,7 +187,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_company_vs_industry(self) -> List[TestCase]:
+    def _generate_company_vs_industry(self) -> list[TestCase]:
         """Generate company vs industry comparison workflows."""
         test_cases = []
 
@@ -218,27 +214,27 @@ class ComplexGenerator(BaseGenerator):
                         "tool_name": "get_data",
                         "arguments": {
                             "instruments": [ticker],
-                            "fields": [metric_field, "TR.TRBCIndustryCode", "TR.TRBCIndustry"]
+                            "fields": [metric_field, "TR.TRBCIndustryCode", "TR.TRBCIndustry"],
                         },
-                        "description": f"Get {company}'s {metric_name} and industry code"
+                        "description": f"Get {company}'s {metric_name} and industry code",
                     },
                     {
                         "tool_name": "screen",
                         "arguments": {
                             "expression": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCIndustryCode, '{{industry_code}}'), TOP(50))",
-                            "output_fields": ["TR.CommonName", "RIC", metric_field]
+                            "output_fields": ["TR.CommonName", "RIC", metric_field],
                         },
-                        "description": "Get industry peers with same metric"
+                        "description": "Get industry peers with same metric",
                     },
                     {
                         "tool_name": "calculate",
                         "arguments": {
                             "operation": "statistics",
                             "field": metric_field,
-                            "stats": ["median", "mean", "percentile_25", "percentile_75"]
+                            "stats": ["median", "mean", "percentile_25", "percentile_75"],
                         },
-                        "description": "Calculate industry statistics for comparison"
-                    }
+                        "description": "Calculate industry statistics for comparison",
+                    },
                 ]
 
                 test_case = self._create_test_case(
@@ -253,8 +249,8 @@ class ComplexGenerator(BaseGenerator):
                         "company": company,
                         "metric": metric_name,
                         "sector": sector,
-                        "step_count": 3
-                    }
+                        "step_count": 3,
+                    },
                 )
 
                 if test_case:
@@ -262,7 +258,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_historical_forward_combinations(self) -> List[TestCase]:
+    def _generate_historical_forward_combinations(self) -> list[TestCase]:
         """Generate historical + forward estimate combination workflows."""
         test_cases = []
 
@@ -293,26 +289,20 @@ class ComplexGenerator(BaseGenerator):
                             "start": f"-{historical_years}Y",
                             "end": "0D",
                             "freq": "Y",
-                            "kind": 0
+                            "kind": 0,
                         },
-                        "description": f"Get {historical_years}-year historical data (Datastream)"
+                        "description": f"Get {historical_years}-year historical data (Datastream)",
                     },
                     {
                         "tool_name": "get_data",
-                        "arguments": {
-                            "instruments": [ric],
-                            "fields": current_fields
-                        },
-                        "description": "Get current values (Refinitiv)"
+                        "arguments": {"instruments": [ric], "fields": current_fields},
+                        "description": "Get current values (Refinitiv)",
                     },
                     {
                         "tool_name": "get_data",
-                        "arguments": {
-                            "instruments": [ric],
-                            "fields": forward_fields
-                        },
-                        "description": "Get forward estimates (Refinitiv)"
-                    }
+                        "arguments": {"instruments": [ric], "fields": forward_fields},
+                        "description": "Get forward estimates (Refinitiv)",
+                    },
                 ]
 
                 test_case = self._create_test_case(
@@ -326,8 +316,8 @@ class ComplexGenerator(BaseGenerator):
                         "ticker": ticker,
                         "company": company,
                         "trajectory_type": combo.get("name", ""),
-                        "step_count": 3
-                    }
+                        "step_count": 3,
+                    },
                 )
 
                 if test_case:
@@ -339,7 +329,7 @@ class ComplexGenerator(BaseGenerator):
     # PHASE 2: Financial Analysis Workflows (~600 tests)
     # =========================================================================
 
-    def _generate_dcf_workflows(self) -> List[TestCase]:
+    def _generate_dcf_workflows(self) -> list[TestCase]:
         """Generate DCF valuation model input workflows."""
         test_cases = []
 
@@ -368,26 +358,20 @@ class ComplexGenerator(BaseGenerator):
                         "start": "-5Y",
                         "end": "0D",
                         "freq": "Y",
-                        "kind": 0
+                        "kind": 0,
                     },
-                    "description": "Get 5-year historical cash flows (Datastream)"
+                    "description": "Get 5-year historical cash flows (Datastream)",
                 },
                 {
                     "tool_name": "get_data",
-                    "arguments": {
-                        "instruments": [ric],
-                        "fields": step2.get("fields", [])
-                    },
-                    "description": "Get growth assumptions from estimates (Refinitiv)"
+                    "arguments": {"instruments": [ric], "fields": step2.get("fields", [])},
+                    "description": "Get growth assumptions from estimates (Refinitiv)",
                 },
                 {
                     "tool_name": "get_data",
-                    "arguments": {
-                        "instruments": [ric],
-                        "fields": step3.get("fields", [])
-                    },
-                    "description": "Get discount rate inputs (Refinitiv)"
-                }
+                    "arguments": {"instruments": [ric], "fields": step3.get("fields", [])},
+                    "description": "Get discount rate inputs (Refinitiv)",
+                },
             ]
 
             test_case = self._create_test_case(
@@ -401,8 +385,8 @@ class ComplexGenerator(BaseGenerator):
                     "ticker": ticker,
                     "company": company,
                     "model_type": "DCF",
-                    "step_count": 3
-                }
+                    "step_count": 3,
+                },
             )
 
             if test_case:
@@ -410,7 +394,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_comparable_analysis(self) -> List[TestCase]:
+    def _generate_comparable_analysis(self) -> list[TestCase]:
         """Generate comparable company analysis workflows."""
         test_cases = []
 
@@ -431,28 +415,25 @@ class ComplexGenerator(BaseGenerator):
             steps = [
                 {
                     "tool_name": "get_data",
-                    "arguments": {
-                        "instruments": [ticker],
-                        "fields": step1.get("fields", [])
-                    },
-                    "description": f"Get {company}'s valuation multiples and industry"
+                    "arguments": {"instruments": [ticker], "fields": step1.get("fields", [])},
+                    "description": f"Get {company}'s valuation multiples and industry",
                 },
                 {
                     "tool_name": "screen",
                     "arguments": {
                         "expression": "SCREEN(U(IN(Equity(active,public,primary))), IN(TR.TRBCIndustryCode, '{{industry_code}}'), TOP(TR.CompanyMarketCap, 10))",
-                        "output_fields": ["TR.CommonName", "RIC"]
+                        "output_fields": ["TR.CommonName", "RIC"],
                     },
-                    "description": "Find top 10 industry peers by market cap"
+                    "description": "Find top 10 industry peers by market cap",
                 },
                 {
                     "tool_name": "get_data",
                     "arguments": {
                         "instruments": "{{peer_rics}}",
-                        "fields": step3.get("fields", [])
+                        "fields": step3.get("fields", []),
                     },
-                    "description": "Get peer valuation multiples"
-                }
+                    "description": "Get peer valuation multiples",
+                },
             ]
 
             test_case = self._create_test_case(
@@ -466,8 +447,8 @@ class ComplexGenerator(BaseGenerator):
                     "ticker": ticker,
                     "company": company,
                     "model_type": "Comparable Company Analysis",
-                    "step_count": 3
-                }
+                    "step_count": 3,
+                },
             )
 
             if test_case:
@@ -475,7 +456,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_credit_analysis(self) -> List[TestCase]:
+    def _generate_credit_analysis(self) -> list[TestCase]:
         """Generate credit and financial health analysis workflows."""
         test_cases = []
 
@@ -488,7 +469,7 @@ class ComplexGenerator(BaseGenerator):
             ("leverage_analysis", credit_config.get("leverage_analysis", {})),
             ("coverage_analysis", credit_config.get("coverage_analysis", {})),
             ("altman_z_score", credit_config.get("altman_z_score", {})),
-            ("piotroski_f_score", credit_config.get("piotroski_f_score", {}))
+            ("piotroski_f_score", credit_config.get("piotroski_f_score", {})),
         ]
 
         for ticker_info in tickers:
@@ -505,7 +486,11 @@ class ComplexGenerator(BaseGenerator):
                 elif analysis_name == "piotroski_f_score":
                     nl_query = f"Get Piotroski F-Score components for {company}"
                 else:
-                    template = random.choice(templates) if templates else f"Analyze {{company}}'s {analysis_display_name.lower()}"
+                    template = (
+                        random.choice(templates)
+                        if templates
+                        else f"Analyze {{company}}'s {analysis_display_name.lower()}"
+                    )
                     nl_query = template.format(company=company)
 
                 steps = [
@@ -516,22 +501,24 @@ class ComplexGenerator(BaseGenerator):
                             "fields": fields,
                             "start": "0D",
                             "end": "0D",
-                            "kind": 0
+                            "kind": 0,
                         },
-                        "description": f"Get {analysis_display_name} metrics"
+                        "description": f"Get {analysis_display_name} metrics",
                     }
                 ]
 
                 # Add calculation step for Z-score and F-score
                 if analysis_name in ["altman_z_score", "piotroski_f_score"]:
-                    steps.append({
-                        "tool_name": "calculate",
-                        "arguments": {
-                            "operation": analysis_name,
-                            "formula": analysis_config.get("formula", "")
-                        },
-                        "description": f"Calculate {analysis_display_name}"
-                    })
+                    steps.append(
+                        {
+                            "tool_name": "calculate",
+                            "arguments": {
+                                "operation": analysis_name,
+                                "formula": analysis_config.get("formula", ""),
+                            },
+                            "description": f"Calculate {analysis_display_name}",
+                        }
+                    )
 
                 test_case = self._create_test_case(
                     nl_query=nl_query,
@@ -544,8 +531,8 @@ class ComplexGenerator(BaseGenerator):
                         "ticker": ticker,
                         "company": company,
                         "analysis_type": analysis_display_name,
-                        "step_count": len(steps)
-                    }
+                        "step_count": len(steps),
+                    },
                 )
 
                 if test_case:
@@ -553,7 +540,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_portfolio_analytics(self) -> List[TestCase]:
+    def _generate_portfolio_analytics(self) -> list[TestCase]:
         """Generate portfolio-level analytics workflows."""
         test_cases = []
 
@@ -566,7 +553,7 @@ class ComplexGenerator(BaseGenerator):
             ("income_analysis", portfolio_config.get("income_analysis", {})),
             ("valuation_analysis", portfolio_config.get("valuation_analysis", {})),
             ("earnings_calendar", portfolio_config.get("earnings_calendar", {})),
-            ("correlation_analysis", portfolio_config.get("correlation_analysis", {}))
+            ("correlation_analysis", portfolio_config.get("correlation_analysis", {})),
         ]
 
         for portfolio in sample_portfolios:
@@ -587,24 +574,21 @@ class ComplexGenerator(BaseGenerator):
                 steps = [
                     {
                         "tool_name": "get_data",
-                        "arguments": {
-                            "instruments": holdings,
-                            "fields": fields
-                        },
-                        "description": f"Get {analysis_config.get('name', analysis_name)} data for portfolio"
+                        "arguments": {"instruments": holdings, "fields": fields},
+                        "description": f"Get {analysis_config.get('name', analysis_name)} data for portfolio",
                     }
                 ]
 
                 # Add calculation step if needed
                 calculations = analysis_config.get("calculations", [])
                 if calculations:
-                    steps.append({
-                        "tool_name": "calculate",
-                        "arguments": {
-                            "operations": calculations
-                        },
-                        "description": f"Calculate portfolio {analysis_name}"
-                    })
+                    steps.append(
+                        {
+                            "tool_name": "calculate",
+                            "arguments": {"operations": calculations},
+                            "description": f"Calculate portfolio {analysis_name}",
+                        }
+                    )
 
                 test_case = self._create_test_case(
                     nl_query=nl_query,
@@ -617,8 +601,8 @@ class ComplexGenerator(BaseGenerator):
                         "portfolio_name": portfolio_name,
                         "holdings": holdings,
                         "analysis_type": analysis_name,
-                        "step_count": len(steps)
-                    }
+                        "step_count": len(steps),
+                    },
                 )
 
                 if test_case:
@@ -626,7 +610,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_event_driven_analysis(self) -> List[TestCase]:
+    def _generate_event_driven_analysis(self) -> list[TestCase]:
         """Generate event-driven analysis workflows."""
         test_cases = []
 
@@ -638,7 +622,7 @@ class ComplexGenerator(BaseGenerator):
             ("estimate_revision_analysis", event_config.get("estimate_revision_analysis", {})),
             ("analyst_rating_changes", event_config.get("analyst_rating_changes", {})),
             ("insider_activity", event_config.get("insider_activity", {})),
-            ("institutional_ownership", event_config.get("institutional_ownership", {}))
+            ("institutional_ownership", event_config.get("institutional_ownership", {})),
         ]
 
         for ticker_info in tickers:
@@ -659,26 +643,25 @@ class ComplexGenerator(BaseGenerator):
                 steps = [
                     {
                         "tool_name": "get_data",
-                        "arguments": {
-                            "instruments": [ticker],
-                            "fields": step1_fields
-                        },
-                        "description": f"Get {analysis_config.get('name', analysis_name)} data"
+                        "arguments": {"instruments": [ticker], "fields": step1_fields},
+                        "description": f"Get {analysis_config.get('name', analysis_name)} data",
                     }
                 ]
 
                 # Add step 2 if defined (e.g., price data around earnings)
                 if step2_fields:
                     step2_params = analysis_config.get("step2_parameters", {})
-                    steps.append({
-                        "tool_name": "get_data",
-                        "arguments": {
-                            "tickers": ticker,
-                            "fields": step2_fields,
-                            **step2_params
-                        },
-                        "description": "Get related price/return data"
-                    })
+                    steps.append(
+                        {
+                            "tool_name": "get_data",
+                            "arguments": {
+                                "tickers": ticker,
+                                "fields": step2_fields,
+                                **step2_params,
+                            },
+                            "description": "Get related price/return data",
+                        }
+                    )
 
                 test_case = self._create_test_case(
                     nl_query=nl_query,
@@ -691,8 +674,8 @@ class ComplexGenerator(BaseGenerator):
                         "ticker": ticker,
                         "company": company,
                         "analysis_type": analysis_name,
-                        "step_count": len(steps)
-                    }
+                        "step_count": len(steps),
+                    },
                 )
 
                 if test_case:
@@ -704,7 +687,7 @@ class ComplexGenerator(BaseGenerator):
     # PHASE 3: Multi-Step Calculation Chains (~400 tests)
     # =========================================================================
 
-    def _generate_derived_calculations(self) -> List[TestCase]:
+    def _generate_derived_calculations(self) -> list[TestCase]:
         """Generate derived metric calculation workflows."""
         test_cases = []
 
@@ -725,50 +708,61 @@ class ComplexGenerator(BaseGenerator):
                 ric = ticker_info.get("ric", ticker)
                 company = ticker_info.get("name", "Company")
 
-                template = random.choice(templates) if templates else f"Calculate {{company}}'s {display_name}"
+                template = (
+                    random.choice(templates)
+                    if templates
+                    else f"Calculate {{company}}'s {display_name}"
+                )
                 nl_query = template.format(company=company)
 
                 # Determine API based on field types
                 has_wc_fields = any(f.startswith("WC") for f in fields)
                 has_tr_fields = any(f.startswith("TR.") for f in fields)
-                has_ds_fields = any(f in ["P", "MV", "PE", "PTBV", "DY", "EV", "EVEBID"] for f in fields)
+                has_ds_fields = any(
+                    f in ["P", "MV", "PE", "PTBV", "DY", "EV", "EVEBID"] for f in fields
+                )
 
                 steps = []
 
                 if has_wc_fields or has_ds_fields:
-                    ds_fields = [f for f in fields if f.startswith("WC") or f in ["P", "MV", "PE", "PTBV", "DY", "EV", "EVEBID"]]
-                    steps.append({
-                        "tool_name": "get_data",
-                        "arguments": {
-                            "tickers": ticker,
-                            "fields": ds_fields,
-                            "start": "0D",
-                            "end": "0D",
-                            "kind": 0
-                        },
-                        "description": f"Get Datastream fields for {display_name}"
-                    })
+                    ds_fields = [
+                        f
+                        for f in fields
+                        if f.startswith("WC")
+                        or f in ["P", "MV", "PE", "PTBV", "DY", "EV", "EVEBID"]
+                    ]
+                    steps.append(
+                        {
+                            "tool_name": "get_data",
+                            "arguments": {
+                                "tickers": ticker,
+                                "fields": ds_fields,
+                                "start": "0D",
+                                "end": "0D",
+                                "kind": 0,
+                            },
+                            "description": f"Get Datastream fields for {display_name}",
+                        }
+                    )
 
                 if has_tr_fields:
                     tr_fields = [f for f in fields if f.startswith("TR.")]
-                    steps.append({
-                        "tool_name": "get_data",
-                        "arguments": {
-                            "instruments": [ric],
-                            "fields": tr_fields
-                        },
-                        "description": f"Get Refinitiv fields for {display_name}"
-                    })
+                    steps.append(
+                        {
+                            "tool_name": "get_data",
+                            "arguments": {"instruments": [ric], "fields": tr_fields},
+                            "description": f"Get Refinitiv fields for {display_name}",
+                        }
+                    )
 
                 # Add calculation step
-                steps.append({
-                    "tool_name": "calculate",
-                    "arguments": {
-                        "operation": calc_name,
-                        "formula": formula
-                    },
-                    "description": f"Calculate {display_name}"
-                })
+                steps.append(
+                    {
+                        "tool_name": "calculate",
+                        "arguments": {"operation": calc_name, "formula": formula},
+                        "description": f"Calculate {display_name}",
+                    }
+                )
 
                 test_case = self._create_test_case(
                     nl_query=nl_query,
@@ -782,8 +776,8 @@ class ComplexGenerator(BaseGenerator):
                         "company": company,
                         "calculation": display_name,
                         "formula": formula,
-                        "step_count": len(steps)
-                    }
+                        "step_count": len(steps),
+                    },
                 )
 
                 if test_case:
@@ -791,7 +785,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_ranking_operations(self) -> List[TestCase]:
+    def _generate_ranking_operations(self) -> list[TestCase]:
         """Generate ranking and comparison workflows."""
         test_cases = []
 
@@ -817,45 +811,49 @@ class ComplexGenerator(BaseGenerator):
 
                 # Step 1: Get universe constituents
                 if universe_symbol:
-                    steps.append({
-                        "tool_name": "get_data",
-                        "arguments": {
-                            "tickers": universe_symbol,
-                            "fields": ["RIC"],
-                            "kind": 0
-                        },
-                        "description": f"Get {universe_name} constituents"
-                    })
+                    steps.append(
+                        {
+                            "tool_name": "get_data",
+                            "arguments": {"tickers": universe_symbol, "fields": ["RIC"], "kind": 0},
+                            "description": f"Get {universe_name} constituents",
+                        }
+                    )
                 elif universe_screen:
-                    steps.append({
-                        "tool_name": "screen",
-                        "arguments": {
-                            "expression": f"SCREEN(U(IN(Equity(active,public,primary))), {universe_screen}, TOP(100))",
-                            "output_fields": ["TR.CommonName", "RIC"]
-                        },
-                        "description": f"Screen for {universe_name}"
-                    })
+                    steps.append(
+                        {
+                            "tool_name": "screen",
+                            "arguments": {
+                                "expression": f"SCREEN(U(IN(Equity(active,public,primary))), {universe_screen}, TOP(100))",
+                                "output_fields": ["TR.CommonName", "RIC"],
+                            },
+                            "description": f"Screen for {universe_name}",
+                        }
+                    )
 
                 # Step 2: Get metric for all securities
-                steps.append({
-                    "tool_name": "get_data",
-                    "arguments": {
-                        "instruments": "{{securities}}",
-                        "fields": [metric_field, "TR.CommonName"]
-                    },
-                    "description": f"Get {metric_name} for all securities"
-                })
+                steps.append(
+                    {
+                        "tool_name": "get_data",
+                        "arguments": {
+                            "instruments": "{{securities}}",
+                            "fields": [metric_field, "TR.CommonName"],
+                        },
+                        "description": f"Get {metric_name} for all securities",
+                    }
+                )
 
                 # Step 3: Sort and rank
-                steps.append({
-                    "tool_name": "sort_and_select",
-                    "arguments": {
-                        "field": metric_field,
-                        "order": direction,
-                        "operation": "rank"
-                    },
-                    "description": f"Rank by {metric_name}"
-                })
+                steps.append(
+                    {
+                        "tool_name": "sort_and_select",
+                        "arguments": {
+                            "field": metric_field,
+                            "order": direction,
+                            "operation": "rank",
+                        },
+                        "description": f"Rank by {metric_name}",
+                    }
+                )
 
                 test_case = self._create_test_case(
                     nl_query=nl_query,
@@ -868,8 +866,8 @@ class ComplexGenerator(BaseGenerator):
                         "universe": universe_name,
                         "metric": metric_name,
                         "direction": direction,
-                        "step_count": len(steps)
-                    }
+                        "step_count": len(steps),
+                    },
                 )
 
                 if test_case:
@@ -877,7 +875,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_time_series_analysis(self) -> List[TestCase]:
+    def _generate_time_series_analysis(self) -> list[TestCase]:
         """Generate time series analysis workflows."""
         test_cases = []
 
@@ -894,7 +892,7 @@ class ComplexGenerator(BaseGenerator):
             "revenue": "WC01001",
             "earnings": "WC01751",
             "dividends": "WC05101",
-            "book value": "WC03501"
+            "book value": "WC03501",
         }
 
         for ticker_info in tickers:
@@ -903,7 +901,11 @@ class ComplexGenerator(BaseGenerator):
 
             for metric in cagr_metrics:
                 for period in cagr_periods:
-                    template = random.choice(cagr_templates) if cagr_templates else "Calculate {company}'s {period}-year {metric} CAGR"
+                    template = (
+                        random.choice(cagr_templates)
+                        if cagr_templates
+                        else "Calculate {company}'s {period}-year {metric} CAGR"
+                    )
                     nl_query = template.format(company=company, period=period, metric=metric)
 
                     field = metric_to_field.get(metric, "WC01001")
@@ -917,18 +919,15 @@ class ComplexGenerator(BaseGenerator):
                                 "start": f"-{period}Y",
                                 "end": "0D",
                                 "freq": "Y",
-                                "kind": 0
+                                "kind": 0,
                             },
-                            "description": f"Get {period}-year {metric} history"
+                            "description": f"Get {period}-year {metric} history",
                         },
                         {
                             "tool_name": "calculate",
-                            "arguments": {
-                                "operation": "cagr",
-                                "period_years": period
-                            },
-                            "description": "Calculate CAGR"
-                        }
+                            "arguments": {"operation": "cagr", "period_years": period},
+                            "description": "Calculate CAGR",
+                        },
                     ]
 
                     test_case = self._create_test_case(
@@ -943,8 +942,8 @@ class ComplexGenerator(BaseGenerator):
                             "company": company,
                             "metric": metric,
                             "period_years": period,
-                            "step_count": 2
-                        }
+                            "step_count": 2,
+                        },
                     )
 
                     if test_case:
@@ -960,7 +959,11 @@ class ComplexGenerator(BaseGenerator):
             company = ticker_info.get("name", "Company")
 
             for ma_period in ma_periods:
-                template = random.choice(ma_templates) if ma_templates else "Is {company} above its {ma_period}-day moving average?"
+                template = (
+                    random.choice(ma_templates)
+                    if ma_templates
+                    else "Is {company} above its {ma_period}-day moving average?"
+                )
                 nl_query = template.format(company=company, ma_period=ma_period)
 
                 steps = [
@@ -971,9 +974,9 @@ class ComplexGenerator(BaseGenerator):
                             "fields": ["P"],
                             "start": "0D",
                             "end": "0D",
-                            "kind": 0
+                            "kind": 0,
                         },
-                        "description": "Get current price"
+                        "description": "Get current price",
                     },
                     {
                         "tool_name": "get_data",
@@ -982,18 +985,15 @@ class ComplexGenerator(BaseGenerator):
                             "fields": ["P"],
                             "start": "0D",
                             "end": "0D",
-                            "kind": 0
+                            "kind": 0,
                         },
-                        "description": f"Get {ma_period}-day moving average"
+                        "description": f"Get {ma_period}-day moving average",
                     },
                     {
                         "tool_name": "calculate",
-                        "arguments": {
-                            "operation": "compare",
-                            "comparison": "above_below"
-                        },
-                        "description": "Compare price to MA"
-                    }
+                        "arguments": {"operation": "compare", "comparison": "above_below"},
+                        "description": "Compare price to MA",
+                    },
                 ]
 
                 test_case = self._create_test_case(
@@ -1007,8 +1007,8 @@ class ComplexGenerator(BaseGenerator):
                         "ticker": ticker,
                         "company": company,
                         "ma_period": ma_period,
-                        "step_count": 3
-                    }
+                        "step_count": 3,
+                    },
                 )
 
                 if test_case:
@@ -1020,11 +1020,7 @@ class ComplexGenerator(BaseGenerator):
         perf_periods = perf_config.get("periods", [])
         benchmarks = perf_config.get("benchmarks", [])
 
-        benchmark_symbols = {
-            "S&P 500": "S&PCOMP",
-            "sector index": "S5INFT",
-            "NASDAQ": "NASCOMP"
-        }
+        benchmark_symbols = {"S&P 500": "S&PCOMP", "sector index": "S5INFT", "NASDAQ": "NASCOMP"}
 
         for ticker_info in tickers[:5]:  # Limit to avoid explosion
             ticker = ticker_info.get("symbol", "")
@@ -1032,11 +1028,20 @@ class ComplexGenerator(BaseGenerator):
 
             for period in perf_periods:
                 for benchmark in benchmarks:
-                    template = random.choice(perf_templates) if perf_templates else "Compare {company}'s {period} return to {benchmark}"
+                    template = (
+                        random.choice(perf_templates)
+                        if perf_templates
+                        else "Compare {company}'s {period} return to {benchmark}"
+                    )
                     nl_query = template.format(company=company, period=period, benchmark=benchmark)
 
                     benchmark_sym = benchmark_symbols.get(benchmark, "S&PCOMP")
-                    period_map = {"YTD": "-YTD", "1 year": "-1Y", "3 years": "-3Y", "5 years": "-5Y"}
+                    period_map = {
+                        "YTD": "-YTD",
+                        "1 year": "-1Y",
+                        "3 years": "-3Y",
+                        "5 years": "-5Y",
+                    }
                     start = period_map.get(period, "-1Y")
 
                     steps = [
@@ -1047,9 +1052,9 @@ class ComplexGenerator(BaseGenerator):
                                 "fields": ["RI"],
                                 "start": start,
                                 "end": "0D",
-                                "kind": 0
+                                "kind": 0,
                             },
-                            "description": f"Get {company} total return index"
+                            "description": f"Get {company} total return index",
                         },
                         {
                             "tool_name": "get_data",
@@ -1058,18 +1063,15 @@ class ComplexGenerator(BaseGenerator):
                                 "fields": ["RI"],
                                 "start": start,
                                 "end": "0D",
-                                "kind": 0
+                                "kind": 0,
                             },
-                            "description": f"Get {benchmark} total return index"
+                            "description": f"Get {benchmark} total return index",
                         },
                         {
                             "tool_name": "calculate",
-                            "arguments": {
-                                "operation": "relative_return",
-                                "metric": "alpha"
-                            },
-                            "description": "Calculate relative performance"
-                        }
+                            "arguments": {"operation": "relative_return", "metric": "alpha"},
+                            "description": "Calculate relative performance",
+                        },
                     ]
 
                     test_case = self._create_test_case(
@@ -1084,8 +1086,8 @@ class ComplexGenerator(BaseGenerator):
                             "company": company,
                             "period": period,
                             "benchmark": benchmark,
-                            "step_count": 3
-                        }
+                            "step_count": 3,
+                        },
                     )
 
                     if test_case:
@@ -1097,7 +1099,7 @@ class ComplexGenerator(BaseGenerator):
     # PHASE 4: Edge Cases (~200 tests)
     # =========================================================================
 
-    def _generate_edge_cases(self) -> List[TestCase]:
+    def _generate_edge_cases(self) -> list[TestCase]:
         """Generate edge case and error handling test cases."""
         test_cases = []
 
@@ -1112,9 +1114,9 @@ class ComplexGenerator(BaseGenerator):
                     "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ticker],
-                        "fields": ["TR.PE", "TR.EVToSales", "TR.PriceToSalesPerShare"]
+                        "fields": ["TR.PE", "TR.EVToSales", "TR.PriceToSalesPerShare"],
                     },
-                    "description": "Get valuation metrics (PE undefined for negative earnings)"
+                    "description": "Get valuation metrics (PE undefined for negative earnings)",
                 }
             ]
 
@@ -1128,8 +1130,8 @@ class ComplexGenerator(BaseGenerator):
                 metadata={
                     "ticker": ticker,
                     "expected_behavior": neg_earnings.get("expected_behavior", ""),
-                    "issue": "PE undefined for unprofitable company"
-                }
+                    "issue": "PE undefined for unprofitable company",
+                },
             )
             if test_case:
                 test_cases.append(test_case)
@@ -1143,9 +1145,9 @@ class ComplexGenerator(BaseGenerator):
                     "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ticker],
-                        "fields": ["TR.DebtToEquity", "TR.TotalDebtOutstanding", "TR.TotalEquity"]
+                        "fields": ["TR.DebtToEquity", "TR.TotalDebtOutstanding", "TR.TotalEquity"],
                     },
-                    "description": "Get leverage metrics (D/E = 0 or near zero)"
+                    "description": "Get leverage metrics (D/E = 0 or near zero)",
                 }
             ]
 
@@ -1159,8 +1161,8 @@ class ComplexGenerator(BaseGenerator):
                 metadata={
                     "ticker": ticker,
                     "expected_behavior": zero_debt.get("expected_behavior", ""),
-                    "issue": "Company has minimal or no debt"
-                }
+                    "issue": "Company has minimal or no debt",
+                },
             )
             if test_case:
                 test_cases.append(test_case)
@@ -1177,9 +1179,9 @@ class ComplexGenerator(BaseGenerator):
                     "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ticker],
-                        "fields": ["TR.Revenue", "TR.FiscalYearEnd", "TR.ReportDate"]
+                        "fields": ["TR.Revenue", "TR.FiscalYearEnd", "TR.ReportDate"],
                     },
-                    "description": f"Get revenue with fiscal year ending in {fy_end}"
+                    "description": f"Get revenue with fiscal year ending in {fy_end}",
                 }
             ]
 
@@ -1193,8 +1195,8 @@ class ComplexGenerator(BaseGenerator):
                 metadata={
                     "ticker": ticker,
                     "fiscal_year_end": fy_end,
-                    "expected_behavior": non_dec_fy.get("expected_behavior", "")
-                }
+                    "expected_behavior": non_dec_fy.get("expected_behavior", ""),
+                },
             )
             if test_case:
                 test_cases.append(test_case)
@@ -1212,18 +1214,18 @@ class ComplexGenerator(BaseGenerator):
                     "tool_name": "get_data",
                     "arguments": {
                         "instruments": [adr],
-                        "fields": ["TR.PriceClose", "TR.SharesOutstanding", "TR.CompanyMarketCap"]
+                        "fields": ["TR.PriceClose", "TR.SharesOutstanding", "TR.CompanyMarketCap"],
                     },
-                    "description": "Get ADR data"
+                    "description": "Get ADR data",
                 },
                 {
                     "tool_name": "get_data",
                     "arguments": {
                         "instruments": [ordinary],
-                        "fields": ["TR.PriceClose", "TR.SharesOutstanding", "TR.CompanyMarketCap"]
+                        "fields": ["TR.PriceClose", "TR.SharesOutstanding", "TR.CompanyMarketCap"],
                     },
-                    "description": "Get ordinary share data"
-                }
+                    "description": "Get ordinary share data",
+                },
             ]
 
             test_case = self._create_test_case(
@@ -1238,8 +1240,8 @@ class ComplexGenerator(BaseGenerator):
                     "ordinary_ticker": ordinary,
                     "adr_ratio": ratio,
                     "expected_behavior": adr_config.get("expected_behavior", ""),
-                    "step_count": 2
-                }
+                    "step_count": 2,
+                },
             )
             if test_case:
                 test_cases.append(test_case)
@@ -1261,9 +1263,9 @@ class ComplexGenerator(BaseGenerator):
                         "start": "-10Y",
                         "end": "0D",
                         "freq": "Y",
-                        "kind": 0
+                        "kind": 0,
                     },
-                    "description": f"Get 10-year history (note: {event} in {date} may cause discontinuity)"
+                    "description": f"Get 10-year history (note: {event} in {date} may cause discontinuity)",
                 }
             ]
 
@@ -1278,8 +1280,8 @@ class ComplexGenerator(BaseGenerator):
                     "ticker": ticker,
                     "event": event,
                     "event_date": date,
-                    "expected_behavior": merger_config.get("expected_behavior", "")
-                }
+                    "expected_behavior": merger_config.get("expected_behavior", ""),
+                },
             )
             if test_case:
                 test_cases.append(test_case)
@@ -1301,9 +1303,9 @@ class ComplexGenerator(BaseGenerator):
                         "start": "-15Y",
                         "end": "0D",
                         "freq": "Y",
-                        "kind": 0
+                        "kind": 0,
                     },
-                    "description": f"Get history (note: spinoff from {parent} in {date}, limited pre-spinoff data)"
+                    "description": f"Get history (note: spinoff from {parent} in {date}, limited pre-spinoff data)",
                 }
             ]
 
@@ -1318,8 +1320,8 @@ class ComplexGenerator(BaseGenerator):
                     "ticker": ticker,
                     "parent": parent,
                     "spinoff_date": date,
-                    "expected_behavior": spinoff_config.get("expected_behavior", "")
-                }
+                    "expected_behavior": spinoff_config.get("expected_behavior", ""),
+                },
             )
             if test_case:
                 test_cases.append(test_case)
@@ -1330,80 +1332,90 @@ class ComplexGenerator(BaseGenerator):
                 "name": "empty_screen",
                 "nl": "Find stocks with PE under 1 and revenue over $1 trillion",
                 "description": "Screen that returns no results",
-                "steps": [{
-                    "tool_name": "screen",
-                    "arguments": {
-                        "expression": "SCREEN(U(IN(Equity(active,public,primary))), TR.PE>0, TR.PE<=1, TR.Revenue(Scale=12)>=1)",
-                        "output_fields": ["TR.CommonName", "RIC"]
-                    },
-                    "description": "Screen with contradictory criteria"
-                }]
+                "steps": [
+                    {
+                        "tool_name": "screen",
+                        "arguments": {
+                            "expression": "SCREEN(U(IN(Equity(active,public,primary))), TR.PE>0, TR.PE<=1, TR.Revenue(Scale=12)>=1)",
+                            "output_fields": ["TR.CommonName", "RIC"],
+                        },
+                        "description": "Screen with contradictory criteria",
+                    }
+                ],
             },
             {
                 "name": "invalid_ticker",
                 "nl": "Get price for INVALIDTICKER123",
                 "description": "Non-existent ticker",
-                "steps": [{
-                    "tool_name": "get_data",
-                    "arguments": {
-                        "tickers": "INVALIDTICKER123",
-                        "fields": ["P"],
-                        "start": "0D",
-                        "end": "0D",
-                        "kind": 0
-                    },
-                    "description": "Query invalid ticker"
-                }]
+                "steps": [
+                    {
+                        "tool_name": "get_data",
+                        "arguments": {
+                            "tickers": "INVALIDTICKER123",
+                            "fields": ["P"],
+                            "start": "0D",
+                            "end": "0D",
+                            "kind": 0,
+                        },
+                        "description": "Query invalid ticker",
+                    }
+                ],
             },
             {
                 "name": "future_date",
                 "nl": "Get Apple's stock price on December 31, 2030",
                 "description": "Future date request",
-                "steps": [{
-                    "tool_name": "get_data",
-                    "arguments": {
-                        "tickers": "@AAPL",
-                        "fields": ["P"],
-                        "start": "2030-12-31",
-                        "end": "2030-12-31",
-                        "kind": 0
-                    },
-                    "description": "Query future date"
-                }]
+                "steps": [
+                    {
+                        "tool_name": "get_data",
+                        "arguments": {
+                            "tickers": "@AAPL",
+                            "fields": ["P"],
+                            "start": "2030-12-31",
+                            "end": "2030-12-31",
+                            "kind": 0,
+                        },
+                        "description": "Query future date",
+                    }
+                ],
             },
             {
                 "name": "very_old_date",
                 "nl": "Get Microsoft's revenue in 1975",
                 "description": "Date before company existed",
-                "steps": [{
-                    "tool_name": "get_data",
-                    "arguments": {
-                        "tickers": "U:MSFT",
-                        "fields": ["WC01001"],
-                        "start": "1975-01-01",
-                        "end": "1975-12-31",
-                        "freq": "Y",
-                        "kind": 0
-                    },
-                    "description": "Query before company founding (1975, founded 1975 but no public data)"
-                }]
+                "steps": [
+                    {
+                        "tool_name": "get_data",
+                        "arguments": {
+                            "tickers": "U:MSFT",
+                            "fields": ["WC01001"],
+                            "start": "1975-01-01",
+                            "end": "1975-12-31",
+                            "freq": "Y",
+                            "kind": 0,
+                        },
+                        "description": "Query before company founding (1975, founded 1975 but no public data)",
+                    }
+                ],
             },
             {
                 "name": "incompatible_fields",
                 "nl": "Get TR.Revenue using Datastream API",
                 "description": "Wrong field format for API",
-                "steps": [{
-                    "tool_name": "get_data",
-                    "arguments": {
-                        "tickers": "@AAPL",
-                        "fields": ["TR.Revenue"],
-                        "start": "0D",
-                        "end": "0D",
-                        "kind": 0
-                    },
-                    "description": "Datastream call with Refinitiv field"
-                }]
-            }
+                "steps": [
+                    {
+                        "tool_name": "get_data",
+                        "arguments": {
+                            "tickers": "@AAPL",
+                            "fields": ["TR.Revenue"],
+                            "start": "0D",
+                            "end": "0D",
+                            "kind": 0,
+                        },
+                        "description": "Datastream call with Refinitiv field",
+                    }
+                ],
+            },
         ]
 
         for pattern in edge_patterns:
@@ -1414,10 +1426,7 @@ class ComplexGenerator(BaseGenerator):
                 subcategory=f"edge_{pattern['name']}",
                 complexity=5,
                 tags=["edge_case", pattern["name"], "error_handling"],
-                metadata={
-                    "pattern": pattern["name"],
-                    "description": pattern["description"]
-                }
+                metadata={"pattern": pattern["name"], "description": pattern["description"]},
             )
             if test_case:
                 test_cases.append(test_case)
@@ -1428,7 +1437,7 @@ class ComplexGenerator(BaseGenerator):
     # Original Methods (kept for backward compatibility)
     # =========================================================================
 
-    def _generate_multi_step_workflows(self) -> List[TestCase]:
+    def _generate_multi_step_workflows(self) -> list[TestCase]:
         """Generate multi-step workflow queries (original implementation)."""
         test_cases = []
 
@@ -1438,12 +1447,8 @@ class ComplexGenerator(BaseGenerator):
                 "steps": [
                     {
                         "tool_name": "get_data",
-                        "arguments": {
-                            "tickers": "LS&PCOMP|L",
-                            "fields": ["RIC"],
-                            "kind": 0
-                        },
-                        "description": "Get S&P 500 constituents"
+                        "arguments": {"tickers": "LS&PCOMP|L", "fields": ["RIC"], "kind": 0},
+                        "description": "Get S&P 500 constituents",
                     },
                     {
                         "tool_name": "get_data",
@@ -1452,24 +1457,20 @@ class ComplexGenerator(BaseGenerator):
                             "fields": ["P"],
                             "start": "0D",
                             "end": "0D",
-                            "kind": 0
+                            "kind": 0,
                         },
-                        "description": "Get prices for all constituents"
-                    }
+                        "description": "Get prices for all constituents",
+                    },
                 ],
-                "complexity": 8
+                "complexity": 8,
             },
             {
                 "nl": "Calculate the average PE ratio of FTSE 100 companies",
                 "steps": [
                     {
                         "tool_name": "get_data",
-                        "arguments": {
-                            "tickers": "LFTSE100|L",
-                            "fields": ["RIC"],
-                            "kind": 0
-                        },
-                        "description": "Get FTSE 100 constituents"
+                        "arguments": {"tickers": "LFTSE100|L", "fields": ["RIC"], "kind": 0},
+                        "description": "Get FTSE 100 constituents",
                     },
                     {
                         "tool_name": "get_data",
@@ -1478,32 +1479,25 @@ class ComplexGenerator(BaseGenerator):
                             "fields": ["PE"],
                             "start": "0D",
                             "end": "0D",
-                            "kind": 0
+                            "kind": 0,
                         },
-                        "description": "Get PE ratios"
+                        "description": "Get PE ratios",
                     },
                     {
                         "tool_name": "calculate",
-                        "arguments": {
-                            "operation": "mean",
-                            "field": "PE"
-                        },
-                        "description": "Calculate average"
-                    }
+                        "arguments": {"operation": "mean", "field": "PE"},
+                        "description": "Calculate average",
+                    },
                 ],
-                "complexity": 10
+                "complexity": 10,
             },
             {
                 "nl": "Find the best performing stock in the DAX over the past year",
                 "steps": [
                     {
                         "tool_name": "get_data",
-                        "arguments": {
-                            "tickers": "LDAXINDX|L",
-                            "fields": ["RIC"],
-                            "kind": 0
-                        },
-                        "description": "Get DAX constituents"
+                        "arguments": {"tickers": "LDAXINDX|L", "fields": ["RIC"], "kind": 0},
+                        "description": "Get DAX constituents",
                     },
                     {
                         "tool_name": "get_data",
@@ -1512,32 +1506,25 @@ class ComplexGenerator(BaseGenerator):
                             "fields": ["P"],
                             "start": "0D",
                             "end": "0D",
-                            "kind": 0
+                            "kind": 0,
                         },
-                        "description": "Get 1-year returns using PCH#"
+                        "description": "Get 1-year returns using PCH#",
                     },
                     {
                         "tool_name": "sort_and_select",
-                        "arguments": {
-                            "operation": "max",
-                            "count": 1
-                        },
-                        "description": "Find maximum"
-                    }
+                        "arguments": {"operation": "max", "count": 1},
+                        "description": "Find maximum",
+                    },
                 ],
-                "complexity": 10
+                "complexity": 10,
             },
             {
                 "nl": "Get the top 10 highest dividend yielding stocks in the FTSE 100",
                 "steps": [
                     {
                         "tool_name": "get_data",
-                        "arguments": {
-                            "tickers": "LFTSE100|L",
-                            "fields": ["RIC"],
-                            "kind": 0
-                        },
-                        "description": "Get FTSE 100 constituents"
+                        "arguments": {"tickers": "LFTSE100|L", "fields": ["RIC"], "kind": 0},
+                        "description": "Get FTSE 100 constituents",
                     },
                     {
                         "tool_name": "get_data",
@@ -1546,22 +1533,18 @@ class ComplexGenerator(BaseGenerator):
                             "fields": ["DY"],
                             "start": "0D",
                             "end": "0D",
-                            "kind": 0
+                            "kind": 0,
                         },
-                        "description": "Get dividend yields"
+                        "description": "Get dividend yields",
                     },
                     {
                         "tool_name": "sort_and_select",
-                        "arguments": {
-                            "operation": "top",
-                            "count": 10,
-                            "order": "desc"
-                        },
-                        "description": "Sort and take top 10"
-                    }
+                        "arguments": {"operation": "top", "count": 10, "order": "desc"},
+                        "description": "Sort and take top 10",
+                    },
                 ],
-                "complexity": 10
-            }
+                "complexity": 10,
+            },
         ]
 
         for workflow in workflows:
@@ -1572,9 +1555,7 @@ class ComplexGenerator(BaseGenerator):
                 subcategory="multi_step",
                 complexity=workflow["complexity"],
                 tags=["complex", "multi_step", "workflow"],
-                metadata={
-                    "step_count": len(workflow["steps"])
-                }
+                metadata={"step_count": len(workflow["steps"])},
             )
 
             if test_case:
@@ -1582,7 +1563,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_dupont_analysis(self) -> List[TestCase]:
+    def _generate_dupont_analysis(self) -> list[TestCase]:
         """Generate DuPont analysis queries."""
         test_cases = []
 
@@ -1603,12 +1584,12 @@ class ComplexGenerator(BaseGenerator):
                         "WC01001",  # Revenue
                         "WC02999",  # Total Assets
                         "WC03501",  # Equity
-                        "WC08301"   # ROE
+                        "WC08301",  # ROE
                     ],
                     "start": "0D",
                     "end": "0D",
-                    "kind": 0
-                }
+                    "kind": 0,
+                },
             }
 
             test_case = self._create_test_case(
@@ -1618,10 +1599,7 @@ class ComplexGenerator(BaseGenerator):
                 subcategory="dupont_analysis",
                 complexity=6,
                 tags=["complex", "analysis", "dupont"],
-                metadata={
-                    "ticker": ticker,
-                    "analysis_type": "DuPont"
-                }
+                metadata={"ticker": ticker, "analysis_type": "DuPont"},
             )
 
             if test_case:
@@ -1629,25 +1607,22 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_valuation_model_inputs(self) -> List[TestCase]:
+    def _generate_valuation_model_inputs(self) -> list[TestCase]:
         """Generate valuation model input queries."""
         test_cases = []
 
         tickers = self._get_all_tickers(count=15)
 
         models = [
-            {
-                "name": "EV/EBITDA valuation",
-                "fields": ["WC18100", "WC18198", "WC08001", "WC01751"]
-            },
+            {"name": "EV/EBITDA valuation", "fields": ["WC18100", "WC18198", "WC08001", "WC01751"]},
             {
                 "name": "DCF input gathering",
-                "fields": ["WC04860", "WC04601", "WC03255", "WC02001", "WC03501"]
+                "fields": ["WC04860", "WC04601", "WC03255", "WC02001", "WC03501"],
             },
             {
                 "name": "comparable company analysis",
-                "fields": ["PE", "PTBV", "EVEBID", "DY", "WC08301"]
-            }
+                "fields": ["PE", "PTBV", "EVEBID", "DY", "WC08301"],
+            },
         ]
 
         for ticker_info in tickers:
@@ -1664,8 +1639,8 @@ class ComplexGenerator(BaseGenerator):
                         "fields": model["fields"],
                         "start": "0D",
                         "end": "0D",
-                        "kind": 0
-                    }
+                        "kind": 0,
+                    },
                 }
 
                 test_case = self._create_test_case(
@@ -1675,10 +1650,7 @@ class ComplexGenerator(BaseGenerator):
                     subcategory="valuation_model",
                     complexity=7,
                     tags=["complex", "valuation", model["name"].replace(" ", "_")],
-                    metadata={
-                        "ticker": ticker,
-                        "model": model["name"]
-                    }
+                    metadata={"ticker": ticker, "model": model["name"]},
                 )
 
                 if test_case:
@@ -1686,7 +1658,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_analyst_estimate_packages(self) -> List[TestCase]:
+    def _generate_analyst_estimate_packages(self) -> list[TestCase]:
         """Generate comprehensive analyst estimate queries."""
         test_cases = []
 
@@ -1712,8 +1684,8 @@ class ComplexGenerator(BaseGenerator):
                     "TR.PriceTargetLow",
                     "TR.PtoEPSMeanEst(Period=FY1)",
                     "TR.PEGRatio",
-                    "TR.LTGMean"
-                ]
+                    "TR.LTGMean",
+                ],
             },
             {
                 "name": "earnings surprise history",
@@ -1721,8 +1693,8 @@ class ComplexGenerator(BaseGenerator):
                     "TR.EPSActValue(Period=FQ0)",
                     "TR.EPSMean(Period=FQ0)",
                     "TR.EPSSurprise(Period=FQ0)",
-                    "TR.EPSSurprisePct(Period=FQ0)"
-                ]
+                    "TR.EPSSurprisePct(Period=FQ0)",
+                ],
             },
             {
                 "name": "estimate revision trend",
@@ -1730,9 +1702,9 @@ class ComplexGenerator(BaseGenerator):
                     "TR.EPSMeanChgPct(Period=FY1)",
                     "TR.EPSNumUp(Period=FY1)",
                     "TR.EPSNumDown(Period=FY1)",
-                    "TR.RevenueMeanChgPct(Period=FY1)"
-                ]
-            }
+                    "TR.RevenueMeanChgPct(Period=FY1)",
+                ],
+            },
         ]
 
         for ticker_info in tickers:
@@ -1744,10 +1716,7 @@ class ComplexGenerator(BaseGenerator):
 
                 tool_call = {
                     "tool_name": "get_data",
-                    "arguments": {
-                        "instruments": [ticker],
-                        "fields": package["fields"]
-                    }
+                    "arguments": {"instruments": [ticker], "fields": package["fields"]},
                 }
 
                 test_case = self._create_test_case(
@@ -1757,10 +1726,7 @@ class ComplexGenerator(BaseGenerator):
                     subcategory="estimates_package",
                     complexity=9,
                     tags=["complex", "estimates", package["name"].replace(" ", "_")],
-                    metadata={
-                        "ticker": ticker,
-                        "package": package["name"]
-                    }
+                    metadata={"ticker": ticker, "package": package["name"]},
                 )
 
                 if test_case:
@@ -1768,7 +1734,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_officer_director_queries(self) -> List[TestCase]:
+    def _generate_officer_director_queries(self) -> list[TestCase]:
         """Generate officer and director queries."""
         test_cases = []
 
@@ -1778,25 +1744,31 @@ class ComplexGenerator(BaseGenerator):
             {
                 "nl_template": "Who is the CEO of {company}?",
                 "fields": ["TR.CEOName"],
-                "subcategory": "ceo"
+                "subcategory": "ceo",
             },
             {
                 "nl_template": "Get {company}'s executive team",
                 "fields": ["TR.OfficerName", "TR.OfficerTitle", "TR.OfficerAge"],
                 "parameters": {"RNK": "R1:R10"},
-                "subcategory": "exec_team"
+                "subcategory": "exec_team",
             },
             {
                 "nl_template": "What is {company} CEO's compensation?",
-                "fields": ["TR.CEOName", "TR.ODOfficerSalary", "TR.ODOfficerBonus", "TR.ODOfficerStockAwards", "TR.ODOfficerTotalComp"],
+                "fields": [
+                    "TR.CEOName",
+                    "TR.ODOfficerSalary",
+                    "TR.ODOfficerBonus",
+                    "TR.ODOfficerStockAwards",
+                    "TR.ODOfficerTotalComp",
+                ],
                 "parameters": {"RNK": "R1"},
-                "subcategory": "ceo_comp"
+                "subcategory": "ceo_comp",
             },
             {
                 "nl_template": "List {company}'s board of directors",
                 "fields": ["TR.ODDirectorName", "TR.ODDirectorTenure", "TR.ODIndependentDirector"],
                 "parameters": {"ODRnk": "R1:R15"},
-                "subcategory": "board"
+                "subcategory": "board",
             },
             {
                 "nl_template": "Get complete profile for {company}'s CEO",
@@ -1811,11 +1783,11 @@ class ComplexGenerator(BaseGenerator):
                     "TR.ODOfficerSalary",
                     "TR.ODOfficerBonus",
                     "TR.ODOfficerStockAwards",
-                    "TR.ODOfficerTotalComp"
+                    "TR.ODOfficerTotalComp",
                 ],
                 "parameters": {"RNK": "R1"},
-                "subcategory": "ceo_profile"
-            }
+                "subcategory": "ceo_profile",
+            },
         ]
 
         for ticker_info in tickers:
@@ -1827,10 +1799,7 @@ class ComplexGenerator(BaseGenerator):
 
                 tool_call = {
                     "tool_name": "get_data",
-                    "arguments": {
-                        "instruments": [ticker],
-                        "fields": query["fields"]
-                    }
+                    "arguments": {"instruments": [ticker], "fields": query["fields"]},
                 }
 
                 if "parameters" in query:
@@ -1843,10 +1812,7 @@ class ComplexGenerator(BaseGenerator):
                     subcategory=f"officers_{query['subcategory']}",
                     complexity=5,
                     tags=["complex", "officers", query["subcategory"]],
-                    metadata={
-                        "ticker": ticker,
-                        "query_type": query["subcategory"]
-                    }
+                    metadata={"ticker": ticker, "query_type": query["subcategory"]},
                 )
 
                 if test_case:
@@ -1854,7 +1820,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_financial_health_checks(self) -> List[TestCase]:
+    def _generate_financial_health_checks(self) -> list[TestCase]:
         """Generate comprehensive financial health check queries."""
         test_cases = []
 
@@ -1872,20 +1838,30 @@ class ComplexGenerator(BaseGenerator):
                     "tickers": ticker,
                     "fields": [
                         # Profitability
-                        "WC01001", "WC01751", "WC08301", "WC08326", "WC08366",
+                        "WC01001",
+                        "WC01751",
+                        "WC08301",
+                        "WC08326",
+                        "WC08366",
                         # Liquidity
-                        "WC08106", "WC08101", "WC03151",
+                        "WC08106",
+                        "WC08101",
+                        "WC03151",
                         # Solvency
-                        "WC08224", "WC08221", "WC18199",
+                        "WC08224",
+                        "WC08221",
+                        "WC18199",
                         # Efficiency
-                        "WC08131", "WC08126",
+                        "WC08131",
+                        "WC08126",
                         # Cash Flow
-                        "WC04860", "WC04601"
+                        "WC04860",
+                        "WC04601",
                     ],
                     "start": "0D",
                     "end": "0D",
-                    "kind": 0
-                }
+                    "kind": 0,
+                },
             }
 
             test_case = self._create_test_case(
@@ -1895,9 +1871,7 @@ class ComplexGenerator(BaseGenerator):
                 subcategory="health_check",
                 complexity=8,
                 tags=["complex", "analysis", "health_check"],
-                metadata={
-                    "ticker": ticker
-                }
+                metadata={"ticker": ticker},
             )
 
             if test_case:
@@ -1905,23 +1879,17 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_peer_analysis(self) -> List[TestCase]:
+    def _generate_peer_analysis(self) -> list[TestCase]:
         """Generate peer analysis queries."""
         test_cases = []
 
         peer_groups = [
             {
                 "name": "semiconductor companies",
-                "tickers": ["U:NVDA", "U:AMD", "U:INTC", "U:QCOM", "U:AVGO"]
+                "tickers": ["U:NVDA", "U:AMD", "U:INTC", "U:QCOM", "U:AVGO"],
             },
-            {
-                "name": "big tech",
-                "tickers": ["@AAPL", "U:MSFT", "U:GOOGL", "U:AMZN", "U:META"]
-            },
-            {
-                "name": "major US banks",
-                "tickers": ["U:JPM", "U:BAC", "U:WFC", "U:C", "U:GS"]
-            }
+            {"name": "big tech", "tickers": ["@AAPL", "U:MSFT", "U:GOOGL", "U:AMZN", "U:META"]},
+            {"name": "major US banks", "tickers": ["U:JPM", "U:BAC", "U:WFC", "U:C", "U:GS"]},
         ]
 
         for group in peer_groups:
@@ -1932,13 +1900,19 @@ class ComplexGenerator(BaseGenerator):
                 "arguments": {
                     "tickers": ",".join(group["tickers"]),
                     "fields": [
-                        "WC01001", "WC01751", "WC08316", "WC08301", "WC08224",
-                        "WC02001", "WC03255", "WC08001"
+                        "WC01001",
+                        "WC01751",
+                        "WC08316",
+                        "WC08301",
+                        "WC08224",
+                        "WC02001",
+                        "WC03255",
+                        "WC08001",
                     ],
                     "start": "0D",
                     "end": "0D",
-                    "kind": 0
-                }
+                    "kind": 0,
+                },
             }
 
             test_case = self._create_test_case(
@@ -1948,10 +1922,7 @@ class ComplexGenerator(BaseGenerator):
                 subcategory="peer_analysis",
                 complexity=9,
                 tags=["complex", "analysis", "peer_comparison"],
-                metadata={
-                    "peer_group": group["name"],
-                    "tickers": group["tickers"]
-                }
+                metadata={"peer_group": group["name"], "tickers": group["tickers"]},
             )
 
             if test_case:
@@ -1959,7 +1930,7 @@ class ComplexGenerator(BaseGenerator):
 
         return test_cases
 
-    def generate(self) -> List[TestCase]:
+    def generate(self) -> list[TestCase]:
         """Generate all complex test cases."""
         test_cases = []
 

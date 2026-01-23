@@ -78,9 +78,7 @@ class NL2APIOrchestrator:
         """
         # Validate protocol conformance for required parameters
         if not isinstance(llm, LLMProvider):
-            raise TypeError(
-                f"llm must implement LLMProvider protocol, got {type(llm).__name__}"
-            )
+            raise TypeError(f"llm must implement LLMProvider protocol, got {type(llm).__name__}")
 
         # Validate agents dict
         for domain, agent in agents.items():
@@ -92,9 +90,7 @@ class NL2APIOrchestrator:
 
         # Validate optional protocol parameters
         if rag is not None and not isinstance(rag, RAGRetriever):
-            raise TypeError(
-                f"rag must implement RAGRetriever protocol, got {type(rag).__name__}"
-            )
+            raise TypeError(f"rag must implement RAGRetriever protocol, got {type(rag).__name__}")
         if entity_resolver is not None and not isinstance(entity_resolver, EntityResolver):
             raise TypeError(
                 f"entity_resolver must implement EntityResolver protocol, "
@@ -111,9 +107,7 @@ class NL2APIOrchestrator:
             raise TypeError(
                 f"router must implement QueryRouter protocol, got {type(router).__name__}"
             )
-        if context_retriever is not None and not isinstance(
-            context_retriever, ContextProvider
-        ):
+        if context_retriever is not None and not isinstance(context_retriever, ContextProvider):
             raise TypeError(
                 f"context_retriever must implement ContextProvider protocol, "
                 f"got {type(context_retriever).__name__}"
@@ -181,18 +175,16 @@ class NL2APIOrchestrator:
                     effective_query = query
                     expansion_result = None
                     if session.total_turns > 0:
-                        expansion_result = self._conversation_manager.expand_query(
-                            query, session
-                        )
+                        expansion_result = self._conversation_manager.expand_query(query, session)
                         if expansion_result.was_expanded:
                             effective_query = expansion_result.expanded_query
                             metrics.query_expanded = True
                             metrics.query_expansion_reason = "follow_up"
                             expansion_span.set_attribute("query.expanded", True)
-                            expansion_span.set_attribute("query.expanded_length", len(effective_query))
-                            logger.info(
-                                f"Expanded query: '{query}' -> '{effective_query}'"
+                            expansion_span.set_attribute(
+                                "query.expanded_length", len(effective_query)
                             )
+                            logger.info(f"Expanded query: '{query}' -> '{effective_query}'")
                         else:
                             expansion_span.set_attribute("query.expanded", False)
                     else:
@@ -205,8 +197,8 @@ class NL2APIOrchestrator:
                     routing_latency = int((time.perf_counter() - routing_start) * 1000)
 
                     # Get routing details from last router result
-                    routing_cached = getattr(self, '_last_router_result_cached', False)
-                    routing_model = getattr(self, '_last_router_result_model', None)
+                    routing_cached = getattr(self, "_last_router_result_cached", False)
+                    routing_model = getattr(self, "_last_router_result_model", None)
 
                     routing_span.set_attribute("routing.domain", domain)
                     routing_span.set_attribute("routing.confidence", confidence)
@@ -222,7 +214,9 @@ class NL2APIOrchestrator:
                         model=routing_model,
                         latency_ms=routing_latency,
                     )
-                    logger.info(f"Query classified to domain: {domain} (confidence={confidence:.2f})")
+                    logger.info(
+                        f"Query classified to domain: {domain} (confidence={confidence:.2f})"
+                    )
 
                 # Check if confidence is too low
                 if confidence < self._routing_confidence_threshold or domain not in self._agents:
@@ -290,11 +284,15 @@ class NL2APIOrchestrator:
                         effective_query,
                         resolved_entities=merged_entities,
                     )
-                    ambiguity_span.set_attribute("ambiguity.is_ambiguous", ambiguity_analysis.is_ambiguous)
+                    ambiguity_span.set_attribute(
+                        "ambiguity.is_ambiguous", ambiguity_analysis.is_ambiguous
+                    )
                     if ambiguity_analysis.is_ambiguous:
                         processing_time_ms = int((time.perf_counter() - start_time) * 1000)
                         turn_number = session.total_turns + 1
-                        ambiguity_span.set_attribute("ambiguity.types", list(ambiguity_analysis.ambiguity_types))
+                        ambiguity_span.set_attribute(
+                            "ambiguity.types", list(ambiguity_analysis.ambiguity_types)
+                        )
                         logger.info(f"Query is ambiguous: {ambiguity_analysis.ambiguity_types}")
                         metrics.set_clarification("ambiguity")
                         metrics.finalize(processing_time_ms)
@@ -338,11 +336,13 @@ class NL2APIOrchestrator:
 
                     context_span.set_attribute("context.field_codes", len(field_codes))
                     context_span.set_attribute("context.examples", len(query_examples))
-                    context_span.set_attribute("context.mode", getattr(self, '_context_mode', 'local'))
+                    context_span.set_attribute(
+                        "context.mode", getattr(self, "_context_mode", "local")
+                    )
                     context_span.set_attribute("context.latency_ms", context_latency)
 
                     metrics.set_context_retrieval(
-                        mode=getattr(self, '_context_mode', 'local'),
+                        mode=getattr(self, "_context_mode", "local"),
                         field_codes_count=len(field_codes),
                         examples_count=len(query_examples),
                         latency_ms=context_latency,
@@ -504,10 +504,7 @@ class NL2APIOrchestrator:
         from src.nl2api.routing.providers import AgentToolProvider
 
         # Wrap agents as tool providers
-        providers = [
-            AgentToolProvider(agent)
-            for agent in self._agents.values()
-        ]
+        providers = [AgentToolProvider(agent) for agent in self._agents.values()]
 
         return LLMToolRouter(
             llm=self._llm,
@@ -572,8 +569,7 @@ class NL2APIOrchestrator:
 
         # Otherwise, use LLM for classification
         domain_descriptions = "\n".join(
-            f"- {name}: {agent.domain_description}"
-            for name, agent in self._agents.items()
+            f"- {name}: {agent.domain_description}" for name, agent in self._agents.items()
         )
 
         classification_prompt = f"""Given the following query, determine which API domain is most appropriate.
@@ -583,7 +579,7 @@ Available domains:
 
 Query: {query}
 
-Respond with ONLY the domain name (one of: {', '.join(self._agents.keys())}).
+Respond with ONLY the domain name (one of: {", ".join(self._agents.keys())}).
 If you cannot determine the domain, respond with "unknown".
 """
 

@@ -8,7 +8,8 @@ from __future__ import annotations
 
 import functools
 import logging
-from typing import Any, Callable, TypeVar
+from collections.abc import Callable
+from typing import Any, TypeVar
 
 from src.common.telemetry.setup import get_tracer, is_telemetry_enabled
 
@@ -188,8 +189,8 @@ def add_span_event(name: str, attributes: dict[str, Any] | None = None) -> None:
         logger.debug(f"Failed to add span event: {e}")
 
 
+from collections.abc import Generator
 from contextlib import contextmanager
-from typing import Generator
 
 
 @contextmanager

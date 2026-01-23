@@ -20,15 +20,15 @@ _telemetry_initialized = False
 
 # Try to import OpenTelemetry
 try:
-    from opentelemetry import trace, metrics
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry import metrics, trace
+    from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
-    from opentelemetry.sdk.metrics.view import View, ExplicitBucketHistogramAggregation
-    from opentelemetry.sdk.resources import Resource, SERVICE_NAME, SERVICE_VERSION
-    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-    from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+    from opentelemetry.sdk.metrics.view import ExplicitBucketHistogramAggregation, View
+    from opentelemetry.sdk.resources import SERVICE_NAME, SERVICE_VERSION, Resource
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
     _otel_available = True
 except ImportError:
@@ -249,7 +249,7 @@ class _NoOpSpan:
     def set_status(self, status: Any) -> None:
         pass
 
-    def __enter__(self) -> "_NoOpSpan":
+    def __enter__(self) -> _NoOpSpan:
         return self
 
     def __exit__(self, *args: Any) -> None:

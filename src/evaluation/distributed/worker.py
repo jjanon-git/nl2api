@@ -14,18 +14,19 @@ from __future__ import annotations
 import asyncio
 import logging
 import signal
+from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager
-from typing import Callable, Awaitable, Any
+from typing import Any
 
-from src.contracts.worker import WorkerTask
 from src.contracts.core import _now_utc
-from src.evaluation.distributed.config import WorkerConfig, EvalMode
+from src.contracts.worker import WorkerTask
+from src.evaluation.distributed.config import WorkerConfig
 from src.evaluation.distributed.models import QueueMessage, WorkerStatus
-from src.evaluation.distributed.queue.protocol import TaskQueue, QueueError
+from src.evaluation.distributed.queue.protocol import TaskQueue
 
 # Telemetry imports (optional)
 try:
-    from src.common.telemetry import get_tracer, get_meter, trace_span_safe
+    from src.common.telemetry import get_meter, get_tracer, trace_span_safe
 
     tracer = get_tracer(__name__)
     meter = get_meter(__name__)
@@ -33,19 +34,19 @@ try:
 
     # Worker metrics
     _tasks_processed_counter = meter.create_counter(
-        "eval.worker.tasks_processed",
+        "eval_worker_tasks_processed",
         description="Number of tasks processed by workers",
     )
     _tasks_failed_counter = meter.create_counter(
-        "eval.worker.tasks_failed",
+        "eval_worker_tasks_failed",
         description="Number of tasks that failed processing",
     )
     _task_duration_histogram = meter.create_histogram(
-        "eval.worker.task_duration_ms",
+        "eval_worker_task_duration_ms",
         description="Time to process a single task in milliseconds",
     )
     _worker_active_gauge = meter.create_up_down_counter(
-        "eval.worker.active",
+        "eval_worker_active",
         description="Number of active workers",
     )
 except ImportError:
@@ -59,9 +60,12 @@ except ImportError:
 
     def trace_span_safe(*args, **kwargs):
         """No-op decorator when telemetry not available."""
+
         def decorator(func):
             return func
+
         return decorator
+
 
 logger = logging.getLogger(__name__)
 
@@ -171,9 +175,7 @@ class EvalWorker:
                 # Windows doesn't support add_signal_handler
                 pass
 
-        logger.info(
-            f"Worker {self.worker_id} starting for batch {self.batch_id}"
-        )
+        logger.info(f"Worker {self.worker_id} starting for batch {self.batch_id}")
 
         # Track worker as active
         if _worker_active_gauge:
@@ -201,7 +203,9 @@ class EvalWorker:
 
             # Track worker as inactive
             if _worker_active_gauge:
-                _worker_active_gauge.add(-1, {"worker_id": self.worker_id, "batch_id": self.batch_id})
+                _worker_active_gauge.add(
+                    -1, {"worker_id": self.worker_id, "batch_id": self.batch_id}
+                )
 
             logger.info(
                 f"Worker {self.worker_id} stopped. "
@@ -297,8 +301,12 @@ class EvalWorker:
             async with self._span("eval.worker.evaluate") as eval_span:
                 scorecard = await self.evaluator(test_case, response)
                 if eval_span and scorecard:
-                    eval_span.set_attribute("result.passed", getattr(scorecard, "overall_passed", False))
-                    eval_span.set_attribute("result.score", getattr(scorecard, "overall_score", 0.0))
+                    eval_span.set_attribute(
+                        "result.passed", getattr(scorecard, "overall_passed", False)
+                    )
+                    eval_span.set_attribute(
+                        "result.score", getattr(scorecard, "overall_score", 0.0)
+                    )
 
             # 4. Save scorecard
             async with self._span("eval.worker.save_scorecard"):

@@ -4,16 +4,15 @@ Tests for MCP Context Retriever
 Tests the MCPContextRetriever.
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
 from src.nl2api.mcp.client import MCPClient
-from src.nl2api.mcp.protocols import MCPResource
 from src.nl2api.mcp.context import (
-    ContextProvider,
     MCPContextRetriever,
 )
-
+from src.nl2api.mcp.protocols import MCPResource
 
 # =============================================================================
 # MCPContextRetriever Tests
@@ -104,8 +103,7 @@ class TestMCPContextRetriever:
     async def test_get_field_codes_respects_limit(self, mock_mcp_client):
         """Test that get_field_codes respects the limit parameter."""
         resources = [
-            MCPResource(uri=f"mcp://test/field_codes/{i}", name=f"F{i}")
-            for i in range(10)
+            MCPResource(uri=f"mcp://test/field_codes/{i}", name=f"F{i}") for i in range(10)
         ]
         mock_mcp_client.list_resources = AsyncMock(return_value=resources)
 

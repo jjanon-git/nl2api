@@ -81,7 +81,7 @@ class RAGIndexer:
 
     def __init__(
         self,
-        pool: "asyncpg.Pool",
+        pool: asyncpg.Pool,
         embedder: Any | None = None,
         use_bulk_insert: bool = True,
     ):
@@ -366,15 +366,17 @@ class RAGIndexer:
             # Convert embedding to PostgreSQL array format
             embedding_str = "[" + ",".join(str(x) for x in embeddings[i]) + "]"
 
-            records.append((
-                doc_ids[i],
-                content,
-                DocumentType.FIELD_CODE.value,
-                doc.domain,
-                doc.field_code,
-                json.dumps(doc.metadata or {}),
-                embedding_str,
-            ))
+            records.append(
+                (
+                    doc_ids[i],
+                    content,
+                    DocumentType.FIELD_CODE.value,
+                    doc.domain,
+                    doc.field_code,
+                    json.dumps(doc.metadata or {}),
+                    embedding_str,
+                )
+            )
 
         async with self._pool.acquire() as conn:
             async with conn.transaction():
@@ -395,7 +397,15 @@ class RAGIndexer:
                 await conn.copy_records_to_table(
                     "staging_rag_documents",
                     records=records,
-                    columns=["id", "content", "document_type", "domain", "field_code", "metadata", "embedding"],
+                    columns=[
+                        "id",
+                        "content",
+                        "document_type",
+                        "domain",
+                        "field_code",
+                        "metadata",
+                        "embedding",
+                    ],
                 )
 
                 # UPSERT from staging to main table
@@ -511,19 +521,23 @@ class RAGIndexer:
                     if embeddings:
                         embedding_str = "[" + ",".join(str(x) for x in embeddings[j]) + "]"
 
-                    records.append((
-                        batch_doc_ids[j],
-                        content,
-                        DocumentType.ECONOMIC_INDICATOR.value,
-                        "datastream",  # Economic indicators are primarily Datastream
-                        doc.mnemonic,
-                        json.dumps({
-                            "country": doc.country,
-                            "indicator_type": doc.indicator_type,
-                            **(doc.metadata or {})
-                        }),
-                        embedding_str,
-                    ))
+                    records.append(
+                        (
+                            batch_doc_ids[j],
+                            content,
+                            DocumentType.ECONOMIC_INDICATOR.value,
+                            "datastream",  # Economic indicators are primarily Datastream
+                            doc.mnemonic,
+                            json.dumps(
+                                {
+                                    "country": doc.country,
+                                    "indicator_type": doc.indicator_type,
+                                    **(doc.metadata or {}),
+                                }
+                            ),
+                            embedding_str,
+                        )
+                    )
 
                 async with self._pool.acquire() as conn:
                     async with conn.transaction():
@@ -544,7 +558,15 @@ class RAGIndexer:
                         await conn.copy_records_to_table(
                             "staging_econ_indicators",
                             records=records,
-                            columns=["id", "content", "document_type", "domain", "field_code", "metadata", "embedding"],
+                            columns=[
+                                "id",
+                                "content",
+                                "document_type",
+                                "domain",
+                                "field_code",
+                                "metadata",
+                                "embedding",
+                            ],
                         )
 
                         # UPSERT
@@ -569,7 +591,9 @@ class RAGIndexer:
 
                 doc_ids.extend(batch_doc_ids)
                 processed = i + len(batch)
-                logger.info(f"Indexed batch of {len(batch)} economic indicators ({processed}/{len(docs)})")
+                logger.info(
+                    f"Indexed batch of {len(batch)} economic indicators ({processed}/{len(docs)})"
+                )
 
                 if checkpoint_id:
                     await self._checkpoint_manager.update_progress(
@@ -705,7 +729,7 @@ def parse_estimates_reference(content: str) -> list[FieldCodeDocument]:
 
     # Pattern to match table rows with field codes
     # Format: | Natural Language | TR Code | Description |
-    table_pattern = r'\|\s*([^|]+)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|'
+    table_pattern = r"\|\s*([^|]+)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|"
 
     for match in re.finditer(table_pattern, content):
         natural_lang = match.group(1).strip()
@@ -719,13 +743,15 @@ def parse_estimates_reference(content: str) -> list[FieldCodeDocument]:
         # Extract keywords from natural language hints
         keywords = [kw.strip() for kw in natural_lang.split(",")]
 
-        docs.append(FieldCodeDocument(
-            field_code=field_code,
-            description=description,
-            domain="estimates",
-            natural_language_hints=keywords,
-            metadata={"source": "estimates.md"},
-        ))
+        docs.append(
+            FieldCodeDocument(
+                field_code=field_code,
+                description=description,
+                domain="estimates",
+                natural_language_hints=keywords,
+                metadata={"source": "estimates.md"},
+            )
+        )
 
     return docs
 
@@ -744,7 +770,7 @@ def parse_datastream_reference(content: str) -> list[FieldCodeDocument]:
 
     # Pattern to match table rows with field codes
     # Format: | Natural Language | Field Code | Description |
-    table_pattern = r'\|\s*([^|]+)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|'
+    table_pattern = r"\|\s*([^|]+)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|"
 
     for match in re.finditer(table_pattern, content):
         natural_lang = match.group(1).strip()
@@ -752,7 +778,17 @@ def parse_datastream_reference(content: str) -> list[FieldCodeDocument]:
         description = match.group(3).strip()
 
         # Skip header rows and non-data rows
-        if natural_lang.lower() in ("natural language", "---", "metric", "expression", "interface", "universe", "operator", "option", "parameter"):
+        if natural_lang.lower() in (
+            "natural language",
+            "---",
+            "metric",
+            "expression",
+            "interface",
+            "universe",
+            "operator",
+            "option",
+            "parameter",
+        ):
             continue
         if field_code.lower() in ("field code", "wc code", "tr code", "---"):
             continue
@@ -762,13 +798,15 @@ def parse_datastream_reference(content: str) -> list[FieldCodeDocument]:
         # Extract keywords from natural language hints
         keywords = [kw.strip() for kw in natural_lang.split(",")]
 
-        docs.append(FieldCodeDocument(
-            field_code=field_code,
-            description=description,
-            domain="datastream",
-            natural_language_hints=keywords,
-            metadata={"source": "datastream.md"},
-        ))
+        docs.append(
+            FieldCodeDocument(
+                field_code=field_code,
+                description=description,
+                domain="datastream",
+                natural_language_hints=keywords,
+                metadata={"source": "datastream.md"},
+            )
+        )
 
     return docs
 
@@ -786,7 +824,7 @@ def parse_fundamentals_reference(content: str) -> list[FieldCodeDocument]:
     docs = []
 
     # Pattern to match table rows with WC or TR codes
-    table_pattern = r'\|\s*([^|]+)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|'
+    table_pattern = r"\|\s*([^|]+)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|"
 
     for match in re.finditer(table_pattern, content):
         natural_lang = match.group(1).strip()
@@ -801,13 +839,15 @@ def parse_fundamentals_reference(content: str) -> list[FieldCodeDocument]:
 
         keywords = [kw.strip() for kw in natural_lang.split(",")]
 
-        docs.append(FieldCodeDocument(
-            field_code=field_code,
-            description=description,
-            domain="fundamentals",
-            natural_language_hints=keywords,
-            metadata={"source": "fundamentals.md"},
-        ))
+        docs.append(
+            FieldCodeDocument(
+                field_code=field_code,
+                description=description,
+                domain="fundamentals",
+                natural_language_hints=keywords,
+                metadata={"source": "fundamentals.md"},
+            )
+        )
 
     return docs
 
@@ -825,7 +865,7 @@ def parse_officers_reference(content: str) -> list[FieldCodeDocument]:
     docs = []
 
     # Pattern to match table rows with TR codes
-    table_pattern = r'\|\s*([^|]+)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|'
+    table_pattern = r"\|\s*([^|]+)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|"
 
     for match in re.finditer(table_pattern, content):
         natural_lang = match.group(1).strip()
@@ -843,13 +883,15 @@ def parse_officers_reference(content: str) -> list[FieldCodeDocument]:
 
         keywords = [kw.strip() for kw in natural_lang.split(",")]
 
-        docs.append(FieldCodeDocument(
-            field_code=field_code,
-            description=description,
-            domain="officers",
-            natural_language_hints=keywords,
-            metadata={"source": "officers-directors.md"},
-        ))
+        docs.append(
+            FieldCodeDocument(
+                field_code=field_code,
+                description=description,
+                domain="officers",
+                natural_language_hints=keywords,
+                metadata={"source": "officers-directors.md"},
+            )
+        )
 
     return docs
 
@@ -867,7 +909,7 @@ def parse_screening_reference(content: str) -> list[FieldCodeDocument]:
     docs = []
 
     # Pattern to match table rows with expressions/codes
-    table_pattern = r'\|\s*([^|]+)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|'
+    table_pattern = r"\|\s*([^|]+)\s*\|\s*`([^`]+)`\s*\|\s*([^|]+)\s*\|"
 
     for match in re.finditer(table_pattern, content):
         natural_lang = match.group(1).strip()
@@ -875,20 +917,30 @@ def parse_screening_reference(content: str) -> list[FieldCodeDocument]:
         description = match.group(3).strip()
 
         # Skip header rows
-        if natural_lang.lower() in ("natural language", "---", "universe", "operator", "option", "parameter", "query type"):
+        if natural_lang.lower() in (
+            "natural language",
+            "---",
+            "universe",
+            "operator",
+            "option",
+            "parameter",
+            "query type",
+        ):
             continue
         if field_code.lower() in ("expression", "syntax", "example", "---"):
             continue
 
         keywords = [kw.strip() for kw in natural_lang.split(",")]
 
-        docs.append(FieldCodeDocument(
-            field_code=field_code,
-            description=description,
-            domain="screening",
-            natural_language_hints=keywords,
-            metadata={"source": "screening.md"},
-        ))
+        docs.append(
+            FieldCodeDocument(
+                field_code=field_code,
+                description=description,
+                domain="screening",
+                natural_language_hints=keywords,
+                metadata={"source": "screening.md"},
+            )
+        )
 
     return docs
 
@@ -918,22 +970,24 @@ def parse_query_examples(content: str) -> list[QueryExampleDocument]:
 
         # Determine complexity from section (rough heuristic)
         complexity = 1
-        if "Level 5" in content[:match.start()]:
+        if "Level 5" in content[: match.start()]:
             complexity = 5
-        elif "Level 4" in content[:match.start()]:
+        elif "Level 4" in content[: match.start()]:
             complexity = 4
-        elif "Level 3" in content[:match.start()]:
+        elif "Level 3" in content[: match.start()]:
             complexity = 3
-        elif "Level 2" in content[:match.start()]:
+        elif "Level 2" in content[: match.start()]:
             complexity = 2
 
-        docs.append(QueryExampleDocument(
-            query=query,
-            api_call=api_call,
-            domain="estimates",
-            complexity_level=complexity,
-            metadata={"source": "estimates.md"},
-        ))
+        docs.append(
+            QueryExampleDocument(
+                query=query,
+                api_call=api_call,
+                domain="estimates",
+                complexity_level=complexity,
+                metadata={"source": "estimates.md"},
+            )
+        )
 
     return docs
 
@@ -960,8 +1014,10 @@ def create_progress_callback(
             callback = create_progress_callback(progress, task)
             await indexer.index_field_codes_batch(docs, progress_callback=callback)
     """
+
     def callback(processed: int, total: int) -> None:
         progress.update(task_id, completed=processed, total=total)
+
     return callback
 
 

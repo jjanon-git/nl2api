@@ -8,7 +8,7 @@ Supports stdio and HTTP/SSE transports.
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 from src.common.telemetry import get_tracer
 from src.mcp_servers.entity_resolution.config import EntityServerConfig
@@ -152,9 +152,7 @@ class EntityResolutionMCPServer:
 
             self._initialized = True
             span.set_attribute("server.initialized", True)
-            logger.info(
-                f"MCP Server '{self._config.server_name}' initialized successfully"
-            )
+            logger.info(f"MCP Server '{self._config.server_name}' initialized successfully")
 
     async def shutdown(self) -> None:
         """
@@ -264,7 +262,7 @@ class EntityResolutionMCPServer:
     def _add_client_context_to_span(
         self,
         span: Any,
-        client_ctx: Optional[ClientContext] = None,
+        client_ctx: ClientContext | None = None,
     ) -> None:
         """Add client context attributes to a span."""
         ctx = client_ctx or get_client_context()
@@ -275,7 +273,7 @@ class EntityResolutionMCPServer:
     async def handle_message(
         self,
         message: dict[str, Any],
-        client_ctx: Optional[ClientContext] = None,
+        client_ctx: ClientContext | None = None,
     ) -> dict[str, Any] | None:
         """
         Handle an incoming JSON-RPC message.
@@ -394,7 +392,7 @@ class EntityResolutionMCPServer:
     # Context Manager Support
     # =========================================================================
 
-    async def __aenter__(self) -> "EntityResolutionMCPServer":
+    async def __aenter__(self) -> EntityResolutionMCPServer:
         """Enter async context manager."""
         await self.initialize()
         return self

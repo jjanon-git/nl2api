@@ -8,36 +8,45 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Pattern
+from re import Pattern
+from typing import Any
 
 # Patterns for sensitive data that should be redacted
 SENSITIVE_PATTERNS: list[tuple[str, Pattern[str]]] = [
     # API keys (various formats)
-    ("API_KEY", re.compile(r"(api[_-]?key|apikey)\s*[=:]\s*['\"]?[\w\-]{20,}['\"]?", re.IGNORECASE)),
-    ("AUTH_TOKEN", re.compile(r"(auth[_-]?token|bearer)\s*[=:]\s*['\"]?[\w\-\.]{20,}['\"]?", re.IGNORECASE)),
-    ("SECRET", re.compile(r"(secret|password|passwd|pwd)\s*[=:]\s*['\"]?[^\s'\"]{8,}['\"]?", re.IGNORECASE)),
-
+    (
+        "API_KEY",
+        re.compile(r"(api[_-]?key|apikey)\s*[=:]\s*['\"]?[\w\-]{20,}['\"]?", re.IGNORECASE),
+    ),
+    (
+        "AUTH_TOKEN",
+        re.compile(r"(auth[_-]?token|bearer)\s*[=:]\s*['\"]?[\w\-\.]{20,}['\"]?", re.IGNORECASE),
+    ),
+    (
+        "SECRET",
+        re.compile(
+            r"(secret|password|passwd|pwd)\s*[=:]\s*['\"]?[^\s'\"]{8,}['\"]?", re.IGNORECASE
+        ),
+    ),
     # Anthropic API key format: sk-ant-api03-...
     ("ANTHROPIC_KEY", re.compile(r"sk-ant-[a-zA-Z0-9\-_]{20,}", re.IGNORECASE)),
-
     # OpenAI API key format: sk-... or sk-proj-...
     ("OPENAI_KEY", re.compile(r"sk-[a-zA-Z0-9\-]{20,}", re.IGNORECASE)),
-
     # Azure connection strings
-    ("AZURE_CONN", re.compile(r"DefaultEndpointsProtocol=https;AccountName=[^;]+;AccountKey=[^;]+", re.IGNORECASE)),
-
+    (
+        "AZURE_CONN",
+        re.compile(
+            r"DefaultEndpointsProtocol=https;AccountName=[^;]+;AccountKey=[^;]+", re.IGNORECASE
+        ),
+    ),
     # PostgreSQL connection strings with password
     ("PG_CONN", re.compile(r"postgresql://[^:]+:[^@]+@", re.IGNORECASE)),
-
     # Redis URLs with password
     ("REDIS_URL", re.compile(r"redis://:[^@]+@", re.IGNORECASE)),
-
     # Bearer tokens in headers
     ("BEARER", re.compile(r"Bearer\s+[a-zA-Z0-9\-_\.]+", re.IGNORECASE)),
-
     # Basic auth headers (base64 encoded credentials)
     ("BASIC_AUTH", re.compile(r"Basic\s+[a-zA-Z0-9+/=]{20,}", re.IGNORECASE)),
-
     # X-API-Key headers
     ("X_API_KEY", re.compile(r"X-API-Key['\"]?\s*[=:]\s*['\"]?[\w\-]{16,}['\"]?", re.IGNORECASE)),
 ]
@@ -181,9 +190,7 @@ def get_sanitized_logger(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
 
     # Only add filter if not already present
-    has_sanitizing_filter = any(
-        isinstance(f, SanitizingFilter) for f in logger.filters
-    )
+    has_sanitizing_filter = any(isinstance(f, SanitizingFilter) for f in logger.filters)
     if not has_sanitizing_filter:
         logger.addFilter(SanitizingFilter())
 

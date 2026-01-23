@@ -3,13 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 import pytest
 
-from CONTRACTS import ToolCall
 from src.nl2api.agents.datastream import DatastreamAgent
-from src.nl2api.agents.protocols import AgentContext, AgentResult
+from src.nl2api.agents.protocols import AgentContext
 from src.nl2api.llm.protocols import (
     LLMMessage,
     LLMResponse,
@@ -23,16 +21,18 @@ class MockLLMProvider:
     """Mock LLM provider for testing."""
 
     model_name: str = "mock-model"
-    response: LLMResponse = field(default_factory=lambda: LLMResponse(
-        content="datastream",
-        tool_calls=[
-            LLMToolCall(
-                id="tc_123",
-                name="get_data",
-                arguments={"tickers": ["AAPL.O"], "fields": ["P"]},
-            )
-        ],
-    ))
+    response: LLMResponse = field(
+        default_factory=lambda: LLMResponse(
+            content="datastream",
+            tool_calls=[
+                LLMToolCall(
+                    id="tc_123",
+                    name="get_data",
+                    arguments={"tickers": ["AAPL.O"], "fields": ["P"]},
+                )
+            ],
+        )
+    )
 
     async def complete(
         self,
@@ -71,9 +71,7 @@ class TestDatastreamAgentCanHandle:
     @pytest.mark.asyncio
     async def test_high_confidence_with_multiple_keywords(self) -> None:
         """Test higher confidence with multiple keywords."""
-        score = await self.agent.can_handle(
-            "Get historical stock price for Microsoft with volume"
-        )
+        score = await self.agent.can_handle("Get historical stock price for Microsoft with volume")
         assert score >= 0.7
 
     @pytest.mark.asyncio
@@ -85,9 +83,7 @@ class TestDatastreamAgentCanHandle:
     @pytest.mark.asyncio
     async def test_zero_confidence_for_unrelated_query(self) -> None:
         """Test zero confidence for unrelated queries."""
-        score = await self.agent.can_handle(
-            "Who is the CEO of Apple?"
-        )
+        score = await self.agent.can_handle("Who is the CEO of Apple?")
         assert score == 0.0
 
     @pytest.mark.asyncio
@@ -221,17 +217,13 @@ class TestDatastreamAgentTickerExtraction:
 
     def test_extracts_rics_from_resolved_entities(self) -> None:
         """Test that tickers are extracted in RIC format from resolved entities."""
-        tickers = self.agent._extract_tickers(
-            "What is Apple's price?",
-            {"Apple": "AAPL.O"}
-        )
+        tickers = self.agent._extract_tickers("What is Apple's price?", {"Apple": "AAPL.O"})
         assert "AAPL.O" in tickers
 
     def test_extracts_multiple_rics(self) -> None:
         """Test extraction of multiple RICs."""
         tickers = self.agent._extract_tickers(
-            "Compare Apple and Microsoft",
-            {"Apple": "AAPL.O", "Microsoft": "MSFT.O"}
+            "Compare Apple and Microsoft", {"Apple": "AAPL.O", "Microsoft": "MSFT.O"}
         )
         assert "AAPL.O" in tickers
         assert "MSFT.O" in tickers

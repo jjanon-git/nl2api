@@ -148,5 +148,4 @@ class TestModelPricingTable:
     def test_output_price_greater_than_input(self):
         """Test that output price is >= input price for all models."""
         for model, (input_price, output_price) in MODEL_PRICING.items():
-            assert output_price >= input_price, \
-                f"Output price for {model} should be >= input price"
+            assert output_price >= input_price, f"Output price for {model} should be >= input price"

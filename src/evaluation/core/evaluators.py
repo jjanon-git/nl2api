@@ -26,7 +26,6 @@ from CONTRACTS import (
     TestCase,
     ToolCall,
 )
-
 from src.common.telemetry import get_tracer
 from src.evaluation.core.ast_comparator import ASTComparator, ComparisonResult
 from src.evaluation.core.temporal import DateResolver, TemporalComparator
@@ -340,14 +339,19 @@ class WaterfallEvaluator(Evaluator):
                         )
                         semantics_span.set_attribute("result.passed", semantics_result.passed)
                         semantics_span.set_attribute("result.score", semantics_result.score)
-                        semantics_span.set_attribute("result.duration_ms", semantics_result.duration_ms)
+                        semantics_span.set_attribute(
+                            "result.duration_ms", semantics_result.duration_ms
+                        )
                 else:
                     # Skip semantics if no NL responses to compare
-                    span.add_event("semantics_skipped", {
-                        "reason": "no_nl_response",
-                        "has_actual": actual_nl is not None,
-                        "has_expected": test_case.expected_nl_response is not None,
-                    })
+                    span.add_event(
+                        "semantics_skipped",
+                        {
+                            "reason": "no_nl_response",
+                            "has_actual": actual_nl is not None,
+                            "has_expected": test_case.expected_nl_response is not None,
+                        },
+                    )
 
             total_latency_ms = max(1, int((time.perf_counter() - start_time) * 1000))
 
@@ -386,6 +390,7 @@ class WaterfallEvaluator(Evaluator):
         """
         if self._semantics_evaluator is None:
             from src.evaluation.core.semantics import SemanticsEvaluator
+
             self._semantics_evaluator = SemanticsEvaluator(config=self.llm_judge_config)
 
         return await self._semantics_evaluator.evaluate_direct(

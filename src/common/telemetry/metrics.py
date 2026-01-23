@@ -9,13 +9,13 @@ Provides pre-defined metrics for:
 from __future__ import annotations
 
 import logging
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from src.common.telemetry.setup import get_meter, is_telemetry_enabled
 
 if TYPE_CHECKING:
+    from CONTRACTS import BatchJob, Scorecard
     from src.nl2api.observability.metrics import RequestMetrics
-    from CONTRACTS import Scorecard, BatchJob
 
 logger = logging.getLogger(__name__)
 
@@ -38,61 +38,61 @@ class NL2APIMetrics:
 
         # Request counter
         self._requests_total = self._meter.create_counter(
-            name="nl2api_requests_total",
+            name="requests",
             description="Total NL2API requests",
             unit="1",
         )
 
         # Latency histogram
         self._request_duration = self._meter.create_histogram(
-            name="nl2api_request_duration_ms",
+            name="request_duration_ms",
             description="Request processing duration",
             unit="ms",
         )
 
         # Token usage
         self._tokens_total = self._meter.create_counter(
-            name="nl2api_tokens_total",
+            name="tokens",
             description="Total tokens used",
             unit="1",
         )
 
         # Routing latency
         self._routing_duration = self._meter.create_histogram(
-            name="nl2api_routing_duration_ms",
+            name="routing_duration_ms",
             description="Query routing duration",
             unit="ms",
         )
 
         # Entity resolution latency
         self._entity_resolution_duration = self._meter.create_histogram(
-            name="nl2api_entity_resolution_duration_ms",
+            name="entity_resolution_duration_ms",
             description="Entity resolution duration",
             unit="ms",
         )
 
         # Context retrieval latency
         self._context_retrieval_duration = self._meter.create_histogram(
-            name="nl2api_context_retrieval_duration_ms",
+            name="context_retrieval_duration_ms",
             description="Context retrieval duration",
             unit="ms",
         )
 
         # Agent processing latency
         self._agent_duration = self._meter.create_histogram(
-            name="nl2api_agent_duration_ms",
+            name="agent_duration_ms",
             description="Agent processing duration",
             unit="ms",
         )
 
         # Tool calls generated
         self._tool_calls = self._meter.create_histogram(
-            name="nl2api_tool_calls_count",
+            name="tool_calls_count",
             description="Number of tool calls generated per request",
             unit="1",
         )
 
-    def record_request(self, metrics: "RequestMetrics") -> None:
+    def record_request(self, metrics: RequestMetrics) -> None:
         """
         Record metrics from a completed request.
 
@@ -128,9 +128,7 @@ class NL2APIMetrics:
                 self._routing_duration.record(metrics.routing_latency_ms, attrs)
 
             if metrics.entity_resolution_latency_ms > 0:
-                self._entity_resolution_duration.record(
-                    metrics.entity_resolution_latency_ms, attrs
-                )
+                self._entity_resolution_duration.record(metrics.entity_resolution_latency_ms, attrs)
 
             if metrics.context_latency_ms > 0:
                 self._context_retrieval_duration.record(metrics.context_latency_ms, attrs)
@@ -174,7 +172,7 @@ class EvalMetrics:
 
         # Test counters
         self._tests_total = self._meter.create_counter(
-            name="eval_batch_tests_total",
+            name="eval_batch_tests",
             description="Total tests in batch evaluations",
             unit="1",
         )
@@ -226,21 +224,21 @@ class EvalMetrics:
 
         # Token usage metrics
         self._tokens_total = self._meter.create_counter(
-            name="eval_tokens_total",
+            name="eval_tokens",
             description="Total tokens used in evaluations",
             unit="1",
         )
 
         # Cost metrics
         self._cost_total = self._meter.create_counter(
-            name="eval_cost_usd_total",
+            name="eval_cost_usd",
             description="Estimated cost of evaluations in USD (scaled by 1M for precision)",
             unit="1",
         )
 
     def record_test_result(
         self,
-        scorecard: "Scorecard",
+        scorecard: Scorecard,
         batch_id: str,
         tags: list[str] | None = None,
         client_type: str | None = None,
@@ -323,7 +321,7 @@ class EvalMetrics:
 
     def record_batch_complete(
         self,
-        batch_job: "BatchJob",
+        batch_job: BatchJob,
         duration_seconds: float,
         client_type: str | None = None,
         client_version: str | None = None,
@@ -379,7 +377,7 @@ class AccuracyMetrics:
 
         # Test counters
         self._tests_total = self._meter.create_counter(
-            name="accuracy_tests_total",
+            name="accuracy_tests",
             description="Total accuracy test queries",
             unit="1",
         )
@@ -547,13 +545,13 @@ class RegressionAlertMetrics:
 
         # Alert counters
         self._alerts_total = self._meter.create_counter(
-            name="regression_alerts_total",
+            name="regression_alerts",
             description="Total regression alerts created",
             unit="1",
         )
 
         self._alerts_acknowledged = self._meter.create_counter(
-            name="regression_alerts_acknowledged_total",
+            name="regression_alerts_acknowledged",
             description="Total regression alerts acknowledged",
             unit="1",
         )

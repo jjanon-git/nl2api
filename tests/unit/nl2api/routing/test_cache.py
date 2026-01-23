@@ -177,17 +177,11 @@ class TestRoutingCacheProtocol:
         cache = InMemoryRoutingCache()
 
         # Zero confidence
-        await cache.set(
-            "failed query",
-            RouterResult(domain="datastream", confidence=0.0)
-        )
+        await cache.set("failed query", RouterResult(domain="datastream", confidence=0.0))
         assert await cache.get("failed query") is None
 
         # Unknown domain
-        await cache.set(
-            "unknown query",
-            RouterResult(domain="unknown", confidence=0.5)
-        )
+        await cache.set("unknown query", RouterResult(domain="unknown", confidence=0.5))
         assert await cache.get("unknown query") is None
 
 

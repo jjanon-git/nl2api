@@ -6,8 +6,8 @@ Target: ~2,500 test cases
 """
 
 import random
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+
 from .base_generator import BaseGenerator, TestCase
 
 
@@ -18,24 +18,19 @@ class TemporalGenerator(BaseGenerator):
         super().__init__(data_dir)
         self.category = "temporal"
 
-    def _build_tool_call(self, ticker: str, fields: List[str],
-                         start: str, end: str,
-                         freq: Optional[str] = None) -> Dict:
+    def _build_tool_call(
+        self, ticker: str, fields: list[str], start: str, end: str, freq: str | None = None
+    ) -> dict:
         """Build a tool call with temporal parameters."""
         call = {
             "tool_name": "get_data",
-            "arguments": {
-                "tickers": ticker,
-                "fields": fields,
-                "start": start,
-                "end": end
-            }
+            "arguments": {"tickers": ticker, "fields": fields, "start": start, "end": end},
         }
         if freq:
             call["arguments"]["freq"] = freq
         return call
 
-    def _generate_historical_price_data(self) -> List[TestCase]:
+    def _generate_historical_price_data(self) -> list[TestCase]:
         """Generate historical price time series queries."""
         test_cases = []
 
@@ -76,9 +71,7 @@ class TemporalGenerator(BaseGenerator):
                 )
 
                 nl_query = template.format(
-                    company=company_name,
-                    time_range=time_range["nl"],
-                    frequency=freq_name
+                    company=company_name, time_range=time_range["nl"], frequency=freq_name
                 )
 
                 tool_call = self._build_tool_call(
@@ -86,13 +79,11 @@ class TemporalGenerator(BaseGenerator):
                     fields=["P"],
                     start=time_range["start"],
                     end=time_range["end"],
-                    freq=time_range["freq"]
+                    freq=time_range["freq"],
                 )
 
                 complexity = self._calculate_complexity(
-                    num_tickers=1,
-                    num_fields=1,
-                    is_time_series=True
+                    num_tickers=1, num_fields=1, is_time_series=True
                 )
 
                 test_case = self._create_test_case(
@@ -105,8 +96,8 @@ class TemporalGenerator(BaseGenerator):
                     metadata={
                         "ticker": ticker_symbol,
                         "time_range": time_range,
-                        "frequency": time_range["freq"]
-                    }
+                        "frequency": time_range["freq"],
+                    },
                 )
 
                 if test_case:
@@ -114,7 +105,7 @@ class TemporalGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_ohlcv_time_series(self) -> List[TestCase]:
+    def _generate_ohlcv_time_series(self) -> list[TestCase]:
         """Generate OHLCV time series queries."""
         test_cases = []
 
@@ -129,8 +120,14 @@ class TemporalGenerator(BaseGenerator):
 
         queries = [
             {"nl": "Get {company}'s OHLC data {time_range}", "fields": ["PO", "PH", "PL", "P"]},
-            {"nl": "Show {company}'s daily OHLCV {time_range}", "fields": ["PO", "PH", "PL", "P", "VO"]},
-            {"nl": "{company} open, high, low, close, volume {time_range}", "fields": ["PO", "PH", "PL", "P", "VO"]},
+            {
+                "nl": "Show {company}'s daily OHLCV {time_range}",
+                "fields": ["PO", "PH", "PL", "P", "VO"],
+            },
+            {
+                "nl": "{company} open, high, low, close, volume {time_range}",
+                "fields": ["PO", "PH", "PL", "P", "VO"],
+            },
         ]
 
         for ticker_info in tickers:
@@ -139,23 +136,18 @@ class TemporalGenerator(BaseGenerator):
 
             for time_range in time_ranges:
                 for query in queries:
-                    nl_query = query["nl"].format(
-                        company=company_name,
-                        time_range=time_range["nl"]
-                    )
+                    nl_query = query["nl"].format(company=company_name, time_range=time_range["nl"])
 
                     tool_call = self._build_tool_call(
                         ticker=ticker_symbol,
                         fields=query["fields"],
                         start=time_range["start"],
                         end=time_range["end"],
-                        freq=time_range["freq"]
+                        freq=time_range["freq"],
                     )
 
                     complexity = self._calculate_complexity(
-                        num_tickers=1,
-                        num_fields=len(query["fields"]),
-                        is_time_series=True
+                        num_tickers=1, num_fields=len(query["fields"]), is_time_series=True
                     )
 
                     test_case = self._create_test_case(
@@ -165,10 +157,7 @@ class TemporalGenerator(BaseGenerator):
                         subcategory="ohlcv",
                         complexity=complexity,
                         tags=["ohlcv", "time_series"],
-                        metadata={
-                            "ticker": ticker_symbol,
-                            "fields": query["fields"]
-                        }
+                        metadata={"ticker": ticker_symbol, "fields": query["fields"]},
                     )
 
                     if test_case:
@@ -176,7 +165,7 @@ class TemporalGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_fundamental_time_series(self) -> List[TestCase]:
+    def _generate_fundamental_time_series(self) -> list[TestCase]:
         """Generate fundamental data time series queries."""
         test_cases = []
 
@@ -212,20 +201,20 @@ class TemporalGenerator(BaseGenerator):
                     for freq in metric["freq"]:
                         freq_name = "annual" if freq == "Y" else "quarterly"
 
-                        nl_query = f"Get {company_name}'s {freq_name} {metric['name']} {time_range['nl']}"
+                        nl_query = (
+                            f"Get {company_name}'s {freq_name} {metric['name']} {time_range['nl']}"
+                        )
 
                         tool_call = self._build_tool_call(
                             ticker=ticker_symbol,
                             fields=[metric["field"]],
                             start=time_range["start"],
                             end=time_range["end"],
-                            freq=freq
+                            freq=freq,
                         )
 
                         complexity = self._calculate_complexity(
-                            num_tickers=1,
-                            num_fields=1,
-                            is_time_series=True
+                            num_tickers=1, num_fields=1, is_time_series=True
                         )
 
                         test_case = self._create_test_case(
@@ -239,8 +228,8 @@ class TemporalGenerator(BaseGenerator):
                                 "ticker": ticker_symbol,
                                 "metric": metric["name"],
                                 "field": metric["field"],
-                                "frequency": freq
-                            }
+                                "frequency": freq,
+                            },
                         )
 
                         if test_case:
@@ -248,7 +237,7 @@ class TemporalGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_fiscal_period_queries(self) -> List[TestCase]:
+    def _generate_fiscal_period_queries(self) -> list[TestCase]:
         """Generate queries with fiscal period parameters."""
         test_cases = []
 
@@ -282,8 +271,8 @@ class TemporalGenerator(BaseGenerator):
                         "arguments": {
                             "tickers": ticker_symbol,
                             "fields": [metric["field"]],
-                            "period": period["period"]
-                        }
+                            "period": period["period"],
+                        },
                     }
 
                     complexity = self._calculate_complexity(num_tickers=1, num_fields=1)
@@ -298,8 +287,8 @@ class TemporalGenerator(BaseGenerator):
                         metadata={
                             "ticker": ticker_symbol,
                             "period": period["period"],
-                            "metric": metric["name"]
-                        }
+                            "metric": metric["name"],
+                        },
                     )
 
                     if test_case:
@@ -307,7 +296,7 @@ class TemporalGenerator(BaseGenerator):
 
         return test_cases
 
-    def _generate_ratio_time_series(self) -> List[TestCase]:
+    def _generate_ratio_time_series(self) -> list[TestCase]:
         """Generate financial ratio time series queries."""
         test_cases = []
 
@@ -316,19 +305,19 @@ class TemporalGenerator(BaseGenerator):
         ratio_sets = [
             {
                 "fields": ["WC08301", "WC08326", "WC08376"],
-                "name": "profitability ratios (ROE, ROA, ROIC)"
+                "name": "profitability ratios (ROE, ROA, ROIC)",
             },
             {
                 "fields": ["WC08316", "WC08366"],
-                "name": "margin profile (operating and net margins)"
+                "name": "margin profile (operating and net margins)",
             },
             {
                 "fields": ["WC08106", "WC08101"],
-                "name": "liquidity ratios (current and quick ratio)"
+                "name": "liquidity ratios (current and quick ratio)",
             },
             {
                 "fields": ["WC08221", "WC08224"],
-                "name": "leverage ratios (debt to capital, debt to equity)"
+                "name": "leverage ratios (debt to capital, debt to equity)",
             },
         ]
 
@@ -350,13 +339,11 @@ class TemporalGenerator(BaseGenerator):
                         fields=ratio_set["fields"],
                         start=time_range["start"],
                         end=time_range["end"],
-                        freq=time_range["freq"]
+                        freq=time_range["freq"],
                     )
 
                     complexity = self._calculate_complexity(
-                        num_tickers=1,
-                        num_fields=len(ratio_set["fields"]),
-                        is_time_series=True
+                        num_tickers=1, num_fields=len(ratio_set["fields"]), is_time_series=True
                     )
 
                     test_case = self._create_test_case(
@@ -366,10 +353,7 @@ class TemporalGenerator(BaseGenerator):
                         subcategory="ratio_history",
                         complexity=complexity,
                         tags=["ratios", "time_series"],
-                        metadata={
-                            "ticker": ticker_symbol,
-                            "ratio_set": ratio_set["name"]
-                        }
+                        metadata={"ticker": ticker_symbol, "ratio_set": ratio_set["name"]},
                     )
 
                     if test_case:
@@ -377,7 +361,7 @@ class TemporalGenerator(BaseGenerator):
 
         return test_cases
 
-    def generate(self) -> List[TestCase]:
+    def generate(self) -> list[TestCase]:
         """Generate all temporal test cases."""
         test_cases = []
 

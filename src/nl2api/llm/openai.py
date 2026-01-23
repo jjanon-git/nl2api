@@ -65,9 +65,7 @@ class OpenAIProvider:
         try:
             import openai
         except ImportError:
-            raise ImportError(
-                "openai package required. Install with: pip install openai"
-            )
+            raise ImportError("openai package required. Install with: pip install openai")
 
         self._model = model
 
@@ -122,15 +120,19 @@ class OpenAIProvider:
 
             for msg in messages:
                 if msg.role == MessageRole.SYSTEM:
-                    openai_messages.append({
-                        "role": "system",
-                        "content": msg.content,
-                    })
+                    openai_messages.append(
+                        {
+                            "role": "system",
+                            "content": msg.content,
+                        }
+                    )
                 elif msg.role == MessageRole.USER:
-                    openai_messages.append({
-                        "role": "user",
-                        "content": msg.content,
-                    })
+                    openai_messages.append(
+                        {
+                            "role": "user",
+                            "content": msg.content,
+                        }
+                    )
                 elif msg.role == MessageRole.ASSISTANT:
                     assistant_msg: dict[str, Any] = {
                         "role": "assistant",
@@ -150,11 +152,13 @@ class OpenAIProvider:
                         ]
                     openai_messages.append(assistant_msg)
                 elif msg.role == MessageRole.TOOL:
-                    openai_messages.append({
-                        "role": "tool",
-                        "tool_call_id": msg.tool_call_id,
-                        "content": msg.content,
-                    })
+                    openai_messages.append(
+                        {
+                            "role": "tool",
+                            "tool_call_id": msg.tool_call_id,
+                            "content": msg.content,
+                        }
+                    )
 
             # Build request kwargs
             kwargs: dict[str, Any] = {
@@ -181,11 +185,13 @@ class OpenAIProvider:
                         arguments = json.loads(tc.function.arguments)
                     except json.JSONDecodeError:
                         arguments = {}
-                    tool_calls.append(LLMToolCall(
-                        id=tc.id,
-                        name=tc.function.name,
-                        arguments=arguments,
-                    ))
+                    tool_calls.append(
+                        LLMToolCall(
+                            id=tc.id,
+                            name=tc.function.name,
+                            arguments=arguments,
+                        )
+                    )
 
             # Record usage metrics
             prompt_tokens = response.usage.prompt_tokens if response.usage else 0
@@ -244,33 +250,48 @@ class OpenAIProvider:
                     return result
                 except openai.RateLimitError as e:
                     last_error = e
-                    wait_time = 2 ** attempt
-                    span.add_event("retry", {
-                        "attempt": attempt + 1,
-                        "error_type": "rate_limit",
-                        "wait_time": wait_time,
-                    })
-                    logger.warning(f"Rate limited, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    wait_time = 2**attempt
+                    span.add_event(
+                        "retry",
+                        {
+                            "attempt": attempt + 1,
+                            "error_type": "rate_limit",
+                            "wait_time": wait_time,
+                        },
+                    )
+                    logger.warning(
+                        f"Rate limited, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})"
+                    )
                     await asyncio.sleep(wait_time)
                 except openai.APIConnectionError as e:
                     last_error = e
-                    wait_time = 2 ** attempt
-                    span.add_event("retry", {
-                        "attempt": attempt + 1,
-                        "error_type": "connection_error",
-                        "wait_time": wait_time,
-                    })
-                    logger.warning(f"Connection error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    wait_time = 2**attempt
+                    span.add_event(
+                        "retry",
+                        {
+                            "attempt": attempt + 1,
+                            "error_type": "connection_error",
+                            "wait_time": wait_time,
+                        },
+                    )
+                    logger.warning(
+                        f"Connection error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})"
+                    )
                     await asyncio.sleep(wait_time)
                 except openai.InternalServerError as e:
                     last_error = e
-                    wait_time = 2 ** attempt
-                    span.add_event("retry", {
-                        "attempt": attempt + 1,
-                        "error_type": "server_error",
-                        "wait_time": wait_time,
-                    })
-                    logger.warning(f"Server error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})")
+                    wait_time = 2**attempt
+                    span.add_event(
+                        "retry",
+                        {
+                            "attempt": attempt + 1,
+                            "error_type": "server_error",
+                            "wait_time": wait_time,
+                        },
+                    )
+                    logger.warning(
+                        f"Server error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})"
+                    )
                     await asyncio.sleep(wait_time)
 
             # All retries exhausted

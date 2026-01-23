@@ -15,13 +15,12 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.evaluation.batch import BatchRunner, BatchRunnerConfig
 from src.common.storage.memory import (
     InMemoryBatchJobRepository,
     InMemoryScorecardRepository,
     InMemoryTestCaseRepository,
 )
-
+from src.evaluation.batch import BatchRunner, BatchRunnerConfig
 
 # =============================================================================
 # Fixtures
@@ -66,9 +65,7 @@ def sample_test_cases() -> list[TestCase]:
         TestCase(
             id="test-002",
             nl_query="Get user profile for user 123",
-            expected_tool_calls=(
-                ToolCall(tool_name="get_user", arguments={"user_id": 123}),
-            ),
+            expected_tool_calls=(ToolCall(tool_name="get_user", arguments={"user_id": 123}),),
             expected_nl_response="User profile loaded",
             metadata=TestCaseMetadata(
                 api_version="v1.0.0",

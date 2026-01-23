@@ -9,7 +9,7 @@ which looked for NL2API_ANTHROPIC_API_KEY instead of using the injected LLM.
 """
 
 import os
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -38,8 +38,8 @@ class TestNL2APIInitialization:
         which looked for NL2API_ANTHROPIC_API_KEY instead of using
         the LLM provider that was passed to __init__.
         """
+        from src.nl2api.agents.protocols import AgentResult, DomainAgent
         from src.nl2api.orchestrator import NL2APIOrchestrator
-        from src.nl2api.agents.protocols import AgentContext, AgentResult, DomainAgent
 
         # Create a mock LLM provider that implements the protocol
         mock_llm = create_mock_llm()
@@ -53,11 +53,13 @@ class TestNL2APIInitialization:
         mock_agent.domain_name = "fundamentals"
         mock_agent.domain_description = "Financial ratios and statements"
         mock_agent.can_handle = AsyncMock(return_value=0.5)
-        mock_agent.process = AsyncMock(return_value=AgentResult(
-            tool_calls=(),
-            confidence=0.9,
-            reasoning="Test",
-        ))
+        mock_agent.process = AsyncMock(
+            return_value=AgentResult(
+                tool_calls=(),
+                confidence=0.9,
+                reasoning="Test",
+            )
+        )
 
         # Ensure NL2API_ANTHROPIC_API_KEY is NOT set
         env_backup = os.environ.get("NL2API_ANTHROPIC_API_KEY")
@@ -90,10 +92,10 @@ class TestNL2APIInitialization:
         the stdio transport passes the API key directly to ClaudeProvider,
         then passes that provider to the orchestrator.
         """
+        from src.nl2api.agents.protocols import DomainAgent
         from src.nl2api.orchestrator import NL2APIOrchestrator
         from src.nl2api.routing.llm_router import LLMToolRouter
         from src.nl2api.routing.providers import AgentToolProvider
-        from src.nl2api.agents.protocols import DomainAgent
 
         # Simulate the stdio.py initialization flow
         # Step 1: Create mock LLM provider (simulating ClaudeProvider with API key)
@@ -131,8 +133,8 @@ class TestNL2APIInitialization:
         Verify that when no router is passed, orchestrator creates one
         using the injected LLM (not a new one from NL2APIConfig).
         """
-        from src.nl2api.orchestrator import NL2APIOrchestrator
         from src.nl2api.agents.protocols import DomainAgent
+        from src.nl2api.orchestrator import NL2APIOrchestrator
 
         mock_llm = create_mock_llm()
 

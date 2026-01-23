@@ -6,15 +6,15 @@ using the InMemoryQueue implementation as a reference.
 """
 
 import asyncio
+from datetime import UTC, datetime, timedelta
+
 import pytest
-from datetime import datetime, timedelta
 
 from src.contracts.worker import WorkerTask
+from src.evaluation.distributed.config import QueueBackend, QueueConfig
+from src.evaluation.distributed.models import QueueMessage
 from src.evaluation.distributed.queue import InMemoryQueue, TaskQueue, create_queue
 from src.evaluation.distributed.queue.protocol import QueueAckError
-from src.evaluation.distributed.config import QueueConfig, QueueBackend
-from src.evaluation.distributed.models import QueueMessage
-
 
 # =============================================================================
 # Fixtures
@@ -102,9 +102,7 @@ class TestEnqueue:
     """Tests for enqueue operations."""
 
     @pytest.mark.asyncio
-    async def test_enqueue_single_task(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_enqueue_single_task(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Enqueue should add a task and return a message ID."""
         message_id = await queue.enqueue(sample_task, "batch-001")
 
@@ -126,9 +124,7 @@ class TestEnqueue:
         assert await queue.get_pending_count("batch-001") == 2
 
     @pytest.mark.asyncio
-    async def test_enqueue_batch(
-        self, queue: InMemoryQueue, sample_tasks: list[WorkerTask]
-    ):
+    async def test_enqueue_batch(self, queue: InMemoryQueue, sample_tasks: list[WorkerTask]):
         """Enqueue batch should add multiple tasks efficiently."""
         message_ids = await queue.enqueue_batch(sample_tasks, "batch-001")
 
@@ -151,9 +147,7 @@ class TestEnqueue:
         assert await queue.get_pending_count("batch-002") == 2
 
     @pytest.mark.asyncio
-    async def test_enqueue_after_close_fails(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_enqueue_after_close_fails(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Enqueue should fail after queue is closed."""
         await queue.close()
 
@@ -170,9 +164,7 @@ class TestConsume:
     """Tests for consume operations."""
 
     @pytest.mark.asyncio
-    async def test_consume_yields_message(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_consume_yields_message(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Consume should yield enqueued messages."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -200,9 +192,7 @@ class TestConsume:
         assert await queue.get_processing_count("batch-001") == 1
 
     @pytest.mark.asyncio
-    async def test_consume_sets_claimed_by(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_consume_sets_claimed_by(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Consumed message should have claimed_by set."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -249,9 +239,7 @@ class TestAck:
     """Tests for message acknowledgment."""
 
     @pytest.mark.asyncio
-    async def test_ack_removes_from_processing(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_ack_removes_from_processing(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Ack should remove message from processing."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -265,9 +253,7 @@ class TestAck:
         assert await queue.get_processing_count("batch-001") == 0
 
     @pytest.mark.asyncio
-    async def test_ack_marks_as_completed(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_ack_marks_as_completed(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Ack should mark message as completed."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -301,9 +287,7 @@ class TestNack:
     """Tests for negative acknowledgment."""
 
     @pytest.mark.asyncio
-    async def test_nack_with_requeue(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_nack_with_requeue(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Nack with requeue should put message back in queue."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -317,9 +301,7 @@ class TestNack:
         assert await queue.get_processing_count("batch-001") == 0
 
     @pytest.mark.asyncio
-    async def test_nack_increments_attempt(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_nack_increments_attempt(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Nack should increment attempt count on requeue."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -339,9 +321,7 @@ class TestNack:
         assert msg3.attempt == 3
 
     @pytest.mark.asyncio
-    async def test_nack_max_retries_to_dlq(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_nack_max_retries_to_dlq(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Nack after max retries should move to DLQ."""
         queue = InMemoryQueue(max_retries=2)  # Only 2 attempts
         await queue.enqueue(sample_task, "batch-001")
@@ -362,9 +342,7 @@ class TestNack:
         assert await queue.get_dlq_count("batch-001") == 1
 
     @pytest.mark.asyncio
-    async def test_nack_without_requeue_to_dlq(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_nack_without_requeue_to_dlq(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Nack without requeue should go directly to DLQ."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -396,7 +374,7 @@ class TestStalledTaskRecovery:
         self, queue: InMemoryQueue, sample_task: WorkerTask
     ):
         """Should find messages that have been processing too long."""
-        from datetime import timezone
+
         await queue.enqueue(sample_task, "batch-001")
 
         consumer = queue.consume("worker-0", "batch-001", block_ms=100)
@@ -404,7 +382,7 @@ class TestStalledTaskRecovery:
 
         # Artificially age the message by modifying internal state
         stream = queue._get_stream("batch-001")
-        old_time = datetime.now(timezone.utc) - timedelta(minutes=5)
+        old_time = datetime.now(UTC) - timedelta(minutes=5)
         aged_message = message.model_copy(update={"claimed_at": old_time})
         stream.processing[message.message_id] = aged_message
 
@@ -414,9 +392,7 @@ class TestStalledTaskRecovery:
         assert stalled[0].message_id == message.message_id
 
     @pytest.mark.asyncio
-    async def test_claim_stalled_reassigns(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_claim_stalled_reassigns(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Claim stalled should reassign to new consumer."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -441,9 +417,7 @@ class TestDeadLetterQueue:
     """Tests for dead letter queue operations."""
 
     @pytest.mark.asyncio
-    async def test_get_dlq_messages(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_get_dlq_messages(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Should retrieve messages from DLQ."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -456,9 +430,7 @@ class TestDeadLetterQueue:
         assert dlq_messages[0].payload["task_id"] == sample_task.task_id
 
     @pytest.mark.asyncio
-    async def test_retry_from_dlq(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_retry_from_dlq(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Retry from DLQ should move message back to queue."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -478,9 +450,7 @@ class TestDeadLetterQueue:
         assert await queue.get_pending_count("batch-001") == 1
 
     @pytest.mark.asyncio
-    async def test_delete_from_dlq(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_delete_from_dlq(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Delete from DLQ should permanently remove message."""
         await queue.enqueue(sample_task, "batch-001")
 
@@ -510,9 +480,7 @@ class TestLifecycle:
         assert await queue.get_pending_count("new-batch") == 0
 
     @pytest.mark.asyncio
-    async def test_delete_stream_removes(
-        self, queue: InMemoryQueue, sample_task: WorkerTask
-    ):
+    async def test_delete_stream_removes(self, queue: InMemoryQueue, sample_task: WorkerTask):
         """Delete stream should remove all data."""
         await queue.enqueue(sample_task, "batch-001")
         assert await queue.get_pending_count("batch-001") == 1

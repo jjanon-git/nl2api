@@ -176,7 +176,7 @@ class ToolHandlers:
     Wraps the ExternalEntityResolver and provides MCP-compatible interfaces.
     """
 
-    def __init__(self, resolver: "ExternalEntityResolver"):
+    def __init__(self, resolver: ExternalEntityResolver):
         """
         Initialize tool handlers.
 

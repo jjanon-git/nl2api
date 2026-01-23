@@ -2,9 +2,7 @@
 Unit tests for progress tracking.
 """
 
-import time
 
-import pytest
 
 from src.nl2api.ingestion.progress import ProgressTracker, RichProgressTracker
 
@@ -22,7 +20,9 @@ class TestProgressTracker:
 
     def test_update_progress(self):
         """Test updating progress."""
-        tracker = ProgressTracker(total=1000, report_interval=100000)  # High interval to avoid log output
+        tracker = ProgressTracker(
+            total=1000, report_interval=100000
+        )  # High interval to avoid log output
 
         tracker.update(100)
         assert tracker.processed == 100
@@ -70,7 +70,7 @@ class TestProgressTracker:
 
     def test_eta_zero_rate(self):
         """Test ETA when rate is zero."""
-        tracker = ProgressTracker(total=1000, report_interval=100000)
+        ProgressTracker(total=1000, report_interval=100000)
         # Don't process anything
         # ETA should be infinity
         # Note: This depends on implementation - if started_at is set, rate might not be zero

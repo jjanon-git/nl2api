@@ -13,7 +13,6 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from src.contracts.core import _now_utc
 
-
 # =============================================================================
 # Table Storage Entity
 # =============================================================================

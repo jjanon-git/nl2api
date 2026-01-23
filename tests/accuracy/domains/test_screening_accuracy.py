@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import pytest
 
-from tests.accuracy.conftest import requires_llm
 from tests.accuracy.core.config import CATEGORY_THRESHOLDS, DEFAULT_MIN_ACCURACY
 
 
@@ -71,7 +70,7 @@ class TestScreeningAccuracy:
         # Show failed queries
         failed = report.get_failed_results()[:5]
         if failed:
-            print(f"\nSample failed screening queries:")
+            print("\nSample failed screening queries:")
             for r in failed:
                 print(f"  Query: {r.query[:80]}...")
                 if r.missing_tools:

@@ -2,22 +2,21 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 import pytest
 
 from CONTRACTS import ToolCall
+from src.nl2api.conversation.expander import QueryExpander
+from src.nl2api.conversation.manager import (
+    ConversationManager,
+    InMemoryConversationStorage,
+)
 from src.nl2api.conversation.models import (
     ConversationContext,
     ConversationSession,
     ConversationTurn,
-)
-from src.nl2api.conversation.expander import ExpansionResult, QueryExpander
-from src.nl2api.conversation.manager import (
-    ConversationManager,
-    InMemoryConversationStorage,
 )
 
 
@@ -195,9 +194,7 @@ class TestConversationSession:
 
         assert session.get_last_domain() is None
 
-        turn = ConversationTurn(
-            turn_number=1, user_query="Test", domain="estimates"
-        )
+        turn = ConversationTurn(turn_number=1, user_query="Test", domain="estimates")
         session.add_turn(turn)
 
         assert session.get_last_domain() == "estimates"
@@ -209,6 +206,7 @@ class TestConversationSession:
 
         # Add turn after a small delay
         import time
+
         time.sleep(0.01)
 
         turn = ConversationTurn(turn_number=1, user_query="Test")
@@ -535,15 +533,13 @@ class TestInMemoryConversationStorage:
         # Create an active session
         session = ConversationSession()
         # Manually set old activity time
-        old_time = datetime.now(timezone.utc) - timedelta(hours=2)
+        old_time = datetime.now(UTC) - timedelta(hours=2)
         session.last_activity_at = old_time
 
         await self.storage.save_session(session)
 
         # Expire sessions inactive for 1 hour
-        expired_count = await self.storage.expire_inactive_sessions(
-            timedelta(hours=1)
-        )
+        expired_count = await self.storage.expire_inactive_sessions(timedelta(hours=1))
 
         assert expired_count == 1
 
@@ -689,13 +685,13 @@ class TestConversationManager:
         """Test cleaning up expired sessions."""
         # Create a session with old activity time
         session = await self.manager.create_session()
-        session.last_activity_at = datetime.now(timezone.utc) - timedelta(hours=2)
+        session.last_activity_at = datetime.now(UTC) - timedelta(hours=2)
 
         # Create manager with short TTL
         manager = ConversationManager(session_ttl_minutes=1)
         manager._active_sessions[session.id] = session
 
-        expired = await manager.cleanup_expired_sessions()
+        await manager.cleanup_expired_sessions()
 
         # At least the cached session should be expired
         assert session.id not in manager._active_sessions

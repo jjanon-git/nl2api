@@ -1,6 +1,5 @@
 """Tests for conversation data models."""
 
-
 import pytest
 
 from CONTRACTS import ToolCall
@@ -146,6 +145,7 @@ class TestConversationSession:
 
         # Small delay to ensure time difference
         import time
+
         time.sleep(0.01)
 
         turn = ConversationTurn(turn_number=1, user_query="test")
@@ -209,16 +209,20 @@ class TestConversationSession:
 
         assert session.get_last_domain() is None
 
-        session.add_turn(ConversationTurn(
-            turn_number=1,
-            user_query="test",
-            domain="datastream",
-        ))
-        session.add_turn(ConversationTurn(
-            turn_number=2,
-            user_query="test 2",
-            domain="estimates",
-        ))
+        session.add_turn(
+            ConversationTurn(
+                turn_number=1,
+                user_query="test",
+                domain="datastream",
+            )
+        )
+        session.add_turn(
+            ConversationTurn(
+                turn_number=2,
+                user_query="test 2",
+                domain="estimates",
+            )
+        )
 
         assert session.get_last_domain() == "estimates"
 
@@ -290,11 +294,13 @@ class TestConversationContext:
         session = ConversationSession()
 
         for i in range(10):
-            session.add_turn(ConversationTurn(
-                turn_number=i + 1,
-                user_query=f"query {i}",
-                resolved_entities={f"Entity{i}": f"RIC{i}"},
-            ))
+            session.add_turn(
+                ConversationTurn(
+                    turn_number=i + 1,
+                    user_query=f"query {i}",
+                    resolved_entities={f"Entity{i}": f"RIC{i}"},
+                )
+            )
 
         context = ConversationContext.from_session(session, max_turns=3)
 
@@ -313,12 +319,14 @@ class TestConversationContext:
             tool_name="get_data",
             arguments={"fields": ["P"]},
         )
-        session.add_turn(ConversationTurn(
-            turn_number=1,
-            user_query="What is Apple's price?",
-            tool_calls=(tool_call,),
-            resolved_entities={"Apple": "AAPL.O"},
-        ))
+        session.add_turn(
+            ConversationTurn(
+                turn_number=1,
+                user_query="What is Apple's price?",
+                tool_calls=(tool_call,),
+                resolved_entities={"Apple": "AAPL.O"},
+            )
+        )
 
         context = ConversationContext.from_session(session)
 

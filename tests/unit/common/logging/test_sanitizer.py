@@ -5,8 +5,6 @@ from __future__ import annotations
 import logging
 import re
 
-import pytest
-
 from src.common.logging.sanitizer import (
     SanitizingFilter,
     configure_sanitized_logging,
@@ -259,9 +257,7 @@ class TestConfigureSanitizedLogging:
         # Remove sanitizing filters we added
         root.filters = [f for f in root.filters if not isinstance(f, SanitizingFilter)]
         for handler in root.handlers:
-            handler.filters = [
-                f for f in handler.filters if not isinstance(f, SanitizingFilter)
-            ]
+            handler.filters = [f for f in handler.filters if not isinstance(f, SanitizingFilter)]
 
     def test_adds_filter_to_root_logger(self) -> None:
         """Test that configure adds filter to root logger."""

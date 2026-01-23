@@ -21,6 +21,7 @@ from pathlib import Path
 
 import pytest
 
+
 # Load .env file before checking for API key
 def _load_env():
     env_file = Path(__file__).parent.parent.parent / ".env"
@@ -34,12 +35,13 @@ def _load_env():
                 if key and key not in os.environ:
                     os.environ[key] = value
 
+
 _load_env()
 
 # Skip all tests in this module if no API key
 pytestmark = pytest.mark.skipif(
     not os.environ.get("NL2API_ANTHROPIC_API_KEY"),
-    reason="NL2API_ANTHROPIC_API_KEY not set - skipping integration tests"
+    reason="NL2API_ANTHROPIC_API_KEY not set - skipping integration tests",
 )
 
 
@@ -62,8 +64,8 @@ class TestToolNameValidation:
     @pytest.mark.asyncio
     async def test_datastream_tool_names_valid(self, llm_provider):
         """DatastreamAgent tool names must be API-compliant and from ToolRegistry."""
-        from src.nl2api.agents.datastream import DatastreamAgent
         from CONTRACTS import ToolRegistry
+        from src.nl2api.agents.datastream import DatastreamAgent
 
         agent = DatastreamAgent(llm=llm_provider)
         tools = agent.get_tools()
@@ -83,7 +85,8 @@ class TestToolNameValidation:
         tools = agent.get_tools()
 
         import re
-        pattern = re.compile(r'^[a-zA-Z0-9_-]{1,128}$')
+
+        pattern = re.compile(r"^[a-zA-Z0-9_-]{1,128}$")
         for tool in tools:
             assert pattern.match(tool.name), f"Invalid tool name: {tool.name}"
 
@@ -96,7 +99,8 @@ class TestToolNameValidation:
         tools = agent.get_tools()
 
         import re
-        pattern = re.compile(r'^[a-zA-Z0-9_-]{1,128}$')
+
+        pattern = re.compile(r"^[a-zA-Z0-9_-]{1,128}$")
         for tool in tools:
             assert pattern.match(tool.name), f"Invalid tool name: {tool.name}"
 
@@ -109,7 +113,8 @@ class TestToolNameValidation:
         tools = agent.get_tools()
 
         import re
-        pattern = re.compile(r'^[a-zA-Z0-9_-]{1,128}$')
+
+        pattern = re.compile(r"^[a-zA-Z0-9_-]{1,128}$")
         for tool in tools:
             assert pattern.match(tool.name), f"Invalid tool name: {tool.name}"
 
@@ -122,7 +127,8 @@ class TestToolNameValidation:
         tools = agent.get_tools()
 
         import re
-        pattern = re.compile(r'^[a-zA-Z0-9_-]{1,128}$')
+
+        pattern = re.compile(r"^[a-zA-Z0-9_-]{1,128}$")
         for tool in tools:
             assert pattern.match(tool.name), f"Invalid tool name: {tool.name}"
 
@@ -145,8 +151,9 @@ class TestAgentAPIIntegration:
         result = await agent.process(context)
 
         # Should return tool calls, not an error
-        assert result.tool_calls or result.needs_clarification, \
+        assert result.tool_calls or result.needs_clarification, (
             f"Expected tool calls or clarification, got: {result}"
+        )
 
         # If we got tool calls, verify structure
         if result.tool_calls:
@@ -167,8 +174,9 @@ class TestAgentAPIIntegration:
 
         result = await agent.process(context)
 
-        assert result.tool_calls or result.needs_clarification, \
+        assert result.tool_calls or result.needs_clarification, (
             f"Expected tool calls or clarification, got: {result}"
+        )
 
     @pytest.mark.asyncio
     async def test_fundamentals_agent_api_call(self, llm_provider):
@@ -184,8 +192,9 @@ class TestAgentAPIIntegration:
 
         result = await agent.process(context)
 
-        assert result.tool_calls or result.needs_clarification, \
+        assert result.tool_calls or result.needs_clarification, (
             f"Expected tool calls or clarification, got: {result}"
+        )
 
     @pytest.mark.asyncio
     async def test_officers_agent_api_call(self, llm_provider):
@@ -201,14 +210,15 @@ class TestAgentAPIIntegration:
 
         result = await agent.process(context)
 
-        assert result.tool_calls or result.needs_clarification, \
+        assert result.tool_calls or result.needs_clarification, (
             f"Expected tool calls or clarification, got: {result}"
+        )
 
     @pytest.mark.asyncio
     async def test_screening_agent_api_call(self, llm_provider):
         """ScreeningAgent can make a successful API call."""
-        from src.nl2api.agents.screening import ScreeningAgent
         from src.nl2api.agents.protocols import AgentContext
+        from src.nl2api.agents.screening import ScreeningAgent
 
         agent = ScreeningAgent(llm=llm_provider)
         context = AgentContext(
@@ -218,8 +228,9 @@ class TestAgentAPIIntegration:
 
         result = await agent.process(context)
 
-        assert result.tool_calls or result.needs_clarification, \
+        assert result.tool_calls or result.needs_clarification, (
             f"Expected tool calls or clarification, got: {result}"
+        )
 
 
 class TestOrchestratorAPIIntegration:
@@ -243,8 +254,9 @@ class TestOrchestratorAPIIntegration:
 
         # Should get a response (either tool calls or clarification)
         assert result is not None
-        assert result.tool_calls or result.needs_clarification, \
+        assert result.tool_calls or result.needs_clarification, (
             f"Expected tool calls or clarification, got: {result}"
+        )
 
     @pytest.mark.asyncio
     async def test_orchestrator_routing_works(self, llm_provider):

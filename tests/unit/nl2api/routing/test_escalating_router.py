@@ -8,8 +8,8 @@ Tests the model escalation functionality including:
 - Cache integration
 """
 
+
 import pytest
-from typing import Any
 
 from src.nl2api.llm.protocols import (
     LLMMessage,
@@ -17,13 +17,12 @@ from src.nl2api.llm.protocols import (
     LLMToolCall,
     LLMToolDefinition,
 )
+from src.nl2api.routing.cache import InMemoryRoutingCache
 from src.nl2api.routing.escalating_router import (
     EscalatingLLMRouter,
     ModelTier,
     create_escalating_router,
 )
-from src.nl2api.routing.cache import InMemoryRoutingCache
-from src.nl2api.routing.protocols import RouterResult
 
 
 class MockLLMProvider:
@@ -173,7 +172,7 @@ class TestEscalatingLLMRouter:
             max_escalations=1,  # Only allow 1 escalation
         )
 
-        result = await router.route("What is Apple's stock price?")
+        await router.route("What is Apple's stock price?")
 
         # Should stop at tier2 due to max_escalations=1
         assert tier1.call_count == 1

@@ -9,20 +9,16 @@ from __future__ import annotations
 
 import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 import pytest
 
-from CONTRACTS import ToolCall
 from src.nl2api.agents.estimates import EstimatesAgent
-from src.nl2api.agents.protocols import AgentContext, AgentResult
+from src.nl2api.agents.protocols import AgentContext
 from src.nl2api.llm.protocols import (
-    LLMMessage,
     LLMResponse,
     LLMToolCall,
-    LLMToolDefinition,
 )
 
 # Configure logging
@@ -39,9 +35,11 @@ class MockLLMProvider:
     async def complete(self, messages, tools=None, temperature=0.0, max_tokens=4096):
         return LLMResponse(content="estimates")
 
-    async def complete_with_retry(self, messages, tools=None, temperature=0.0, max_tokens=4096, max_retries=3):
+    async def complete_with_retry(
+        self, messages, tools=None, temperature=0.0, max_tokens=4096, max_retries=3
+    ):
         # Extract user query from messages
-        user_msg = next((m.content for m in messages if m.role.value == "user"), "")
+        next((m.content for m in messages if m.role.value == "user"), "")
 
         # Return tool call based on query content
         if tools:
@@ -85,7 +83,9 @@ class MockEntityResolver:
                 result[company] = self._generate_ric(company)
 
         # Pattern 2: "of Company" form
-        of_pattern = re.findall(r"of\s+([A-Z][A-Za-z\s&\-\.]+?)(?:\s+(?:for|in|to|and|or|$)|\?|$)", query)
+        of_pattern = re.findall(
+            r"of\s+([A-Z][A-Za-z\s&\-\.]+?)(?:\s+(?:for|in|to|and|or|$)|\?|$)", query
+        )
         for match in of_pattern:
             company = match.strip()
             if len(company) > 2 and company not in result:
@@ -94,7 +94,7 @@ class MockEntityResolver:
         # Pattern 3: Company suffixes
         suffix_pattern = re.findall(
             r"([A-Z][A-Za-z\s&\-\.]*?\s*(?:Inc|Corp|Ltd|Co|PLC|AG|SA|NV|SE|Group|Bank|Holdings?)\.?)",
-            query
+            query,
         )
         for match in suffix_pattern:
             company = match.strip()
@@ -105,7 +105,20 @@ class MockEntityResolver:
         tickers = re.findall(r"\b([A-Z]{1,5})\b", query)
         for ticker in tickers:
             # Skip common words
-            if ticker not in ("I", "A", "THE", "AND", "OR", "FOR", "OF", "IN", "TO", "GET", "EPS", "PE"):
+            if ticker not in (
+                "I",
+                "A",
+                "THE",
+                "AND",
+                "OR",
+                "FOR",
+                "OF",
+                "IN",
+                "TO",
+                "GET",
+                "EPS",
+                "PE",
+            ):
                 if ticker not in result:
                     result[ticker] = f"{ticker}.O"
 
@@ -147,7 +160,9 @@ def load_estimates_test_cases() -> list[dict]:
             with open(json_file) as f:
                 try:
                     data = json.load(f)
-                    if isinstance(data, dict) and "estimates" in data.get("metadata", {}).get("tags", []):
+                    if isinstance(data, dict) and "estimates" in data.get("metadata", {}).get(
+                        "tags", []
+                    ):
                         all_cases.append(data)
                 except (json.JSONDecodeError, KeyError, TypeError):
                     pass  # Skip malformed or unexpected JSON files
@@ -255,8 +270,12 @@ class TestEstimatesFullEvaluation:
         errors = sum(1 for r in results if r.error)
 
         logger.info(f"Sample evaluation ({sample_size} cases):")
-        logger.info(f"  Exact field matches: {field_matches} ({100*field_matches/sample_size:.1f}%)")
-        logger.info(f"  Partial matches: {partial_matches} ({100*partial_matches/sample_size:.1f}%)")
+        logger.info(
+            f"  Exact field matches: {field_matches} ({100 * field_matches / sample_size:.1f}%)"
+        )
+        logger.info(
+            f"  Partial matches: {partial_matches} ({100 * partial_matches / sample_size:.1f}%)"
+        )
         logger.info(f"  Errors: {errors}")
 
         # At least some partial matches expected
@@ -285,7 +304,9 @@ class TestEstimatesFullEvaluation:
         # Rule-based recall should be meaningful
         rule_based_results = [r for r in results if r.rule_based]
         if rule_based_results:
-            rule_recall = sum(r.field_comparison.get("recall", 0) for r in rule_based_results) / len(rule_based_results)
+            rule_recall = sum(
+                r.field_comparison.get("recall", 0) for r in rule_based_results
+            ) / len(rule_based_results)
             logger.info(f"Rule-based recall: {rule_recall:.2%}")
             assert rule_recall > 0.3, f"Rule-based recall too low: {rule_recall:.2%}"
 
@@ -334,9 +355,8 @@ class TestEstimatesFullEvaluation:
 
             # Compare
             comparison = compare_fields(expected_fields, actual_fields)
-            field_match = (
-                set(normalize_field(f) for f in expected_fields) ==
-                set(normalize_field(f) for f in actual_fields)
+            field_match = set(normalize_field(f) for f in expected_fields) == set(
+                normalize_field(f) for f in actual_fields
             )
 
             return EvalResult(
@@ -370,7 +390,9 @@ class TestEstimatesFullEvaluation:
         processed = total - errors
 
         exact_matches = sum(1 for r in results if r.field_match)
-        partial_matches = sum(1 for r in results if r.field_comparison.get("matching") and not r.field_match)
+        partial_matches = sum(
+            1 for r in results if r.field_comparison.get("matching") and not r.field_match
+        )
         no_match = sum(1 for r in results if not r.field_comparison.get("matching") and not r.error)
 
         precisions = [r.field_comparison.get("precision", 0) for r in results if not r.error]
@@ -399,15 +421,25 @@ class TestEstimatesFullEvaluation:
         logger.info(f"Errors: {summary.errors}")
         logger.info("")
         logger.info("Field Matching:")
-        logger.info(f"  Exact match: {summary.field_exact_match} ({100*summary.field_exact_match/summary.total_cases:.1f}%)")
-        logger.info(f"  Partial match: {summary.field_partial_match} ({100*summary.field_partial_match/summary.total_cases:.1f}%)")
-        logger.info(f"  No match: {summary.no_match} ({100*summary.no_match/summary.total_cases:.1f}%)")
+        logger.info(
+            f"  Exact match: {summary.field_exact_match} ({100 * summary.field_exact_match / summary.total_cases:.1f}%)"
+        )
+        logger.info(
+            f"  Partial match: {summary.field_partial_match} ({100 * summary.field_partial_match / summary.total_cases:.1f}%)"
+        )
+        logger.info(
+            f"  No match: {summary.no_match} ({100 * summary.no_match / summary.total_cases:.1f}%)"
+        )
         logger.info("")
         logger.info(f"Average Precision: {summary.avg_precision:.2%}")
         logger.info(f"Average Recall: {summary.avg_recall:.2%}")
         logger.info("")
-        logger.info(f"Rule-based: {summary.rule_based_count} ({100*summary.rule_based_count/summary.total_cases:.1f}%)")
-        logger.info(f"LLM-based: {summary.llm_count} ({100*summary.llm_count/summary.total_cases:.1f}%)")
+        logger.info(
+            f"Rule-based: {summary.rule_based_count} ({100 * summary.rule_based_count / summary.total_cases:.1f}%)"
+        )
+        logger.info(
+            f"LLM-based: {summary.llm_count} ({100 * summary.llm_count / summary.total_cases:.1f}%)"
+        )
         logger.info("=" * 60)
 
         # Show some failures for analysis
@@ -480,4 +512,5 @@ async def run_quick_eval():
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(run_quick_eval())

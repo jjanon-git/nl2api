@@ -5,6 +5,7 @@ Tests the MCP data types and protocol definitions.
 """
 
 import pytest
+
 from src.nl2api.mcp.protocols import (
     MCPCapabilities,
     MCPResource,

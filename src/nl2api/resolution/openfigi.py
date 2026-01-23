@@ -81,7 +81,7 @@ def _convert_to_ric(figi_data: dict[str, Any]) -> str:
         "UW": ".O",  # NASDAQ
         "LN": ".L",  # London
         "JP": ".T",  # Tokyo
-        "HK": ".HK", # Hong Kong
+        "HK": ".HK",  # Hong Kong
     }
 
     suffix = exchange_map.get(exchange, ".O")

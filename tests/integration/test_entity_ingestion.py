@@ -36,9 +36,7 @@ async def db_pool():
     """Create database connection pool."""
     import asyncpg
 
-    db_url = os.environ.get(
-        "DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"
-    )
+    db_url = os.environ.get("DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api")
     pool = await asyncpg.create_pool(db_url)
     yield pool
     await pool.close()
@@ -115,18 +113,20 @@ class TestGLEIFTransformation:
         """Test entity dict to DB record transformation."""
         from scripts.ingest_gleif import transform_to_db_records
 
-        entities = iter([
-            {
-                "lei": "HWUPKR0MPOU8FGXBT394",
-                "primary_name": "Apple Inc",
-                "country_code": "US",
-                "region": "California",
-                "city": "Cupertino",
-                "entity_category": "general",
-                "entity_status": "active",
-                "data_source": "gleif",
-            }
-        ])
+        entities = iter(
+            [
+                {
+                    "lei": "HWUPKR0MPOU8FGXBT394",
+                    "primary_name": "Apple Inc",
+                    "country_code": "US",
+                    "region": "California",
+                    "city": "Cupertino",
+                    "entity_category": "general",
+                    "entity_status": "active",
+                    "data_source": "gleif",
+                }
+            ]
+        )
 
         records = list(transform_to_db_records(entities))
 
@@ -222,31 +222,31 @@ class TestIngestionDBOperations:
         # Create test records
         records = [
             (
-                uuid.uuid4(),           # id
-                f"TESTLEI{i:012d}",     # lei
-                None,                   # cik
-                None,                   # permid
-                None,                   # figi
-                f"Test Company {i}",    # primary_name
-                None,                   # display_name
-                None,                   # ticker
-                None,                   # ric
-                None,                   # exchange
-                "company",              # entity_type
-                "active",               # entity_status
-                False,                  # is_public
-                "US",                   # country_code
-                None,                   # region
-                None,                   # city
-                None,                   # sic_code
-                None,                   # naics_code
-                None,                   # gics_sector
-                None,                   # parent_entity_id
-                None,                   # ultimate_parent_id
-                "test_gleif",           # data_source
-                1.0,                    # confidence_score
-                False,                  # ric_validated
-                None,                   # last_verified_at
+                uuid.uuid4(),  # id
+                f"TESTLEI{i:012d}",  # lei
+                None,  # cik
+                None,  # permid
+                None,  # figi
+                f"Test Company {i}",  # primary_name
+                None,  # display_name
+                None,  # ticker
+                None,  # ric
+                None,  # exchange
+                "company",  # entity_type
+                "active",  # entity_status
+                False,  # is_public
+                "US",  # country_code
+                None,  # region
+                None,  # city
+                None,  # sic_code
+                None,  # naics_code
+                None,  # gics_sector
+                None,  # parent_entity_id
+                None,  # ultimate_parent_id
+                "test_gleif",  # data_source
+                1.0,  # confidence_score
+                False,  # ric_validated
+                None,  # last_verified_at
             )
             for i in range(100)
         ]
@@ -323,9 +323,7 @@ class TestIngestionDBOperations:
 
             # Verify in database
             async with db_pool.acquire() as conn:
-                entity = await conn.fetchrow(
-                    "SELECT * FROM entities WHERE cik = $1", test_ciks[0]
-                )
+                entity = await conn.fetchrow("SELECT * FROM entities WHERE cik = $1", test_ciks[0])
                 assert entity is not None
                 assert entity["ticker"] == "TST1"
                 assert entity["ric"] == "TST1.O"
@@ -411,6 +409,7 @@ class TestIngestionConfig:
     def test_checkpoint_manager_initializes(self):
         """Test checkpoint manager initializes."""
         import tempfile
+
         from src.nl2api.ingestion import CheckpointManager
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -430,6 +429,7 @@ class TestIngestionCLI:
 
         # Just verify the status command path works
         import subprocess
+
         result = subprocess.run(
             [sys.executable, str(PROJECT_ROOT / "scripts" / "ingest_entities.py"), "status"],
             capture_output=True,

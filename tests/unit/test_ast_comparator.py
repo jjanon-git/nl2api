@@ -1,9 +1,8 @@
 """Tests for AST comparator."""
 
-import pytest
 
 from CONTRACTS import ToolCall
-from src.evaluation.core.ast_comparator import ASTComparator, ComparisonResult
+from src.evaluation.core.ast_comparator import ASTComparator
 
 
 class TestASTComparator:
@@ -15,12 +14,8 @@ class TestASTComparator:
 
     def test_exact_match_single_call(self) -> None:
         """Test exact match with single tool call."""
-        expected = [
-            ToolCall(tool_name="search", arguments={"query": "test"})
-        ]
-        actual = [
-            ToolCall(tool_name="search", arguments={"query": "test"})
-        ]
+        expected = [ToolCall(tool_name="search", arguments={"query": "test"})]
+        actual = [ToolCall(tool_name="search", arguments={"query": "test"})]
 
         result = self.comparator.compare(expected, actual)
 

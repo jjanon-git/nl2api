@@ -107,7 +107,10 @@ class BaseDomainAgent(ABC):
             span.set_attribute("agent.name", self.domain_name)
             span.set_attribute("agent.query_length", len(context.query))
             span.set_attribute("agent.has_conversation_history", bool(context.conversation_history))
-            span.set_attribute("agent.resolved_entities_count", len(context.resolved_entities) if context.resolved_entities else 0)
+            span.set_attribute(
+                "agent.resolved_entities_count",
+                len(context.resolved_entities) if context.resolved_entities else 0,
+            )
 
             # Build the prompt
             messages = self._build_messages(context)
@@ -127,7 +130,9 @@ class BaseDomainAgent(ABC):
                 span.set_attribute("agent.result", "error")
                 return AgentResult(
                     needs_clarification=True,
-                    clarification_questions=("Sorry, I encountered an error processing your request. Please try again.",),
+                    clarification_questions=(
+                        "Sorry, I encountered an error processing your request. Please try again.",
+                    ),
                     domain=self.domain_name,
                 )
 
@@ -159,7 +164,9 @@ class BaseDomainAgent(ABC):
                 result = self._parse_text_response(response.content)
                 span.set_attribute("agent.confidence", result.confidence)
                 span.set_attribute("agent.needs_clarification", result.needs_clarification)
-                span.set_attribute("agent.result", "clarification" if result.needs_clarification else "text")
+                span.set_attribute(
+                    "agent.result", "clarification" if result.needs_clarification else "text"
+                )
                 return result
 
     def _build_messages(self, context: AgentContext) -> list[LLMMessage]:
@@ -172,8 +179,7 @@ class BaseDomainAgent(ABC):
         # Add retrieved context if available
         if context.field_codes:
             field_codes_text = "\n".join(
-                f"- {fc.get('code', '')}: {fc.get('description', '')}"
-                for fc in context.field_codes
+                f"- {fc.get('code', '')}: {fc.get('description', '')}" for fc in context.field_codes
             )
             system_prompt += f"\n\nAvailable field codes:\n{field_codes_text}"
 
@@ -189,38 +195,45 @@ class BaseDomainAgent(ABC):
             if context.conversation_history.strip():
                 system_prompt += f"\n\n{context.conversation_history}"
 
-        messages.append(LLMMessage(
-            role=MessageRole.SYSTEM,
-            content=system_prompt,
-        ))
+        messages.append(
+            LLMMessage(
+                role=MessageRole.SYSTEM,
+                content=system_prompt,
+            )
+        )
 
         # Add list-format conversation history as separate messages
         if context.conversation_history and isinstance(context.conversation_history, list):
             for turn in context.conversation_history:
                 if turn.get("role") == "user":
-                    messages.append(LLMMessage(
-                        role=MessageRole.USER,
-                        content=turn.get("content", ""),
-                    ))
+                    messages.append(
+                        LLMMessage(
+                            role=MessageRole.USER,
+                            content=turn.get("content", ""),
+                        )
+                    )
                 elif turn.get("role") == "assistant":
-                    messages.append(LLMMessage(
-                        role=MessageRole.ASSISTANT,
-                        content=turn.get("content", ""),
-                    ))
+                    messages.append(
+                        LLMMessage(
+                            role=MessageRole.ASSISTANT,
+                            content=turn.get("content", ""),
+                        )
+                    )
 
         # Add resolved entities if any
         query_with_context = context.expanded_query or context.query
         if context.resolved_entities:
             entities_text = ", ".join(
-                f"{name} -> {ric}"
-                for name, ric in context.resolved_entities.items()
+                f"{name} -> {ric}" for name, ric in context.resolved_entities.items()
             )
             query_with_context = f"{query_with_context}\n\n[Resolved entities: {entities_text}]"
 
-        messages.append(LLMMessage(
-            role=MessageRole.USER,
-            content=query_with_context,
-        ))
+        messages.append(
+            LLMMessage(
+                role=MessageRole.USER,
+                content=query_with_context,
+            )
+        )
 
         return messages
 

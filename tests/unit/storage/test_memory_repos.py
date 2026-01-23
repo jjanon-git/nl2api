@@ -17,8 +17,7 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.common.storage.memory import InMemoryTestCaseRepository, InMemoryScorecardRepository
-
+from src.common.storage.memory import InMemoryScorecardRepository, InMemoryTestCaseRepository
 
 # =============================================================================
 # TestCaseRepository Tests
@@ -37,9 +36,7 @@ def sample_test_case() -> TestCase:
     return TestCase(
         id="test-123",
         nl_query="Find all products under $50",
-        expected_tool_calls=(
-            ToolCall(tool_name="search_products", arguments={"max_price": 50}),
-        ),
+        expected_tool_calls=(ToolCall(tool_name="search_products", arguments={"max_price": 50}),),
         expected_nl_response="Here are the products under $50",
         metadata=TestCaseMetadata(
             api_version="v1.0.0",
@@ -74,9 +71,7 @@ async def test_get_many(test_case_repo: InMemoryTestCaseRepository, sample_test_
     test_case_2 = TestCase(
         id="test-456",
         nl_query="Get user profile",
-        expected_tool_calls=(
-            ToolCall(tool_name="get_user", arguments={"user_id": 123}),
-        ),
+        expected_tool_calls=(ToolCall(tool_name="get_user", arguments={"user_id": 123}),),
         expected_nl_response="User profile loaded",
         metadata=TestCaseMetadata(api_version="v1.0.0", complexity_level=1),
     )
@@ -229,7 +224,9 @@ def sample_scorecard() -> Scorecard:
 
 
 @pytest.mark.asyncio
-async def test_scorecard_save_and_get(scorecard_repo: InMemoryScorecardRepository, sample_scorecard: Scorecard):
+async def test_scorecard_save_and_get(
+    scorecard_repo: InMemoryScorecardRepository, sample_scorecard: Scorecard
+):
     """Test saving and retrieving a scorecard."""
     await scorecard_repo.save(sample_scorecard)
 
@@ -240,7 +237,9 @@ async def test_scorecard_save_and_get(scorecard_repo: InMemoryScorecardRepositor
 
 
 @pytest.mark.asyncio
-async def test_get_by_test_case(scorecard_repo: InMemoryScorecardRepository, sample_scorecard: Scorecard):
+async def test_get_by_test_case(
+    scorecard_repo: InMemoryScorecardRepository, sample_scorecard: Scorecard
+):
     """Test getting scorecards by test case ID."""
     await scorecard_repo.save(sample_scorecard)
 
@@ -253,7 +252,9 @@ async def test_get_by_test_case(scorecard_repo: InMemoryScorecardRepository, sam
 
 
 @pytest.mark.asyncio
-async def test_get_by_batch(scorecard_repo: InMemoryScorecardRepository, sample_scorecard: Scorecard):
+async def test_get_by_batch(
+    scorecard_repo: InMemoryScorecardRepository, sample_scorecard: Scorecard
+):
     """Test getting scorecards by batch ID."""
     await scorecard_repo.save(sample_scorecard)
 
@@ -317,7 +318,9 @@ async def test_batch_summary(scorecard_repo: InMemoryScorecardRepository):
 
 
 @pytest.mark.asyncio
-async def test_scorecard_delete(scorecard_repo: InMemoryScorecardRepository, sample_scorecard: Scorecard):
+async def test_scorecard_delete(
+    scorecard_repo: InMemoryScorecardRepository, sample_scorecard: Scorecard
+):
     """Test deleting a scorecard."""
     await scorecard_repo.save(sample_scorecard)
 

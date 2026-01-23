@@ -382,11 +382,7 @@ class NL2APIConfig(BaseSettings):
 
         # From comma-separated list
         if self.mcp_servers:
-            uris.extend(
-                uri.strip()
-                for uri in self.mcp_servers.split(",")
-                if uri.strip()
-            )
+            uris.extend(uri.strip() for uri in self.mcp_servers.split(",") if uri.strip())
 
         # From individual domain configs
         for uri in [

@@ -42,6 +42,7 @@ app.add_typer(matrix_app, name="matrix", help="Multi-dimensional evaluation (com
 def version() -> None:
     """Show version information."""
     from src import __version__
+
     typer.echo(f"eval-platform version {__version__}")
 
 

@@ -7,14 +7,11 @@ Tests against the 12,887 generated test cases in tests/fixtures/lseg/generated/
 from __future__ import annotations
 
 import pytest
-from typing import Any
 
 from src.nl2api.agents.datastream import DatastreamAgent
-from src.nl2api.agents.protocols import AgentContext
 from tests.unit.nl2api.fixture_loader import (
     FixtureLoader,
     GeneratedTestCase,
-    compare_tool_calls,
     extract_ticker_symbol,
 )
 
@@ -111,8 +108,7 @@ class TestDatastreamAgentFieldDetection:
         """Test detection of volume fields."""
         # Find cases with volume in the query
         volume_cases = [
-            c for c in loader.load_category("lookups")
-            if "volume" in c.nl_query.lower()
+            c for c in loader.load_category("lookups") if "volume" in c.nl_query.lower()
         ][:50]
 
         if not volume_cases:
@@ -132,7 +128,8 @@ class TestDatastreamAgentFieldDetection:
         """Test detection of market cap fields."""
         # Find market cap cases
         mkt_cap_cases = [
-            c for c in loader.iterate_all()
+            c
+            for c in loader.iterate_all()
             if any(term in c.nl_query.lower() for term in ["market cap", "market capitalization"])
         ][:50]
 
@@ -152,7 +149,8 @@ class TestDatastreamAgentFieldDetection:
     async def test_pe_ratio_field_detection(self, agent: DatastreamAgent, loader: FixtureLoader):
         """Test detection of PE ratio fields."""
         pe_cases = [
-            c for c in loader.iterate_all()
+            c
+            for c in loader.iterate_all()
             if any(term in c.nl_query.lower() for term in ["pe ratio", "p/e", "price to earnings"])
         ][:50]
 
@@ -169,10 +167,13 @@ class TestDatastreamAgentFieldDetection:
         assert detection_rate >= 0.5, f"PE ratio field detection rate: {detection_rate:.2%}"
 
     @pytest.mark.asyncio
-    async def test_dividend_yield_field_detection(self, agent: DatastreamAgent, loader: FixtureLoader):
+    async def test_dividend_yield_field_detection(
+        self, agent: DatastreamAgent, loader: FixtureLoader
+    ):
         """Test detection of dividend yield fields."""
         div_cases = [
-            c for c in loader.iterate_all()
+            c
+            for c in loader.iterate_all()
             if any(term in c.nl_query.lower() for term in ["dividend yield", "yield"])
         ][:50]
 
@@ -194,7 +195,9 @@ class TestDatastreamAgentTimeRangeDetection:
     """Test time range detection against temporal fixtures."""
 
     @pytest.mark.asyncio
-    async def test_temporal_queries_have_time_params(self, agent: DatastreamAgent, loader: FixtureLoader):
+    async def test_temporal_queries_have_time_params(
+        self, agent: DatastreamAgent, loader: FixtureLoader
+    ):
         """Test that temporal queries are detected correctly."""
         temporal_cases = loader.load_category("temporal")[:200]
 
@@ -211,7 +214,8 @@ class TestDatastreamAgentTimeRangeDetection:
     async def test_last_month_detection(self, agent: DatastreamAgent, loader: FixtureLoader):
         """Test detection of 'last month' time range."""
         last_month_cases = [
-            c for c in loader.load_category("temporal")
+            c
+            for c in loader.load_category("temporal")
             if "last month" in c.nl_query.lower() or "past month" in c.nl_query.lower()
         ][:50]
 
@@ -228,7 +232,8 @@ class TestDatastreamAgentTimeRangeDetection:
     async def test_last_year_detection(self, agent: DatastreamAgent, loader: FixtureLoader):
         """Test detection of 'last year' time range."""
         last_year_cases = [
-            c for c in loader.load_category("temporal")
+            c
+            for c in loader.load_category("temporal")
             if "last year" in c.nl_query.lower() or "past year" in c.nl_query.lower()
         ][:50]
 
@@ -250,13 +255,17 @@ class TestDatastreamAgentTimeRangeDetection:
         """Test detection of frequency in temporal queries."""
         # Find queries with explicit frequency (that don't have conflicting frequencies)
         weekly_cases = [
-            c for c in loader.load_category("temporal")
+            c
+            for c in loader.load_category("temporal")
             if "weekly" in c.nl_query.lower() and "daily" not in c.nl_query.lower()
         ][:30]
 
         monthly_cases = [
-            c for c in loader.load_category("temporal")
-            if "monthly" in c.nl_query.lower() and "weekly" not in c.nl_query.lower() and "daily" not in c.nl_query.lower()
+            c
+            for c in loader.load_category("temporal")
+            if "monthly" in c.nl_query.lower()
+            and "weekly" not in c.nl_query.lower()
+            and "daily" not in c.nl_query.lower()
         ][:30]
 
         # Test weekly frequency
@@ -276,7 +285,7 @@ class TestDatastreamAgentTimeRangeDetection:
         weekly_rate = weekly_correct / len(weekly_cases) if weekly_cases else 0
         monthly_rate = monthly_correct / len(monthly_cases) if monthly_cases else 0
 
-        print(f"\nFrequency detection:")
+        print("\nFrequency detection:")
         print(f"  Weekly: {weekly_rate:.2%} ({weekly_correct}/{len(weekly_cases)})")
         print(f"  Monthly: {monthly_rate:.2%} ({monthly_correct}/{len(monthly_cases)})")
 
@@ -302,7 +311,9 @@ class TestDatastreamAgentComparisonQueries:
         assert handle_rate >= 0.3, f"Comparison query handle rate: {handle_rate:.2%}"
 
     @pytest.mark.asyncio
-    async def test_multi_ticker_field_detection(self, agent: DatastreamAgent, loader: FixtureLoader):
+    async def test_multi_ticker_field_detection(
+        self, agent: DatastreamAgent, loader: FixtureLoader
+    ):
         """Test field detection for multi-ticker comparison queries."""
         # Two-stock comparisons
         two_stock_cases = loader.load_by_subcategory("two_stock")[:50]
@@ -334,7 +345,9 @@ class TestDatastreamAgentCanHandle:
         assert rate >= 0.5, f"can_handle rate for price queries: {rate:.2%}"
 
     @pytest.mark.asyncio
-    async def test_can_handle_time_series_queries(self, agent: DatastreamAgent, loader: FixtureLoader):
+    async def test_can_handle_time_series_queries(
+        self, agent: DatastreamAgent, loader: FixtureLoader
+    ):
         """Test can_handle returns positive score for time series queries."""
         temporal_cases = loader.load_category("temporal")[:100]
 
@@ -398,7 +411,9 @@ class TestDatastreamAgentStatistics:
         assert handle_rate >= 0.3, f"Overall can_handle rate too low: {handle_rate:.2%}"
 
     @pytest.mark.asyncio
-    async def test_temporal_coverage_statistics(self, agent: DatastreamAgent, loader: FixtureLoader):
+    async def test_temporal_coverage_statistics(
+        self, agent: DatastreamAgent, loader: FixtureLoader
+    ):
         """Generate statistics for temporal query coverage."""
         temporal = loader.load_category("temporal")
 
@@ -442,7 +457,9 @@ class TestDatastreamAgentStatistics:
         assert time_rate >= 0.4, f"Time range detection rate too low: {time_rate:.2%}"
 
     @pytest.mark.asyncio
-    async def test_comparison_coverage_statistics(self, agent: DatastreamAgent, loader: FixtureLoader):
+    async def test_comparison_coverage_statistics(
+        self, agent: DatastreamAgent, loader: FixtureLoader
+    ):
         """Generate statistics for comparison query coverage."""
         comparisons = loader.load_category("comparisons")
 
@@ -511,7 +528,7 @@ class TestExpectedFieldMappings:
 
         coverage_rate = len(covered) / len(fixture_fields) if fixture_fields else 0
 
-        print(f"\nField Code Coverage:")
+        print("\nField Code Coverage:")
         print(f"  Total fixture fields: {len(fixture_fields)}")
         print(f"  Total agent fields: {len(agent_fields)}")
         print(f"  Covered fields: {len(covered)}")
@@ -548,4 +565,3 @@ class TestTickerExtraction:
         for ticker, expected in test_cases:
             result = extract_ticker_symbol(ticker)
             assert result == expected, f"Expected {expected}, got {result} for {ticker}"
-

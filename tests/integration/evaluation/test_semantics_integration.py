@@ -74,9 +74,9 @@ def test_case_without_nl():
 def correct_system_response():
     """System response with correct tool calls and NL response."""
     return SystemResponse(
-        raw_output=json.dumps([
-            {"tool_name": "get_data", "arguments": {"tickers": "AAPL.O", "fields": ["P"]}}
-        ]),
+        raw_output=json.dumps(
+            [{"tool_name": "get_data", "arguments": {"tickers": "AAPL.O", "fields": ["P"]}}]
+        ),
         nl_response="Apple's current stock price is $185.42.",
         latency_ms=100,
     )
@@ -86,9 +86,9 @@ def correct_system_response():
 def correct_system_response_without_nl():
     """System response without NL response."""
     return SystemResponse(
-        raw_output=json.dumps([
-            {"tool_name": "get_data", "arguments": {"tickers": "AAPL.O", "fields": ["P"]}}
-        ]),
+        raw_output=json.dumps(
+            [{"tool_name": "get_data", "arguments": {"tickers": "AAPL.O", "fields": ["P"]}}]
+        ),
         nl_response=None,
         latency_ms=100,
     )
@@ -100,12 +100,14 @@ def mock_llm_for_semantics():
     llm = MagicMock()
     llm.complete_with_retry = AsyncMock(
         return_value=MagicMock(
-            content=json.dumps({
-                "meaning_match": 0.95,
-                "completeness": 0.90,
-                "accuracy": 1.0,
-                "reasoning": "Both responses convey the same stock price information.",
-            })
+            content=json.dumps(
+                {
+                    "meaning_match": 0.95,
+                    "completeness": 0.90,
+                    "accuracy": 1.0,
+                    "reasoning": "Both responses convey the same stock price information.",
+                }
+            )
         )
     )
     return llm
@@ -125,11 +127,10 @@ class TestWaterfallEvaluatorSemanticsIntegration:
         evaluator = WaterfallEvaluator(config=config, llm_judge_config=llm_config)
 
         # Patch the LLM initialization
-        with patch.object(
-            evaluator, '_semantics_evaluator', None
-        ):
+        with patch.object(evaluator, "_semantics_evaluator", None):
             # Create a mock semantics evaluator
             from src.evaluation.core.semantics import SemanticsEvaluator
+
             mock_sem_eval = SemanticsEvaluator(config=llm_config, llm=mock_llm_for_semantics)
             evaluator._semantics_evaluator = mock_sem_eval
 
@@ -209,6 +210,7 @@ class TestWaterfallEvaluatorSemanticsIntegration:
 
         # Create and inject mock semantics evaluator
         from src.evaluation.core.semantics import SemanticsEvaluator
+
         mock_sem_eval = SemanticsEvaluator(config=llm_config, llm=mock_llm_for_semantics)
         evaluator._semantics_evaluator = mock_sem_eval
 
@@ -245,16 +247,19 @@ class TestWaterfallEvaluatorSemanticsIntegration:
         mock_llm_fail = MagicMock()
         mock_llm_fail.complete_with_retry = AsyncMock(
             return_value=MagicMock(
-                content=json.dumps({
-                    "meaning_match": 0.2,
-                    "completeness": 0.2,
-                    "accuracy": 0.2,
-                    "reasoning": "Completely different responses.",
-                })
+                content=json.dumps(
+                    {
+                        "meaning_match": 0.2,
+                        "completeness": 0.2,
+                        "accuracy": 0.2,
+                        "reasoning": "Completely different responses.",
+                    }
+                )
             )
         )
 
         from src.evaluation.core.semantics import SemanticsEvaluator
+
         mock_sem_eval = SemanticsEvaluator(config=llm_config, llm=mock_llm_fail)
         evaluator._semantics_evaluator = mock_sem_eval
 

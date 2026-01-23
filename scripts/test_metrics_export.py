@@ -62,7 +62,9 @@ def main():
             client_version="v1.0",
             eval_mode="orchestrator",
         )
-        print(f"   Recorded test {i+1}: {scorecard.input_tokens} input, {scorecard.output_tokens} output tokens, ${scorecard.estimated_cost_usd:.4f}")
+        print(
+            f"   Recorded test {i + 1}: {scorecard.input_tokens} input, {scorecard.output_tokens} output tokens, ${scorecard.estimated_cost_usd:.4f}"
+        )
 
     # Simulate regression alerts
     print("\n2. Recording regression alert metrics...")
@@ -98,8 +100,8 @@ def main():
 
     print("\n=== Verification ===")
     print("Check Prometheus at http://localhost:9090 for:")
-    print("  - nl2api_eval_tokens_total{token_type=\"input\"}")
-    print("  - nl2api_eval_tokens_total{token_type=\"output\"}")
+    print('  - nl2api_eval_tokens_total{token_type="input"}')
+    print('  - nl2api_eval_tokens_total{token_type="output"}')
     print("  - nl2api_eval_cost_usd_total")
     print("  - nl2api_regression_alerts_total")
     print("  - nl2api_regression_alerts_acknowledged_total")

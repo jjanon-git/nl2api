@@ -10,7 +10,7 @@ Tests the NL2API orchestrator and domain agent tools:
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -18,7 +18,6 @@ from src.mcp_servers.entity_resolution.nl2api_tools import (
     NL2API_TOOL_DEFINITIONS,
     NL2APIToolHandlers,
 )
-
 
 # =============================================================================
 # Tool Definition Tests
@@ -711,7 +710,9 @@ class TestHandlerIntegration:
             mock_agents[domain].process.return_value = mock_result
 
             mock_llm_response = MagicMock()
-            mock_llm_response.content = '{"execution_data": {"TEST.O": {}}, "nl_response": "Test response."}'
+            mock_llm_response.content = (
+                '{"execution_data": {"TEST.O": {}}, "nl_response": "Test response."}'
+            )
             mock_llm.complete.return_value = mock_llm_response
 
             result = await handlers.handle_tool_call(

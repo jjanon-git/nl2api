@@ -29,11 +29,7 @@ class InMemoryTestCaseRepository:
 
     async def get_many(self, test_case_ids: list[str]) -> list[TestCase]:
         """Fetch multiple test cases by IDs."""
-        return [
-            self._store[tid]
-            for tid in test_case_ids
-            if tid in self._store
-        ]
+        return [self._store[tid] for tid in test_case_ids if tid in self._store]
 
     async def save(self, test_case: TestCase) -> None:
         """Save or update a test case."""
@@ -77,10 +73,7 @@ class InMemoryTestCaseRepository:
     async def search_text(self, query: str, limit: int = 10) -> list[TestCase]:
         """Simple text search on nl_query field."""
         query_lower = query.lower()
-        results = [
-            tc for tc in self._store.values()
-            if query_lower in tc.nl_query.lower()
-        ]
+        results = [tc for tc in self._store.values() if query_lower in tc.nl_query.lower()]
         return results[:limit]
 
     async def search_similar(
@@ -159,10 +152,7 @@ class InMemoryScorecardRepository:
         batch_id: str | None = None,
     ) -> list[Scorecard]:
         """Get all scorecards for a test case."""
-        results = [
-            sc for sc in self._store.values()
-            if sc.test_case_id == test_case_id
-        ]
+        results = [sc for sc in self._store.values() if sc.test_case_id == test_case_id]
         if batch_id:
             results = [sc for sc in results if sc.batch_id == batch_id]
 
@@ -172,10 +162,7 @@ class InMemoryScorecardRepository:
 
     async def get_by_batch(self, batch_id: str) -> list[Scorecard]:
         """Get all scorecards for a batch."""
-        results = [
-            sc for sc in self._store.values()
-            if sc.batch_id == batch_id
-        ]
+        results = [sc for sc in self._store.values() if sc.batch_id == batch_id]
         # Sort by timestamp descending
         results.sort(key=lambda sc: sc.timestamp, reverse=True)
         return results
@@ -232,19 +219,19 @@ class InMemoryBatchJobRepository:
     def __init__(self) -> None:
         self._store: dict[str, BatchJob] = {}
 
-    async def create(self, batch_job: "BatchJob") -> None:
+    async def create(self, batch_job: BatchJob) -> None:
         """Create a new batch job record."""
         self._store[batch_job.batch_id] = batch_job
 
-    async def get(self, batch_id: str) -> "BatchJob | None":
+    async def get(self, batch_id: str) -> BatchJob | None:
         """Fetch a batch job by ID."""
         return self._store.get(batch_id)
 
-    async def update(self, batch_job: "BatchJob") -> None:
+    async def update(self, batch_job: BatchJob) -> None:
         """Update an existing batch job."""
         self._store[batch_job.batch_id] = batch_job
 
-    async def list_recent(self, limit: int = 10) -> list["BatchJob"]:
+    async def list_recent(self, limit: int = 10) -> list[BatchJob]:
         """List recent batch jobs."""
         results = list(self._store.values())
         # Sort by created_at descending

@@ -12,7 +12,6 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validat
 
 from src.contracts.core import TaskPriority, TaskStatus, _generate_id, _now_utc
 
-
 # =============================================================================
 # Worker Task
 # =============================================================================
@@ -50,7 +49,7 @@ class WorkerTask(BaseModel):
     last_error: str | None = Field(default=None)
 
     @model_validator(mode="after")
-    def ensure_idempotency_key(self) -> "WorkerTask":
+    def ensure_idempotency_key(self) -> WorkerTask:
         """Generate idempotency key if not provided."""
         if self.idempotency_key is None:
             object.__setattr__(

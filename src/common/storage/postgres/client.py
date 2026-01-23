@@ -7,9 +7,10 @@ configuration options.
 
 from __future__ import annotations
 
-import asyncpg
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
+
+import asyncpg
 
 if TYPE_CHECKING:
     from src.common.storage.config import StorageConfig
@@ -87,7 +88,7 @@ async def get_connection():
         yield conn
 
 
-async def init_from_config(config: "StorageConfig") -> asyncpg.Pool:
+async def init_from_config(config: StorageConfig) -> asyncpg.Pool:
     """
     Initialize pool from StorageConfig.
 

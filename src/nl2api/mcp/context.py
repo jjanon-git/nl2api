@@ -163,9 +163,7 @@ class MCPContextRetriever:
                 if field_code:
                     field_codes.append(field_code)
 
-            logger.debug(
-                f"Retrieved {len(field_codes)} field codes from MCP for domain={domain}"
-            )
+            logger.debug(f"Retrieved {len(field_codes)} field codes from MCP for domain={domain}")
             return field_codes
 
         except Exception as e:
@@ -212,9 +210,7 @@ class MCPContextRetriever:
                 if example:
                     examples.append(example)
 
-            logger.debug(
-                f"Retrieved {len(examples)} examples from MCP for domain={domain}"
-            )
+            logger.debug(f"Retrieved {len(examples)} examples from MCP for domain={domain}")
             return examples
 
         except Exception as e:
@@ -247,9 +243,9 @@ class MCPContextRetriever:
 
         # Filter by prefix
         filtered = [
-            r for r in all_resources
-            if r.uri.startswith(f"{server_uri}/{resource_prefix}")
-            or resource_prefix in r.uri
+            r
+            for r in all_resources
+            if r.uri.startswith(f"{server_uri}/{resource_prefix}") or resource_prefix in r.uri
         ]
 
         # Cache results
@@ -315,6 +311,7 @@ class MCPContextRetriever:
             # Try to parse content as JSON if available
             if resource.content:
                 import json
+
                 try:
                     data = json.loads(resource.content)
                     if "query" in data:
@@ -352,9 +349,7 @@ class MCPContextRetriever:
         else:
             server_uri = self._domain_server_map.get(domain)
             if server_uri:
-                keys_to_remove = [
-                    k for k in self._resource_cache if k.startswith(server_uri)
-                ]
+                keys_to_remove = [k for k in self._resource_cache if k.startswith(server_uri)]
                 for key in keys_to_remove:
                     del self._resource_cache[key]
                 logger.debug(f"Cleared MCP context cache for domain: {domain}")

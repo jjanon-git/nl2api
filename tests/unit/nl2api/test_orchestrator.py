@@ -10,9 +10,7 @@ import pytest
 from CONTRACTS import ToolCall
 from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import (
-    LLMMessage,
     LLMResponse,
-    LLMToolDefinition,
 )
 from src.nl2api.models import NL2APIResponse
 from src.nl2api.orchestrator import NL2APIOrchestrator
@@ -28,7 +26,9 @@ class MockLLMProvider:
     async def complete(self, messages, tools=None, temperature=0.0, max_tokens=4096):
         return LLMResponse(content=self.response_content)
 
-    async def complete_with_retry(self, messages, tools=None, temperature=0.0, max_tokens=4096, max_retries=3):
+    async def complete_with_retry(
+        self, messages, tools=None, temperature=0.0, max_tokens=4096, max_retries=3
+    ):
         return LLMResponse(content=self.response_content)
 
 
@@ -41,11 +41,13 @@ class MockAgent:
     capabilities: tuple[str, ...] = ("EPS estimates", "revenue forecasts")
     example_queries: tuple[str, ...] = ("What is Apple's EPS?",)
     can_handle_score: float = 0.9
-    result: AgentResult = field(default_factory=lambda: AgentResult(
-        tool_calls=(ToolCall(tool_name="get_data", arguments={"RICs": ["AAPL.O"]}),),
-        confidence=0.9,
-        domain="estimates",
-    ))
+    result: AgentResult = field(
+        default_factory=lambda: AgentResult(
+            tool_calls=(ToolCall(tool_name="get_data", arguments={"RICs": ["AAPL.O"]}),),
+            confidence=0.9,
+            domain="estimates",
+        )
+    )
 
     async def can_handle(self, query: str) -> float:
         return self.can_handle_score
@@ -194,6 +196,7 @@ class TestNL2APIOrchestrator:
     @pytest.mark.asyncio
     async def test_error_handling(self) -> None:
         """Test error handling during processing."""
+
         async def raise_error(context):
             raise RuntimeError("Test error")
 
@@ -528,8 +531,12 @@ class TestOrchestratorContextRetrieval:
 
         # Create mock context provider with distinct values
         context_provider = self.MockContextProvider(
-            field_codes=[{"code": "CONTEXT_CODE", "description": "From Context", "source": "context"}],
-            examples=[{"query": "Context query", "api_call": "context_call()", "source": "context"}],
+            field_codes=[
+                {"code": "CONTEXT_CODE", "description": "From Context", "source": "context"}
+            ],
+            examples=[
+                {"query": "Context query", "api_call": "context_call()", "source": "context"}
+            ],
         )
 
         orchestrator = NL2APIOrchestrator(

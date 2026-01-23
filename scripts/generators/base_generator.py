@@ -8,13 +8,13 @@ TestCaseSetConfig models. Key requirements:
 - Include expected_response and expected_nl_response fields (can be null)
 """
 
+import hashlib
 import json
 import random
-import hashlib
-from datetime import datetime, timezone
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict, field
+from typing import Any
 
 
 @dataclass
@@ -24,18 +24,19 @@ class TestCase:
 
     Aligned with CONTRACTS.py TestCase model.
     """
+
     id: str
     nl_query: str
-    expected_tool_calls: List[Dict[str, Any]]  # Must use "tool_name", not "function"
+    expected_tool_calls: list[dict[str, Any]]  # Must use "tool_name", not "function"
     complexity: int
     category: str
     subcategory: str
-    tags: List[str]
-    metadata: Dict[str, Any]
-    expected_response: Optional[Dict[str, Any]] = None  # Structured API response data
-    expected_nl_response: Optional[str] = None  # Human-readable response sentence
+    tags: list[str]
+    metadata: dict[str, Any]
+    expected_response: dict[str, Any] | None = None  # Structured API response data
+    expected_nl_response: str | None = None  # Human-readable response sentence
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -68,11 +69,11 @@ class BaseGenerator:
         # Track generated test IDs for deduplication
         self.generated_ids = set()
 
-    def _load_json(self, relative_path: str) -> Dict:
+    def _load_json(self, relative_path: str) -> dict:
         """Load a JSON file from the data directory."""
         file_path = self.data_dir / relative_path
         if file_path.exists():
-            with open(file_path, 'r') as f:
+            with open(file_path) as f:
                 return json.load(f)
         return {}
 
@@ -82,11 +83,13 @@ class BaseGenerator:
         hash_str = hashlib.md5(content.encode()).hexdigest()[:8]
         return f"{category}_{hash_str}"
 
-    def _select_random_template(self, template_list: List[str]) -> str:
+    def _select_random_template(self, template_list: list[str]) -> str:
         """Select a random template from a list."""
         return random.choice(template_list)
 
-    def _get_all_tickers(self, count: Optional[int] = None, include_international: bool = True) -> List[Dict]:
+    def _get_all_tickers(
+        self, count: int | None = None, include_international: bool = True
+    ) -> list[dict]:
         """Get a list of tickers for test generation."""
         tickers = self.us_mega_caps.get("tickers", [])
 
@@ -98,30 +101,28 @@ class BaseGenerator:
             return random.sample(tickers, min(count, len(tickers)))
         return tickers
 
-    def _get_tickers_by_sector(self, sector: str) -> List[Dict]:
+    def _get_tickers_by_sector(self, sector: str) -> list[dict]:
         """Get tickers for a specific sector."""
         return self.us_by_sector.get("sectors", {}).get(sector, [])
 
-    def _flatten_fields(self, field_dict: Dict) -> List[Dict]:
+    def _flatten_fields(self, field_dict: dict) -> list[dict]:
         """Flatten nested field code dictionary into a list of fields."""
         fields = []
         for category, category_fields in field_dict.items():
             if isinstance(category_fields, dict):
                 for code, details in category_fields.items():
                     if isinstance(details, dict):
-                        fields.append({
-                            "code": code,
-                            "category": category,
-                            **details
-                        })
+                        fields.append({"code": code, "category": category, **details})
         return fields
 
-    def _calculate_complexity(self,
-                             num_tickers: int = 1,
-                             num_fields: int = 1,
-                             is_time_series: bool = False,
-                             has_calculations: bool = False,
-                             is_multi_step: bool = False) -> int:
+    def _calculate_complexity(
+        self,
+        num_tickers: int = 1,
+        num_fields: int = 1,
+        is_time_series: bool = False,
+        has_calculations: bool = False,
+        is_multi_step: bool = False,
+    ) -> int:
         """Calculate complexity score based on query characteristics."""
         score = 0
 
@@ -175,16 +176,18 @@ class BaseGenerator:
         else:
             return 12
 
-    def _create_test_case(self,
-                         nl_query: str,
-                         tool_calls: List[Dict[str, Any]],
-                         category: str,
-                         subcategory: str,
-                         complexity: int,
-                         tags: List[str],
-                         metadata: Optional[Dict[str, Any]] = None,
-                         expected_response: Optional[Dict[str, Any]] = None,
-                         expected_nl_response: Optional[str] = None) -> Optional[TestCase]:
+    def _create_test_case(
+        self,
+        nl_query: str,
+        tool_calls: list[dict[str, Any]],
+        category: str,
+        subcategory: str,
+        complexity: int,
+        tags: list[str],
+        metadata: dict[str, Any] | None = None,
+        expected_response: dict[str, Any] | None = None,
+        expected_nl_response: str | None = None,
+    ) -> TestCase | None:
         """
         Create a test case if it doesn't already exist.
 
@@ -222,7 +225,7 @@ class BaseGenerator:
             expected_nl_response=expected_nl_response,
         )
 
-    def generate(self) -> List[TestCase]:
+    def generate(self) -> list[TestCase]:
         """Generate test cases. Override in subclasses."""
         raise NotImplementedError("Subclasses must implement generate()")
 
@@ -254,7 +257,7 @@ class BaseGenerator:
         """
         return False
 
-    def _create_meta_block(self, test_cases: List[TestCase]) -> Dict[str, Any]:
+    def _create_meta_block(self, test_cases: list[TestCase]) -> dict[str, Any]:
         """
         Create the _meta block for TestCaseSetConfig.
 
@@ -267,11 +270,11 @@ class BaseGenerator:
             "requires_nl_response": self._requires_nl_response(),
             "requires_expected_response": self._requires_expected_response(),
             "schema_version": "1.0",
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "generator": f"scripts/generators/{self.__class__.__module__.split('.')[-1]}.py",
         }
 
-    def save_test_cases(self, test_cases: List[TestCase], output_path: Path):
+    def save_test_cases(self, test_cases: list[TestCase], output_path: Path):
         """
         Save test cases to a JSON file with _meta block.
 
@@ -286,12 +289,9 @@ class BaseGenerator:
 
         data = {
             "_meta": self._create_meta_block(test_cases),
-            "metadata": {
-                "generator": self.__class__.__name__,
-                "count": len(test_cases)
-            },
-            "test_cases": [tc.to_dict() for tc in test_cases]
+            "metadata": {"generator": self.__class__.__name__, "count": len(test_cases)},
+            "test_cases": [tc.to_dict() for tc in test_cases],
         }
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(data, f, indent=2)

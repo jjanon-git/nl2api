@@ -32,11 +32,13 @@ from src.nl2api.orchestrator import NL2APIOrchestrator
 def create_mock_llm() -> LLMProvider:
     """Create a mock LLM provider for testing."""
     mock_llm = MagicMock(spec=LLMProvider)
-    mock_llm.complete = AsyncMock(return_value=LLMResponse(
-        content="Test response",
-        tool_calls=(),
-        usage={"input_tokens": 100, "output_tokens": 50},
-    ))
+    mock_llm.complete = AsyncMock(
+        return_value=LLMResponse(
+            content="Test response",
+            tool_calls=(),
+            usage={"input_tokens": 100, "output_tokens": 50},
+        )
+    )
     return mock_llm
 
 
@@ -107,6 +109,7 @@ class TestMultiTurnSessionManagement:
 
         # Use a non-existent session ID
         from uuid import uuid4
+
         fake_session_id = str(uuid4())
 
         response = await orchestrator.process(

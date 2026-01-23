@@ -6,7 +6,7 @@ for building fault-tolerant services.
 """
 
 from src.common.resilience.circuit_breaker import CircuitBreaker, CircuitOpenError
-from src.common.resilience.retry import retry_with_backoff, RetryConfig
+from src.common.resilience.retry import RetryConfig, retry_with_backoff
 
 __all__ = [
     "CircuitBreaker",

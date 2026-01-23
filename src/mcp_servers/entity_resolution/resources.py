@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from src.common.telemetry import get_tracer
@@ -155,9 +155,7 @@ class StatsResponse:
     circuit_total_calls: int = 0
 
     # Timestamps
-    stats_timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    stats_timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -190,9 +188,7 @@ class HealthResponse:
     cache_connected: bool = False
     circuit_breaker_open: bool = False
     message: str = ""
-    timestamp: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    timestamp: str = field(default_factory=lambda: datetime.now(UTC).isoformat())
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -222,9 +218,9 @@ class ResourceHandlers:
 
     def __init__(
         self,
-        resolver: "ExternalEntityResolver",
-        db_pool: "asyncpg.Pool | None" = None,
-        redis_cache: "RedisCache | None" = None,
+        resolver: ExternalEntityResolver,
+        db_pool: asyncpg.Pool | None = None,
+        redis_cache: RedisCache | None = None,
     ):
         """
         Initialize resource handlers.
@@ -385,8 +381,5 @@ class ResourceHandlers:
         return {
             "exchanges": EXCHANGE_RIC_SUFFIXES,
             "total_exchanges": len(EXCHANGE_RIC_SUFFIXES),
-            "note": (
-                "RIC suffixes indicate the exchange. "
-                "For example, .O is NASDAQ, .N is NYSE."
-            ),
+            "note": ("RIC suffixes indicate the exchange. For example, .O is NASDAQ, .N is NYSE."),
         }

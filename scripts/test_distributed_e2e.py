@@ -15,7 +15,7 @@ import asyncio
 import logging
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 # Set up telemetry BEFORE imports
@@ -26,13 +26,12 @@ os.environ["OTEL_SERVICE_NAME"] = "distributed-eval-e2e-test"
 # Add src to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Initialize telemetry
+from src.common.telemetry import get_meter, get_tracer, init_telemetry
 from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.config import QueueConfig, QueueBackend, WorkerConfig, EvalMode
+from src.evaluation.distributed.config import EvalMode, QueueBackend, QueueConfig, WorkerConfig
 from src.evaluation.distributed.queue import create_queue
 from src.evaluation.distributed.worker import EvalWorker
-
-# Initialize telemetry
-from src.common.telemetry import init_telemetry, get_tracer, get_meter
 
 init_telemetry(service_name="distributed-eval-e2e-test")
 tracer = get_tracer(__name__)
@@ -40,12 +39,10 @@ meter = get_meter(__name__)
 
 # Create custom metrics for this test
 test_counter = meter.create_counter(
-    "e2e_test.tasks_created",
-    description="Number of test tasks created"
+    "e2e_test.tasks_created", description="Number of test tasks created"
 )
 test_histogram = meter.create_histogram(
-    "e2e_test.processing_duration_ms",
-    description="Time to process test tasks"
+    "e2e_test.processing_duration_ms", description="Time to process test tasks"
 )
 
 logging.basicConfig(
@@ -57,6 +54,7 @@ logger = logging.getLogger(__name__)
 
 class MockTestCase:
     """Mock test case for testing."""
+
     def __init__(self, id: str, should_fail: bool = False):
         self.id = id
         self.nl_query = f"Test query for {id}"
@@ -66,6 +64,7 @@ class MockTestCase:
 
 class MockScorecard:
     """Mock scorecard for testing."""
+
     def __init__(self, test_case_id: str, passed: bool):
         self.test_case_id = test_case_id
         self.overall_passed = passed
@@ -131,7 +130,9 @@ async def run_e2e_test():
             span.set_attribute("test_case_id", scorecard.test_case_id)
             span.set_attribute("passed", scorecard.overall_passed)
             results["scorecards_saved"].append(scorecard.test_case_id)
-            logger.info(f"Saved scorecard for {scorecard.test_case_id}: passed={scorecard.overall_passed}")
+            logger.info(
+                f"Saved scorecard for {scorecard.test_case_id}: passed={scorecard.overall_passed}"
+            )
 
     async def test_case_fetcher(test_case_id: str):
         """Fetch test case."""
@@ -196,15 +197,15 @@ async def run_e2e_test():
 
         # Run worker with timeout
         logger.info(f"Starting worker {worker_config.worker_id}")
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
 
         try:
             # Run for up to 30 seconds (should finish much faster)
             await asyncio.wait_for(worker.run(), timeout=30.0)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.info("Worker timed out (expected - no more messages)")
 
-        end_time = datetime.now(timezone.utc)
+        end_time = datetime.now(UTC)
         duration_ms = (end_time - start_time).total_seconds() * 1000
         test_histogram.record(duration_ms, {"batch_id": batch_id})
 
@@ -239,18 +240,19 @@ async def run_e2e_test():
         # - 1 not-found failure (tc-notfound-001) - should end up in DLQ after retries
 
         expected_success = 3
-        expected_dlq = 2  # After max retries
 
         success = True
         if len(results["scorecards_saved"]) != expected_success:
-            logger.error(f"Expected {expected_success} scorecards, got {len(results['scorecards_saved'])}")
+            logger.error(
+                f"Expected {expected_success} scorecards, got {len(results['scorecards_saved'])}"
+            )
             success = False
         else:
             logger.info(f"✓ Correct number of scorecards saved: {expected_success}")
 
         # DLQ may have fewer if retries haven't completed
         if dlq_count == 0 and worker._tasks_failed > 0:
-            logger.warning(f"Tasks failed but DLQ empty - retries may still be pending")
+            logger.warning("Tasks failed but DLQ empty - retries may still be pending")
         else:
             logger.info(f"✓ DLQ contains failed tasks: {dlq_count}")
 
@@ -258,14 +260,14 @@ async def run_e2e_test():
         logger.info("OBSERVABILITY CHECK")
         logger.info("=" * 60)
         logger.info("Please verify in the dashboards:")
-        logger.info(f"  1. Jaeger (http://localhost:16686):")
-        logger.info(f"     - Service: distributed-eval-e2e-test")
-        logger.info(f"     - Look for spans: e2e.*, eval.worker.*")
-        logger.info(f"  2. Prometheus (http://localhost:9090):")
-        logger.info(f"     - Query: e2e_test_tasks_created_total")
-        logger.info(f"     - Query: e2e_test_processing_duration_ms_bucket")
-        logger.info(f"  3. Grafana (http://localhost:3000):")
-        logger.info(f"     - Check evaluation dashboards for new metrics")
+        logger.info("  1. Jaeger (http://localhost:16686):")
+        logger.info("     - Service: distributed-eval-e2e-test")
+        logger.info("     - Look for spans: e2e.*, eval.worker.*")
+        logger.info("  2. Prometheus (http://localhost:9090):")
+        logger.info("     - Query: e2e_test_tasks_created_total")
+        logger.info("     - Query: e2e_test_processing_duration_ms_bucket")
+        logger.info("  3. Grafana (http://localhost:3000):")
+        logger.info("     - Check evaluation dashboards for new metrics")
         logger.info("=" * 60)
 
         return success

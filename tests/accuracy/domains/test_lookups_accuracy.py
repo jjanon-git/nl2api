@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import pytest
 
-from tests.accuracy.conftest import requires_llm
 from tests.accuracy.core.config import CATEGORY_THRESHOLDS, DEFAULT_MIN_ACCURACY
 
 
@@ -99,7 +98,7 @@ class TestLookupsAccuracy:
         # Show failed queries for debugging
         failed = report.get_failed_results()[:10]
         if failed:
-            print(f"\nSample failed queries:")
+            print("\nSample failed queries:")
             for r in failed:
                 print(f"  - {r.query[:60]}...")
                 print(f"    Expected: {[tc.tool_name for tc in r.expected_tool_calls]}")

@@ -12,7 +12,7 @@ import json
 import random
 import time
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
 from rich.console import Console
@@ -65,10 +65,12 @@ async def simulate_correct_response(test_case: TestCase) -> SystemResponse:
     await asyncio.sleep(latency_ms / 1000)
 
     # Build raw output from expected tool calls
-    raw_output = json.dumps([
-        {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
-        for tc in test_case.expected_tool_calls
-    ])
+    raw_output = json.dumps(
+        [
+            {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+            for tc in test_case.expected_tool_calls
+        ]
+    )
 
     return SystemResponse(
         raw_output=raw_output,
@@ -90,9 +92,9 @@ class BatchRunner:
 
     def __init__(
         self,
-        test_case_repo: "TestCaseRepository",
-        scorecard_repo: "ScorecardRepository",
-        batch_repo: "BatchJobRepository",
+        test_case_repo: TestCaseRepository,
+        scorecard_repo: ScorecardRepository,
+        batch_repo: BatchJobRepository,
         config: BatchRunnerConfig | None = None,
     ):
         """
@@ -176,13 +178,13 @@ class BatchRunner:
         batch_job = BatchJob(
             total_tests=len(test_cases),
             status=TaskStatus.IN_PROGRESS,
-            started_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
             tags=tuple(tags) if tags else (),
         )
         await self.batch_repo.create(batch_job)
 
         if self.config.show_progress:
-            console.print(f"\n[bold]Running batch evaluation...[/bold]")
+            console.print("\n[bold]Running batch evaluation...[/bold]")
             console.print(f"  Batch ID: [cyan]{batch_job.batch_id}[/cyan]")
             console.print(f"  Test cases: {len(test_cases)}")
             console.print(f"  Concurrency: {self.config.max_concurrency}")
@@ -220,18 +222,18 @@ class BatchRunner:
                 # Create evaluation tasks
                 async def evaluate_with_progress(tc: TestCase) -> Scorecard:
                     nonlocal passed_count, failed_count
-                    scorecard = await self._evaluate_one(
-                        tc, batch_job.batch_id, simulator
-                    )
+                    scorecard = await self._evaluate_one(tc, batch_job.batch_id, simulator)
                     if scorecard.overall_passed:
                         passed_count += 1
                     else:
                         failed_count += 1
-                        failed_tests.append((
-                            tc.id,
-                            tc.nl_query[:60] + "..." if len(tc.nl_query) > 60 else tc.nl_query,
-                            scorecard.overall_score,
-                        ))
+                        failed_tests.append(
+                            (
+                                tc.id,
+                                tc.nl_query[:60] + "..." if len(tc.nl_query) > 60 else tc.nl_query,
+                                scorecard.overall_score,
+                            )
+                        )
                     progress.update(
                         task,
                         advance=1,
@@ -252,16 +254,16 @@ class BatchRunner:
                     passed_count += 1
                 else:
                     failed_count += 1
-                    failed_tests.append((
-                        tc.id,
-                        tc.nl_query[:60] + "..." if len(tc.nl_query) > 60 else tc.nl_query,
-                        scorecard.overall_score,
-                    ))
+                    failed_tests.append(
+                        (
+                            tc.id,
+                            tc.nl_query[:60] + "..." if len(tc.nl_query) > 60 else tc.nl_query,
+                            scorecard.overall_score,
+                        )
+                    )
                 return scorecard
 
-            scorecards = await asyncio.gather(
-                *[evaluate_silent(tc) for tc in test_cases]
-            )
+            scorecards = await asyncio.gather(*[evaluate_silent(tc) for tc in test_cases])
 
         # Calculate duration
         duration_seconds = time.perf_counter() - start_time
@@ -275,7 +277,7 @@ class BatchRunner:
             status=TaskStatus.COMPLETED,
             created_at=batch_job.created_at,
             started_at=batch_job.started_at,
-            completed_at=datetime.now(timezone.utc),
+            completed_at=datetime.now(UTC),
             tags=batch_job.tags,
         )
         await self.batch_repo.update(completed_batch)
@@ -341,15 +343,17 @@ class BatchRunner:
             )
 
             # Update scorecard with batch_id and client tracking info
-            scorecard = scorecard.model_copy(update={
-                "batch_id": batch_id,
-                "client_type": self.config.client_type,
-                "client_version": self.config.client_version,
-                "eval_mode": self.config.eval_mode,
-                "input_tokens": input_tokens,
-                "output_tokens": output_tokens,
-                "estimated_cost_usd": estimated_cost,
-            })
+            scorecard = scorecard.model_copy(
+                update={
+                    "batch_id": batch_id,
+                    "client_type": self.config.client_type,
+                    "client_version": self.config.client_version,
+                    "eval_mode": self.config.eval_mode,
+                    "input_tokens": input_tokens,
+                    "output_tokens": output_tokens,
+                    "estimated_cost_usd": estimated_cost,
+                }
+            )
 
             # Record metrics with client dimensions
             self.metrics.record_test_result(
@@ -380,7 +384,9 @@ class BatchRunner:
         if failed_tests:
             console.print(f"[bold red]Failed Tests ({len(failed_tests)}):[/bold red]")
             for test_id, query, score in failed_tests[:10]:  # Show max 10
-                console.print(f"  [red]\u2022[/red] {test_id[:8]}... - \"{query}\" (score: {score:.2f})")
+                console.print(
+                    f'  [red]\u2022[/red] {test_id[:8]}... - "{query}" (score: {score:.2f})'
+                )
             if len(failed_tests) > 10:
                 console.print(f"  ... and {len(failed_tests) - 10} more")
             console.print()
@@ -395,9 +401,7 @@ class BatchRunner:
         failed = batch_job.failed_count
         pass_rate = (passed / total * 100) if total > 0 else 0
         avg_score = (
-            sum(sc.overall_score for sc in scorecards) / len(scorecards)
-            if scorecards
-            else 0.0
+            sum(sc.overall_score for sc in scorecards) / len(scorecards) if scorecards else 0.0
         )
 
         # Calculate token and cost totals
@@ -420,5 +424,7 @@ class BatchRunner:
 
         console.print(table)
         console.print()
-        console.print(f"Use '[cyan]eval batch results {batch_job.batch_id}[/cyan]' for detailed results")
+        console.print(
+            f"Use '[cyan]eval batch results {batch_job.batch_id}[/cyan]' for detailed results"
+        )
         console.print()

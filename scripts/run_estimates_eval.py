@@ -25,19 +25,16 @@ import argparse
 import asyncio
 import json
 import logging
-import os
 import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from CONTRACTS import ToolCall
 from src.nl2api.agents.estimates import EstimatesAgent
-from src.nl2api.agents.protocols import AgentContext, AgentResult
+from src.nl2api.agents.protocols import AgentContext
 from src.nl2api.config import NL2APIConfig
 from src.nl2api.llm.factory import create_llm_provider
 from src.nl2api.resolution.resolver import ExternalEntityResolver
@@ -109,7 +106,9 @@ def load_estimates_test_cases(limit: int | None = None) -> list[dict]:
             with open(json_file) as f:
                 try:
                     data = json.load(f)
-                    if isinstance(data, dict) and "estimates" in data.get("metadata", {}).get("tags", []):
+                    if isinstance(data, dict) and "estimates" in data.get("metadata", {}).get(
+                        "tags", []
+                    ):
                         all_cases.append(data)
                 except Exception:
                     pass
@@ -192,9 +191,8 @@ async def evaluate_single(
 
         # Compare
         comparison = compare_fields(expected_fields, actual_fields)
-        field_match = (
-            set(normalize_field(f) for f in expected_fields) ==
-            set(normalize_field(f) for f in actual_fields)
+        field_match = set(normalize_field(f) for f in expected_fields) == set(
+            normalize_field(f) for f in actual_fields
         )
 
         return EvalResult(
@@ -241,13 +239,11 @@ def compute_summary(
 
     exact_matches = sum(1 for r in results if r.field_match)
     partial_matches = sum(
-        1 for r in results
+        1
+        for r in results
         if r.field_comparison.get("matching") and not r.field_match and not r.error
     )
-    no_match = sum(
-        1 for r in results
-        if not r.field_comparison.get("matching") and not r.error
-    )
+    no_match = sum(1 for r in results if not r.field_comparison.get("matching") and not r.error)
 
     precisions = [r.field_comparison.get("precision", 0) for r in results if not r.error]
     recalls = [r.field_comparison.get("recall", 0) for r in results if not r.error]
@@ -281,9 +277,15 @@ def print_summary(summary: EvalSummary, results: list[EvalResult]) -> None:
     print(f"Errors: {summary.errors}")
     print()
     print("Field Matching:")
-    print(f"  Exact match:   {summary.exact_match:4d} ({100*summary.exact_match/summary.total_cases:5.1f}%)")
-    print(f"  Partial match: {summary.partial_match:4d} ({100*summary.partial_match/summary.total_cases:5.1f}%)")
-    print(f"  No match:      {summary.no_match:4d} ({100*summary.no_match/summary.total_cases:5.1f}%)")
+    print(
+        f"  Exact match:   {summary.exact_match:4d} ({100 * summary.exact_match / summary.total_cases:5.1f}%)"
+    )
+    print(
+        f"  Partial match: {summary.partial_match:4d} ({100 * summary.partial_match / summary.total_cases:5.1f}%)"
+    )
+    print(
+        f"  No match:      {summary.no_match:4d} ({100 * summary.no_match / summary.total_cases:5.1f}%)"
+    )
     print()
     print(f"Average Precision: {summary.avg_precision:.2%}")
     print(f"Average Recall:    {summary.avg_recall:.2%}")
@@ -360,7 +362,9 @@ def save_results(
 async def main():
     parser = argparse.ArgumentParser(description="Run EstimatesAgent evaluation with real LLM")
     parser.add_argument("--limit", type=int, default=50, help="Number of test cases to evaluate")
-    parser.add_argument("--provider", choices=["claude", "openai"], default=None, help="LLM provider")
+    parser.add_argument(
+        "--provider", choices=["claude", "openai"], default=None, help="LLM provider"
+    )
     parser.add_argument("--model", type=str, default=None, help="Model name")
     parser.add_argument("--output", type=str, default=None, help="Output file path")
     args = parser.parse_args()
@@ -420,7 +424,9 @@ async def main():
             rate = (i + 1) / elapsed
             eta = (len(test_cases) - i - 1) / rate if rate > 0 else 0
             successes = sum(1 for r in results if r.field_match)
-            print(f"  [{i+1}/{len(test_cases)}] {successes} exact matches, {elapsed:.1f}s elapsed, ETA {eta:.0f}s")
+            print(
+                f"  [{i + 1}/{len(test_cases)}] {successes} exact matches, {elapsed:.1f}s elapsed, ETA {eta:.0f}s"
+            )
 
     total_time = time.perf_counter() - start_time
 
@@ -429,7 +435,11 @@ async def main():
     print_summary(summary, results)
 
     # Save results
-    output_path = Path(args.output) if args.output else Path(f"estimates_eval_{config.llm_provider}_{len(test_cases)}.json")
+    output_path = (
+        Path(args.output)
+        if args.output
+        else Path(f"estimates_eval_{config.llm_provider}_{len(test_cases)}.json")
+    )
     save_results(results, summary, output_path)
 
 

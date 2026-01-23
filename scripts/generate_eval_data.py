@@ -156,7 +156,8 @@ async def process_category(
 
     # Filter to only test cases that need generation
     needs_generation = [
-        tc for tc in test_cases
+        tc
+        for tc in test_cases
         if tc.get("expected_response") is None or tc.get("expected_nl_response") is None
     ]
 
@@ -197,13 +198,10 @@ async def process_category(
     # Process in batches for progress reporting
     batch_size = 50
     for batch_start in range(0, len(needs_generation), batch_size):
-        batch = needs_generation[batch_start:batch_start + batch_size]
+        batch = needs_generation[batch_start : batch_start + batch_size]
 
         # Generate for batch
-        tasks = [
-            generate_for_test_case(llm, tc, semaphore)
-            for tc in batch
-        ]
+        tasks = [generate_for_test_case(llm, tc, semaphore) for tc in batch]
         results = await asyncio.gather(*tasks)
 
         # Update test cases with results
@@ -222,7 +220,9 @@ async def process_category(
 
         # Progress
         total_done = batch_start + len(batch)
-        logger.info(f"{category}: Processed {total_done}/{len(needs_generation)} ({processed} success, {failed} failed)")
+        logger.info(
+            f"{category}: Processed {total_done}/{len(needs_generation)} ({processed} success, {failed} failed)"
+        )
 
     # Save updated fixture
     with open(fixture_path, "w") as f:
@@ -235,32 +235,16 @@ async def process_category(
 async def main():
     parser = argparse.ArgumentParser(description="Generate evaluation data for test cases")
     parser.add_argument(
-        "--category",
-        type=str,
-        help="Category to process (e.g., lookups, temporal)"
+        "--category", type=str, help="Category to process (e.g., lookups, temporal)"
     )
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Process all categories"
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        help="Maximum test cases per category"
-    )
+    parser.add_argument("--all", action="store_true", help="Process all categories")
+    parser.add_argument("--limit", type=int, default=None, help="Maximum test cases per category")
     parser.add_argument(
         "--dry-run",
         action="store_true",
-        help="Show prompts and cost estimate without making LLM calls"
+        help="Show prompts and cost estimate without making LLM calls",
     )
-    parser.add_argument(
-        "--concurrency",
-        type=int,
-        default=5,
-        help="Maximum concurrent LLM calls"
-    )
+    parser.add_argument("--concurrency", type=int, default=5, help="Maximum concurrent LLM calls")
 
     args = parser.parse_args()
 
@@ -289,10 +273,12 @@ async def main():
                     data = json.load(f)
                     test_cases = data.get("test_cases", [])
                     if args.limit:
-                        test_cases = test_cases[:args.limit]
+                        test_cases = test_cases[: args.limit]
                     needs = sum(
-                        1 for tc in test_cases
-                        if tc.get("expected_response") is None or tc.get("expected_nl_response") is None
+                        1
+                        for tc in test_cases
+                        if tc.get("expected_response") is None
+                        or tc.get("expected_nl_response") is None
                     )
                     total_need_gen += needs
                     print(f"{category}: {needs} test cases need generation")
@@ -301,8 +287,8 @@ async def main():
         print(f"\n{'=' * 50}")
         print(f"TOTAL: {cost['test_cases']} test cases")
         print(f"Estimated cost: ${cost['total_cost_usd']:.2f}")
-        print(f"Model: claude-3-5-haiku-20241022")
-        print(f"\nTo proceed, run without --dry-run")
+        print("Model: claude-3-5-haiku-20241022")
+        print("\nTo proceed, run without --dry-run")
 
         # Show sample prompt from first category with data
         for category in categories:

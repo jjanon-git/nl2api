@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from enum import Enum
 from typing import Any, ClassVar
 from uuid import uuid4
@@ -21,7 +21,6 @@ from pydantic import (
     computed_field,
     field_validator,
 )
-
 
 # =============================================================================
 # Utility Types
@@ -70,7 +69,7 @@ class FrozenDict(dict):
 
 def _now_utc() -> datetime:
     """Return current UTC datetime (Python 3.11+ compatible)."""
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _generate_id() -> str:
@@ -244,7 +243,8 @@ class ToolRegistry:
     def is_api_compliant(cls, tool_name: str) -> bool:
         """Check if tool name matches Anthropic API requirements."""
         import re
-        return bool(re.match(r'^[a-zA-Z0-9_-]{1,128}$', tool_name))
+
+        return bool(re.match(r"^[a-zA-Z0-9_-]{1,128}$", tool_name))
 
 
 # =============================================================================
@@ -287,9 +287,7 @@ class ToolCall(BaseModel):
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, ToolCall):
             return False
-        return self.tool_name == other.tool_name and dict(self.arguments) == dict(
-            other.arguments
-        )
+        return self.tool_name == other.tool_name and dict(self.arguments) == dict(other.arguments)
 
     def to_canonical_string(self) -> str:
         """Return canonical string for comparison (sorted keys)."""

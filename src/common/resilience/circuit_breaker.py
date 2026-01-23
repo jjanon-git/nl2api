@@ -21,8 +21,9 @@ T = TypeVar("T")
 
 class CircuitState(Enum):
     """Circuit breaker states."""
-    CLOSED = "closed"      # Normal operation, requests flow through
-    OPEN = "open"          # Service unhealthy, requests fail fast
+
+    CLOSED = "closed"  # Normal operation, requests flow through
+    OPEN = "open"  # Service unhealthy, requests fail fast
     HALF_OPEN = "half_open"  # Testing if service recovered
 
 
@@ -37,15 +38,17 @@ class CircuitOpenError(Exception):
 @dataclass
 class CircuitBreakerConfig:
     """Configuration for circuit breaker behavior."""
-    failure_threshold: int = 5       # Failures before opening
-    success_threshold: int = 2       # Successes to close from half-open
-    recovery_timeout: float = 30.0   # Seconds before trying half-open
+
+    failure_threshold: int = 5  # Failures before opening
+    success_threshold: int = 2  # Successes to close from half-open
+    recovery_timeout: float = 30.0  # Seconds before trying half-open
     excluded_exceptions: tuple[type[Exception], ...] = ()  # Don't count these as failures
 
 
 @dataclass
 class CircuitStats:
     """Statistics for monitoring circuit breaker state."""
+
     state: CircuitState = CircuitState.CLOSED
     failure_count: int = 0
     success_count: int = 0
@@ -195,7 +198,9 @@ class CircuitBreaker:
 
             retry_after = None
             if self._last_failure_time is not None:
-                retry_after = self._config.recovery_timeout - (time.time() - self._last_failure_time)
+                retry_after = self._config.recovery_timeout - (
+                    time.time() - self._last_failure_time
+                )
 
             raise CircuitOpenError(
                 f"Circuit breaker '{self._name}' is open",

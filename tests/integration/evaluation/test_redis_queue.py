@@ -5,14 +5,14 @@ Requires Redis to be running (docker compose up -d).
 """
 
 import asyncio
-import pytest
 from uuid import uuid4
 
+import pytest
+
 from src.contracts.worker import WorkerTask
+from src.evaluation.distributed.config import QueueBackend, QueueConfig
 from src.evaluation.distributed.queue import create_queue
 from src.evaluation.distributed.queue.redis_stream import RedisStreamQueue
-from src.evaluation.distributed.config import QueueConfig, QueueBackend
-
 
 # Skip all tests if Redis is not available
 pytestmark = pytest.mark.integration
@@ -210,14 +210,14 @@ class TestConsume:
                 msg = await asyncio.wait_for(anext(consumer1), timeout=0.5)
                 messages.append(msg)
                 await queue.ack(msg)
-            except (asyncio.TimeoutError, StopAsyncIteration):
+            except (TimeoutError, StopAsyncIteration):
                 pass
 
             try:
                 msg = await asyncio.wait_for(anext(consumer2), timeout=0.5)
                 messages.append(msg)
                 await queue.ack(msg)
-            except (asyncio.TimeoutError, StopAsyncIteration):
+            except (TimeoutError, StopAsyncIteration):
                 pass
 
         # All messages should be consumed (by one worker or the other)
@@ -362,9 +362,7 @@ class TestLifecycle:
     """Tests for queue lifecycle operations."""
 
     @pytest.mark.asyncio
-    async def test_ensure_stream_is_idempotent(
-        self, queue: RedisStreamQueue, batch_id: str
-    ):
+    async def test_ensure_stream_is_idempotent(self, queue: RedisStreamQueue, batch_id: str):
         """Ensure stream should be safe to call multiple times."""
         # Should not raise on repeated calls
         await queue.ensure_stream(batch_id)

@@ -8,8 +8,8 @@ NL2API output quality using real LLM calls.
 from tests.accuracy.core.config import AccuracyConfig, Tier
 from tests.accuracy.core.evaluator import (
     AccuracyEvaluator,
-    AccuracyResult,
     AccuracyReport,
+    AccuracyResult,
 )
 
 __all__ = [
