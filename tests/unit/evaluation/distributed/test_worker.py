@@ -548,9 +548,7 @@ class TestWorkerShutdown:
 
         # Check that nack was called with requeue=True for interrupted message
         # (The worker should nack the message it was about to process when shutdown detected)
-        [
-            call for call in mock_queue.nack.call_args_list if call[1].get("requeue") is True
-        ]
+        [call for call in mock_queue.nack.call_args_list if call[1].get("requeue") is True]
         # May or may not have nacked depending on timing
         # The key is that no messages are lost
 

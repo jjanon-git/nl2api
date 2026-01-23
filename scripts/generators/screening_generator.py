@@ -233,7 +233,6 @@ class ScreeningGenerator(BaseGenerator):
 
         self.screening_criteria.get("sector_screens", {})
 
-
         # Sector codes
         sector_codes = {
             "technology": "57",

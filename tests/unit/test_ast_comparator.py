@@ -1,6 +1,5 @@
 """Tests for AST comparator."""
 
-
 from CONTRACTS import ToolCall
 from src.evaluation.core.ast_comparator import ASTComparator
 

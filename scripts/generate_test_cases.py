@@ -353,9 +353,7 @@ def main():
 
     # Generate test cases
     if args.category == "all":
-        orchestrator.generate_all(
-            include_entity_resolution=args.include_entity_resolution
-        )
+        orchestrator.generate_all(include_entity_resolution=args.include_entity_resolution)
     else:
         orchestrator.generate_category(args.category)
 

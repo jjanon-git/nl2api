@@ -2,7 +2,6 @@
 Unit tests for ingestion errors.
 """
 
-
 from src.nl2api.ingestion.errors import (
     CheckpointError,
     DownloadError,

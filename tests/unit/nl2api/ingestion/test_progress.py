@@ -2,8 +2,6 @@
 Unit tests for progress tracking.
 """
 
-
-
 from src.nl2api.ingestion.progress import ProgressTracker, RichProgressTracker
 
 

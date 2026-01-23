@@ -8,7 +8,6 @@ Tests the model escalation functionality including:
 - Cache integration
 """
 
-
 import pytest
 
 from src.nl2api.llm.protocols import (
