@@ -207,7 +207,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / 1000000) or vector(0)", "refId": "A" }
+        { "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[2d])) / 1000000) or vector(0)", "refId": "A" }
       ],
       "title": "Total Cost",
       "type": "stat"
@@ -504,7 +504,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "((sum(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / 1000000) / clamp_min(sum(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}), 1)) or vector(0)", "refId": "A" }
+        { "expr": "((sum(last_over_time(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[2d])) / 1000000) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Avg Cost/Test",
       "type": "stat"

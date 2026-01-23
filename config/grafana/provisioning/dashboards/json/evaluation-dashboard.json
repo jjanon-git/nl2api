@@ -740,7 +740,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_cost_usd_total) / 1000000) or vector(0)",
+          "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total[2d])) / 1000000) or vector(0)",
           "refId": "A"
         }
       ],
@@ -2494,7 +2494,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_cost_usd_total) / 1000000 / sum(nl2api_eval_batch_tests_total)) or vector(0)",
+          "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total[2d])) / 1000000 / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -2656,7 +2656,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_cost_usd_total) / 1000000) or vector(0)",
+          "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total[2d])) / 1000000) or vector(0)",
           "refId": "A"
         }
       ],
