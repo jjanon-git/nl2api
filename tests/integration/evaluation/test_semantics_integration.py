@@ -281,10 +281,11 @@ class TestBatchRunnerWithSemantics:
     """Integration tests for BatchRunner with semantics enabled."""
 
     @pytest.mark.asyncio
-    async def test_batch_runner_creates_evaluator_with_semantics(self):
-        """BatchRunner should create WaterfallEvaluator with semantics config."""
+    async def test_batch_runner_creates_pack_with_semantics(self):
+        """BatchRunner should create NL2APIPack with semantics enabled."""
         from src.evaluation.batch.config import BatchRunnerConfig
         from src.evaluation.batch.runner import BatchRunner
+        from src.evaluation.packs.nl2api import NL2APIPack
 
         # Mock repositories
         test_case_repo = MagicMock()
@@ -292,6 +293,7 @@ class TestBatchRunnerWithSemantics:
         batch_repo = MagicMock()
 
         config = BatchRunnerConfig(
+            pack_name="nl2api",
             semantics_enabled=True,
             semantics_model="claude-3-5-haiku-20241022",
             semantics_pass_threshold=0.8,
@@ -304,16 +306,16 @@ class TestBatchRunnerWithSemantics:
             config=config,
         )
 
-        # Verify evaluator was configured correctly
-        assert runner.evaluator.config.semantics_stage_enabled is True
-        assert runner.evaluator.llm_judge_config.model == "claude-3-5-haiku-20241022"
-        assert runner.evaluator.llm_judge_config.pass_threshold == 0.8
+        # Verify pack was configured correctly
+        assert isinstance(runner.pack, NL2APIPack)
+        assert runner.pack.semantics_enabled is True
 
     @pytest.mark.asyncio
     async def test_batch_runner_without_semantics(self):
-        """BatchRunner should work with semantics disabled."""
+        """BatchRunner should create NL2APIPack with semantics disabled."""
         from src.evaluation.batch.config import BatchRunnerConfig
         from src.evaluation.batch.runner import BatchRunner
+        from src.evaluation.packs.nl2api import NL2APIPack
 
         # Mock repositories
         test_case_repo = MagicMock()
@@ -321,6 +323,7 @@ class TestBatchRunnerWithSemantics:
         batch_repo = MagicMock()
 
         config = BatchRunnerConfig(
+            pack_name="nl2api",
             semantics_enabled=False,
         )
 
@@ -331,5 +334,6 @@ class TestBatchRunnerWithSemantics:
             config=config,
         )
 
-        # Verify semantics is disabled
-        assert runner.evaluator.config.semantics_stage_enabled is False
+        # Verify pack has semantics disabled
+        assert isinstance(runner.pack, NL2APIPack)
+        assert runner.pack.semantics_enabled is False
