@@ -87,6 +87,7 @@ dev = [
     "opentelemetry-exporter-otlp>=1.20.0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.20.0",
     # Include mcp-server deps in dev
+    "mcp>=1.0.0",
     "fastapi>=0.109.0",
     "uvicorn>=0.27.0",
     "redis>=5.0.0",
