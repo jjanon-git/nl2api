@@ -1,0 +1,122 @@
+{
+  "_meta": {
+    "name": "rag_citation_required",
+    "capability": "rag",
+    "description": "Test cases specifically testing citation requirements",
+    "requires_nl_response": false,
+    "requires_expected_response": false,
+    "schema_version": "1.0"
+  },
+  "test_cases": [
+    {
+      "id": "rag-cite-001",
+      "input": {
+        "query": "What are the key findings from the research study on climate change?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": ["climate-study-001"]
+      }
+    },
+    {
+      "id": "rag-cite-002",
+      "input": {
+        "query": "What statistics does the report provide about market growth?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": ["market-report-001"]
+      }
+    },
+    {
+      "id": "rag-cite-003",
+      "input": {
+        "query": "What conclusions did the medical study reach?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": ["medical-study-001"]
+      }
+    },
+    {
+      "id": "rag-cite-004",
+      "input": {
+        "query": "What are the safety recommendations from the investigation?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": ["investigation-001"]
+      }
+    },
+    {
+      "id": "rag-cite-005",
+      "input": {
+        "query": "What data does the financial report show about revenue?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": ["financial-001"]
+      }
+    },
+    {
+      "id": "rag-cite-006",
+      "input": {
+        "query": "What evidence does the article present for its claims?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": ["article-001"]
+      }
+    },
+    {
+      "id": "rag-cite-007",
+      "input": {
+        "query": "What are the historical facts mentioned in the document?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": ["history-001"]
+      }
+    },
+    {
+      "id": "rag-cite-008",
+      "input": {
+        "query": "What technical specifications are listed in the manual?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": ["manual-001"]
+      }
+    },
+    {
+      "id": "rag-cite-009",
+      "input": {
+        "query": "What policy changes does the document announce?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": ["policy-001"]
+      }
+    },
+    {
+      "id": "rag-cite-010",
+      "input": {
+        "query": "What guidelines does the standard recommend?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": ["standard-001"]
+      }
+    }
+  ]
+}

@@ -347,7 +347,7 @@ ruff check .
 .venv/bin/python scripts/load_fixtures_to_db.py --all
 
 # Run batch evaluation
-.venv/bin/python -m src.evaluation.cli.main batch run --limit 10
+.venv/bin/python -m src.evaluation.cli.main batch run --pack nl2api --limit 10
 
 # View batch results
 .venv/bin/python -m src.evaluation.cli.main batch list
@@ -575,7 +575,7 @@ When modifying `src/evaluation/batch/`:
 
 1. **Checkpoint/resume must be preserved** - Don't break resumable batch runs
 2. **Metrics must be recorded** - Use `BatchMetrics` for all test results
-3. **Test with small batches first**: `batch run --limit 10`
+3. **Test with small batches first**: `batch run --pack nl2api --limit 10`
 
 ### Batch Evaluation vs Unit Tests (CRITICAL DECISION)
 
@@ -583,9 +583,10 @@ When modifying `src/evaluation/batch/`:
 
 | Purpose | Tool | Persisted? | When to Use |
 |---------|------|------------|-------------|
-| **Accuracy tracking** | `batch run --mode resolver` | ✅ Yes | Measure real system accuracy over time |
-| **End-to-end accuracy** | `batch run --mode orchestrator` | ✅ Yes | Full pipeline accuracy (costs API credits) |
-| **Pipeline testing** | `batch run --mode simulated` | ❌ No* | Test evaluation infrastructure only |
+| **Accuracy tracking** | `batch run --pack nl2api --mode resolver` | ✅ Yes | Measure real system accuracy over time |
+| **End-to-end accuracy** | `batch run --pack nl2api --mode orchestrator` | ✅ Yes | Full pipeline accuracy (costs API credits) |
+| **Pipeline testing** | `batch run --pack nl2api --mode simulated` | ❌ No* | Test evaluation infrastructure only |
+| **RAG evaluation** | `batch run --pack rag` | ✅ Yes | Evaluate RAG systems (retrieval, faithfulness) |
 | **Code correctness** | Unit tests (`pytest`) | ❌ No | Verify code behavior with mocks |
 
 *Simulated results ARE persisted but SHOULD NOT be used for accuracy tracking.
@@ -595,15 +596,16 @@ When modifying `src/evaluation/batch/`:
 - **Unit tests** are for verifying **code correctness** with mocked dependencies
 - **Simulated responses** produce 100% pass rates and are meaningless for tracking improvement
 
-**Default behavior:**
+**Pack selection is REQUIRED:**
 ```bash
-# Default mode is 'resolver' - uses real EntityResolver for meaningful accuracy
-.venv/bin/python -m src.evaluation.cli.main batch run --tag entity_resolution --limit 100
+# --pack is required - no default pack
+.venv/bin/python -m src.evaluation.cli.main batch run --pack nl2api --tag entity_resolution --limit 100
 
-# Explicit modes
-batch run --mode resolver       # Real accuracy (DEFAULT)
-batch run --mode orchestrator   # Full pipeline (requires LLM API key)
-batch run --mode simulated      # Pipeline testing only (NOT for tracking)
+# Available packs and modes
+batch run --pack nl2api --mode resolver       # Real accuracy (DEFAULT mode)
+batch run --pack nl2api --mode orchestrator   # Full pipeline (requires LLM API key)
+batch run --pack nl2api --mode simulated      # Pipeline testing only (NOT for tracking)
+batch run --pack rag                          # RAG evaluation (retrieval, faithfulness)
 ```
 
 **What gets persisted to track over time:**
@@ -615,6 +617,58 @@ batch run --mode simulated      # Pipeline testing only (NOT for tracking)
 - Pipeline infrastructure validation (use mocked responses)
 - Evaluator logic correctness
 - Repository CRUD operations
+
+### Creating New Evaluation Packs
+
+**When creating a new evaluation pack (e.g., RAG, code-gen, etc.), follow this checklist:**
+
+1. **Create the pack implementation** in `src/evaluation/packs/`:
+   ```python
+   from src.contracts.evaluation import EvaluationPack, Stage
+
+   class MyPack:
+       @property
+       def name(self) -> str:
+           return "my_pack"  # Used in metrics and dashboards
+
+       def get_stages(self) -> list[Stage]:
+           return [MyStage1(), MyStage2()]
+   ```
+
+2. **Implement pack stages** that implement the `Stage` protocol:
+   - Each stage has `name`, `is_gate`, and `evaluate()` method
+   - First stage should typically be a GATE (stops pipeline on failure)
+   - Use descriptive stage names (they appear in metrics)
+
+3. **Add pack-specific unit tests** in `tests/unit/evaluation/test_packs.py`
+
+4. **Update dashboards for the new pack**:
+   - The evaluation dashboard (`config/grafana/provisioning/dashboards/json/evaluation-dashboard.json`) uses `pack_name` label for filtering
+   - **If your pack has custom stages**, add stage-specific panels similar to the NL2API ones
+   - The `Failures by Stage` chart automatically shows all stage names
+
+5. **Verify metrics flow**:
+   - `pack_name` label is automatically added to all metrics by `EvalMetrics`
+   - Stage names are recorded dynamically from `scorecard.get_all_stage_results()`
+   - Test by running a small batch and checking Prometheus/Grafana
+
+**Dashboard patterns for new packs:**
+
+| Panel Type | How It Works |
+|------------|--------------|
+| Overall Pass Rate | Filters by `pack_name=~"$pack_name"` - works automatically |
+| Per-Stage Pass Rate | Requires stage name in query (e.g., `stage='retrieval'`) |
+| Failures by Stage | Groups by `stage` label - shows all stages automatically |
+
+**Example: Adding RAG pack panels:**
+
+If your RAG pack has stages `retrieval` and `faithfulness`, add panels like:
+```json
+{
+  "title": "Retrieval Pass Rate",
+  "expr": "100 * sum(nl2api_eval_stage_passed_total{stage='retrieval', pack_name='rag'}) / clamp_min(sum(nl2api_eval_stage_passed_total{stage='retrieval', pack_name='rag'}) + sum(nl2api_eval_stage_failed_total{stage='retrieval', pack_name='rag'}), 1)"
+}
+```
 
 ---
 
@@ -1080,7 +1134,7 @@ Application (OTLP) → OTEL Collector (4317) → Prometheus Exporter (8889) → 
 
 **Prerequisite for batch evaluation metrics:**
 1. Load fixtures: `python scripts/load_fixtures_to_db.py --all`
-2. Run batch: `python -m src.evaluation.cli.main batch run --limit 10`
+2. Run batch: `python -m src.evaluation.cli.main batch run --pack nl2api --limit 10`
 3. View in Grafana: http://localhost:3000 → "NL2API Evaluation & Accuracy" dashboard
 
 ## Current Status

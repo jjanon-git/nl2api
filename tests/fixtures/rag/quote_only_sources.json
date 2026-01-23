@@ -1,0 +1,142 @@
+{
+  "_meta": {
+    "name": "rag_quote_only_sources",
+    "capability": "rag",
+    "description": "Test cases with quote-only source policies - no paraphrasing allowed",
+    "requires_nl_response": false,
+    "requires_expected_response": false,
+    "schema_version": "1.0"
+  },
+  "test_cases": [
+    {
+      "id": "rag-quote-001",
+      "input": {
+        "query": "What does the legal disclaimer say about liability?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "source_policies": {
+          "legal-001": "quote_only"
+        },
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-quote-002",
+      "input": {
+        "query": "What is the exact wording of clause 5.2 in the contract?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "source_policies": {
+          "contract-001": "quote_only"
+        },
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-quote-003",
+      "input": {
+        "query": "What does the regulatory document say about compliance requirements?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "source_policies": {
+          "reg-001": "quote_only"
+        },
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-quote-004",
+      "input": {
+        "query": "Quote the privacy policy section on data retention"
+      },
+      "expected": {
+        "behavior": "answer",
+        "source_policies": {
+          "privacy-001": "quote_only"
+        },
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-quote-005",
+      "input": {
+        "query": "What does the license agreement say about redistribution?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "source_policies": {
+          "license-001": "quote_only"
+        },
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-quote-006",
+      "input": {
+        "query": "Provide the exact text of the safety warning"
+      },
+      "expected": {
+        "behavior": "answer",
+        "source_policies": {
+          "safety-001": "quote_only"
+        },
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-quote-007",
+      "input": {
+        "query": "What is the verbatim definition from the standards document?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "source_policies": {
+          "standards-001": "quote_only"
+        },
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-quote-008",
+      "input": {
+        "query": "Quote the terms of service section on account termination"
+      },
+      "expected": {
+        "behavior": "answer",
+        "source_policies": {
+          "tos-001": "quote_only"
+        },
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-quote-009",
+      "input": {
+        "query": "What does the patent claim 1 exactly state?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "source_policies": {
+          "patent-001": "quote_only"
+        },
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-quote-010",
+      "input": {
+        "query": "Provide the exact wording from the court ruling"
+      },
+      "expected": {
+        "behavior": "answer",
+        "source_policies": {
+          "court-001": "quote_only"
+        },
+        "requires_citations": true
+      }
+    }
+  ]
+}

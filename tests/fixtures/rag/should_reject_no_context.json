@@ -1,0 +1,112 @@
+{
+  "_meta": {
+    "name": "rag_should_reject_no_context",
+    "capability": "rag",
+    "description": "Test cases where system should reject because information is not in the knowledge base",
+    "requires_nl_response": false,
+    "requires_expected_response": false,
+    "schema_version": "1.0"
+  },
+  "test_cases": [
+    {
+      "id": "rag-nocontext-001",
+      "input": {
+        "query": "What is the internal salary structure at Acme Corp?"
+      },
+      "expected": {
+        "behavior": "reject",
+        "rejection_reason": "no_relevant_context"
+      }
+    },
+    {
+      "id": "rag-nocontext-002",
+      "input": {
+        "query": "What did the CEO say in yesterday's private meeting?"
+      },
+      "expected": {
+        "behavior": "reject",
+        "rejection_reason": "no_relevant_context"
+      }
+    },
+    {
+      "id": "rag-nocontext-003",
+      "input": {
+        "query": "What are the unreleased product features for next quarter?"
+      },
+      "expected": {
+        "behavior": "reject",
+        "rejection_reason": "no_relevant_context"
+      }
+    },
+    {
+      "id": "rag-nocontext-004",
+      "input": {
+        "query": "What is the password for the admin account?"
+      },
+      "expected": {
+        "behavior": "reject",
+        "rejection_reason": "no_relevant_context"
+      }
+    },
+    {
+      "id": "rag-nocontext-005",
+      "input": {
+        "query": "What were the exact sales figures from the confidential report?"
+      },
+      "expected": {
+        "behavior": "reject",
+        "rejection_reason": "no_relevant_context"
+      }
+    },
+    {
+      "id": "rag-nocontext-006",
+      "input": {
+        "query": "What is happening on Mars right now?"
+      },
+      "expected": {
+        "behavior": "reject",
+        "rejection_reason": "no_relevant_context"
+      }
+    },
+    {
+      "id": "rag-nocontext-007",
+      "input": {
+        "query": "What is the winning lottery number for tomorrow?"
+      },
+      "expected": {
+        "behavior": "reject",
+        "rejection_reason": "no_relevant_context"
+      }
+    },
+    {
+      "id": "rag-nocontext-008",
+      "input": {
+        "query": "What is my mother's maiden name?"
+      },
+      "expected": {
+        "behavior": "reject",
+        "rejection_reason": "no_relevant_context"
+      }
+    },
+    {
+      "id": "rag-nocontext-009",
+      "input": {
+        "query": "What is the cure for the disease discovered last week?"
+      },
+      "expected": {
+        "behavior": "reject",
+        "rejection_reason": "no_relevant_context"
+      }
+    },
+    {
+      "id": "rag-nocontext-010",
+      "input": {
+        "query": "What is the secret ingredient in the company's product?"
+      },
+      "expected": {
+        "behavior": "reject",
+        "rejection_reason": "no_relevant_context"
+      }
+    }
+  ]
+}

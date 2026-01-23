@@ -19,7 +19,7 @@
       },
       "id": 1,
       "panels": [],
-      "title": "📊 Evaluation Results",
+      "title": "\ud83d\udcca Evaluation Results",
       "type": "row"
     },
     {
@@ -565,7 +565,7 @@
       },
       "id": 10,
       "panels": [],
-      "title": "🔍 Stage Pass Rates",
+      "title": "\ud83d\udd0d Stage Pass Rates",
       "type": "row"
     },
     {
@@ -826,7 +826,7 @@
       },
       "id": 15,
       "panels": [],
-      "title": "🚨 Alerts",
+      "title": "\ud83d\udea8 Alerts",
       "type": "row"
     },
     {
@@ -1067,7 +1067,7 @@
       },
       "id": 19,
       "panels": [],
-      "title": "⏱️ Performance",
+      "title": "\u23f1\ufe0f Performance",
       "type": "row"
     },
     {
@@ -1306,7 +1306,7 @@
       },
       "id": 23,
       "panels": [],
-      "title": "💰 Cost & Efficiency",
+      "title": "\ud83d\udcb0 Cost & Efficiency",
       "type": "row"
     },
     {
@@ -1862,7 +1862,7 @@
     ]
   },
   "time": {
-    "from": "now-24h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
@@ -1870,5 +1870,6 @@
   "title": "NL2API Accuracy",
   "uid": "nl2api-accuracy",
   "version": 1,
-  "weekStart": ""
+  "weekStart": "",
+  "refresh": "10s"
 }

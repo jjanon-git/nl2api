@@ -87,6 +87,7 @@ class BatchMetrics:
         client_type: str | None = None,
         client_version: str | None = None,
         eval_mode: str | None = None,
+        pack_name: str | None = None,
     ) -> None:
         """
         Record metrics for batch completion.
@@ -97,6 +98,7 @@ class BatchMetrics:
             client_type: Client type for multi-client tracking
             client_version: Client version for multi-client tracking
             eval_mode: Evaluation mode
+            pack_name: Evaluation pack name (e.g., "nl2api", "rag")
         """
         if not self.enabled or not self._eval_metrics:
             return
@@ -107,6 +109,7 @@ class BatchMetrics:
             client_type=client_type,
             client_version=client_version,
             eval_mode=eval_mode,
+            pack_name=pack_name,
         )
 
 

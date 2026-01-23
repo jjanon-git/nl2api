@@ -236,6 +236,56 @@ class EvalMetrics:
             unit="1",
         )
 
+        # Worker metrics (for infrastructure dashboard)
+        self._worker_active = self._meter.create_up_down_counter(
+            name="eval_worker_active",
+            description="Number of active evaluation workers",
+            unit="1",
+        )
+
+        self._worker_tasks_processed = self._meter.create_counter(
+            name="eval_worker_tasks_processed",
+            description="Total tasks processed by workers",
+            unit="1",
+        )
+
+        self._worker_tasks_failed = self._meter.create_counter(
+            name="eval_worker_tasks_failed",
+            description="Total tasks failed by workers",
+            unit="1",
+        )
+
+        self._worker_task_duration = self._meter.create_histogram(
+            name="eval_worker_task_duration_ms",
+            description="Worker task processing duration",
+            unit="ms",
+        )
+
+        # Queue metrics (for infrastructure dashboard)
+        self._queue_enqueued = self._meter.create_counter(
+            name="eval_queue_enqueued",
+            description="Total items enqueued",
+            unit="1",
+        )
+
+        self._queue_acked = self._meter.create_counter(
+            name="eval_queue_acked",
+            description="Total items acknowledged",
+            unit="1",
+        )
+
+        self._queue_nacked = self._meter.create_counter(
+            name="eval_queue_nacked",
+            description="Total items not acknowledged (requeued or DLQ)",
+            unit="1",
+        )
+
+        self._queue_dlq = self._meter.create_counter(
+            name="eval_queue_dlq",
+            description="Total items sent to dead letter queue",
+            unit="1",
+        )
+
     def record_test_result(
         self,
         scorecard: Scorecard,
@@ -260,7 +310,10 @@ class EvalMetrics:
             return
 
         try:
-            attrs: dict[str, Any] = {"batch_id": batch_id}
+            # Get pack_name from scorecard (defaults to "nl2api" for backwards compat)
+            pack_name = getattr(scorecard, "pack_name", None) or "nl2api"
+
+            attrs: dict[str, Any] = {"batch_id": batch_id, "pack_name": pack_name}
             if tags:
                 attrs["tags"] = ",".join(tags)
 
@@ -284,14 +337,10 @@ class EvalMetrics:
             self._test_duration.record(scorecard.total_latency_ms, attrs)
             self._test_score.record(scorecard.overall_score, attrs)
 
-            # Record per-stage results
-            stage_fields = [
-                ("syntax", scorecard.syntax_result),
-                ("logic", scorecard.logic_result),
-                ("execution", scorecard.execution_result),
-                ("semantics", scorecard.semantics_result),
-            ]
-            for stage_name, stage_result in stage_fields:
+            # Record per-stage results dynamically from stage_results
+            # First try the new generic stage_results dict
+            all_stage_results = scorecard.get_all_stage_results()
+            for stage_name, stage_result in all_stage_results.items():
                 if stage_result is None:
                     continue
                 stage_attrs = {**attrs, "stage": stage_name}
@@ -326,6 +375,7 @@ class EvalMetrics:
         client_type: str | None = None,
         client_version: str | None = None,
         eval_mode: str | None = None,
+        pack_name: str | None = None,
     ) -> None:
         """
         Record metrics for batch completion.
@@ -336,12 +386,15 @@ class EvalMetrics:
             client_type: Client type for multi-client tracking
             client_version: Client version for multi-client tracking
             eval_mode: Evaluation mode
+            pack_name: Evaluation pack name (e.g., "nl2api", "rag")
         """
         if not self._enabled:
             return
 
         try:
-            attrs: dict[str, Any] = {"batch_id": batch_job.batch_id}
+            # Default to nl2api for backwards compatibility
+            pack = pack_name or "nl2api"
+            attrs: dict[str, Any] = {"batch_id": batch_job.batch_id, "pack_name": pack}
             if batch_job.tags:
                 attrs["tags"] = ",".join(batch_job.tags)
 
@@ -357,6 +410,78 @@ class EvalMetrics:
 
         except Exception as e:
             logger.warning(f"Failed to record batch completion metrics: {e}")
+
+    def record_worker_status(
+        self,
+        worker_id: str,
+        active: bool,
+        tasks_processed: int = 0,
+        tasks_failed: int = 0,
+        task_duration_ms: float | None = None,
+    ) -> None:
+        """
+        Record worker status metrics.
+
+        Args:
+            worker_id: Worker identifier
+            active: Whether worker is active (1) or inactive (0)
+            tasks_processed: Number of tasks successfully processed
+            tasks_failed: Number of tasks that failed
+            task_duration_ms: Duration of last task in milliseconds
+        """
+        if not self._enabled:
+            return
+
+        try:
+            attrs = {"worker_id": worker_id}
+
+            # Update active worker count
+            self._worker_active.add(1 if active else -1, attrs)
+
+            # Record task counts
+            if tasks_processed > 0:
+                self._worker_tasks_processed.add(tasks_processed, {"status": "success"})
+
+            if tasks_failed > 0:
+                self._worker_tasks_failed.add(tasks_failed, {})
+
+            # Record task duration
+            if task_duration_ms is not None:
+                self._worker_task_duration.record(task_duration_ms, attrs)
+
+        except Exception as e:
+            logger.warning(f"Failed to record worker metrics: {e}")
+
+    def record_queue_operation(
+        self,
+        operation: str,
+        count: int = 1,
+        action: str | None = None,
+    ) -> None:
+        """
+        Record queue operation metrics.
+
+        Args:
+            operation: One of 'enqueue', 'ack', 'nack', 'dlq'
+            count: Number of items
+            action: For nack, the action taken ('requeue' or 'dlq')
+        """
+        if not self._enabled:
+            return
+
+        try:
+            if operation == "enqueue":
+                self._queue_enqueued.add(count, {})
+            elif operation == "ack":
+                self._queue_acked.add(count, {})
+            elif operation == "nack":
+                attrs = {"action": action} if action else {}
+                self._queue_nacked.add(count, attrs)
+            elif operation == "dlq":
+                self._queue_dlq.add(count, {})
+
+        except Exception as e:
+            logger.warning(f"Failed to record queue metrics: {e}")
 
 
 class AccuracyMetrics:

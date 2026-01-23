@@ -1,0 +1,232 @@
+{
+  "_meta": {
+    "name": "rag_should_answer_complete",
+    "capability": "rag",
+    "description": "Test cases where system should provide complete answers with citations",
+    "requires_nl_response": false,
+    "requires_expected_response": false,
+    "schema_version": "1.0"
+  },
+  "test_cases": [
+    {
+      "id": "rag-complete-001",
+      "input": {
+        "query": "What is machine learning?"
+      },
+      "expected": {
+        "relevant_docs": ["ml-intro-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-002",
+      "input": {
+        "query": "Explain the difference between supervised and unsupervised learning"
+      },
+      "expected": {
+        "relevant_docs": ["ml-types-001", "ml-types-002"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-003",
+      "input": {
+        "query": "What are the main components of a neural network?"
+      },
+      "expected": {
+        "relevant_docs": ["nn-basics-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-004",
+      "input": {
+        "query": "How does gradient descent work?"
+      },
+      "expected": {
+        "relevant_docs": ["optimization-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-005",
+      "input": {
+        "query": "What is the purpose of activation functions in neural networks?"
+      },
+      "expected": {
+        "relevant_docs": ["nn-activation-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-006",
+      "input": {
+        "query": "Describe the backpropagation algorithm"
+      },
+      "expected": {
+        "relevant_docs": ["backprop-001", "backprop-002"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-007",
+      "input": {
+        "query": "What is overfitting and how can it be prevented?"
+      },
+      "expected": {
+        "relevant_docs": ["overfitting-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-008",
+      "input": {
+        "query": "Explain the concept of regularization in machine learning"
+      },
+      "expected": {
+        "relevant_docs": ["regularization-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-009",
+      "input": {
+        "query": "What is the difference between classification and regression?"
+      },
+      "expected": {
+        "relevant_docs": ["ml-tasks-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-010",
+      "input": {
+        "query": "How do decision trees work?"
+      },
+      "expected": {
+        "relevant_docs": ["decision-trees-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-011",
+      "input": {
+        "query": "What is cross-validation and why is it important?"
+      },
+      "expected": {
+        "relevant_docs": ["validation-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-012",
+      "input": {
+        "query": "Explain the bias-variance tradeoff"
+      },
+      "expected": {
+        "relevant_docs": ["bias-variance-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-013",
+      "input": {
+        "query": "What are convolutional neural networks used for?"
+      },
+      "expected": {
+        "relevant_docs": ["cnn-001", "cnn-002"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-014",
+      "input": {
+        "query": "How do recurrent neural networks handle sequential data?"
+      },
+      "expected": {
+        "relevant_docs": ["rnn-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-015",
+      "input": {
+        "query": "What is transfer learning?"
+      },
+      "expected": {
+        "relevant_docs": ["transfer-learning-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-016",
+      "input": {
+        "query": "Explain the concept of feature engineering"
+      },
+      "expected": {
+        "relevant_docs": ["feature-eng-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-017",
+      "input": {
+        "query": "What is the purpose of dropout in neural networks?"
+      },
+      "expected": {
+        "relevant_docs": ["dropout-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-018",
+      "input": {
+        "query": "How does batch normalization improve training?"
+      },
+      "expected": {
+        "relevant_docs": ["batch-norm-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-019",
+      "input": {
+        "query": "What are the advantages of ensemble methods?"
+      },
+      "expected": {
+        "relevant_docs": ["ensemble-001"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    },
+    {
+      "id": "rag-complete-020",
+      "input": {
+        "query": "Explain the difference between bagging and boosting"
+      },
+      "expected": {
+        "relevant_docs": ["ensemble-002"],
+        "behavior": "answer",
+        "requires_citations": true
+      }
+    }
+  ]
+}

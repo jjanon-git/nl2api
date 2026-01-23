@@ -102,10 +102,11 @@ Total: ~850ms, ~1100 tokens per request
 
 | # | Item | Rationale |
 |---|------|-----------|
-| 1 | **Distributed Evaluation Infrastructure** | Enables horizontal scaling, blocks Multi-Client Phase 1 |
-| 2 | **Multi-Client Eval Phase 1** | Blocked by #1 - plan ready, ~10-15 days |
-| 3 | **Test Quality Improvements** | Critical - current tests don't validate correctness |
-| 4 | **Orchestrator Refactor** | Tech debt - 803 line god class |
+| 1 | **Evaluation Framework Generalization (Phases 1-2)** | Extract generic core, create EvaluationPack protocol, NL2API pack, simple API facade |
+| 2 | **NL2API Codebase Separation** | Separate nl2api implementation from evalframework - nl2api was first use case, not the framework |
+| 3 | **RAG Evaluation Pack (Phase 3)** | Blocked by #1 - plan ready at docs/plans/rag-evaluation-plan.md |
+| 4 | **Distributed Evaluation Infrastructure** | Enables horizontal scaling |
+| 5 | **Test Quality Improvements** | Critical - current tests don't validate correctness |
 
 ---
 
@@ -225,6 +226,78 @@ logger = get_sanitized_logger(__name__)
 ---
 
 ## High Priority (P0)
+
+### Evaluation Framework Generalization (evalframework)
+**Created:** 2026-01-22
+**Status:** In Progress
+**Docs:** [docs/plans/evaluation-platform-review.md](docs/plans/evaluation-platform-review.md)
+
+Transform the evaluation platform from an NL2API-specific tool into a general-purpose ML evaluation framework (`evalframework`).
+
+**Problem:** NL2API assumptions baked into core layers block RAG, classification, and other evaluation use cases.
+
+**Phase 1: Extract Generic Core (~1 week)**
+- [ ] Genericize `TestCase` - `input: dict`, `expected: dict` instead of NL2API fields
+- [ ] Genericize `Scorecard` - `stage_results: dict[str, StageResult]` instead of fixed 4 fields
+- [ ] Create `EvaluationPack` protocol - interface for domain-specific evaluation
+- [ ] Create `NL2APIPack` - refactor existing NL2API stages into a pack
+- [ ] Update storage - store generic JSON, not NL2API-specific columns
+- [ ] Database migration for generic columns
+- [ ] Unit tests for generic core
+- [ ] Integration tests for NL2APIPack backwards compatibility
+
+**Phase 2: Simple API Facade (~3 days)**
+- [ ] Create `Evaluator` facade class with sensible defaults
+- [ ] Support `Evaluator(pack=NL2APIPack())` pattern
+- [ ] Add `results.to_json()`, `results.to_dataframe()` exports
+- [ ] Consolidate config classes into single `EvaluatorConfig`
+- [ ] Unit tests for facade API
+- [ ] End-to-end test: load fixtures → evaluate → export results
+
+**Usage after completion:**
+```python
+from evalframework import Evaluator
+from evalframework.packs import NL2APIPack
+
+evaluator = Evaluator(pack=NL2APIPack())
+results = await evaluator.evaluate(test_cases, my_system)
+print(f"Accuracy: {results.accuracy:.2%}")
+results.to_json("results.json")
+```
+
+**Depends on:** Nothing
+**Blocks:** RAG Evaluation Pack (Phase 3)
+
+---
+
+### NL2API Codebase Separation
+**Created:** 2026-01-22
+**Status:** Not Started
+**Priority:** HIGH (fast-follow after evalframework)
+
+NL2API was the first concrete use case for the evaluation framework. The codebase should be reorganized to clearly separate:
+
+1. **evalframework** - General-purpose evaluation infrastructure
+   - Generic TestCase, Scorecard, EvaluationPack protocol
+   - Batch runner, storage protocols, telemetry
+   - CLI with `--pack` option
+
+2. **nl2api** - Domain-specific implementation
+   - NL2APIPack with 4 stages (Syntax, Logic, Execution, Semantics)
+   - Domain agents, orchestrator, entity resolution
+   - NL2API-specific fixtures and tests
+
+**Tasks:**
+- [ ] Create `src/evalframework/` directory structure
+- [ ] Move generic evaluation code from `src/evaluation/` to `src/evalframework/`
+- [ ] Create `src/evalframework/packs/nl2api/` for NL2API-specific code
+- [ ] Update imports throughout codebase
+- [ ] Update CLI entry points
+- [ ] Consider separate package publishing (evalframework vs nl2api)
+
+**Depends on:** Evaluation Framework Generalization (Phases 1-2)
+
+---
 
 ### Distributed Evaluation Infrastructure
 **Created:** 2026-01-21

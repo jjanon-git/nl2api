@@ -40,10 +40,13 @@ from src.contracts.core import (
 
 # Evaluation models
 from src.contracts.evaluation import (
+    EvalContext,
     EvaluationConfig,
+    EvaluationPack,
     Evaluator,
     LLMJudgeConfig,
     Scorecard,
+    Stage,
     StageResult,
 )
 
@@ -103,6 +106,10 @@ __all__ = [
     "Evaluator",
     "EvaluationConfig",
     "LLMJudgeConfig",
+    # Evaluation Pack Protocol (general-purpose framework)
+    "EvalContext",
+    "Stage",
+    "EvaluationPack",
     # Worker
     "WorkerTask",
     "BatchJob",

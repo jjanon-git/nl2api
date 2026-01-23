@@ -16,6 +16,12 @@ class BatchRunnerConfig(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    # Pack selection (REQUIRED - no default)
+    pack_name: str = Field(
+        ...,  # Required - no default
+        description="Evaluation pack to use (nl2api, rag)",
+    )
+
     max_concurrency: int = Field(
         default=10,
         ge=1,

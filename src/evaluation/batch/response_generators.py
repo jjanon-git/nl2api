@@ -340,3 +340,142 @@ def create_tool_only_generator(
             )
 
     return generate_tool_only_response
+
+
+def create_rag_simulated_generator(pass_rate: float = 0.7):
+    """
+    Create a response generator for RAG evaluation with simulated responses.
+
+    This generator produces simulated RAG responses for testing the RAG evaluation
+    pipeline. The pass_rate parameter controls what percentage of responses will
+    be "correct" (good retrieval, faithful response, proper citations).
+
+    WARNING: This generator is for PIPELINE TESTING ONLY.
+    For real RAG accuracy measurement, integrate with an actual RAG system.
+
+    Args:
+        pass_rate: Probability (0.0-1.0) that a response will be "correct"
+
+    Returns:
+        Async function that generates SystemResponse from TestCase
+    """
+
+    async def generate_rag_response(test_case: TestCase) -> SystemResponse:
+        """
+        Generate simulated RAG response for testing.
+
+        For passing responses:
+        - Uses expected relevant_docs as retrieved_doc_ids
+        - Generates plausible response text
+        - Includes proper citations
+
+        For failing responses:
+        - Returns wrong/empty documents
+        - Generates hallucinated content
+        - Omits citations
+        """
+        import time
+
+        start_time = time.perf_counter()
+        latency_ms = random.randint(100, 500)
+        await asyncio.sleep(latency_ms / 1000)
+
+        # Determine if this should be a passing or failing response
+        should_pass = random.random() < pass_rate
+
+        # Get expected values from test case
+        expected = test_case.expected or {}
+        query = test_case.input.get("query", test_case.nl_query or "")
+        relevant_docs = expected.get("relevant_docs", [])
+        expected_behavior = expected.get("behavior", "answer")
+
+        if should_pass:
+            # Generate a passing response
+            retrieved_doc_ids = relevant_docs.copy() if relevant_docs else ["doc-1"]
+            retrieved_chunks = [
+                {"id": doc_id, "text": f"Content from {doc_id} about {query[:30]}..."}
+                for doc_id in retrieved_doc_ids
+            ]
+            context = " ".join([chunk["text"] for chunk in retrieved_chunks])
+            sources = [
+                {"id": str(i + 1), "text": chunk["text"], "doc_id": chunk["id"]}
+                for i, chunk in enumerate(retrieved_chunks)
+            ]
+
+            if expected_behavior == "reject":
+                # Should reject - generate proper rejection
+                response = "I cannot answer this question as it falls outside my knowledge base."
+            else:
+                # Generate response with citations
+                response = f"Based on the retrieved documents [1], {query[:50]}... [2]"
+
+        else:
+            # Generate a failing response (varies type of failure)
+            failure_type = random.choice(
+                [
+                    "wrong_docs",
+                    "no_citation",
+                    "hallucination",
+                    "empty_retrieval",
+                ]
+            )
+
+            if failure_type == "wrong_docs":
+                # Retrieved wrong documents
+                retrieved_doc_ids = ["wrong-doc-1", "wrong-doc-2"]
+                retrieved_chunks = [
+                    {"id": doc_id, "text": f"Irrelevant content from {doc_id}"}
+                    for doc_id in retrieved_doc_ids
+                ]
+                context = "Irrelevant information about something else entirely."
+                sources = []
+                response = f"The answer is {query[:30]}... based on my knowledge."
+
+            elif failure_type == "no_citation":
+                # Correct retrieval but no citations
+                retrieved_doc_ids = relevant_docs.copy() if relevant_docs else ["doc-1"]
+                retrieved_chunks = [
+                    {"id": doc_id, "text": f"Content from {doc_id}"} for doc_id in retrieved_doc_ids
+                ]
+                context = " ".join([chunk["text"] for chunk in retrieved_chunks])
+                sources = []  # No sources/citations
+                response = f"The answer is definitely {query[:30]}..."
+
+            elif failure_type == "hallucination":
+                # Makes up information not in context
+                retrieved_doc_ids = relevant_docs.copy() if relevant_docs else ["doc-1"]
+                retrieved_chunks = [
+                    {"id": doc_id, "text": "Simple factual information."}
+                    for doc_id in retrieved_doc_ids
+                ]
+                context = "Simple factual information."
+                sources = [{"id": "1", "text": "Simple factual information."}]
+                # Response contains information not in context
+                response = "Based on the retrieved documents [1], the answer involves complex calculations showing 47.3% growth over the last fiscal year."
+
+            else:  # empty_retrieval
+                retrieved_doc_ids = []
+                retrieved_chunks = []
+                context = ""
+                sources = []
+                response = "I don't have any relevant information to answer this question."
+
+        actual_latency = int((time.perf_counter() - start_time) * 1000)
+
+        return SystemResponse(
+            raw_output=json.dumps(
+                {
+                    "response": response,
+                    "retrieved_doc_ids": retrieved_doc_ids,
+                    "retrieved_chunks": retrieved_chunks,
+                    "context": context,
+                    "sources": sources,
+                }
+            ),
+            nl_response=response,
+            latency_ms=actual_latency,
+            # Store extra RAG-specific data that BatchRunner._response_to_output can use
+            # These are accessed via getattr in the runner
+        )
+
+    return generate_rag_response

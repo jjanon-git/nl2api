@@ -17,6 +17,7 @@ class DocumentType(str, Enum):
     FIELD_CODE = "field_code"  # API field codes (e.g., TR.EPSMean)
     QUERY_EXAMPLE = "query_example"  # Example NL queries with API calls
     ECONOMIC_INDICATOR = "economic_indicator"  # Economic indicator codes
+    SEC_FILING = "sec_filing"  # SEC 10-K/10-Q filing chunks
 
 
 @dataclass(frozen=True)

@@ -48,6 +48,10 @@ batch_app.add_typer(api_app, name="api", help="Anthropic Message Batches API (50
 
 @batch_app.command("run")
 def batch_run(
+    pack: Annotated[
+        str,
+        typer.Option("--pack", "-p", help="Evaluation pack (nl2api, rag) - REQUIRED"),
+    ],
     tags: Annotated[
         list[str] | None,
         typer.Option("--tag", "-t", help="Filter by tags (can be repeated)"),
@@ -131,6 +135,10 @@ def batch_run(
     Fetches test cases matching the filters, runs evaluations concurrently,
     and saves scorecards with a batch ID for tracking.
 
+    PACKS:
+    - nl2api: Tool-calling LLM evaluation (syntax, logic, execution, semantics).
+    - rag: RAG system evaluation (retrieval, faithfulness, relevance, citations).
+
     MODES:
     - resolver (default): Uses real EntityResolver for accuracy measurement.
       Results are persisted and tracked over time.
@@ -157,6 +165,13 @@ def batch_run(
       - data: Exact match required (for point-in-time validation)
     """
     from datetime import date as date_type
+
+    # Validate pack selection
+    valid_packs = ("nl2api", "rag")
+    if pack not in valid_packs:
+        console.print(f"[red]Error:[/red] Invalid pack '{pack}'.")
+        console.print(f"Available packs: {', '.join(valid_packs)}")
+        raise typer.Exit(1)
 
     if mode not in ("resolver", "orchestrator", "simulated", "routing", "tool_only"):
         console.print(f"[red]Error:[/red] Invalid mode '{mode}'.")
@@ -185,6 +200,7 @@ def batch_run(
 
     asyncio.run(
         _batch_run_async(
+            pack=pack,
             tags=tags,
             complexity_min=complexity_min,
             complexity_max=complexity_max,
@@ -206,6 +222,7 @@ def batch_run(
 
 
 async def _batch_run_async(
+    pack: str,
     tags: list[str] | None,
     complexity_min: int | None,
     complexity_max: int | None,
@@ -415,6 +432,7 @@ async def _batch_run_async(
         }
 
         runner_config = BatchRunnerConfig(
+            pack_name=pack,
             max_concurrency=concurrency,
             show_progress=True,
             verbose=verbose,

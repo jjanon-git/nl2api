@@ -267,6 +267,7 @@ class EvalScheduler:
 
             # Create runner config
             runner_config = BatchRunnerConfig(
+                pack_name=schedule.pack_name,
                 max_concurrency=10,
                 show_progress=False,
                 verbose=False,

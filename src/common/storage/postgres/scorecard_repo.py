@@ -112,27 +112,24 @@ class PostgresScorecardRepository:
             span.set_attribute("db.scorecard_id", scorecard.scorecard_id[:36])
             span.set_attribute("db.test_case_id", scorecard.test_case_id[:36])
             span.set_attribute("db.overall_passed", scorecard.overall_passed)
+            span.set_attribute("db.pack_name", scorecard.pack_name)
 
             sc_uuid = uuid.UUID(scorecard.scorecard_id)
             tc_uuid = uuid.UUID(scorecard.test_case_id)
 
-            # Serialize stage results
+            # Serialize NL2API-specific stage results (backwards compatibility)
             syntax_json = self._stage_result_to_json(scorecard.syntax_result)
-            logic_json = (
-                self._stage_result_to_json(scorecard.logic_result)
-                if scorecard.logic_result
-                else None
+            logic_json = self._stage_result_to_json(scorecard.logic_result)
+            execution_json = self._stage_result_to_json(scorecard.execution_result)
+            semantics_json = self._stage_result_to_json(scorecard.semantics_result)
+
+            # Serialize generic stage_results
+            stage_results_json = (
+                self._stage_results_to_json(scorecard.stage_results)
+                if scorecard.stage_results
+                else "{}"
             )
-            execution_json = (
-                self._stage_result_to_json(scorecard.execution_result)
-                if scorecard.execution_result
-                else None
-            )
-            semantics_json = (
-                self._stage_result_to_json(scorecard.semantics_result)
-                if scorecard.semantics_result
-                else None
-            )
+            stage_weights_json = json.dumps(scorecard.stage_weights or {})
 
             # Serialize tool calls
             tool_calls_json = None
@@ -144,12 +141,16 @@ class PostgresScorecardRepository:
                     ]
                 )
 
+            # Serialize generated_output
+            generated_output_json = json.dumps(scorecard.generated_output or {})
+
             await self.pool.execute(
                 """
                 INSERT INTO scorecards (
                     id, test_case_id, batch_id, run_id,
+                    pack_name, stage_results, stage_weights,
                     syntax_result, logic_result, execution_result, semantics_result,
-                    generated_tool_calls, generated_nl_response,
+                    generated_tool_calls, generated_nl_response, generated_output,
                     overall_passed, overall_score,
                     worker_id, attempt_number, message_id, total_latency_ms,
                     created_at, completed_at,
@@ -157,21 +158,26 @@ class PostgresScorecardRepository:
                     input_tokens, output_tokens, estimated_cost_usd
                 ) VALUES (
                     $1, $2, $3, $4,
-                    $5::jsonb, $6::jsonb, $7::jsonb, $8::jsonb,
-                    $9::jsonb, $10,
-                    $11, $12,
-                    $13, $14, $15, $16,
-                    $17, $18,
-                    $19, $20, $21,
-                    $22, $23, $24
+                    $5, $6::jsonb, $7::jsonb,
+                    $8::jsonb, $9::jsonb, $10::jsonb, $11::jsonb,
+                    $12::jsonb, $13, $14::jsonb,
+                    $15, $16,
+                    $17, $18, $19, $20,
+                    $21, $22,
+                    $23, $24, $25,
+                    $26, $27, $28
                 )
                 ON CONFLICT (id) DO UPDATE SET
+                    pack_name = EXCLUDED.pack_name,
+                    stage_results = EXCLUDED.stage_results,
+                    stage_weights = EXCLUDED.stage_weights,
                     syntax_result = EXCLUDED.syntax_result,
                     logic_result = EXCLUDED.logic_result,
                     execution_result = EXCLUDED.execution_result,
                     semantics_result = EXCLUDED.semantics_result,
                     generated_tool_calls = EXCLUDED.generated_tool_calls,
                     generated_nl_response = EXCLUDED.generated_nl_response,
+                    generated_output = EXCLUDED.generated_output,
                     overall_passed = EXCLUDED.overall_passed,
                     overall_score = EXCLUDED.overall_score,
                     attempt_number = EXCLUDED.attempt_number,
@@ -188,12 +194,16 @@ class PostgresScorecardRepository:
                 tc_uuid,
                 scorecard.batch_id,
                 None,  # run_id placeholder
+                scorecard.pack_name,
+                stage_results_json,
+                stage_weights_json,
                 syntax_json,
                 logic_json,
                 execution_json,
                 semantics_json,
                 tool_calls_json,
                 scorecard.generated_nl_response,
+                generated_output_json,
                 scorecard.overall_passed,
                 scorecard.overall_score,
                 scorecard.worker_id,
@@ -291,23 +301,19 @@ class PostgresScorecardRepository:
             sc_uuid = uuid.UUID(scorecard.scorecard_id)
             tc_uuid = uuid.UUID(scorecard.test_case_id)
 
-            # Serialize stage results
+            # Serialize NL2API-specific stage results
             syntax_json = self._stage_result_to_json(scorecard.syntax_result)
-            logic_json = (
-                self._stage_result_to_json(scorecard.logic_result)
-                if scorecard.logic_result
-                else None
+            logic_json = self._stage_result_to_json(scorecard.logic_result)
+            execution_json = self._stage_result_to_json(scorecard.execution_result)
+            semantics_json = self._stage_result_to_json(scorecard.semantics_result)
+
+            # Serialize generic stage_results
+            stage_results_json = (
+                self._stage_results_to_json(scorecard.stage_results)
+                if scorecard.stage_results
+                else "{}"
             )
-            execution_json = (
-                self._stage_result_to_json(scorecard.execution_result)
-                if scorecard.execution_result
-                else None
-            )
-            semantics_json = (
-                self._stage_result_to_json(scorecard.semantics_result)
-                if scorecard.semantics_result
-                else None
-            )
+            stage_weights_json = json.dumps(scorecard.stage_weights or {})
 
             # Serialize tool calls
             tool_calls_json = None
@@ -319,18 +325,25 @@ class PostgresScorecardRepository:
                     ]
                 )
 
+            # Serialize generated_output
+            generated_output_json = json.dumps(scorecard.generated_output or {})
+
             records.append(
                 (
                     sc_uuid,
                     tc_uuid,
                     scorecard.batch_id,
                     None,  # run_id placeholder
+                    scorecard.pack_name,
+                    stage_results_json,
+                    stage_weights_json,
                     syntax_json,
                     logic_json,
                     execution_json,
                     semantics_json,
                     tool_calls_json,
                     scorecard.generated_nl_response,
+                    generated_output_json,
                     scorecard.overall_passed,
                     scorecard.overall_score,
                     scorecard.worker_id,
@@ -356,8 +369,9 @@ class PostgresScorecardRepository:
                     """
                     INSERT INTO scorecards (
                         id, test_case_id, batch_id, run_id,
+                        pack_name, stage_results, stage_weights,
                         syntax_result, logic_result, execution_result, semantics_result,
-                        generated_tool_calls, generated_nl_response,
+                        generated_tool_calls, generated_nl_response, generated_output,
                         overall_passed, overall_score,
                         worker_id, attempt_number, message_id, total_latency_ms,
                         created_at, completed_at,
@@ -365,21 +379,26 @@ class PostgresScorecardRepository:
                         input_tokens, output_tokens, estimated_cost_usd
                     ) VALUES (
                         $1, $2, $3, $4,
-                        $5::jsonb, $6::jsonb, $7::jsonb, $8::jsonb,
-                        $9::jsonb, $10,
-                        $11, $12,
-                        $13, $14, $15, $16,
-                        $17, $18,
-                        $19, $20, $21,
-                        $22, $23, $24
+                        $5, $6::jsonb, $7::jsonb,
+                        $8::jsonb, $9::jsonb, $10::jsonb, $11::jsonb,
+                        $12::jsonb, $13, $14::jsonb,
+                        $15, $16,
+                        $17, $18, $19, $20,
+                        $21, $22,
+                        $23, $24, $25,
+                        $26, $27, $28
                     )
                     ON CONFLICT (id) DO UPDATE SET
+                        pack_name = EXCLUDED.pack_name,
+                        stage_results = EXCLUDED.stage_results,
+                        stage_weights = EXCLUDED.stage_weights,
                         syntax_result = EXCLUDED.syntax_result,
                         logic_result = EXCLUDED.logic_result,
                         execution_result = EXCLUDED.execution_result,
                         semantics_result = EXCLUDED.semantics_result,
                         generated_tool_calls = EXCLUDED.generated_tool_calls,
                         generated_nl_response = EXCLUDED.generated_nl_response,
+                        generated_output = EXCLUDED.generated_output,
                         overall_passed = EXCLUDED.overall_passed,
                         overall_score = EXCLUDED.overall_score,
                         attempt_number = EXCLUDED.attempt_number,
@@ -397,15 +416,20 @@ class PostgresScorecardRepository:
 
         return len(records)
 
-    def _stage_result_to_json(self, result: StageResult) -> str:
+    def _stage_result_to_json(self, result: StageResult | None) -> str | None:
         """Convert StageResult to JSON string."""
+        if result is None:
+            return None
+
         data = {
-            "stage": result.stage.value,
+            "stage_name": result.get_stage_name(),
+            "stage": result.stage.value if result.stage else None,
             "passed": result.passed,
             "score": result.score,
             "error_code": result.error_code.value if result.error_code else None,
             "reason": result.reason,
             "artifacts": result.artifacts,
+            "metrics": result.metrics,
             "duration_ms": result.duration_ms,
         }
         return json.dumps(data)
@@ -415,20 +439,65 @@ class PostgresScorecardRepository:
         if isinstance(data, str):
             data = json.loads(data)
 
+        # Support both old format (stage enum) and new format (stage_name string)
+        stage = None
+        stage_name = data.get("stage_name", "")
+
+        if data.get("stage"):
+            try:
+                stage = EvaluationStage(data["stage"])
+                if not stage_name:
+                    stage_name = stage.value
+            except ValueError:
+                pass
+
         return StageResult(
-            stage=EvaluationStage(data["stage"]),
+            stage_name=stage_name,
+            stage=stage,
             passed=data["passed"],
             score=data["score"],
             error_code=ErrorCode(data["error_code"]) if data.get("error_code") else None,
             reason=data.get("reason"),
             artifacts=data.get("artifacts", {}),
+            metrics=data.get("metrics", {}),
             duration_ms=data.get("duration_ms", 0),
         )
 
+    def _stage_results_to_json(self, stage_results: dict[str, StageResult]) -> str:
+        """Convert stage_results dict to JSON string."""
+        data = {}
+        for name, result in stage_results.items():
+            data[name] = {
+                "stage_name": result.get_stage_name(),
+                "stage": result.stage.value if result.stage else None,
+                "passed": result.passed,
+                "score": result.score,
+                "error_code": result.error_code.value if result.error_code else None,
+                "reason": result.reason,
+                "artifacts": result.artifacts,
+                "metrics": result.metrics,
+                "duration_ms": result.duration_ms,
+            }
+        return json.dumps(data)
+
+    def _json_to_stage_results(self, data: dict[str, Any] | str | None) -> dict[str, StageResult]:
+        """Convert JSON dict to stage_results dict."""
+        if not data:
+            return {}
+        if isinstance(data, str):
+            data = json.loads(data)
+
+        results = {}
+        for name, result_data in data.items():
+            results[name] = self._json_to_stage_result(result_data)
+        return results
+
     def _row_to_scorecard(self, row: asyncpg.Record) -> Scorecard:
         """Convert database row to Scorecard model."""
-        # Parse stage results
-        syntax_result = self._json_to_stage_result(row["syntax_result"])
+        # Parse NL2API-specific stage results (backwards compatibility)
+        syntax_result = (
+            self._json_to_stage_result(row["syntax_result"]) if row["syntax_result"] else None
+        )
         logic_result = (
             self._json_to_stage_result(row["logic_result"]) if row["logic_result"] else None
         )
@@ -438,6 +507,14 @@ class PostgresScorecardRepository:
         semantics_result = (
             self._json_to_stage_result(row["semantics_result"]) if row["semantics_result"] else None
         )
+
+        # Parse generic stage_results (new format)
+        stage_results = self._json_to_stage_results(row.get("stage_results"))
+
+        # Parse stage_weights
+        stage_weights = row.get("stage_weights") or {}
+        if isinstance(stage_weights, str):
+            stage_weights = json.loads(stage_weights)
 
         # Parse tool calls
         generated_tool_calls = None
@@ -449,6 +526,11 @@ class PostgresScorecardRepository:
                 ToolCall(tool_name=tc["tool_name"], arguments=tc.get("arguments", {}))
                 for tc in tool_calls_data
             )
+
+        # Parse generated_output (generic)
+        generated_output = row.get("generated_output") or {}
+        if isinstance(generated_output, str):
+            generated_output = json.loads(generated_output)
 
         # Handle timestamps
         timestamp = row["created_at"]
@@ -468,21 +550,32 @@ class PostgresScorecardRepository:
             test_case_id=str(row["test_case_id"]),
             batch_id=row["batch_id"],
             scorecard_id=str(row["id"]),
+            # Generic fields
+            pack_name=row.get("pack_name") or "nl2api",
+            stage_results=stage_results,
+            stage_weights=stage_weights,
+            # Timestamps
             timestamp=timestamp,
             completed_at=completed_at,
+            # NL2API-specific fields
             syntax_result=syntax_result,
             logic_result=logic_result,
             execution_result=execution_result,
             semantics_result=semantics_result,
+            # Captured outputs
             generated_tool_calls=generated_tool_calls,
             generated_nl_response=row["generated_nl_response"],
+            generated_output=generated_output,
+            # Execution context
             worker_id=row["worker_id"],
             attempt_number=row["attempt_number"],
             message_id=row["message_id"],
             total_latency_ms=row["total_latency_ms"],
+            # Client tracking
             client_type=row.get("client_type"),
             client_version=row.get("client_version"),
             eval_mode=row.get("eval_mode"),
+            # Cost tracking
             input_tokens=row.get("input_tokens"),
             output_tokens=row.get("output_tokens"),
             estimated_cost_usd=estimated_cost,

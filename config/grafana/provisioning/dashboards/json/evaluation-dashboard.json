@@ -458,7 +458,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(100 * sum(nl2api_eval_batch_tests_passed_total) / clamp_min(sum(nl2api_eval_batch_tests_total), 1)) or vector(0)",
+          "expr": "(100 * sum(nl2api_eval_batch_tests_passed_total{pack_name=~\"$pack_name\"}) / clamp_min(sum(nl2api_eval_batch_tests_total{pack_name=~\"$pack_name\"}), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -512,7 +512,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_batch_tests_total)) or vector(0)",
+          "expr": "(sum(nl2api_eval_batch_tests_total{pack_name=~\"$pack_name\"})) or vector(0)",
           "refId": "A"
         }
       ],
@@ -566,7 +566,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_batch_tests_passed_total)) or vector(0)",
+          "expr": "(sum(nl2api_eval_batch_tests_passed_total{pack_name=~\"$pack_name\"})) or vector(0)",
           "refId": "A"
         }
       ],
@@ -624,7 +624,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_batch_tests_failed_total)) or vector(0)",
+          "expr": "(sum(nl2api_eval_batch_tests_failed_total{pack_name=~\"$pack_name\"})) or vector(0)",
           "refId": "A"
         }
       ],
@@ -846,12 +846,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_batch_tests_passed_total[5m]))",
+          "expr": "sum(rate(nl2api_eval_batch_tests_passed_total{pack_name=~\"$pack_name\"}[5m]))",
           "legendFormat": "Passed",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(nl2api_eval_batch_tests_failed_total[5m]))",
+          "expr": "sum(rate(nl2api_eval_batch_tests_failed_total{pack_name=~\"$pack_name\"}[5m]))",
           "legendFormat": "Failed",
           "refId": "B"
         }
@@ -1573,7 +1573,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (stage) (last_over_time(nl2api_eval_stage_failed_total[2d]))",
+          "expr": "sum by (stage) (last_over_time(nl2api_eval_stage_failed_total{pack_name=~\"$pack_name\"}[2d]))",
           "legendFormat": "{{stage}}",
           "refId": "A"
         }
@@ -1649,7 +1649,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax'}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='syntax'}[2d])), 1)) or vector(0)",
+          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax', pack_name=~\"$pack_name\"}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax', pack_name=~\"$pack_name\"}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='syntax', pack_name=~\"$pack_name\"}[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1711,7 +1711,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic'}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='logic'}[2d])), 1)) or vector(0)",
+          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic', pack_name=~\"$pack_name\"}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic', pack_name=~\"$pack_name\"}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='logic', pack_name=~\"$pack_name\"}[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1773,7 +1773,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution'}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='execution'}[2d])), 1)) or vector(0)",
+          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution', pack_name=~\"$pack_name\"}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution', pack_name=~\"$pack_name\"}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='execution', pack_name=~\"$pack_name\"}[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1835,7 +1835,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics'}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='semantics'}[2d])), 1)) or vector(0)",
+          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics', pack_name=~\"$pack_name\"}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics', pack_name=~\"$pack_name\"}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='semantics', pack_name=~\"$pack_name\"}[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -2843,6 +2843,38 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
+        "definition": "label_values(nl2api_eval_batch_tests_total, pack_name)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Pack",
+        "multi": true,
+        "name": "pack_name",
+        "options": [],
+        "query": {
+          "query": "label_values(nl2api_eval_batch_tests_total, pack_name)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
         "definition": "label_values(nl2api_eval_batch_tests_total, client_type)",
         "hide": 0,
         "includeAll": true,
@@ -2927,7 +2959,7 @@
     ]
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
@@ -2935,5 +2967,6 @@
   "title": "NL2API Evaluation",
   "uid": "nl2api-evaluation",
   "version": 1,
-  "weekStart": ""
+  "weekStart": "",
+  "refresh": "10s"
 }

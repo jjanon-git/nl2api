@@ -19,7 +19,7 @@
       },
       "id": 1,
       "panels": [],
-      "title": "🚨 System Health",
+      "title": "\ud83d\udea8 System Health",
       "type": "row"
     },
     {
@@ -400,7 +400,7 @@
       },
       "id": 8,
       "panels": [],
-      "title": "🔄 Worker Tasks",
+      "title": "\ud83d\udd04 Worker Tasks",
       "type": "row"
     },
     {
@@ -1005,7 +1005,7 @@
       },
       "id": 18,
       "panels": [],
-      "title": "📬 Queue Metrics",
+      "title": "\ud83d\udcec Queue Metrics",
       "type": "row"
     },
     {
@@ -1247,7 +1247,7 @@
     "list": []
   },
   "time": {
-    "from": "now-6h",
+    "from": "now-1h",
     "to": "now"
   },
   "timepicker": {},
@@ -1255,5 +1255,6 @@
   "title": "Evaluation Infrastructure",
   "uid": "eval-infrastructure",
   "version": 1,
-  "weekStart": ""
+  "weekStart": "",
+  "refresh": "10s"
 }

@@ -371,6 +371,19 @@ class TestCase(BaseModel):
 
     Represents a single evaluation unit with expected inputs and outputs.
     Designed for storage in Azure AI Search with vector embeddings.
+
+    GENERIC FIELDS (for general-purpose evaluation):
+    - input: Arbitrary input data (dict)
+    - expected: Arbitrary expected output data (dict)
+
+    NL2API-SPECIFIC FIELDS (backwards compatible):
+    - nl_query: Natural language input
+    - expected_tool_calls: Expected tool calls
+    - expected_response: Expected API response data
+    - expected_nl_response: Expected NL summary
+
+    Use generic fields for new evaluation packs. NL2API fields are
+    automatically populated from generic fields when using NL2APIPack.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -381,17 +394,31 @@ class TestCase(BaseModel):
         description="Unique identifier (UUID4)",
     )
 
-    # The 4-tuple
-    nl_query: str = Field(
-        ...,
-        min_length=1,
-        description="Natural language input query",
+    # ==========================================================================
+    # GENERIC FIELDS (for general-purpose evaluation framework)
+    # ==========================================================================
+    input: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Generic input data. Pack-specific schema.",
+        examples=[{"query": "What is Apple's stock price?"}],
+    )
+    expected: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Generic expected output. Pack-specific schema.",
+        examples=[{"tool_calls": [], "nl_response": "Apple's price is $150"}],
+    )
+
+    # ==========================================================================
+    # NL2API-SPECIFIC FIELDS (backwards compatible)
+    # ==========================================================================
+    nl_query: str | None = Field(
+        default=None,
+        description="Natural language input query (NL2API-specific)",
         examples=["Find all products under $50 with free shipping"],
     )
     expected_tool_calls: tuple[ToolCall, ...] = Field(
-        ...,
-        min_length=1,
-        description="Expected tool calls (order-independent comparison)",
+        default_factory=tuple,
+        description="Expected tool calls (NL2API-specific, order-independent comparison)",
     )
     expected_response: dict[str, Any] | None = Field(
         default=None,
@@ -405,7 +432,10 @@ class TestCase(BaseModel):
     )
 
     # Metadata
-    metadata: TestCaseMetadata
+    metadata: TestCaseMetadata | None = Field(
+        default=None,
+        description="Test case metadata (optional for generic test cases)",
+    )
 
     # Lifecycle status
     status: TestCaseStatus = Field(
@@ -433,6 +463,8 @@ class TestCase(BaseModel):
     @classmethod
     def convert_to_tuple(cls, v: Any) -> tuple:
         """Ensure tool calls are stored as tuple for immutability."""
+        if v is None:
+            return ()
         if isinstance(v, (list, tuple)):
             return tuple(v)
         return v
@@ -445,12 +477,88 @@ class TestCase(BaseModel):
     @property
     def content_hash(self) -> str:
         """Content hash for deduplication (excludes id and timestamps)."""
-        content = {
-            "nl_query": self.nl_query,
-            "expected_tool_calls": [tc.to_canonical_string() for tc in self.expected_tool_calls],
-            "expected_nl_response": self.expected_nl_response or "",
-        }
+        # Use generic fields if populated, otherwise fall back to NL2API fields
+        if self.input or self.expected:
+            content = {
+                "input": self.input,
+                "expected": self.expected,
+            }
+        else:
+            content = {
+                "nl_query": self.nl_query or "",
+                "expected_tool_calls": [
+                    tc.to_canonical_string() for tc in self.expected_tool_calls
+                ],
+                "expected_nl_response": self.expected_nl_response or "",
+            }
         return hashlib.sha256(json.dumps(content, sort_keys=True).encode()).hexdigest()[:16]
+
+    def to_generic(self) -> TestCase:
+        """Convert NL2API-specific fields to generic format.
+
+        Returns a new TestCase with populated generic fields.
+        Useful for migration or pack-agnostic processing.
+        """
+        if self.input and self.expected:
+            # Already in generic format
+            return self
+
+        generic_input = dict(self.input) if self.input else {}
+        generic_expected = dict(self.expected) if self.expected else {}
+
+        # Populate from NL2API fields if not already set
+        if self.nl_query and "nl_query" not in generic_input:
+            generic_input["nl_query"] = self.nl_query
+
+        if self.expected_tool_calls and "tool_calls" not in generic_expected:
+            generic_expected["tool_calls"] = [
+                {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+                for tc in self.expected_tool_calls
+            ]
+
+        if self.expected_response and "response" not in generic_expected:
+            generic_expected["response"] = self.expected_response
+
+        if self.expected_nl_response and "nl_response" not in generic_expected:
+            generic_expected["nl_response"] = self.expected_nl_response
+
+        return self.model_copy(update={"input": generic_input, "expected": generic_expected})
+
+    @classmethod
+    def from_generic(
+        cls,
+        id: str,
+        input: dict[str, Any],
+        expected: dict[str, Any],
+        metadata: TestCaseMetadata | None = None,
+        **kwargs: Any,
+    ) -> TestCase:
+        """Create a TestCase from generic input/expected dicts.
+
+        Automatically extracts NL2API-specific fields if present in the dicts.
+        """
+        # Extract NL2API fields from generic dicts if present
+        nl_query = input.get("nl_query")
+        expected_tool_calls = ()
+        if "tool_calls" in expected:
+            expected_tool_calls = tuple(
+                ToolCall(tool_name=tc["tool_name"], arguments=tc.get("arguments", {}))
+                for tc in expected["tool_calls"]
+            )
+        expected_response = expected.get("response")
+        expected_nl_response = expected.get("nl_response")
+
+        return cls(
+            id=id,
+            input=input,
+            expected=expected,
+            nl_query=nl_query,
+            expected_tool_calls=expected_tool_calls,
+            expected_response=expected_response,
+            expected_nl_response=expected_nl_response,
+            metadata=metadata,
+            **kwargs,
+        )
 
 
 class TestCaseSetConfig(BaseModel):

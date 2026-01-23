@@ -45,7 +45,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum(last_over_time(nl2api_regression_alerts_total[2d])) - sum(last_over_time(nl2api_regression_alerts_acknowledged_total[2d])) or vector(0)", "refId": "A" }
+        { "expr": "sum(nl2api_regression_alerts_total) - sum(nl2api_regression_alerts_acknowledged_total) or vector(0)", "refId": "A" }
       ],
       "title": "Unacked Alerts",
       "type": "stat"
@@ -80,7 +80,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(100 * sum(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
+        { "expr": "(100 * sum(nl2api_eval_batch_tests_passed_total) / clamp_min(sum(nl2api_eval_batch_tests_total), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Pass Rate",
       "type": "stat"
@@ -115,7 +115,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(100 * sum(increase(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[24h])) / clamp_min(sum(increase(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[24h])), 1)) or vector(0)", "refId": "A" }
+        { "expr": "(100 * sum(increase(nl2api_eval_batch_tests_passed_total[24h])) / clamp_min(sum(increase(nl2api_eval_batch_tests_total[24h])), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Pass Rate (24h)",
       "type": "stat"
@@ -143,7 +143,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d]))) or vector(0)", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_batch_tests_total)) or vector(0)", "refId": "A" }
       ],
       "title": "Total Tests",
       "type": "stat"
@@ -207,7 +207,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])) / 1000000) or vector(0)", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_cost_usd_total) / 1000000) or vector(0)", "refId": "A" }
       ],
       "title": "Total Cost",
       "type": "stat"
@@ -241,8 +241,8 @@
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
+            "showPoints": "auto",
+            "spanNulls": 3600000,
             "stacking": { "group": "A", "mode": "none" },
             "thresholdsStyle": { "mode": "line" }
           },
@@ -262,7 +262,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(100 * sum(rate(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[5m])) / clamp_min(sum(rate(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[5m])), 0.0001)) or vector(0)", "legendFormat": "Pass Rate", "refId": "A" }
+        { "expr": "100 * sum(nl2api_eval_batch_tests_passed_total) / clamp_min(sum(nl2api_eval_batch_tests_total), 1)", "legendFormat": "Pass Rate", "refId": "A" }
       ],
       "title": "Pass Rate Over Time",
       "type": "timeseries"
@@ -288,8 +288,8 @@
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
+            "showPoints": "auto",
+            "spanNulls": 3600000,
             "stacking": { "group": "A", "mode": "none" },
             "thresholdsStyle": { "mode": "off" }
           },
@@ -307,8 +307,8 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(histogram_quantile(0.50, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p50", "refId": "A" },
-        { "expr": "(histogram_quantile(0.95, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p95", "refId": "B" }
+        { "expr": "(histogram_quantile(0.50, sum(last_over_time(nl2api_eval_test_duration_ms_milliseconds_bucket[5m])) by (le))) >= 0 or vector(0)", "legendFormat": "p50", "refId": "A" },
+        { "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_test_duration_ms_milliseconds_bucket[5m])) by (le))) >= 0 or vector(0)", "legendFormat": "p95", "refId": "B" }
       ],
       "title": "Latency Over Time",
       "type": "timeseries"
@@ -342,8 +342,8 @@
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
+            "showPoints": "auto",
+            "spanNulls": 3600000,
             "stacking": { "group": "A", "mode": "none" },
             "thresholdsStyle": { "mode": "off" }
           },
@@ -363,7 +363,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(100 * sum by (client_type) (rate(nl2api_eval_batch_tests_passed_total[5m])) / clamp_min(sum by (client_type) (rate(nl2api_eval_batch_tests_total[5m])), 0.0001)) or vector(0)", "legendFormat": "{{client_type}}", "refId": "A" }
+        { "expr": "100 * sum by (client_type) (nl2api_eval_batch_tests_passed_total) / clamp_min(sum by (client_type) (nl2api_eval_batch_tests_total), 1)", "legendFormat": "{{client_type}}", "refId": "A" }
       ],
       "title": "Pass Rate by Client",
       "type": "timeseries"
@@ -389,8 +389,8 @@
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
+            "showPoints": "auto",
+            "spanNulls": 3600000,
             "stacking": { "group": "A", "mode": "none" },
             "thresholdsStyle": { "mode": "off" }
           },
@@ -404,14 +404,14 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
       "id": 22,
       "options": {
-        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "right", "showLegend": true },
         "tooltip": { "mode": "multi", "sort": "none" }
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum by (client_type) (rate(nl2api_eval_cost_usd_total[$__rate_interval])) / 1000000", "legendFormat": "{{client_type}}", "refId": "A" }
+        { "expr": "sum by (client_type) (nl2api_eval_cost_usd_total) / 1000000", "legendFormat": "{{client_type}}", "refId": "A" }
       ],
-      "title": "Cost by Client",
+      "title": "Cost by Client (Cumulative)",
       "type": "timeseries"
     },
     {
@@ -446,7 +446,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(last_over_time(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"input\"}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_tokens_total{token_type=\"input\"}) / clamp_min(sum(nl2api_eval_batch_tests_total), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Avg Input Tokens/Test",
       "type": "stat"
@@ -475,7 +475,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(last_over_time(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"output\"}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_tokens_total{token_type=\"output\"}) / clamp_min(sum(nl2api_eval_batch_tests_total), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Avg Output Tokens/Test",
       "type": "stat"
@@ -504,7 +504,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "((sum(last_over_time(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])) / 1000000) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
+        { "expr": "((sum(nl2api_eval_cost_usd_total) / 1000000) / clamp_min(sum(nl2api_eval_batch_tests_total), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Avg Cost/Test",
       "type": "stat"
@@ -532,7 +532,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(last_over_time(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"input\"}[2d]))) or vector(0)", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_tokens_total{token_type=\"input\"})) or vector(0)", "refId": "A" }
       ],
       "title": "Total Input Tokens",
       "type": "stat"
@@ -560,55 +560,10 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(last_over_time(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"output\"}[2d]))) or vector(0)", "refId": "A" }
+        { "expr": "(sum(nl2api_eval_tokens_total{token_type=\"output\"})) or vector(0)", "refId": "A" }
       ],
       "title": "Total Output Tokens",
       "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false,
-            "lineInterpolation": "smooth",
-            "lineWidth": 2,
-            "pointSize": 5,
-            "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "none" },
-            "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
-      "id": 36,
-      "options": {
-        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "none" }
-      },
-      "pluginVersion": "10.3.1",
-      "targets": [
-        { "expr": "sum by (token_type) (rate(nl2api_eval_tokens_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[$__rate_interval]))", "legendFormat": "{{token_type}}", "refId": "A" }
-      ],
-      "title": "Token Usage Over Time",
-      "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -666,8 +621,56 @@
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": { "type": "linear" },
-            "showPoints": "never",
-            "spanNulls": false,
+            "showPoints": "auto",
+            "spanNulls": 3600000,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "input" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "output" }, "properties": [{ "id": "color", "value": { "fixedColor": "purple", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "id": 36,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "10.3.1",
+      "targets": [
+        { "expr": "sum by (token_type) (nl2api_eval_tokens_total)", "legendFormat": "{{token_type}}", "refId": "A" }
+      ],
+      "title": "Token Usage (Cumulative)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "auto",
+            "spanNulls": 3600000,
             "stacking": { "group": "A", "mode": "none" },
             "thresholdsStyle": { "mode": "off" }
           },
@@ -685,8 +688,8 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(histogram_quantile(0.5, sum(rate(nl2api_eval_batch_duration_seconds_bucket{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p50", "refId": "A" },
-        { "expr": "(histogram_quantile(0.95, sum(rate(nl2api_eval_batch_duration_seconds_bucket{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p95", "refId": "B" }
+        { "expr": "(histogram_quantile(0.5, sum(last_over_time(nl2api_eval_batch_duration_seconds_bucket[5m])) by (le))) >= 0 or vector(0)", "legendFormat": "p50", "refId": "A" },
+        { "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_batch_duration_seconds_bucket[5m])) by (le))) >= 0 or vector(0)", "legendFormat": "p95", "refId": "B" }
       ],
       "title": "Batch Duration Over Time",
       "type": "timeseries"
@@ -728,7 +731,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum(last_over_time(nl2api_regression_alerts_total{severity=\"critical\"}[2d])) or vector(0)", "refId": "A" }
+        { "expr": "sum(nl2api_regression_alerts_total{severity=\"critical\"}) or vector(0)", "refId": "A" }
       ],
       "title": "Critical Alerts",
       "type": "stat"
@@ -762,7 +765,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum(last_over_time(nl2api_regression_alerts_total{severity=\"warning\"}[2d])) or vector(0)", "refId": "A" }
+        { "expr": "sum(nl2api_regression_alerts_total{severity=\"warning\"}) or vector(0)", "refId": "A" }
       ],
       "title": "Warning Alerts",
       "type": "stat"
@@ -833,14 +836,14 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 37 },
       "id": 44,
       "options": {
-        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "right", "showLegend": true },
         "tooltip": { "mode": "multi", "sort": "none" }
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum by (severity) (rate(nl2api_regression_alerts_total[$__rate_interval]))", "legendFormat": "{{severity}}", "refId": "A" }
+        { "expr": "sum by (severity) (nl2api_regression_alerts_total)", "legendFormat": "{{severity}}", "refId": "A" }
       ],
-      "title": "Alerts Over Time",
+      "title": "Alerts Over Time (Cumulative)",
       "type": "timeseries"
     },
     {
@@ -878,83 +881,28 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 41 },
       "id": 45,
       "options": {
-        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "right", "showLegend": true },
         "tooltip": { "mode": "multi", "sort": "none" }
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum by (metric_name) (rate(nl2api_regression_alerts_total[$__rate_interval]))", "legendFormat": "{{metric_name}}", "refId": "A" }
+        { "expr": "sum by (metric_name) (nl2api_regression_alerts_total)", "legendFormat": "{{metric_name}}", "refId": "A" }
       ],
-      "title": "Alerts by Metric",
+      "title": "Alerts by Metric (Cumulative)",
       "type": "timeseries"
     }
   ],
   "refresh": "30s",
   "schemaVersion": 39,
-  "tags": ["nl2api", "evaluation"],
+  "tags": ["nl2api", "overview"],
   "templating": {
-    "list": [
-      {
-        "allValue": ".*",
-        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "definition": "label_values(nl2api_eval_batch_tests_total, client_type)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Client Type",
-        "multi": true,
-        "name": "client_type",
-        "options": [],
-        "query": { "query": "label_values(nl2api_eval_batch_tests_total, client_type)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "type": "query"
-      },
-      {
-        "allValue": ".*",
-        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "definition": "label_values(nl2api_eval_batch_tests_total{client_type=~\"$client_type\"}, client_version)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Client Version",
-        "multi": true,
-        "name": "client_version",
-        "options": [],
-        "query": { "query": "label_values(nl2api_eval_batch_tests_total{client_type=~\"$client_type\"}, client_version)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "type": "query"
-      },
-      {
-        "allValue": ".*",
-        "current": { "selected": true, "text": ["All"], "value": ["$__all"] },
-        "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "definition": "label_values(nl2api_eval_batch_tests_total, eval_mode)",
-        "hide": 0,
-        "includeAll": true,
-        "label": "Eval Mode",
-        "multi": true,
-        "name": "eval_mode",
-        "options": [],
-        "query": { "query": "label_values(nl2api_eval_batch_tests_total, eval_mode)", "refId": "PrometheusVariableQueryEditor-VariableQuery" },
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "type": "query"
-      }
-    ]
+    "list": []
   },
-  "time": { "from": "now-3h", "to": "now" },
+  "time": { "from": "now-24h", "to": "now" },
   "timepicker": {},
   "timezone": "",
   "title": "NL2API Overview",
   "uid": "nl2api-overview",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }

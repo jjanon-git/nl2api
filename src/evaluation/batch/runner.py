@@ -30,8 +30,7 @@ from rich.table import Table
 
 from CONTRACTS import (
     BatchJob,
-    EvaluationConfig,
-    LLMJudgeConfig,
+    EvalContext,
     Scorecard,
     SystemResponse,
     TaskStatus,
@@ -40,7 +39,7 @@ from CONTRACTS import (
 from src.evaluation.batch.config import BatchRunnerConfig
 from src.evaluation.batch.metrics import get_metrics
 from src.evaluation.batch.pricing import calculate_cost
-from src.evaluation.core.evaluators import WaterfallEvaluator
+from src.evaluation.packs import get_pack
 
 if TYPE_CHECKING:
     from src.common.storage.protocols import (
@@ -95,7 +94,7 @@ class BatchRunner:
         test_case_repo: TestCaseRepository,
         scorecard_repo: ScorecardRepository,
         batch_repo: BatchJobRepository,
-        config: BatchRunnerConfig | None = None,
+        config: BatchRunnerConfig,
     ):
         """
         Initialize batch runner.
@@ -104,32 +103,25 @@ class BatchRunner:
             test_case_repo: Repository for fetching test cases
             scorecard_repo: Repository for saving scorecards
             batch_repo: Repository for batch job tracking
-            config: Configuration options
+            config: Configuration options (pack_name is required)
         """
         self.test_case_repo = test_case_repo
         self.scorecard_repo = scorecard_repo
         self.batch_repo = batch_repo
-        self.config = config or BatchRunnerConfig()
+        self.config = config
 
-        # Build evaluation config based on batch runner config
-        eval_config = EvaluationConfig(
-            semantics_stage_enabled=self.config.semantics_enabled,
-        )
-
-        # Build LLM judge config if semantics is enabled
-        llm_judge_config = None
-        if self.config.semantics_enabled:
-            llm_judge_kwargs = {
-                "pass_threshold": self.config.semantics_pass_threshold,
+        # Build pack-specific configuration
+        pack_kwargs: dict[str, Any] = {}
+        if self.config.pack_name == "nl2api":
+            pack_kwargs = {
+                "semantics_enabled": self.config.semantics_enabled,
             }
-            if self.config.semantics_model:
-                llm_judge_kwargs["model"] = self.config.semantics_model
-            llm_judge_config = LLMJudgeConfig(**llm_judge_kwargs)
+        # RAG pack uses its own config structure via RAGPackConfig
+        # Additional pack configs can be added here as needed
 
-        self.evaluator = WaterfallEvaluator(
-            config=eval_config,
-            llm_judge_config=llm_judge_config,
-        )
+        # Get the evaluation pack
+        self.pack = get_pack(self.config.pack_name, **pack_kwargs)
+
         self.semaphore = asyncio.Semaphore(self.config.max_concurrency)
         self.metrics = get_metrics()
 
@@ -193,7 +185,8 @@ class BatchRunner:
                 console.print(f" / [cyan]{self.config.client_version}[/cyan]")
             else:
                 console.print()
-            console.print(f"  Eval mode: [cyan]{self.config.eval_mode}[/cyan]\n")
+            console.print(f"  Eval mode: [cyan]{self.config.eval_mode}[/cyan]")
+            console.print(f"  Pack: [cyan]{self.config.pack_name}[/cyan]\n")
 
         # Track results
         passed_count = 0
@@ -302,6 +295,49 @@ class BatchRunner:
 
         return completed_batch
 
+    def _response_to_output(self, response: SystemResponse, test_case: TestCase) -> dict[str, Any]:
+        """
+        Convert SystemResponse to pack-specific system_output dict.
+
+        Args:
+            response: SystemResponse from the target system
+            test_case: The test case being evaluated
+
+        Returns:
+            Dict with pack-specific fields for evaluation
+        """
+        import json
+
+        if self.config.pack_name == "nl2api":
+            return {
+                "raw_output": response.raw_output,
+                "nl_response": response.nl_response,
+            }
+        elif self.config.pack_name == "rag":
+            # RAG needs different fields - try to extract from raw_output JSON first
+            # (used by simulated generator), then fall back to attributes
+            rag_data: dict[str, Any] = {}
+            try:
+                if response.raw_output:
+                    rag_data = json.loads(response.raw_output)
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+            return {
+                "response": rag_data.get("response", response.nl_response or response.raw_output),
+                "retrieved_doc_ids": rag_data.get(
+                    "retrieved_doc_ids", getattr(response, "retrieved_doc_ids", [])
+                ),
+                "retrieved_chunks": rag_data.get(
+                    "retrieved_chunks", getattr(response, "retrieved_chunks", [])
+                ),
+                "sources": rag_data.get("sources", getattr(response, "sources", [])),
+                "context": rag_data.get("context", getattr(response, "context", "")),
+            }
+        else:
+            # Generic fallback
+            return {"raw_output": response.raw_output}
+
     async def _evaluate_one(
         self,
         test_case: TestCase,
@@ -323,11 +359,21 @@ class BatchRunner:
             # Generate response
             response = await response_simulator(test_case)
 
-            # Run evaluation
-            scorecard = await self.evaluator.evaluate(
-                test_case=test_case,
-                system_response=response,
+            # Convert SystemResponse to pack-specific system_output dict
+            system_output = self._response_to_output(response, test_case)
+
+            # Create evaluation context
+            context = EvalContext(
+                batch_id=batch_id,
                 worker_id=f"batch-{batch_id[:8]}",
+                config={},
+            )
+
+            # Run evaluation through pack
+            scorecard = await self.pack.evaluate(
+                test_case=test_case,
+                system_output=system_output,
+                context=context,
             )
 
             # Extract token usage from response

@@ -32,8 +32,11 @@ from src.contracts import (
     Client,
     ClientType,
     ErrorCode,
+    # Evaluation Pack Protocol (general-purpose framework)
+    EvalContext,
     EvalMode,
     EvaluationConfig,
+    EvaluationPack,
     EvaluationRun,
     EvaluationStage,
     # Evaluation
@@ -46,6 +49,7 @@ from src.contracts import (
     LLMProvider,
     RunStatus,
     Scorecard,
+    Stage,
     StageResult,
     # Core Models
     SystemResponse,
@@ -103,6 +107,10 @@ __all__ = [
     "Evaluator",
     "EvaluationConfig",
     "LLMJudgeConfig",
+    # Evaluation Pack Protocol (general-purpose framework)
+    "EvalContext",
+    "Stage",
+    "EvaluationPack",
     # Worker
     "WorkerTask",
     "BatchJob",

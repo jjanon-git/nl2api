@@ -28,6 +28,10 @@ class ScheduleConfig(BaseModel):
     )
 
     # Target configuration
+    pack_name: str = Field(
+        default="nl2api",
+        description="Evaluation pack (nl2api, rag)",
+    )
     client_type: str = Field(
         default="internal",
         description="Client type to evaluate (internal, mcp_claude, etc.)",
