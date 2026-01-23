@@ -25,6 +25,7 @@ try:
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+    from opentelemetry.sdk.metrics.view import View, ExplicitBucketHistogramAggregation
     from opentelemetry.sdk.resources import Resource, SERVICE_NAME, SERVICE_VERSION
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
@@ -133,7 +134,19 @@ def init_telemetry(
                 metric_exporter,
                 export_interval_millis=_config.metrics_export_interval_ms,
             )
-            _meter_provider = MeterProvider(resource=resource, metric_readers=[reader])
+
+            # Custom bucket boundaries for score histograms (0-1 range)
+            score_buckets = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+            score_view = View(
+                instrument_name="eval_test_score",
+                aggregation=ExplicitBucketHistogramAggregation(score_buckets),
+            )
+
+            _meter_provider = MeterProvider(
+                resource=resource,
+                metric_readers=[reader],
+                views=[score_view],
+            )
             metrics.set_meter_provider(_meter_provider)
             logger.info(f"Metrics initialized, exporting to {_config.otlp_endpoint}")
 
