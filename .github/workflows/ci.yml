@@ -133,6 +133,7 @@ jobs:
           POSTGRES_USER: nl2api
           POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
           POSTGRES_DB: nl2api_test
+          DATABASE_URL: postgresql://nl2api:nl2api@localhost:5432/nl2api_test
           REDIS_URL: redis://localhost:6379
         run: |
           pytest tests/unit/ \
