@@ -393,6 +393,7 @@ class TestLocalEmbedder:
 
     def test_create_embedder_local(self) -> None:
         """Test create_embedder factory with local provider."""
+        pytest.importorskip("sentence_transformers")
         from src.nl2api.rag.embedders import LocalEmbedder, create_embedder
 
         embedder = create_embedder("local")
