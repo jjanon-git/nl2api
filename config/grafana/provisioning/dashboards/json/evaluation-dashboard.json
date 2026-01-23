@@ -383,7 +383,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.95, sum(increase(nl2api_eval_test_duration_ms_milliseconds_bucket[6h])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(nl2api_eval_test_duration_ms_milliseconds_bucket) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
@@ -686,7 +686,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.5, sum(increase(nl2api_eval_test_score_bucket[6h])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.5, sum(nl2api_eval_test_score_bucket) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
@@ -1111,7 +1111,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.5, sum(increase(nl2api_eval_worker_task_duration_ms_bucket[6h])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.5, sum(nl2api_eval_worker_task_duration_ms_bucket) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
@@ -1173,7 +1173,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.95, sum(increase(nl2api_eval_worker_task_duration_ms_bucket[6h])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(nl2api_eval_worker_task_duration_ms_bucket) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
