@@ -927,12 +927,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum by (client_version) (rate(nl2api_eval_batch_tests_passed_total[5m])) / sum by (client_version) (rate(nl2api_eval_batch_tests_total[5m]))",
-          "legendFormat": "{{client_version}}",
+          "expr": "100 * sum by (client_type) (last_over_time(nl2api_eval_batch_tests_passed_total[2d])) / clamp_min(sum by (client_type) (last_over_time(nl2api_eval_batch_tests_total[2d])), 1)",
+          "legendFormat": "{{client_type}}",
           "refId": "A"
         }
       ],
-      "title": "Pass Rate by Client Version",
+      "title": "Pass Rate by Client Type",
       "type": "timeseries"
     },
     {
@@ -1573,12 +1573,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (error_type) (rate(nl2api_eval_worker_tasks_failed_total[5m]))",
-          "legendFormat": "{{error_type}}",
+          "expr": "sum by (stage) (last_over_time(nl2api_eval_stage_failed_total[2d]))",
+          "legendFormat": "{{stage}}",
           "refId": "A"
         }
       ],
-      "title": "Failures by Error Type",
+      "title": "Failures by Stage",
       "type": "timeseries"
     },
     {
@@ -1649,7 +1649,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(100 * sum(nl2api_eval_stage_passed_total{stage='syntax'}) / clamp_min(sum(nl2api_eval_stage_passed_total{stage='syntax'}) + sum(nl2api_eval_stage_failed_total{stage='syntax'}), 1)) or vector(0)",
+          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax'}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='syntax'}[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1711,7 +1711,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(100 * sum(nl2api_eval_stage_passed_total{stage='logic'}) / clamp_min(sum(nl2api_eval_stage_passed_total{stage='logic'}) + sum(nl2api_eval_stage_failed_total{stage='logic'}), 1)) or vector(0)",
+          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic'}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='logic'}[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1773,7 +1773,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(100 * sum(nl2api_eval_stage_passed_total{stage='execution'}) / clamp_min(sum(nl2api_eval_stage_passed_total{stage='execution'}) + sum(nl2api_eval_stage_failed_total{stage='execution'}), 1)) or vector(0)",
+          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution'}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='execution'}[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1835,7 +1835,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(100 * sum(nl2api_eval_stage_passed_total{stage='semantics'}) / clamp_min(sum(nl2api_eval_stage_passed_total{stage='semantics'}) + sum(nl2api_eval_stage_failed_total{stage='semantics'}), 1)) or vector(0)",
+          "expr": "(100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics'}[2d])) + sum(last_over_time(nl2api_eval_stage_failed_total{stage='semantics'}[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -2151,17 +2151,17 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.5, sum(last_over_time(nl2api_eval_test_duration_ms_milliseconds_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.5, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P50",
           "refId": "A"
         },
         {
-          "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_test_duration_ms_milliseconds_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P95",
           "refId": "B"
         },
         {
-          "expr": "(histogram_quantile(0.99, sum(last_over_time(nl2api_eval_test_duration_ms_milliseconds_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.99, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P99",
           "refId": "C"
         }
