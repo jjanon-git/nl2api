@@ -417,6 +417,7 @@ class TestLocalEmbedder:
     @pytest.mark.asyncio
     async def test_local_embedder_embed(self) -> None:
         """Test LocalEmbedder can generate embeddings."""
+        pytest.importorskip("sentence_transformers")
         from src.nl2api.rag.embedders import LocalEmbedder
 
         embedder = LocalEmbedder()
@@ -429,6 +430,7 @@ class TestLocalEmbedder:
     @pytest.mark.asyncio
     async def test_local_embedder_embed_batch(self) -> None:
         """Test LocalEmbedder can generate batch embeddings."""
+        pytest.importorskip("sentence_transformers")
         from src.nl2api.rag.embedders import LocalEmbedder
 
         embedder = LocalEmbedder()
