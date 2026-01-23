@@ -80,7 +80,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(100 * sum(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
+        { "expr": "(100 * sum(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Pass Rate",
       "type": "stat"
@@ -115,7 +115,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(100 * sum(increase(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[24h])) / clamp_min(sum(increase(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[24h])), 1)) or vector(0)", "refId": "A" }
+        { "expr": "(100 * sum(increase(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[24h])) / clamp_min(sum(increase(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[24h])), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Pass Rate (24h)",
       "type": "stat"
@@ -143,7 +143,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[2d]))) or vector(0)", "refId": "A" }
+        { "expr": "(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d]))) or vector(0)", "refId": "A" }
       ],
       "title": "Total Tests",
       "type": "stat"
@@ -178,7 +178,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_test_duration_ms_milliseconds_bucket[2d]){client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) by (le))) >= 0 or vector(0)", "refId": "A" }
+        { "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_test_duration_ms_milliseconds_bucket[2d])) by (le))) >= 0 or vector(0)", "refId": "A" }
       ],
       "title": "P95 Latency",
       "type": "stat"
@@ -207,7 +207,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[2d])) / 1000000) or vector(0)", "refId": "A" }
+        { "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])) / 1000000) or vector(0)", "refId": "A" }
       ],
       "title": "Total Cost",
       "type": "stat"
@@ -262,7 +262,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(100 * sum(rate(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])) / clamp_min(sum(rate(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[5m])), 0.0001)) or vector(0)", "legendFormat": "Pass Rate", "refId": "A" }
+        { "expr": "(100 * sum(rate(nl2api_eval_batch_tests_passed_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[5m])) / clamp_min(sum(rate(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[5m])), 0.0001)) or vector(0)", "legendFormat": "Pass Rate", "refId": "A" }
       ],
       "title": "Pass Rate Over Time",
       "type": "timeseries"
@@ -307,8 +307,8 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(histogram_quantile(0.50, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p50", "refId": "A" },
-        { "expr": "(histogram_quantile(0.95, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p95", "refId": "B" }
+        { "expr": "(histogram_quantile(0.50, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p50", "refId": "A" },
+        { "expr": "(histogram_quantile(0.95, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p95", "refId": "B" }
       ],
       "title": "Latency Over Time",
       "type": "timeseries"
@@ -446,7 +446,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(last_over_time(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"input\"}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
+        { "expr": "(sum(last_over_time(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"input\"}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Avg Input Tokens/Test",
       "type": "stat"
@@ -475,7 +475,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(sum(last_over_time(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"output\"}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
+        { "expr": "(sum(last_over_time(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\", token_type=\"output\"}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Avg Output Tokens/Test",
       "type": "stat"
@@ -504,7 +504,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "((sum(last_over_time(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[2d])) / 1000000) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
+        { "expr": "((sum(last_over_time(nl2api_eval_cost_usd_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])) / 1000000) / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[2d])), 1)) or vector(0)", "refId": "A" }
       ],
       "title": "Avg Cost/Test",
       "type": "stat"
@@ -605,7 +605,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "sum by (token_type) (rate(nl2api_eval_tokens_total{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[$__rate_interval]))", "legendFormat": "{{token_type}}", "refId": "A" }
+        { "expr": "sum by (token_type) (rate(nl2api_eval_tokens_total{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[$__rate_interval]))", "legendFormat": "{{token_type}}", "refId": "A" }
       ],
       "title": "Token Usage Over Time",
       "type": "timeseries"
@@ -640,7 +640,7 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(histogram_quantile(0.50, sum(last_over_time(nl2api_eval_test_duration_ms_milliseconds_bucket[2d]){client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}) by (le))) >= 0 or vector(0)", "refId": "A" }
+        { "expr": "(histogram_quantile(0.50, sum(last_over_time(nl2api_eval_test_duration_ms_milliseconds_bucket[2d])) by (le))) >= 0 or vector(0)", "refId": "A" }
       ],
       "title": "P50 Latency",
       "type": "stat"
@@ -685,8 +685,8 @@
       },
       "pluginVersion": "10.3.1",
       "targets": [
-        { "expr": "(histogram_quantile(0.5, sum(rate(nl2api_eval_batch_duration_seconds_bucket{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p50", "refId": "A" },
-        { "expr": "(histogram_quantile(0.95, sum(rate(nl2api_eval_batch_duration_seconds_bucket{client_type=~\"$client_type\", client_version=~\"$client_version\", eval_mode=~\"$eval_mode\"}[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p95", "refId": "B" }
+        { "expr": "(histogram_quantile(0.5, sum(rate(nl2api_eval_batch_duration_seconds_bucket{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p50", "refId": "A" },
+        { "expr": "(histogram_quantile(0.95, sum(rate(nl2api_eval_batch_duration_seconds_bucket{client_type=~\"$client_type\", eval_mode=~\"$eval_mode\"}[$__rate_interval])) by (le))) >= 0 or vector(0)", "legendFormat": "p95", "refId": "B" }
       ],
       "title": "Batch Duration Over Time",
       "type": "timeseries"
