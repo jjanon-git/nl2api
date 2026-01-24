@@ -361,3 +361,129 @@ class TestMessageConversion:
         assert len(call_kwargs["messages"]) == 4  # system, user, assistant, tool
         assert call_kwargs["messages"][0]["role"] == "system"
         assert call_kwargs["messages"][1]["role"] == "user"
+
+
+class TestRetryHelpers:
+    """Test retry helper functions for both providers."""
+
+    def test_calculate_wait_time_exponential_backoff(self) -> None:
+        """Test that wait time increases exponentially."""
+        from src.nl2api.llm.claude import _calculate_wait_time
+
+        # With jitter_factor=0, we get exact exponential backoff
+        wait_0 = _calculate_wait_time(0, retry_after=None, jitter_factor=0)
+        wait_1 = _calculate_wait_time(1, retry_after=None, jitter_factor=0)
+        wait_2 = _calculate_wait_time(2, retry_after=None, jitter_factor=0)
+
+        assert wait_0 == 1.0  # 1 * 2^0
+        assert wait_1 == 2.0  # 1 * 2^1
+        assert wait_2 == 4.0  # 1 * 2^2
+
+    def test_calculate_wait_time_honors_retry_after(self) -> None:
+        """Test that retry_after from API is honored."""
+        from src.nl2api.llm.claude import _calculate_wait_time
+
+        # With retry_after set, use that value instead of backoff
+        wait = _calculate_wait_time(0, retry_after=30.0, jitter_factor=0)
+        assert wait == 30.0
+
+        # Retry after is capped by max_delay
+        wait_capped = _calculate_wait_time(0, retry_after=120.0, max_delay=60.0, jitter_factor=0)
+        assert wait_capped == 60.0
+
+    def test_calculate_wait_time_adds_jitter(self) -> None:
+        """Test that jitter is added to prevent thundering herd."""
+        from src.nl2api.llm.claude import _calculate_wait_time
+
+        # With jitter, we should get values in a range around the base
+        # Run multiple times to verify randomness
+        wait_times = [
+            _calculate_wait_time(2, retry_after=None, jitter_factor=0.25) for _ in range(50)
+        ]
+
+        # Base is 4.0, with 25% jitter we expect range [3.0, 5.0]
+        assert all(3.0 <= w <= 5.0 for w in wait_times)
+
+        # Should not all be the same (random)
+        assert len(set(wait_times)) > 1
+
+    def test_calculate_wait_time_minimum_floor(self) -> None:
+        """Test that wait time never goes below 100ms."""
+        from src.nl2api.llm.claude import _calculate_wait_time
+
+        # Even with extreme negative jitter scenario, floor is 0.1
+        # (This is enforced by max(0.1, ...) in the implementation)
+        wait = _calculate_wait_time(0, retry_after=0.05, jitter_factor=0.5)
+        assert wait >= 0.1
+
+    def test_extract_retry_after_from_headers(self) -> None:
+        """Test extraction of retry-after header from exception."""
+        from src.nl2api.llm.claude import _extract_retry_after
+
+        # Mock an exception with response headers
+        mock_response = MagicMock()
+        mock_response.headers = {"retry-after": "45"}
+
+        mock_error = MagicMock()
+        mock_error.response = mock_response
+
+        result = _extract_retry_after(mock_error)
+        assert result == 45.0
+
+    def test_extract_retry_after_missing_header(self) -> None:
+        """Test that None is returned when header is missing."""
+        from src.nl2api.llm.claude import _extract_retry_after
+
+        # Mock an exception without retry-after header
+        mock_response = MagicMock()
+        mock_response.headers = {}
+
+        mock_error = MagicMock()
+        mock_error.response = mock_response
+
+        result = _extract_retry_after(mock_error)
+        assert result is None
+
+    def test_extract_retry_after_no_response(self) -> None:
+        """Test that None is returned when exception has no response."""
+        from src.nl2api.llm.claude import _extract_retry_after
+
+        # Mock an exception without response attribute
+        mock_error = MagicMock(spec=[])  # No attributes
+
+        result = _extract_retry_after(mock_error)
+        assert result is None
+
+    def test_extract_retry_after_invalid_value(self) -> None:
+        """Test that None is returned for non-numeric retry-after."""
+        from src.nl2api.llm.claude import _extract_retry_after
+
+        mock_response = MagicMock()
+        mock_response.headers = {"retry-after": "invalid"}
+
+        mock_error = MagicMock()
+        mock_error.response = mock_response
+
+        result = _extract_retry_after(mock_error)
+        assert result is None
+
+    def test_openai_helpers_match_claude(self) -> None:
+        """Test that OpenAI helpers have same behavior as Claude."""
+        from src.nl2api.llm.claude import _calculate_wait_time as claude_wait
+        from src.nl2api.llm.claude import _extract_retry_after as claude_extract
+        from src.nl2api.llm.openai import _calculate_wait_time as openai_wait
+        from src.nl2api.llm.openai import _extract_retry_after as openai_extract
+
+        # Same inputs should produce same structured output (ignoring jitter randomness)
+        # Test with no jitter for determinism
+        assert claude_wait(0, retry_after=15.0, jitter_factor=0) == openai_wait(
+            0, retry_after=15.0, jitter_factor=0
+        )
+        assert claude_wait(2, retry_after=None, jitter_factor=0) == openai_wait(
+            2, retry_after=None, jitter_factor=0
+        )
+
+        # Both should return None for exceptions without response
+        mock_error = MagicMock(spec=[])
+        assert claude_extract(mock_error) is None
+        assert openai_extract(mock_error) is None

@@ -70,6 +70,17 @@ class MockLLMProvider:
             )
         return LLMResponse(content="unknown")
 
+    async def complete_with_retry(
+        self,
+        messages: list[LLMMessage],
+        tools: list[LLMToolDefinition] | None = None,
+        temperature: float = 0.0,
+        max_tokens: int = 4096,
+        max_retries: int = 3,
+    ) -> LLMResponse:
+        """Mock complete_with_retry delegates to complete (no retry logic needed in mock)."""
+        return await self.complete(messages, tools, temperature, max_tokens)
+
 
 class MockToolProvider:
     """Mock tool provider for testing."""
@@ -269,6 +280,9 @@ class TestLLMToolRouter:
                 return "error-model"
 
             async def complete(self, **kwargs) -> LLMResponse:
+                raise RuntimeError("LLM API error")
+
+            async def complete_with_retry(self, **kwargs) -> LLMResponse:
                 raise RuntimeError("LLM API error")
 
         router = LLMToolRouter(

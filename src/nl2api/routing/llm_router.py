@@ -184,16 +184,17 @@ class LLMToolRouter:
                         )
                     )
 
-            # Step 3: LLM call with routing tools
+            # Step 3: LLM call with routing tools (with retry for rate limits)
             with trace_span("router.llm_call") as llm_span:
                 llm_span.set_attribute("llm.model", self._llm.model_name)
                 llm_span.set_attribute("llm.tools_count", len(self._routing_tools))
                 try:
-                    response = await self._llm.complete(
+                    response = await self._llm.complete_with_retry(
                         messages=messages,
                         tools=self._routing_tools,
                         temperature=0.0,
                         max_tokens=150,
+                        max_retries=3,
                     )
                     if hasattr(response, "usage") and response.usage:
                         llm_span.set_attribute(

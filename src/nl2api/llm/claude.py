@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 from typing import Any
 
 from src.common.telemetry import get_tracer
@@ -21,6 +22,69 @@ from src.nl2api.llm.protocols import (
 
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)
+
+
+def _extract_retry_after(error: Exception) -> float | None:
+    """
+    Extract retry-after value from rate limit error headers.
+
+    Anthropic's RateLimitError inherits from APIStatusError which has
+    a response object with headers. The retry-after header indicates
+    how long to wait before retrying.
+
+    Args:
+        error: The exception (expected to be RateLimitError)
+
+    Returns:
+        Seconds to wait, or None if not available
+    """
+    try:
+        # Anthropic SDK exposes headers via response.headers
+        if hasattr(error, "response") and error.response is not None:
+            headers = getattr(error.response, "headers", {})
+            retry_after = headers.get("retry-after")
+            if retry_after:
+                return float(retry_after)
+    except (ValueError, TypeError, AttributeError):
+        pass
+    return None
+
+
+def _calculate_wait_time(
+    attempt: int,
+    retry_after: float | None = None,
+    base_delay: float = 1.0,
+    max_delay: float = 60.0,
+    jitter_factor: float = 0.25,
+) -> float:
+    """
+    Calculate wait time with retry-after header support and jitter.
+
+    If retry_after is provided (from API headers), uses that as the base.
+    Otherwise falls back to exponential backoff.
+    Adds jitter to prevent thundering herd when multiple workers hit rate limits.
+
+    Args:
+        attempt: Current retry attempt (0-indexed)
+        retry_after: Seconds from retry-after header (if available)
+        base_delay: Base delay for exponential backoff
+        max_delay: Maximum delay cap
+        jitter_factor: Random jitter as fraction of wait time (0.25 = ±25%)
+
+    Returns:
+        Seconds to wait before next retry
+    """
+    if retry_after is not None:
+        # Use API-provided retry-after, but cap it
+        wait = min(retry_after, max_delay)
+    else:
+        # Exponential backoff: 1s, 2s, 4s, 8s, ...
+        wait = min(base_delay * (2**attempt), max_delay)
+
+    # Add jitter to prevent thundering herd
+    # Random value in range [wait * (1 - jitter), wait * (1 + jitter)]
+    jitter = wait * jitter_factor * (2 * random.random() - 1)
+    return max(0.1, wait + jitter)  # Never wait less than 100ms
 
 
 class ClaudeProvider:
@@ -233,22 +297,27 @@ class ClaudeProvider:
                     return result
                 except anthropic.RateLimitError as e:
                     last_error = e
-                    wait_time = 2**attempt  # Exponential backoff
+                    # Honor retry-after header from API if available
+                    retry_after = _extract_retry_after(e)
+                    wait_time = _calculate_wait_time(attempt, retry_after)
                     span.add_event(
                         "retry",
                         {
                             "attempt": attempt + 1,
                             "error_type": "rate_limit",
                             "wait_time": wait_time,
+                            "retry_after_header": retry_after,
                         },
                     )
                     logger.warning(
-                        f"Rate limited, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})"
+                        f"Rate limited, retrying in {wait_time:.1f}s "
+                        f"(attempt {attempt + 1}/{max_retries}, "
+                        f"retry-after={retry_after})"
                     )
                     await asyncio.sleep(wait_time)
                 except anthropic.APIConnectionError as e:
                     last_error = e
-                    wait_time = 2**attempt
+                    wait_time = _calculate_wait_time(attempt)
                     span.add_event(
                         "retry",
                         {
@@ -258,12 +327,13 @@ class ClaudeProvider:
                         },
                     )
                     logger.warning(
-                        f"Connection error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})"
+                        f"Connection error, retrying in {wait_time:.1f}s "
+                        f"(attempt {attempt + 1}/{max_retries})"
                     )
                     await asyncio.sleep(wait_time)
                 except anthropic.InternalServerError as e:
                     last_error = e
-                    wait_time = 2**attempt
+                    wait_time = _calculate_wait_time(attempt)
                     span.add_event(
                         "retry",
                         {
@@ -273,7 +343,8 @@ class ClaudeProvider:
                         },
                     )
                     logger.warning(
-                        f"Server error, retrying in {wait_time}s (attempt {attempt + 1}/{max_retries})"
+                        f"Server error, retrying in {wait_time:.1f}s "
+                        f"(attempt {attempt + 1}/{max_retries})"
                     )
                     await asyncio.sleep(wait_time)
 
