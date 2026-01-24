@@ -38,13 +38,15 @@ class TargetSystem(Protocol):
 
 class NL2APITargetAdapter:
     """
-    Makes NL2API behave like a target system for WaterfallEvaluator.
+    Makes NL2API behave like a target system for evaluation with NL2APIPack.
 
     Wraps the NL2APIOrchestrator and converts its responses to the
     SystemResponse format expected by the evaluation pipeline.
 
     Example usage:
         ```python
+        from src.evaluation.packs import NL2APIPack
+
         # Create orchestrator with agents
         orchestrator = NL2APIOrchestrator(llm=llm, agents={"estimates": agent})
 
@@ -52,8 +54,10 @@ class NL2APITargetAdapter:
         adapter = NL2APITargetAdapter(orchestrator)
 
         # Use in evaluation
+        pack = NL2APIPack()
         response = await adapter.invoke("What is Apple's EPS estimate?")
-        scorecard = await evaluator.evaluate(test_case, response, "worker-1")
+        system_output = {"raw_output": response.raw_output, "nl_response": response.nl_response}
+        scorecard = await pack.evaluate(test_case, system_output, context)
         ```
     """
 

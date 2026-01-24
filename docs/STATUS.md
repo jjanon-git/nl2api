@@ -34,7 +34,7 @@ NL2API is a Natural Language to API translation system for LSEG financial data A
 | **Entity Resolution** | ✅ | Pattern-based + static mappings, circuit breaker, Redis cache |
 | **Clarification Flow** | ✅ | Ambiguity detection and question generation |
 | **Multi-turn Conversations** | ✅ | Session management, query expansion |
-| **Evaluation Adapter** | ✅ | Integrates with WaterfallEvaluator |
+| **Evaluation Adapter** | ✅ | Integrates with NL2APIPack evaluation |
 
 ### Domain Agents
 

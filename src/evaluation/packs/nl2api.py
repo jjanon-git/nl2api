@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import time
 from dataclasses import dataclass
+from datetime import date
 from typing import Any
 
 from CONTRACTS import (
@@ -24,11 +25,13 @@ from CONTRACTS import (
     EvaluationStage,
     Scorecard,
     StageResult,
+    TemporalValidationMode,
     TestCase,
     ToolCall,
 )
 from src.common.telemetry import get_tracer
 from src.evaluation.core.ast_comparator import ASTComparator, ComparisonResult
+from src.evaluation.core.temporal import DateResolver, TemporalComparator
 
 tracer = get_tracer(__name__)
 
@@ -398,6 +401,11 @@ class NL2APIPack:
         execution_enabled: bool = False,
         semantics_enabled: bool = False,
         numeric_tolerance: float = 0.0001,
+        # Temporal config
+        temporal_mode: TemporalValidationMode = TemporalValidationMode.STRUCTURAL,
+        evaluation_date: date | None = None,
+        relative_date_fields: tuple[str, ...] = ("start", "end", "SDate", "EDate", "Period"),
+        fiscal_year_end_month: int = 12,
     ):
         """
         Initialize the NL2API pack.
@@ -406,10 +414,34 @@ class NL2APIPack:
             execution_enabled: Whether to include execution stage (deferred)
             semantics_enabled: Whether to include semantics stage
             numeric_tolerance: Tolerance for numeric comparisons in logic stage
+            temporal_mode: Temporal validation mode (BEHAVIORAL, STRUCTURAL, DATA)
+            evaluation_date: Reference date for temporal normalization (defaults to today)
+            relative_date_fields: Field names that may contain relative date expressions
+            fiscal_year_end_month: Month when fiscal year ends (1-12)
         """
         self.execution_enabled = execution_enabled
         self.semantics_enabled = semantics_enabled
         self.numeric_tolerance = numeric_tolerance
+        self.temporal_mode = temporal_mode
+        self.evaluation_date = evaluation_date
+        self.relative_date_fields = relative_date_fields
+        self.fiscal_year_end_month = fiscal_year_end_month
+
+        # Create comparator - use TemporalComparator if temporal mode is not DATA (exact match)
+        if temporal_mode != TemporalValidationMode.DATA:
+            date_resolver = DateResolver(
+                reference_date=evaluation_date,
+                fiscal_year_end_month=fiscal_year_end_month,
+            )
+            base_comparator = ASTComparator(numeric_tolerance=numeric_tolerance)
+            self._comparator: ASTComparator = TemporalComparator(
+                date_resolver=date_resolver,
+                validation_mode=temporal_mode,
+                relative_date_fields=relative_date_fields,
+                base_comparator=base_comparator,
+            )
+        else:
+            self._comparator = ASTComparator(numeric_tolerance=numeric_tolerance)
 
         # Build stages
         self._stages = [
@@ -521,7 +553,16 @@ class NL2APIPack:
         Returns:
             Scorecard with all stage results
         """
-        context = context or EvalContext()
+        # Create context with comparator if not provided
+        if context is None:
+            context = EvalContext(config={"comparator": self._comparator})
+        elif "comparator" not in context.config:
+            # Add comparator to existing context
+            context = EvalContext(
+                batch_id=context.batch_id,
+                worker_id=context.worker_id,
+                config={**context.config, "comparator": self._comparator},
+            )
         start_time = time.perf_counter()
 
         stage_results: dict[str, StageResult] = {}

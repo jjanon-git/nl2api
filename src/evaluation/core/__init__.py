@@ -2,7 +2,6 @@
 
 from src.evaluation.core.ast_comparator import ASTComparator, ComparisonResult
 from src.evaluation.core.evaluator import Evaluator, EvaluatorConfig
-from src.evaluation.core.evaluators import LogicEvaluator, SyntaxEvaluator, WaterfallEvaluator
 from src.evaluation.core.exporters import (
     CSVExporter,
     EvaluationSummary,
@@ -20,12 +19,10 @@ __all__ = [
     "CSVExporter",
     "SummaryExporter",
     "EvaluationSummary",
-    # Legacy evaluators (NL2API-specific)
+    # Comparators
     "ASTComparator",
     "ComparisonResult",
-    "SyntaxEvaluator",
-    "LogicEvaluator",
-    "WaterfallEvaluator",
+    # Semantics
     "SemanticsEvaluator",
     "ComparisonScores",
 ]

@@ -1057,8 +1057,8 @@ Sprint 5: ████████████████████  Manageme
 - Scaffold directory structure
 - Core schemas (CONTRACTS.py) — already done
 - `ASTComparator` for tool call comparison
-- `SyntaxEvaluator` (Stage 1)
-- `LogicEvaluator` (Stage 2)
+- `SyntaxStage` (Stage 1) - now in NL2APIPack
+- `LogicStage` (Stage 2) - now in NL2APIPack
 - Simple CLI that reads local JSON, runs eval, prints result
 
 **Not included:**

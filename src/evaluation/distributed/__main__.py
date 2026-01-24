@@ -105,13 +105,31 @@ async def create_worker_dependencies(args: argparse.Namespace):
 
     async def default_evaluator(test_case, response):
         """Evaluate the response against test case."""
-        # Import evaluator
-        from src.evaluation.core.config import EvaluationConfig
-        from src.evaluation.core.evaluators import create_evaluator_pipeline
+        from CONTRACTS import EvalContext, EvaluationConfig
+        from src.evaluation.packs import NL2APIPack
 
         config = EvaluationConfig()
-        pipeline = create_evaluator_pipeline(config)
-        return await pipeline.evaluate(test_case, response)
+        pack = NL2APIPack(
+            execution_enabled=config.execution_stage_enabled,
+            semantics_enabled=config.semantics_stage_enabled,
+            numeric_tolerance=config.numeric_tolerance,
+            temporal_mode=config.temporal_mode,
+            evaluation_date=config.evaluation_date,
+            relative_date_fields=config.relative_date_fields,
+            fiscal_year_end_month=config.fiscal_year_end_month,
+        )
+
+        # Convert SystemResponse to system_output dict expected by pack
+        system_output = {
+            "raw_output": response.raw_output,
+            "nl_response": response.nl_response,
+        }
+
+        return await pack.evaluate(
+            test_case=test_case,
+            system_output=system_output,
+            context=EvalContext(worker_id=args.worker_id),
+        )
 
     async def default_scorecard_saver(scorecard):
         """Save scorecard (no-op for now, will use repo in production)."""

@@ -1,21 +1,21 @@
 """
-Integration tests for SemanticsEvaluator with WaterfallEvaluator.
+Integration tests for SemanticsEvaluator with NL2APIPack.
 
 Tests cover:
-- WaterfallEvaluator runs semantics when enabled
-- WaterfallEvaluator skips semantics when disabled
-- WaterfallEvaluator skips when expected fields are NULL
+- NL2APIPack runs semantics when enabled
+- NL2APIPack skips semantics when disabled
+- NL2APIPack skips when expected fields are NULL
 - Scorecard includes semantics_result
 - BatchRunner with semantics enabled
 """
 
 import json
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
 from CONTRACTS import (
-    EvaluationConfig,
+    EvalContext,
     EvaluationStage,
     LLMJudgeConfig,
     Scorecard,
@@ -24,7 +24,7 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.evaluation.core.evaluators import WaterfallEvaluator
+from src.evaluation.packs import NL2APIPack
 
 
 @pytest.fixture
@@ -113,32 +113,39 @@ def mock_llm_for_semantics():
     return llm
 
 
-class TestWaterfallEvaluatorSemanticsIntegration:
-    """Integration tests for WaterfallEvaluator with semantics stage."""
+def _make_system_output(response: SystemResponse) -> dict:
+    """Convert SystemResponse to system_output dict for NL2APIPack."""
+    return {
+        "raw_output": response.raw_output,
+        "nl_response": response.nl_response,
+    }
+
+
+class TestNL2APIPackSemanticsIntegration:
+    """Integration tests for NL2APIPack with semantics stage."""
 
     @pytest.mark.asyncio
-    async def test_waterfall_runs_semantics_when_enabled(
+    async def test_pack_runs_semantics_when_enabled(
         self, test_case_with_nl, correct_system_response, mock_llm_for_semantics
     ):
-        """Should run semantics stage when enabled in config."""
-        config = EvaluationConfig(semantics_stage_enabled=True)
+        """Should run semantics stage when enabled."""
         llm_config = LLMJudgeConfig()
+        pack = NL2APIPack(semantics_enabled=True)
 
-        evaluator = WaterfallEvaluator(config=config, llm_judge_config=llm_config)
+        # Create a mock semantics evaluator and pass via context
+        from src.evaluation.core.semantics import SemanticsEvaluator
 
-        # Patch the LLM initialization
-        with patch.object(evaluator, "_semantics_evaluator", None):
-            # Create a mock semantics evaluator
-            from src.evaluation.core.semantics import SemanticsEvaluator
+        mock_sem_eval = SemanticsEvaluator(config=llm_config, llm=mock_llm_for_semantics)
+        context = EvalContext(
+            worker_id="test-worker",
+            config={"semantics_evaluator": mock_sem_eval},
+        )
 
-            mock_sem_eval = SemanticsEvaluator(config=llm_config, llm=mock_llm_for_semantics)
-            evaluator._semantics_evaluator = mock_sem_eval
-
-            scorecard = await evaluator.evaluate(
-                test_case=test_case_with_nl,
-                system_response=correct_system_response,
-                worker_id="test-worker",
-            )
+        scorecard = await pack.evaluate(
+            test_case=test_case_with_nl,
+            system_output=_make_system_output(correct_system_response),
+            context=context,
+        )
 
         assert scorecard.semantics_result is not None
         assert scorecard.semantics_result.stage == EvaluationStage.SEMANTICS
@@ -146,78 +153,75 @@ class TestWaterfallEvaluatorSemanticsIntegration:
         assert scorecard.semantics_result.score > 0.7
 
     @pytest.mark.asyncio
-    async def test_waterfall_skips_semantics_when_disabled(
+    async def test_pack_skips_semantics_when_disabled(
         self, test_case_with_nl, correct_system_response
     ):
-        """Should skip semantics stage when disabled in config."""
-        config = EvaluationConfig(semantics_stage_enabled=False)
+        """Should skip semantics stage when disabled."""
+        pack = NL2APIPack(semantics_enabled=False)
 
-        evaluator = WaterfallEvaluator(config=config)
-
-        scorecard = await evaluator.evaluate(
+        scorecard = await pack.evaluate(
             test_case=test_case_with_nl,
-            system_response=correct_system_response,
-            worker_id="test-worker",
+            system_output=_make_system_output(correct_system_response),
+            context=EvalContext(worker_id="test-worker"),
         )
 
         assert scorecard.semantics_result is None
 
     @pytest.mark.asyncio
-    async def test_waterfall_skips_when_no_nl_response(
+    async def test_pack_skips_when_no_nl_response(
         self, test_case_with_nl, correct_system_response_without_nl
     ):
         """Should skip semantics when system response has no NL."""
-        config = EvaluationConfig(semantics_stage_enabled=True)
+        pack = NL2APIPack(semantics_enabled=True)
 
-        evaluator = WaterfallEvaluator(config=config)
-
-        scorecard = await evaluator.evaluate(
+        scorecard = await pack.evaluate(
             test_case=test_case_with_nl,
-            system_response=correct_system_response_without_nl,
-            worker_id="test-worker",
+            system_output=_make_system_output(correct_system_response_without_nl),
+            context=EvalContext(worker_id="test-worker"),
         )
 
-        # Semantics should be skipped because actual_nl is None
-        assert scorecard.semantics_result is None
+        # Semantics should still run but pass with "skipped" reason
+        assert scorecard.semantics_result is not None
+        assert "Skipped" in scorecard.semantics_result.reason
 
     @pytest.mark.asyncio
-    async def test_waterfall_skips_when_expected_null(
+    async def test_pack_skips_when_expected_null(
         self, test_case_without_nl, correct_system_response
     ):
         """Should skip semantics when test case has no expected_nl_response."""
-        config = EvaluationConfig(semantics_stage_enabled=True)
+        pack = NL2APIPack(semantics_enabled=True)
 
-        evaluator = WaterfallEvaluator(config=config)
-
-        scorecard = await evaluator.evaluate(
+        scorecard = await pack.evaluate(
             test_case=test_case_without_nl,
-            system_response=correct_system_response,
-            worker_id="test-worker",
+            system_output=_make_system_output(correct_system_response),
+            context=EvalContext(worker_id="test-worker"),
         )
 
-        # Semantics should be skipped because expected_nl_response is None
-        assert scorecard.semantics_result is None
+        # Semantics should still run but pass with "skipped" reason
+        assert scorecard.semantics_result is not None
+        assert "Skipped" in scorecard.semantics_result.reason
 
     @pytest.mark.asyncio
     async def test_semantics_result_in_scorecard(
         self, test_case_with_nl, correct_system_response, mock_llm_for_semantics
     ):
         """Scorecard should include semantics_result when evaluated."""
-        config = EvaluationConfig(semantics_stage_enabled=True)
         llm_config = LLMJudgeConfig()
-
-        evaluator = WaterfallEvaluator(config=config, llm_judge_config=llm_config)
+        pack = NL2APIPack(semantics_enabled=True)
 
         # Create and inject mock semantics evaluator
         from src.evaluation.core.semantics import SemanticsEvaluator
 
         mock_sem_eval = SemanticsEvaluator(config=llm_config, llm=mock_llm_for_semantics)
-        evaluator._semantics_evaluator = mock_sem_eval
-
-        scorecard = await evaluator.evaluate(
-            test_case=test_case_with_nl,
-            system_response=correct_system_response,
+        context = EvalContext(
             worker_id="test-worker",
+            config={"semantics_evaluator": mock_sem_eval},
+        )
+
+        scorecard = await pack.evaluate(
+            test_case=test_case_with_nl,
+            system_output=_make_system_output(correct_system_response),
+            context=context,
         )
 
         # Verify scorecard structure
@@ -238,10 +242,8 @@ class TestWaterfallEvaluatorSemanticsIntegration:
         self, test_case_with_nl, correct_system_response
     ):
         """overall_passed should consider semantics_result."""
-        config = EvaluationConfig(semantics_stage_enabled=True)
         llm_config = LLMJudgeConfig()
-
-        evaluator = WaterfallEvaluator(config=config, llm_judge_config=llm_config)
+        pack = NL2APIPack(semantics_enabled=True)
 
         # Mock a failing semantics evaluator
         mock_llm_fail = MagicMock()
@@ -261,12 +263,15 @@ class TestWaterfallEvaluatorSemanticsIntegration:
         from src.evaluation.core.semantics import SemanticsEvaluator
 
         mock_sem_eval = SemanticsEvaluator(config=llm_config, llm=mock_llm_fail)
-        evaluator._semantics_evaluator = mock_sem_eval
-
-        scorecard = await evaluator.evaluate(
-            test_case=test_case_with_nl,
-            system_response=correct_system_response,
+        context = EvalContext(
             worker_id="test-worker",
+            config={"semantics_evaluator": mock_sem_eval},
+        )
+
+        scorecard = await pack.evaluate(
+            test_case=test_case_with_nl,
+            system_output=_make_system_output(correct_system_response),
+            context=context,
         )
 
         # Syntax and logic pass, but semantics fails

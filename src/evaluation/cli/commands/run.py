@@ -26,13 +26,14 @@ from rich.panel import Panel
 from rich.table import Table
 
 from CONTRACTS import (
+    EvalContext,
     EvaluationConfig,
     SystemResponse,
     TestCase,
     TestCaseMetadata,
     ToolCall,
 )
-from src.evaluation.core.evaluators import WaterfallEvaluator
+from src.evaluation.packs import NL2APIPack
 
 logger = logging.getLogger(__name__)
 
@@ -149,14 +150,28 @@ async def _run_async(
 
         system_response = _parse_system_response(response_data)
 
-        # Run evaluation
+        # Run evaluation using NL2APIPack
         config = EvaluationConfig()
-        evaluator = WaterfallEvaluator(config)
+        pack = NL2APIPack(
+            execution_enabled=config.execution_stage_enabled,
+            semantics_enabled=config.semantics_stage_enabled,
+            numeric_tolerance=config.numeric_tolerance,
+            temporal_mode=config.temporal_mode,
+            evaluation_date=config.evaluation_date,
+            relative_date_fields=config.relative_date_fields,
+            fiscal_year_end_month=config.fiscal_year_end_month,
+        )
 
-        scorecard = await evaluator.evaluate(
+        # Convert SystemResponse to system_output dict expected by pack
+        system_output = {
+            "raw_output": system_response.raw_output,
+            "nl_response": system_response.nl_response,
+        }
+
+        scorecard = await pack.evaluate(
             test_case=test_case,
-            system_response=system_response,
-            worker_id="cli-local",
+            system_output=system_output,
+            context=EvalContext(worker_id="cli-local"),
         )
 
         # Override batch_id if provided

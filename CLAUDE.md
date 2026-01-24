@@ -477,22 +477,24 @@ See [docs/accuracy-testing.md](docs/accuracy-testing.md) for full documentation.
 ### Evaluation Pipeline Architecture
 
 ```
-TestCase → Evaluator Pipeline → Scorecard
+TestCase → NL2APIPack → Scorecard
               │
-              ├─ Stage 1: SyntaxEvaluator (GATE - hard stop on failure)
-              ├─ Stage 2: LogicEvaluator (AST comparison)
-              ├─ Stage 3: ExecutionEvaluator (live API verification)
-              └─ Stage 4: SemanticsEvaluator (LLM-as-Judge)
+              ├─ Stage 1: SyntaxStage (GATE - hard stop on failure)
+              ├─ Stage 2: LogicStage (AST comparison)
+              ├─ Stage 3: ExecutionStage (live API verification, deferred)
+              └─ Stage 4: SemanticsStage (LLM-as-Judge)
 ```
+
+See `src/evaluation/packs/nl2api.py` for stage implementations.
 
 ### When to Modify Evaluation Code
 
 | Scenario | Action |
 |----------|--------|
-| New tool/API added | Add test fixtures + update LogicEvaluator if needed |
-| New evaluation metric | Add to `src/contracts/` first, then implement evaluator |
+| New tool/API added | Add test fixtures + update pack if needed |
+| New evaluation metric | Add to `src/contracts/` first, then implement in pack |
 | Scoring logic change | Requires tier2 accuracy test before/after comparison |
-| New evaluator stage | Must integrate with OTEL (see below) |
+| New evaluation stage | Must integrate with OTEL (see below) |
 
 ### Test Fixture Requirements
 

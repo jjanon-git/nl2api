@@ -1,7 +1,7 @@
 """
 Integration tests for temporal-aware evaluation.
 
-Verifies that WaterfallEvaluator correctly uses TemporalComparator
+Verifies that NL2APIPack correctly uses TemporalComparator
 when temporal evaluation is enabled.
 """
 
@@ -10,6 +10,7 @@ from datetime import date
 import pytest
 
 from CONTRACTS import (
+    EvalContext,
     EvaluationConfig,
     SystemResponse,
     TemporalValidationMode,
@@ -17,7 +18,7 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.evaluation.core.evaluators import WaterfallEvaluator
+from src.evaluation.packs import NL2APIPack
 
 
 def _make_metadata(category: str = "temporal", subcategory: str = "test") -> TestCaseMetadata:
@@ -65,8 +66,38 @@ def response_with_wrong_dates() -> SystemResponse:
     )
 
 
-class TestWaterfallTemporalIntegration:
-    """Tests for WaterfallEvaluator with temporal comparison."""
+def _make_pack_from_config(config: EvaluationConfig) -> NL2APIPack:
+    """Create NL2APIPack from EvaluationConfig."""
+    return NL2APIPack(
+        execution_enabled=config.execution_stage_enabled,
+        semantics_enabled=config.semantics_stage_enabled,
+        numeric_tolerance=config.numeric_tolerance,
+        temporal_mode=config.temporal_mode,
+        evaluation_date=config.evaluation_date,
+        relative_date_fields=config.relative_date_fields,
+        fiscal_year_end_month=config.fiscal_year_end_month,
+    )
+
+
+async def _evaluate_with_pack(
+    pack: NL2APIPack,
+    test_case: TestCase,
+    response: SystemResponse,
+):
+    """Evaluate using pack with converted response."""
+    system_output = {
+        "raw_output": response.raw_output,
+        "nl_response": response.nl_response,
+    }
+    return await pack.evaluate(
+        test_case=test_case,
+        system_output=system_output,
+        context=EvalContext(worker_id="test-worker"),
+    )
+
+
+class TestNL2APIPackTemporalIntegration:
+    """Tests for NL2APIPack with temporal comparison."""
 
     @pytest.mark.asyncio
     async def test_structural_mode_matches_equivalent_dates(
@@ -79,12 +110,10 @@ class TestWaterfallTemporalIntegration:
             temporal_mode=TemporalValidationMode.STRUCTURAL,
             evaluation_date=date(2026, 1, 21),
         )
-        evaluator = WaterfallEvaluator(config=config)
+        pack = _make_pack_from_config(config)
 
-        scorecard = await evaluator.evaluate(
-            test_case=test_case_with_relative_dates,
-            system_response=response_with_absolute_dates,
-            worker_id="test-worker",
+        scorecard = await _evaluate_with_pack(
+            pack, test_case_with_relative_dates, response_with_absolute_dates
         )
 
         assert scorecard.syntax_result.passed is True
@@ -103,12 +132,10 @@ class TestWaterfallTemporalIntegration:
             temporal_mode=TemporalValidationMode.STRUCTURAL,
             evaluation_date=date(2026, 1, 21),
         )
-        evaluator = WaterfallEvaluator(config=config)
+        pack = _make_pack_from_config(config)
 
-        scorecard = await evaluator.evaluate(
-            test_case=test_case_with_relative_dates,
-            system_response=response_with_wrong_dates,
-            worker_id="test-worker",
+        scorecard = await _evaluate_with_pack(
+            pack, test_case_with_relative_dates, response_with_wrong_dates
         )
 
         assert scorecard.syntax_result.passed is True
@@ -126,12 +153,10 @@ class TestWaterfallTemporalIntegration:
             temporal_mode=TemporalValidationMode.DATA,
             evaluation_date=date(2026, 1, 21),
         )
-        evaluator = WaterfallEvaluator(config=config)
+        pack = _make_pack_from_config(config)
 
-        scorecard = await evaluator.evaluate(
-            test_case=test_case_with_relative_dates,
-            system_response=response_with_absolute_dates,
-            worker_id="test-worker",
+        scorecard = await _evaluate_with_pack(
+            pack, test_case_with_relative_dates, response_with_absolute_dates
         )
 
         assert scorecard.syntax_result.passed is True
@@ -150,12 +175,10 @@ class TestWaterfallTemporalIntegration:
             temporal_mode=TemporalValidationMode.BEHAVIORAL,
             evaluation_date=date(2026, 1, 21),
         )
-        evaluator = WaterfallEvaluator(config=config)
+        pack = _make_pack_from_config(config)
 
-        scorecard = await evaluator.evaluate(
-            test_case=test_case_with_relative_dates,
-            system_response=response_with_absolute_dates,
-            worker_id="test-worker",
+        scorecard = await _evaluate_with_pack(
+            pack, test_case_with_relative_dates, response_with_absolute_dates
         )
 
         assert scorecard.syntax_result.passed is True
@@ -174,12 +197,10 @@ class TestWaterfallTemporalIntegration:
         config = EvaluationConfig(
             evaluation_date=date(2026, 1, 21),
         )
-        evaluator = WaterfallEvaluator(config=config)
+        pack = _make_pack_from_config(config)
 
-        scorecard = await evaluator.evaluate(
-            test_case=test_case_with_relative_dates,
-            system_response=response_with_absolute_dates,
-            worker_id="test-worker",
+        scorecard = await _evaluate_with_pack(
+            pack, test_case_with_relative_dates, response_with_absolute_dates
         )
 
         assert scorecard.logic_result is not None
@@ -211,13 +232,9 @@ class TestWaterfallTemporalIntegration:
             evaluation_date=date(2026, 1, 21),
             fiscal_year_end_month=12,
         )
-        evaluator = WaterfallEvaluator(config=config)
+        pack = _make_pack_from_config(config)
 
-        scorecard = await evaluator.evaluate(
-            test_case=test_case,
-            system_response=response,
-            worker_id="test-worker",
-        )
+        scorecard = await _evaluate_with_pack(pack, test_case, response)
 
         assert scorecard.logic_result is not None
         assert scorecard.logic_result.passed is True
@@ -250,13 +267,9 @@ class TestTemporalWithNonDateFields:
             temporal_mode=TemporalValidationMode.STRUCTURAL,
             evaluation_date=date(2026, 1, 21),
         )
-        evaluator = WaterfallEvaluator(config=config)
+        pack = _make_pack_from_config(config)
 
-        scorecard = await evaluator.evaluate(
-            test_case=test_case,
-            system_response=response,
-            worker_id="test-worker",
-        )
+        scorecard = await _evaluate_with_pack(pack, test_case, response)
 
         assert scorecard.logic_result is not None
         # Should fail because fields don't match
@@ -285,13 +298,9 @@ class TestTemporalWithNonDateFields:
             temporal_mode=TemporalValidationMode.STRUCTURAL,
             evaluation_date=date(2026, 1, 21),
         )
-        evaluator = WaterfallEvaluator(config=config)
+        pack = _make_pack_from_config(config)
 
-        scorecard = await evaluator.evaluate(
-            test_case=test_case,
-            system_response=response,
-            worker_id="test-worker",
-        )
+        scorecard = await _evaluate_with_pack(pack, test_case, response)
 
         assert scorecard.logic_result is not None
         assert scorecard.logic_result.passed is False
