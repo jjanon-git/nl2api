@@ -128,6 +128,18 @@ def batch_run(
             "--temporal-mode", help="Temporal validation mode: behavioral, structural, or data"
         ),
     ] = "structural",
+    distributed: Annotated[
+        bool,
+        typer.Option("--distributed", "-d", help="Use distributed workers via Redis queue"),
+    ] = False,
+    workers: Annotated[
+        int,
+        typer.Option("--workers", "-w", help="Number of worker subprocesses (distributed mode)"),
+    ] = 4,
+    redis_url: Annotated[
+        str,
+        typer.Option("--redis-url", help="Redis URL for distributed queue"),
+    ] = "redis://localhost:6379",
 ) -> None:
     """
     Run batch evaluation on test cases from database.
@@ -163,6 +175,13 @@ def batch_run(
       - structural (default): Normalizes dates before comparison (-1D == 2026-01-20)
       - behavioral: Only validates both have valid temporal expressions
       - data: Exact match required (for point-in-time validation)
+
+    DISTRIBUTED:
+    - Use --distributed to run with multiple worker subprocesses via Redis queue.
+    - Use --workers to set number of worker processes (default: 4).
+    - Use --redis-url to specify Redis connection (default: redis://localhost:6379).
+    - Workers are auto-spawned and terminated on completion or Ctrl+C.
+    - Requires Redis to be running (docker compose up -d).
     """
     from datetime import date as date_type
 
@@ -217,6 +236,9 @@ def batch_run(
             semantics_threshold=semantics_threshold,
             evaluation_date=parsed_eval_date,
             temporal_mode=temporal_mode,
+            distributed=distributed,
+            num_workers=workers,
+            redis_url=redis_url,
         )
     )
 
@@ -239,6 +261,9 @@ async def _batch_run_async(
     semantics_threshold: float = 0.7,
     evaluation_date: date | None = None,
     temporal_mode: str = "structural",
+    distributed: bool = False,
+    num_workers: int = 4,
+    redis_url: str = "redis://localhost:6379",
 ) -> None:
     """Async implementation of batch run command."""
     from src.common.storage import (
@@ -431,6 +456,23 @@ async def _batch_run_async(
             "simulated": "orchestrator",  # Simulated still uses orchestrator eval mode
         }
 
+        # Handle distributed mode
+        if distributed:
+            await _run_distributed_batch(
+                test_case_repo=test_case_repo,
+                scorecard_repo=scorecard_repo,
+                batch_repo=batch_repo,
+                tags=tags,
+                complexity_min=complexity_min,
+                complexity_max=complexity_max,
+                limit=limit,
+                mode=mode,
+                num_workers=num_workers,
+                redis_url=redis_url,
+                verbose=verbose,
+            )
+            return
+
         runner_config = BatchRunnerConfig(
             pack_name=pack,
             max_concurrency=concurrency,
@@ -502,6 +544,178 @@ async def _batch_run_async(
             await close_repositories()
         except Exception as e:
             logger.warning(f"Error during cleanup: {e}")
+
+
+async def _run_distributed_batch(
+    test_case_repo,
+    scorecard_repo,
+    batch_repo,
+    tags: list[str] | None,
+    complexity_min: int | None,
+    complexity_max: int | None,
+    limit: int | None,
+    mode: str,
+    num_workers: int,
+    redis_url: str,
+    verbose: bool,
+) -> None:
+    """
+    Run batch evaluation using distributed workers.
+
+    Spawns worker subprocesses that consume tasks from a Redis queue,
+    monitor progress, and handle completion.
+    """
+    from datetime import UTC, datetime
+
+    from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
+
+    from src.contracts.core import TaskStatus
+    from src.contracts.worker import BatchJob
+    from src.evaluation.distributed.config import CoordinatorConfig, QueueBackend, QueueConfig
+    from src.evaluation.distributed.coordinator import BatchCoordinator
+    from src.evaluation.distributed.manager import LocalWorkerManager
+    from src.evaluation.distributed.queue import create_queue
+
+    console.print("[cyan]Distributed mode enabled[/cyan]")
+    console.print(f"  Workers: {num_workers}")
+    console.print(f"  Redis: {redis_url}")
+    console.print(f"  Mode: {mode}\n")
+
+    # Fetch test cases
+    test_cases = await test_case_repo.list(
+        tags=tags,
+        complexity_min=complexity_min,
+        complexity_max=complexity_max,
+        limit=limit or 10000,
+    )
+
+    if not test_cases:
+        console.print("[yellow]No test cases found matching filters[/yellow]")
+        raise typer.Exit(0)
+
+    console.print(f"Found [green]{len(test_cases)}[/green] test cases")
+
+    # Create queue
+    queue_config = QueueConfig(
+        backend=QueueBackend.REDIS,
+        redis_url=redis_url,
+    )
+
+    manager = None
+    queue = None
+
+    try:
+        queue = await create_queue(queue_config)
+
+        # Create batch job
+        batch_job = BatchJob(
+            total_tests=len(test_cases),
+            status=TaskStatus.IN_PROGRESS,
+            started_at=datetime.now(UTC),
+            tags=tuple(tags) if tags else (),
+        )
+        await batch_repo.create(batch_job)
+        batch_id = batch_job.batch_id
+
+        console.print(f"Created batch: [cyan]{batch_id}[/cyan]\n")
+
+        # Create coordinator
+        coordinator_config = CoordinatorConfig(
+            progress_poll_interval_seconds=2,
+            batch_timeout_seconds=3600,  # 1 hour default
+        )
+        coordinator = BatchCoordinator(
+            queue=queue,
+            batch_repo=batch_repo,
+            test_case_repo=test_case_repo,
+            scorecard_repo=scorecard_repo,
+            config=coordinator_config,
+        )
+
+        # Enqueue tasks
+        console.print("Enqueuing tasks...")
+        enqueued = await coordinator.start_batch(test_cases, batch_id, eval_mode=mode)
+        console.print(f"Enqueued [green]{enqueued}[/green] tasks\n")
+
+        # Start workers
+        manager = LocalWorkerManager(
+            worker_count=num_workers,
+            redis_url=redis_url,
+            eval_mode=mode,
+            verbose=verbose,
+        )
+        manager.start(batch_id)
+        console.print(f"Started [green]{num_workers}[/green] workers\n")
+
+        # Wait for completion with progress bar
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            console=console,
+        ) as progress:
+            task = progress.add_task("Processing...", total=len(test_cases))
+
+            def on_progress(completed: int, total: int):
+                progress.update(task, completed=completed)
+
+            result = await coordinator.wait_for_completion(
+                batch_id=batch_id,
+                total_tasks=len(test_cases),
+                on_progress=on_progress,
+            )
+
+        # Display results
+        console.print()
+        console.print(f"[bold]Batch Complete:[/bold] [cyan]{batch_id}[/cyan]")
+        console.print(f"  Total: {result.total}")
+        console.print(f"  Passed: [green]{result.passed}[/green]")
+        console.print(f"  Failed: [red]{result.failed}[/red]")
+        if result.in_dlq > 0:
+            console.print(f"  In DLQ: [yellow]{result.in_dlq}[/yellow]")
+        console.print(f"  Duration: {result.duration_seconds:.1f}s")
+
+        # Update batch job
+        completed_batch = BatchJob(
+            batch_id=batch_id,
+            total_tests=len(test_cases),
+            completed_count=result.passed,
+            failed_count=result.failed,
+            status=TaskStatus.COMPLETED if result.completed else TaskStatus.FAILED,
+            created_at=batch_job.created_at,
+            started_at=batch_job.started_at,
+            completed_at=datetime.now(UTC),
+            tags=batch_job.tags,
+        )
+        await batch_repo.update(completed_batch)
+
+        # Clean up queue resources
+        await coordinator.cleanup(batch_id)
+
+        # Exit code based on results
+        if result.failed > 0 or not result.completed:
+            raise typer.Exit(1)
+        else:
+            raise typer.Exit(0)
+
+    except typer.Exit:
+        raise
+    except KeyboardInterrupt:
+        console.print("\n[yellow]Interrupted - stopping workers...[/yellow]")
+        raise typer.Exit(130)  # Standard exit code for Ctrl+C
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        if verbose:
+            console.print_exception()
+        raise typer.Exit(2)
+    finally:
+        # Always stop workers
+        if manager:
+            manager.stop(timeout=30)
+        # Close queue
+        if queue:
+            await queue.close()
 
 
 @batch_app.command("status")

@@ -29,10 +29,14 @@ Usage:
 from src.evaluation.distributed.config import (
     AlertConfig,
     CoordinatorConfig,
+    EvalMode,
+    QueueBackend,
     QueueConfig,
     WorkerConfig,
 )
-from src.evaluation.distributed.models import QueueMessage
+from src.evaluation.distributed.coordinator import BatchCoordinator, BatchResult
+from src.evaluation.distributed.manager import LocalWorkerManager
+from src.evaluation.distributed.models import BatchProgress, QueueMessage, WorkerStatus
 
 # Queue imports (protocol and factory)
 from src.evaluation.distributed.queue import (
@@ -40,6 +44,7 @@ from src.evaluation.distributed.queue import (
     TaskQueue,
     create_queue,
 )
+from src.evaluation.distributed.worker import EvalWorker
 
 __all__ = [
     # Config
@@ -47,10 +52,21 @@ __all__ = [
     "WorkerConfig",
     "CoordinatorConfig",
     "AlertConfig",
+    "EvalMode",
+    "QueueBackend",
     # Models
     "QueueMessage",
+    "BatchProgress",
+    "WorkerStatus",
     # Queue
     "TaskQueue",
     "create_queue",
     "InMemoryQueue",
+    # Coordinator
+    "BatchCoordinator",
+    "BatchResult",
+    # Manager
+    "LocalWorkerManager",
+    # Worker
+    "EvalWorker",
 ]
