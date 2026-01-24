@@ -1,24 +1,22 @@
 """
-Compatibility shim for src.evaluation.packs.rag -> src.rag.evaluation migration.
+Compatibility shim for src.evaluation.packs.rag.stages -> src.rag.evaluation.stages.
 
 TODO: Remove after validation period (Stage 2 of codebase separation).
 """
 
 # Re-export from new location
-from src.rag.evaluation import (
+from src.rag.evaluation.stages import (
     AnswerRelevanceStage,
     CitationStage,
     ContextRelevanceStage,
     FaithfulnessStage,
     PolicyComplianceStage,
-    RAGPack,
     RejectionCalibrationStage,
     RetrievalStage,
     SourcePolicyStage,
 )
 
 __all__ = [
-    "RAGPack",
     "RetrievalStage",
     "ContextRelevanceStage",
     "FaithfulnessStage",

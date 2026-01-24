@@ -16,7 +16,7 @@ Domain Gates:
 8. Rejection Calibration: False positive/negative detection
 
 Usage:
-    from src.evaluation.packs.rag import RAGPack
+    from src.rag.evaluation import RAGPack
     from src.evalkit.core.evaluator import Evaluator
 
     pack = RAGPack()
