@@ -158,7 +158,7 @@ Total: ~850ms, ~1100 tokens per request
 **Created:** 2026-01-21
 **Status:** Not Started
 **Severity:** CRITICAL
-**Docs:** [docs/plans/eval-09-test-quality.md](docs/plans/eval-09-test-quality.md)
+**Docs:** [docs/plans/nl2api-06-test-quality.md](docs/plans/nl2api-06-test-quality.md)
 
 The test suite has structural issues that allow broken agents to pass:
 

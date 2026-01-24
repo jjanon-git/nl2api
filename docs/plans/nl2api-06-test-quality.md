@@ -1,4 +1,4 @@
-# Test Quality Improvements Plan
+# NL2API Test Quality Improvements Plan
 
 **Status:** Not Started
 **Priority:** P0 (Critical)
@@ -7,9 +7,15 @@
 
 ---
 
+## Scope
+
+This plan addresses test quality issues specific to **NL2API domain agents** (DatastreamAgent, EstimatesAgent, ScreeningAgent, etc.) and their fixture-based tests. It does not cover the generic evalkit framework.
+
+---
+
 ## Problem Statement
 
-The test suite has structural issues that allow broken agents to pass. Current tests provide false confidence - agents that generate garbage tool calls pass because tests only verify superficial properties.
+The NL2API agent test suite has structural issues that allow broken agents to pass. Current tests provide false confidence - agents that generate garbage tool calls pass because tests only verify superficial properties.
 
 ### Current State (Problems)
 
