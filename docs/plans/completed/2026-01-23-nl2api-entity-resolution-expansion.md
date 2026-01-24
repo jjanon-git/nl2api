@@ -2,10 +2,10 @@
 
 **Status:** ✅ Superseded - Goals Achieved via Different Implementation
 **Priority:** P0.2 (Critical)
-**Author:** AI Engineering Review
+**Author:** Mostly Claude, with some minor assistance from Sid
 **Last Updated:** 2026-01-21
 
-> **Note (2026-01-23):** This plan was superseded by the implementation in `2026-01-23-entity-resolution-p0.md`. The database-backed entity resolution with 2.9M entities (GLEIF/SEC EDGAR) now achieves 99.5% accuracy. See `src/nl2api/resolution/resolver.py` and `src/common/storage/postgres/entity_repo.py`.
+> **Note (2026-01-23):** This plan was superseded by the implementation in `2026-01-23-nl2api-entity-resolution-p0.md`. The database-backed entity resolution with 2.9M entities (GLEIF/SEC EDGAR) now achieves 99.5% accuracy. See `src/nl2api/resolution/resolver.py` and `src/common/storage/postgres/entity_repo.py`.
 
 ---
 

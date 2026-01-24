@@ -150,14 +150,14 @@ Week 8+:   P2.x based on metrics and business priority
 ## Detailed Implementation Plans
 
 See individual implementation plan files:
-- [P0.1 Observability](./2026-01-23-observability.md)
-- [P0.2 Entity Resolution](./2026-01-23-entity-resolution-p0.md)
-- [P0.3 Request Metrics](./2026-01-23-request-metrics.md)
+- [P0.1 Observability](./2026-01-23-infra-observability.md)
+- [P0.2 Entity Resolution](./2026-01-23-nl2api-entity-resolution-p0.md)
+- [P0.3 Request Metrics](./2026-01-23-infra-request-metrics.md)
 
 Related plans:
-- [Entity Resolution Expansion](./2026-01-23-entity-resolution-expansion.md)
+- [Entity Resolution Expansion](./2026-01-23-nl2api-entity-resolution-expansion.md)
 - [MCP Migration](../nl2api-04-mcp-dual-mode.md)
-- [RAG Implementation](./2026-01-23-rag-implementation.md)
+- [RAG Implementation](./2026-01-23-rag-infrastructure.md)
 
 ---
 

@@ -1,6 +1,6 @@
 # RAG Ingestion Improvements Design Document
 
-**Author:** Principal Data Scientist Review
+**Author:** Mostly Claude, with some minor assistance from Sid
 **Date:** 2026-01-23
 **Status:** Draft - Pending Review
 

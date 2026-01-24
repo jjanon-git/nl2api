@@ -2,7 +2,7 @@
 
 **Status:** Planning
 **Created:** 2026-01-21
-**Author:** Claude + Sid
+**Author:** Mostly Claude, with some minor assistance from Sid
 
 ---
 

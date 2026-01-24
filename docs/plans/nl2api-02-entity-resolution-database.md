@@ -2,7 +2,7 @@
 
 **Status:** Draft - Pending Review
 **Priority:** P0.2 (Critical)
-**Author:** AI Engineering Review
+**Author:** Mostly Claude, with some minor assistance from Sid
 **Last Updated:** 2026-01-21
 
 ---
