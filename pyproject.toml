@@ -110,7 +110,8 @@ dev = [
 ]
 
 [project.scripts]
-eval = "src.cli.main:app"
+evalkit = "src.evalkit.cli.main:app"
+eval = "src.evalkit.cli.main:app"  # Alias for backwards compatibility
 entity-mcp = "src.mcp_servers.entity_resolution.__main__:app"
 
 [build-system]
