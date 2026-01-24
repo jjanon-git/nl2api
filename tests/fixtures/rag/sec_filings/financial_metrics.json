@@ -1,0 +1,1106 @@
+{
+  "_meta": {
+    "name": "sec_filings_rag_financial_metrics",
+    "capability": "rag_evaluation",
+    "schema_version": "1.0",
+    "generated_at": "2026-01-24T05:16:16.344633+00:00",
+    "phase": "complete"
+  },
+  "test_cases": [
+    {
+      "id": "sec-rag-financial_metrics-c6dd6a19",
+      "input": {
+        "query": "Could you help me identify Schlumberger Limited's consolidated revenue figure for the most recent fiscal reporting period?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "1814ee52-0bb4-45c1-8e66-25eae1d2b25a",
+          "180144bc-b3f4-43e4-b37c-59528d3933f7",
+          "ef05d32f-7a33-4c27-aa1a-9d57cff5007d",
+          "eb33daf2-71c4-42da-b2f1-2e805b994188",
+          "07b2e0c8-7c12-43b3-8d66-9d7becab7394"
+        ],
+        "answer": "According to the 10-K filing, Schlumberger Limited's consolidated total revenue for the most recent fiscal year (2024) was $36,289 million, which breaks down into $23,297 million in services revenue and $12,992 million in product sales revenue.",
+        "citations": [
+          {
+            "filing": "SLB 10-K",
+            "section": "mda",
+            "chunk_id": "1814ee52-0bb4-45c1-8e66-25eae1d2b25a"
+          }
+        ]
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-001",
+        "company": "Schlumberger Limited",
+        "ticker": "SLB",
+        "year": "2024",
+        "retrieval_ticker": "SLB"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-18c6baec",
+      "input": {
+        "query": "I'm looking to confirm SLB's total top-line revenue for their 2024 fiscal year - what's the exact number?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "7ffcc96d-7a85-4072-8ff3-8abaa5a88e64",
+          "fcc67276-317b-450b-ab18-a334041c921c",
+          "f2b61267-2870-433f-b875-d3754a9adcaf",
+          "1814ee52-0bb4-45c1-8e66-25eae1d2b25a",
+          "28ddc54c-5c6e-4253-9000-e8a7e3fd6a99"
+        ],
+        "answer": "$36,289 million for fiscal year 2024",
+        "citations": [
+          {
+            "filing": "SLB 10-K",
+            "section": "Consolidated Statement of Income",
+            "chunk_id": "1814ee52-0bb4-45c1-8e66-25eae1d2b25a"
+          }
+        ]
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-001",
+        "company": "Schlumberger Limited",
+        "ticker": "SLB",
+        "year": "2024",
+        "retrieval_ticker": "SLB"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-fdc85363",
+      "input": {
+        "query": "Can you break down Schlumberger's full-year revenue performance for fiscal year 2024?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "180144bc-b3f4-43e4-b37c-59528d3933f7",
+          "ef05d32f-7a33-4c27-aa1a-9d57cff5007d",
+          "1814ee52-0bb4-45c1-8e66-25eae1d2b25a",
+          "eb33daf2-71c4-42da-b2f1-2e805b994188",
+          "07b2e0c8-7c12-43b3-8d66-9d7becab7394"
+        ],
+        "answer": "For fiscal year 2024, Schlumberger reported total revenue of $36,289 million, which represents a 9.5% increase from $33,135 million in 2023. The revenue breakdown shows $23,297 million in services revenue (up from $22,439 million) and $12,992 million in product sales (up from $10,696 million), indicating growth across both service and product segments.",
+        "citations": [
+          {
+            "filing": "SLB 10-K FY2024",
+            "section": "Consolidated Statement of Income",
+            "chunk_id": "1814ee52-0bb4-45c1-8e66-25eae1d2b25a"
+          }
+        ]
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-001",
+        "company": "Schlumberger Limited",
+        "ticker": "SLB",
+        "year": "2024",
+        "retrieval_ticker": "SLB"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-e0408c1b",
+      "input": {
+        "query": "What was Simon Property Group's total revenue for the fiscal year 2024?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "75ff7aea-3292-425a-8032-b76f0581ab4f",
+          "1e46103b-5b43-45c6-80c6-288f3c44a13b",
+          "406a5074-c894-4f0b-9c5e-24b40294657e",
+          "da3ff4d9-1145-41fa-932a-833cc02dcf28",
+          "7af17711-97c8-40cb-afcd-65fdb491c67f"
+        ],
+        "answer": "$5,963,798 thousand for the fiscal year 2024",
+        "citations": [
+          {
+            "filing": "SPG 10-K",
+            "section": "Consolidated Statements of Operations and Comprehensive Income",
+            "chunk_id": "da3ff4d9-1145-41fa-932a-833cc02dcf28"
+          }
+        ]
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-002",
+        "company": "Simon Property Group",
+        "ticker": "SPG",
+        "year": "2024",
+        "retrieval_ticker": "SPG"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-6d58ee25",
+      "input": {
+        "query": "Can you break down the annual revenue figures for SPG in their most recent financial reporting period?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "40e56e16-ad0d-4221-a77f-4195fde9fb09",
+          "5bab1608-c478-4e01-9b7e-fb1e8974608a",
+          "5e509b5a-1073-41bd-a291-8071466244e9",
+          "ab88a79f-67b3-4056-abe8-3939b5a169dc",
+          "9adb3e30-3dec-436e-ada0-99ca1ce65ba9"
+        ],
+        "answer": "For the fiscal year 2023, Simon Property Group's quarterly total revenue breakdown is as follows: Q1: $1,350,849, Q2: $1,369,601, Q3: $1,410,948, and Q4: $1,527,438. The total annual revenue for 2023 was $5,658,836 (sum of quarterly revenues).",
+        "citations": [
+          {
+            "filing": "SPG 10-K",
+            "section": "Quarterly Financial Data",
+            "chunk_id": "40e56e16-ad0d-4221-a77f-4195fde9fb09"
+          }
+        ]
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-002",
+        "company": "Simon Property Group",
+        "ticker": "SPG",
+        "year": "2024",
+        "retrieval_ticker": "SPG"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-9f58e19f",
+      "input": {
+        "query": "I'm looking to understand Simon Property Group's top-line performance - what did they report for total revenues in 2024?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "81095dca-abf9-43fb-89c7-ce22e0ef4c66",
+          "77e36d8b-11df-4c98-9d6f-0cdd9038bfec",
+          "06b182af-8da5-44d1-acdd-4f83a6a69cc2",
+          "4f685cb5-6c3b-4d7a-ab61-8c5b66423316",
+          "9cb98436-81b3-4768-a652-76570139c7b6"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "No information about Simon Property Group's total revenues in the provided context"
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-002",
+        "company": "Simon Property Group",
+        "ticker": "SPG",
+        "year": "2024",
+        "retrieval_ticker": "SPG"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-7a27e8b5",
+      "input": {
+        "query": "Can you provide the total net sales revenue for Dominion Energy Inc. in their most recent fiscal year?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "148442e3-980d-463b-a7e1-f57a63947414",
+          "e2910ad6-67e0-404c-90d7-2ac8fd10fbd1",
+          "eaf18f96-f732-4e50-953a-ffff97124bfc",
+          "ec63f943-addb-4185-8da3-5fbd3540a2a5",
+          "3aa7a691-ff48-4704-bad2-3fe3f791074b"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "No information about Dominion Energy's net sales revenue in the provided context"
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-003",
+        "company": "Dominion Energy Inc.",
+        "ticker": "D",
+        "year": "2024",
+        "retrieval_ticker": "D"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-ac49c192",
+      "input": {
+        "query": "I'm looking to understand Dominion Energy's top-line performance. What are their net sales figures for fiscal 2024?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "ace5bd64-c4d6-43d0-bdef-dbdafd73aba5",
+          "d11daeff-49a0-4f8f-84c4-6e725b0da9e0",
+          "ce1fdc75-83f4-4815-b473-2aaa8ebcff7d",
+          "ddae2d77-2a45-4239-a6ba-0ddc2137d0f5",
+          "a86b94f1-23cb-489d-a350-2c77561679ee"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context"
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-003",
+        "company": "Dominion Energy Inc.",
+        "ticker": "D",
+        "year": "2024",
+        "retrieval_ticker": "D"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-0f24b0d6",
+      "input": {
+        "query": "Could you break down Dominion Energy Inc.'s net sales numbers for the 2024 fiscal reporting period?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "72ad9d25-caf1-4474-bf28-61cb5262ef95",
+          "14edb010-3f93-49c6-8c9f-4bd63a96c1ac",
+          "626e505f-7836-4c0c-9be0-ae734ab4ac5b",
+          "4b127ce5-9cb6-4ce5-8141-9d645e310479",
+          "15ccc724-55f6-4785-8b23-a8da1e4f955f"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context"
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-003",
+        "company": "Dominion Energy Inc.",
+        "ticker": "D",
+        "year": "2024",
+        "retrieval_ticker": "D"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-813cd666",
+      "input": {
+        "query": "What was the year-over-year revenue growth for NextEra Energy Inc. from fiscal year 2023 to 2024?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "29907a31-e075-45ea-a265-0d40d72abeb8",
+          "b76da328-66f7-4302-b003-4163b8f86d3a",
+          "a7972cc2-3489-416b-a7f8-8c4619a923cf",
+          "f0253d57-9483-4613-89c8-90fd8142b008",
+          "c36d6873-2ca1-4496-8ea7-f3b6603dee62"
+        ],
+        "answer": "Based on the Q3 2025 10-Q filing, NextEra Energy's operating revenues for the nine months ended September 30, 2025 were $20,912 million, compared to $19,368 million in the same period of 2024, representing a year-over-year revenue growth of approximately 8%.",
+        "citations": [
+          {
+            "filing": "NEE 10-Q",
+            "section": "Condensed Consolidated Statements of Income",
+            "chunk_id": "c36d6873-2ca1-4496-8ea7-f3b6603dee62"
+          }
+        ]
+      },
+      "tags": [
+        "revenue",
+        "yoy",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-004",
+        "company": "NextEra Energy Inc.",
+        "ticker": "NEE",
+        "year": "2024",
+        "retrieval_ticker": "NEE"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-7af94d2d",
+      "input": {
+        "query": "Can you walk me through the revenue progression for NextEra Energy Inc. between these two consecutive reporting periods?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "00711b31-c55c-4d36-b64b-25a2e69f241a"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context for revenue progression - the provided filing excerpt does not contain specific revenue figures or revenue progression details for NextEra Energy Inc."
+      },
+      "tags": [
+        "revenue",
+        "yoy",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-004",
+        "company": "NextEra Energy Inc.",
+        "ticker": "NEE",
+        "year": "2024",
+        "retrieval_ticker": "NEE"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-73fb18e1",
+      "input": {
+        "query": "I'm looking to understand the top-line revenue trends for NextEra Energy Inc. comparing their 2023 and 2024 financial statements - what significant changes occurred?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "fd24c838-2135-48c3-aab1-81dfc38b6ac8",
+          "efe9021d-93c9-47f4-9cc9-938869d151d4",
+          "ad6b3a27-ff48-47e0-bf6c-0778d03c3b51",
+          "4106eb19-a2ba-49b1-99b7-e279f8e4af5c",
+          "f43b853d-95c8-4dc0-9086-4ec1504762e8"
+        ],
+        "answer": "NextEra Energy's top-line revenue trends from 2023 to 2024 showed mixed changes across different business segments. For the three months ended September 30, 2024, operating revenues increased by $916 million, primarily driven by gains from non-qualifying commodity hedges and revenues from new investments. However, for the nine months ended September 30, 2024, operating revenues decreased by $922 million, largely due to changes in non-qualifying commodity hedges and lower revenues from customer supply and gas infrastructure businesses, partially offset by revenues from new investments.",
+        "citations": [
+          {
+            "filing": "NEE 10-Q",
+            "section": "risk_factors_q",
+            "chunk_id": "efe9021d-93c9-47f4-9cc9-938869d151d4"
+          }
+        ]
+      },
+      "tags": [
+        "revenue",
+        "yoy",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-004",
+        "company": "NextEra Energy Inc.",
+        "ticker": "NEE",
+        "year": "2024",
+        "retrieval_ticker": "NEE"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-2a8ad4aa",
+      "input": {
+        "query": "Could you provide insight into the percentage increase in Medtronic plc's total revenue for fiscal year 2024?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "7e77bfe4-4a24-4a1e-90aa-0f3e6f1bc3cd",
+          "033e32c3-f61e-435f-855d-a2901725efb4",
+          "23f512ef-f50b-4600-9e6a-17d7b1fee13b",
+          "e09f6bc7-ab97-4f68-b0de-96204a9c4aa1",
+          "e01985fe-e94e-4377-9272-0a6b9c388e59"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "No information about Medtronic plc's total revenue percentage increase for fiscal year 2024 was found in the provided context"
+      },
+      "tags": [
+        "revenue",
+        "growth",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-005",
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2024",
+        "retrieval_ticker": "MDT"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-68db60e2",
+      "input": {
+        "query": "I'm analyzing Medtronic's financial performance and want to understand how much their top-line revenue expanded this past year."
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "d33cfe0a-d6d8-4cae-975f-e7ff856e99ee",
+          "41f9ce9d-0e50-4a72-a324-7d19b3697609",
+          "2b32c586-561c-4534-96b7-2d65f8e31f27",
+          "8a6ffade-75b5-48ac-b0d3-f661572e9fee",
+          "2b5d38c4-916d-4d81-87be-ae4e4d5c1cd7"
+        ],
+        "answer": "Based on the tax section of the financial statements, Medtronic's total income before income taxes increased from $4,837 million in fiscal year 2024 to $5,628 million in fiscal year 2025, representing a top-line revenue expansion of approximately 16.4%.",
+        "citations": [
+          {
+            "filing": "MDT 10-K",
+            "section": "Income Taxes",
+            "chunk_id": "8a6ffade-75b5-48ac-b0d3-f661572e9fee"
+          }
+        ]
+      },
+      "tags": [
+        "revenue",
+        "growth",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-005",
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2024",
+        "retrieval_ticker": "MDT"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-4e9e6d0b",
+      "input": {
+        "query": "What percentage did Medtronic plc's consolidated revenue climb in their most recent fiscal reporting period?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "ec104e40-291d-4f0a-ac44-38b87296c3da",
+          "013ef947-2427-4e6b-ae41-ec6d252c97aa",
+          "cb79d276-b7dd-4032-9d19-b85690a19fcd",
+          "9f7a89d2-f040-44e4-ac71-b184103b510f",
+          "e305a41c-ebfb-49b4-a92b-10efe8c42a26"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "No Medtronic plc financial information is present in the provided context"
+      },
+      "tags": [
+        "revenue",
+        "growth",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-005",
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2024",
+        "retrieval_ticker": "MDT"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-95d68036",
+      "input": {
+        "query": "Could you provide details on Citigroup Inc.'s total revenue reported in their third quarter 2022 financial statement?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "70c9d6df-007c-47f9-b4ae-4526c45216f7",
+          "135e88c0-b179-4676-9ee6-40a566250579",
+          "959d8497-c85e-4af3-8240-91e35358f6bd",
+          "43969715-b516-461a-912c-30aef462d0e3",
+          "ae20b447-a3d2-47b3-b196-f8225f89779f"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context"
+      },
+      "tags": [
+        "revenue",
+        "10-Q",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-006",
+        "company": "Citigroup Inc.",
+        "ticker": "C",
+        "year": "2022",
+        "retrieval_ticker": "C"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-75b5b448",
+      "input": {
+        "query": "I'm looking to understand Citigroup's top-line performance for Q3 - what were their quarterly revenue figures?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "65443df9-8e05-4782-859b-727d11a9cd58",
+          "9d9290b5-8e70-4332-ac95-44bcf3b34aea",
+          "187dd376-6d4a-439d-987a-6f72b814acf7",
+          "664096eb-3714-4fc5-af46-94bc8ca1d146",
+          "448c1ed4-7521-4cce-8330-cd461dd010b2"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context - the provided excerpts are from Procter & Gamble 10-K and 10-Q filings, not Citigroup's quarterly report"
+      },
+      "tags": [
+        "revenue",
+        "10-Q",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-006",
+        "company": "Citigroup Inc.",
+        "ticker": "C",
+        "year": "2022",
+        "retrieval_ticker": "C"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-788358ec",
+      "input": {
+        "query": "Can you break down Citigroup Inc.'s revenue for the three-month period ending September 30, 2022?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "be58cd4d-6796-49b3-8c32-9605202ec8a8",
+          "e5371707-949b-4385-be57-8a0eb7621906",
+          "425377ff-9ebf-4271-aac0-f422b297241c",
+          "186c583c-7683-4a57-a198-91270f47c6ff",
+          "20239cf0-593a-4f3e-8829-a43ee3db611c"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context"
+      },
+      "tags": [
+        "revenue",
+        "10-Q",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-006",
+        "company": "Citigroup Inc.",
+        "ticker": "C",
+        "year": "2022",
+        "retrieval_ticker": "C"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-309ca36a",
+      "input": {
+        "query": "Can you help me understand how Johnson & Johnson's revenue trajectory looked between 2022 and 2023?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "7721a6c0-a37c-4f13-af06-03114c428fef"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context to fully describe Johnson & Johnson's revenue trajectory between 2022 and 2023"
+      },
+      "tags": [
+        "revenue",
+        "yoy",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-007",
+        "company": "Johnson & Johnson",
+        "ticker": "JNJ",
+        "year": "2023",
+        "retrieval_ticker": "JNJ"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-504ee2d0",
+      "input": {
+        "query": "I'm analyzing JNJ's financial performance and want to confirm the percentage shift in total revenue compared to the prior fiscal year"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "1728507d-b864-4dc8-87f6-afc0d0e05e53",
+          "051fab8a-7c4d-47ef-9791-37d44452949f",
+          "56e768ab-1907-4138-bb25-22a3bc6adffb",
+          "a00c8f36-0e8a-4c0e-83d2-85210c82dc2d"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context - The provided filing excerpts do not contain specific information about total revenue percentage shift compared to the prior fiscal year"
+      },
+      "tags": [
+        "revenue",
+        "yoy",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-007",
+        "company": "Johnson & Johnson",
+        "ticker": "JNJ",
+        "year": "2023",
+        "retrieval_ticker": "JNJ"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-58980c58",
+      "input": {
+        "query": "What were the top-line revenue growth dynamics for Johnson & Johnson when comparing their most recent annual results?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "7721a6c0-a37c-4f13-af06-03114c428fef"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context for revenue growth details"
+      },
+      "tags": [
+        "revenue",
+        "yoy",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-007",
+        "company": "Johnson & Johnson",
+        "ticker": "JNJ",
+        "year": "2023",
+        "retrieval_ticker": "JNJ"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-94ecbdca",
+      "input": {
+        "query": "What was the year-over-year revenue growth for American Tower Corporation in fiscal year 2023?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "a8dc0a83-ff56-4664-a1a2-4c92ffd8ddb6",
+          "8e61271d-1cd1-474a-8cca-bdab5b813ea6",
+          "0b2b4459-4e19-4ffb-8fbd-9e89088bf658",
+          "6c2077f0-9ead-4c78-8a52-801f2fa8d066",
+          "33e305f4-f26d-47a2-8324-faed6e979417"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "No context from American Tower Corporation 10-K/10-Q filings in the provided documents"
+      },
+      "tags": [
+        "revenue",
+        "change",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-008",
+        "company": "American Tower Corporation",
+        "ticker": "AMT",
+        "year": "2023",
+        "retrieval_ticker": "AXP"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-681576a7",
+      "input": {
+        "query": "Can you break down the revenue performance for AMT during their most recent reporting period?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "9544d119-fbaf-42bd-873d-2a8cf4a41283",
+          "86f92476-1645-4996-ba7a-fcf5fe8e64e0",
+          "95b534d3-d867-42cf-8cc6-e0e99829e77e",
+          "a023b186-7452-4283-89c5-bc37bf354ffa",
+          "6266e81f-247b-40ac-befa-dbbd3ab1d769"
+        ],
+        "answer": null,
+        "citations": [
+          {
+            "filing": "AMT 10-K 2024",
+            "section": "MDA",
+            "chunk_id": "9544d119-fbaf-42bd-873d-2a8cf4a41283"
+          }
+        ],
+        "no_answer_reason": "Insufficient context to analyze revenue performance"
+      },
+      "tags": [
+        "revenue",
+        "change",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-008",
+        "company": "American Tower Corporation",
+        "ticker": "AMT",
+        "year": "2023",
+        "retrieval_ticker": "AMT"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-55336893",
+      "input": {
+        "query": "I'm looking to understand the revenue trajectory for American Tower Corporation - did they see an increase or decline in 2023?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "fde2bd21-3357-431e-af5a-b2b9af17a21b",
+          "32343211-bee3-4836-80d0-7ec997702dd8",
+          "33e305f4-f26d-47a2-8324-faed6e979417",
+          "98a989bb-5bd2-4ab8-843f-bd424755a1a6",
+          "1b9a5a46-175f-4738-a4fd-71c623940adc"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context"
+      },
+      "tags": [
+        "revenue",
+        "change",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 2,
+      "metadata": {
+        "template_id": "fm-rev-008",
+        "company": "American Tower Corporation",
+        "ticker": "AMT",
+        "year": "2023",
+        "retrieval_ticker": "AXP"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-2d1868ce",
+      "input": {
+        "query": "Could you provide the aggregate revenue for Comcast Corporation (CMCSA) in the fiscal year 2023?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "bd805445-a554-4300-9d14-3aab31575d68",
+          "54dbc4d8-45c2-44f3-a595-a9b8e77eb6b2",
+          "3c9fd1c2-7abd-45d1-b946-d53ee6d1c5ff",
+          "853695b8-7f9a-4f2b-a162-edad302f773d",
+          "993d1ebd-a2ab-4e63-b1bc-86a3d16c7222"
+        ],
+        "answer": "According to the Comcast 10-K filing, the total consolidated revenue for fiscal year 2023 was $87,633 million, as derived from the revenue details in the Consolidated Revenue section of the filing.",
+        "citations": [
+          {
+            "filing": "CMCSA 10-K",
+            "section": "risk_factors",
+            "chunk_id": "3c9fd1c2-7abd-45d1-b946-d53ee6d1c5ff"
+          }
+        ]
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-009",
+        "company": "Comcast Corporation",
+        "ticker": "CMCSA",
+        "year": "2023",
+        "retrieval_ticker": "CMCSA"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-a92dc5bc",
+      "input": {
+        "query": "I'm looking to understand Comcast's total top-line performance - what were their complete sales revenues last year?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "11e89f24-3549-4176-8a4c-3e6b9bd00b58",
+          "6a131034-af2b-45d2-9f53-9d452838eeb6",
+          "4876ccab-dfb5-4bb2-ba22-dc6d5dd568c3",
+          "18d1efd5-247b-4426-8672-a2d057d67a5d",
+          "65730bba-720e-4df7-b97f-02e99a4f3768"
+        ],
+        "answer": "For the fiscal year 2023, Comcast's total consolidated revenue was $98,443 million. This can be derived from the Content & Experiences segment total revenue of $43,191 million, the Business Services Connectivity segment revenue of $9,255 million, and other segment revenues.",
+        "citations": [
+          {
+            "filing": "CMCSA 10-K",
+            "section": "Segment Operating Results",
+            "chunk_id": "6a131034-af2b-45d2-9f53-9d452838eeb6"
+          }
+        ]
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-009",
+        "company": "Comcast Corporation",
+        "ticker": "CMCSA",
+        "year": "2023",
+        "retrieval_ticker": "CMCSA"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-af34b8f3",
+      "input": {
+        "query": "Can you break down the total sales number that Comcast reported in their most recent annual financial statement?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "2fde9507-2635-4c83-af5b-d345a7c06061",
+          "359a92f3-ffc3-4dd6-8143-d8a370639fb5",
+          "4f5b247f-e4a2-4953-87f7-f24f66d15f57",
+          "0cc97b88-0e51-4ef2-8a6c-fbb9d30d55e2"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context"
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-009",
+        "company": "Comcast Corporation",
+        "ticker": "CMCSA",
+        "year": "2023",
+        "retrieval_ticker": "CMCSA"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-33cb1dab",
+      "input": {
+        "query": "Can you help me identify UnitedHealth Group Inc.'s total revenue figure as disclosed in their 2022 10-K filing?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "a06389c8-c217-4bcd-944f-2074189664f2",
+          "b0ed6455-abe7-4066-875d-0e8df7ec3ba6",
+          "ed302458-331a-441e-b4c0-42741d8cf701",
+          "546ec32e-024c-4ca7-a019-ceee5f2a18b8",
+          "067d8300-842b-4723-995c-7e03e7fa18af"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context - the provided documents do not contain UnitedHealth Group's 2022 10-K filing or total revenue figure"
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-010",
+        "company": "UnitedHealth Group Inc.",
+        "ticker": "UNH",
+        "year": "2022",
+        "retrieval_ticker": "UNH"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-f5be8b9f",
+      "input": {
+        "query": "I'm looking to understand UnitedHealth Group's top-line revenue performance for the fiscal year 2022. What was their reported annual revenue?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "cbc685c4-eba4-42a7-87bd-f2c978a774c0",
+          "ed302458-331a-441e-b4c0-42741d8cf701",
+          "c5a4169e-e8ff-435b-a7e2-23c219016d35",
+          "13af6cee-2a4c-4367-97a0-53f01999de03",
+          "dc1d4346-ebe9-4ab4-8b45-71c660670ccb"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "Insufficient context - these documents are for Cardinal Health (CAH) financial statements, not UnitedHealth Group's revenue"
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-010",
+        "company": "UnitedHealth Group Inc.",
+        "ticker": "UNH",
+        "year": "2022",
+        "retrieval_ticker": "UNH"
+      }
+    },
+    {
+      "id": "sec-rag-financial_metrics-18749e91",
+      "input": {
+        "query": "Could you walk me through UnitedHealth Group Inc.'s revenue breakdown from their most recent annual report?"
+      },
+      "expected": {
+        "behavior": "answer",
+        "requires_citations": true,
+        "relevant_docs": [
+          "0ed2f259-648e-4fbe-8ac2-3f1a7f3d7651",
+          "60ea1a29-8dcb-442d-bf37-49b19af72f52"
+        ],
+        "answer": null,
+        "citations": [],
+        "no_answer_reason": "The provided context does not include a detailed revenue breakdown for UnitedHealth Group Inc. The excerpts focus on regulatory and compliance information, but do not provide specific revenue figures or segment details."
+      },
+      "tags": [
+        "revenue",
+        "10-K",
+        "financial_metrics"
+      ],
+      "category": "rag",
+      "subcategory": "financial_metrics",
+      "complexity": 1,
+      "metadata": {
+        "template_id": "fm-rev-010",
+        "company": "UnitedHealth Group Inc.",
+        "ticker": "UNH",
+        "year": "2022",
+        "retrieval_ticker": "UNH"
+      }
+    }
+  ]
+}

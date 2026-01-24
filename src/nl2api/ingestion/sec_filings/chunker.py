@@ -7,11 +7,45 @@ Respects semantic boundaries (paragraphs, sentences) where possible.
 
 import logging
 import re
+from datetime import datetime
 
 from src.nl2api.ingestion.sec_filings.config import SECFilingConfig
 from src.nl2api.ingestion.sec_filings.models import Filing, FilingChunk
 
 logger = logging.getLogger(__name__)
+
+
+def derive_fiscal_quarter(period_of_report: datetime, filing_type: str) -> int | None:
+    """
+    Derive fiscal quarter from period of report date.
+
+    For 10-Q filings, determine which quarter based on the period end month.
+    Most companies follow calendar year, so:
+    - Q1: Jan-Mar (month 1-3)
+    - Q2: Apr-Jun (month 4-6)
+    - Q3: Jul-Sep (month 7-9)
+    - Q4: Oct-Dec (month 10-12) - typically covered by 10-K
+
+    Args:
+        period_of_report: Period end date
+        filing_type: Filing type (10-K, 10-Q, etc.)
+
+    Returns:
+        Quarter number (1-4) or None for 10-K filings
+    """
+    # 10-K covers the full year, not a specific quarter
+    if "10-K" in filing_type:
+        return None
+
+    month = period_of_report.month
+    if month <= 3:
+        return 1
+    elif month <= 6:
+        return 2
+    elif month <= 9:
+        return 3
+    else:
+        return 4
 
 
 class DocumentChunker:
@@ -127,6 +161,11 @@ class DocumentChunker:
                 chunk_start = char_offset
             chunk_end = chunk_start + len(chunk_text)
 
+            # Derive additional metadata
+            filing_type_str = filing.filing_type.value
+            fiscal_quarter = derive_fiscal_quarter(filing.period_of_report, filing_type_str)
+            is_amendment = "/A" in filing_type_str
+
             chunk = FilingChunk(
                 chunk_id=chunk_id,
                 filing_accession=filing.accession_number,
@@ -138,12 +177,15 @@ class DocumentChunker:
                 metadata={
                     "source": "sec_edgar",
                     "document_type": "sec_filing",
-                    "filing_type": filing.filing_type.value,
+                    "filing_type": filing_type_str,
                     "cik": filing.cik,
                     "ticker": filing.ticker,
                     "company_name": filing.company_name,
                     "filing_date": filing.filing_date.isoformat(),
                     "period_of_report": filing.period_of_report.isoformat(),
+                    "fiscal_year": filing.period_of_report.year,
+                    "fiscal_quarter": fiscal_quarter,  # None for 10-K, 1-4 for 10-Q
+                    "is_amendment": is_amendment,
                     "section": section_name,
                     "chunk_index": i,
                     "total_chunks_in_section": len(text_chunks),
@@ -316,7 +358,7 @@ class DocumentChunker:
             return text
 
         # Get last N characters, then find word boundary
-        overlap = text[-self._chunk_overlap:]
+        overlap = text[-self._chunk_overlap :]
 
         # Find first word boundary
         space_idx = overlap.find(" ")

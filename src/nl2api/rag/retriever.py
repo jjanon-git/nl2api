@@ -12,6 +12,7 @@ Features:
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -164,8 +165,10 @@ class HybridRAGRetriever:
 
         span.set_attribute("rag.cache_hit", False)
 
-        # Generate query embedding
-        query_embedding = await self._embedder.embed(query)
+        # Generate query embedding and convert to PostgreSQL vector format
+        query_embedding_list = await self._embedder.embed(query)
+        # Convert to string format for pgvector: "[1.0, 2.0, 3.0]"
+        query_embedding = "[" + ",".join(str(x) for x in query_embedding_list) + "]"
 
         # Build the hybrid search query
         type_filter = ""
@@ -250,6 +253,18 @@ class HybridRAGRetriever:
 
         results = []
         for row in rows:
+            # Parse metadata - can be JSONB (dict), JSON string, or None
+            raw_metadata = row["metadata"]
+            if raw_metadata is None:
+                metadata = {}
+            elif isinstance(raw_metadata, str):
+                try:
+                    metadata = json.loads(raw_metadata)
+                except json.JSONDecodeError:
+                    metadata = {}
+            else:
+                metadata = raw_metadata
+
             results.append(
                 RetrievalResult(
                     id=row["id"],
@@ -260,7 +275,7 @@ class HybridRAGRetriever:
                     field_code=row["field_code"],
                     example_query=row["example_query"],
                     example_api_call=row["example_api_call"],
-                    metadata=row["metadata"] or {},
+                    metadata=metadata,
                 )
             )
 
@@ -377,6 +392,18 @@ class HybridRAGRetriever:
 
             results = []
             for row in rows:
+                # Parse metadata - can be JSONB (dict), JSON string, or None
+                raw_metadata = row["metadata"]
+                if raw_metadata is None:
+                    metadata = {}
+                elif isinstance(raw_metadata, str):
+                    try:
+                        metadata = json.loads(raw_metadata)
+                    except json.JSONDecodeError:
+                        metadata = {}
+                else:
+                    metadata = raw_metadata
+
                 results.append(
                     RetrievalResult(
                         id=row["id"],
@@ -387,7 +414,7 @@ class HybridRAGRetriever:
                         field_code=row["field_code"],
                         example_query=row["example_query"],
                         example_api_call=row["example_api_call"],
-                        metadata=row["metadata"] or {},
+                        metadata=metadata,
                     )
                 )
 

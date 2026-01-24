@@ -165,7 +165,7 @@
     {
       "id": "sec-rag-financial_metrics-7a27e8b5",
       "input": {
-        "query": "Can you provide the total net sales revenue for Dominion Energy Inc. in their most recent fiscal year?"
+        "query": "Can you provide the total net sales revenue for Medtronic plc in their most recent fiscal year?"
       },
       "expected": {
         "behavior": "answer",
@@ -181,15 +181,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-rev-003",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2024"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2024",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-financial_metrics-ac49c192",
       "input": {
-        "query": "I'm looking to understand Dominion Energy's top-line performance. What are their net sales figures for fiscal 2024?"
+        "query": "I'm looking to understand Medtronic Energy's top-line performance. What are their net sales figures for fiscal 2024?"
       },
       "expected": {
         "behavior": "answer",
@@ -205,15 +206,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-rev-003",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2024"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2024",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-financial_metrics-0f24b0d6",
       "input": {
-        "query": "Could you break down Dominion Energy Inc.'s net sales numbers for the 2024 fiscal reporting period?"
+        "query": "Could you break down Medtronic plc's net sales numbers for the 2024 fiscal reporting period?"
       },
       "expected": {
         "behavior": "answer",
@@ -229,9 +231,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-rev-003",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2024"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2024",
+        "original_ticker": "D"
       }
     },
     {
@@ -387,7 +390,7 @@
     {
       "id": "sec-rag-financial_metrics-95d68036",
       "input": {
-        "query": "Could you provide details on Citigroup Inc.'s total revenue reported in their third quarter 2022 financial statement?"
+        "query": "Could you provide details on Chubb Limited's total revenue reported in their third quarter 2022 financial statement?"
       },
       "expected": {
         "behavior": "answer",
@@ -403,15 +406,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-rev-006",
-        "company": "Citigroup Inc.",
-        "ticker": "C",
-        "year": "2022"
+        "company": "Chubb Limited",
+        "ticker": "CB",
+        "year": "2022",
+        "original_ticker": "C"
       }
     },
     {
       "id": "sec-rag-financial_metrics-75b5b448",
       "input": {
-        "query": "I'm looking to understand Citigroup's top-line performance for Q3 - what were their quarterly revenue figures?"
+        "query": "I'm looking to understand Chubb's top-line performance for Q3 - what were their quarterly revenue figures?"
       },
       "expected": {
         "behavior": "answer",
@@ -427,15 +431,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-rev-006",
-        "company": "Citigroup Inc.",
-        "ticker": "C",
-        "year": "2022"
+        "company": "Chubb Limited",
+        "ticker": "CB",
+        "year": "2022",
+        "original_ticker": "C"
       }
     },
     {
       "id": "sec-rag-financial_metrics-788358ec",
       "input": {
-        "query": "Can you break down Citigroup Inc.'s revenue for the three-month period ending September 30, 2022?"
+        "query": "Can you break down Chubb Limited's revenue for the three-month period ending September 30, 2022?"
       },
       "expected": {
         "behavior": "answer",
@@ -451,9 +456,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-rev-006",
-        "company": "Citigroup Inc.",
-        "ticker": "C",
-        "year": "2022"
+        "company": "Chubb Limited",
+        "ticker": "CB",
+        "year": "2022",
+        "original_ticker": "C"
       }
     },
     {
@@ -819,7 +825,7 @@
     {
       "id": "sec-rag-financial_metrics-91c7b9e1",
       "input": {
-        "query": "Can you walk me through Ford Motor Company's revenue performance over the fiscal year 2023?"
+        "query": "Can you walk me through Oracle Corporation's revenue performance over the fiscal year 2023?"
       },
       "expected": {
         "behavior": "answer",
@@ -835,15 +841,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "fm-rev-012",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2023"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2023",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-financial_metrics-e5a32fb0",
       "input": {
-        "query": "I'm looking to understand how Ford's top-line revenue evolved during their most recent annual reporting period."
+        "query": "I'm looking to understand how Oracle's top-line revenue evolved during their most recent annual reporting period."
       },
       "expected": {
         "behavior": "answer",
@@ -859,15 +866,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "fm-rev-012",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2023"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2023",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-financial_metrics-2bdbfd3a",
       "input": {
-        "query": "Analyze the revenue trajectory for Ford Motor Company (F) across their 2023 financial statements."
+        "query": "Analyze the revenue trajectory for Oracle Corporation (ORCL) across their 2023 financial statements."
       },
       "expected": {
         "behavior": "answer",
@@ -883,9 +891,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "fm-rev-012",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2023"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2023",
+        "original_ticker": "F"
       }
     },
     {
@@ -963,7 +972,7 @@
     {
       "id": "sec-rag-financial_metrics-be6db811",
       "input": {
-        "query": "What was the net income for AEP in the fiscal year 2024?"
+        "query": "What was the net income for MSFT in the fiscal year 2024?"
       },
       "expected": {
         "behavior": "answer",
@@ -979,15 +988,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-earn-002",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2024"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2024",
+        "original_ticker": "AEP"
       }
     },
     {
       "id": "sec-rag-financial_metrics-b15ea6ed",
       "input": {
-        "query": "Can you break down American Electric Power's earnings performance for their most recent fiscal period?"
+        "query": "Can you break down Microsoft Corporation's earnings performance for their most recent fiscal period?"
       },
       "expected": {
         "behavior": "answer",
@@ -1003,15 +1013,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-earn-002",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2024"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2024",
+        "original_ticker": "AEP"
       }
     },
     {
       "id": "sec-rag-financial_metrics-00b8e8e1",
       "input": {
-        "query": "I'm looking to understand AEP's bottom-line financial results for their 2024 fiscal year - what were their total profits?"
+        "query": "I'm looking to understand MSFT's bottom-line financial results for their 2024 fiscal year - what were their total profits?"
       },
       "expected": {
         "behavior": "answer",
@@ -1027,9 +1038,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-earn-002",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2024"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2024",
+        "original_ticker": "AEP"
       }
     },
     {
@@ -1611,7 +1623,7 @@
     {
       "id": "sec-rag-financial_metrics-91f907de",
       "input": {
-        "query": "What was Morgan Stanley's net income performance for fiscal year 2022?"
+        "query": "What was Coca-Cola Company's net income performance for fiscal year 2022?"
       },
       "expected": {
         "behavior": "answer",
@@ -1627,15 +1639,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-earn-011",
-        "company": "Morgan Stanley",
-        "ticker": "MS",
-        "year": "2022"
+        "company": "Coca-Cola Company",
+        "ticker": "KO",
+        "year": "2022",
+        "original_ticker": "MS"
       }
     },
     {
       "id": "sec-rag-financial_metrics-6e5606e2",
       "input": {
-        "query": "Can you help me understand whether Morgan Stanley experienced a financial gain or deficit in their 2022 annual results?"
+        "query": "Can you help me understand whether Coca-Cola Company experienced a financial gain or deficit in their 2022 annual results?"
       },
       "expected": {
         "behavior": "answer",
@@ -1651,15 +1664,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-earn-011",
-        "company": "Morgan Stanley",
-        "ticker": "MS",
-        "year": "2022"
+        "company": "Coca-Cola Company",
+        "ticker": "KO",
+        "year": "2022",
+        "original_ticker": "MS"
       }
     },
     {
       "id": "sec-rag-financial_metrics-53d24446",
       "input": {
-        "query": "I'm looking to confirm Morgan Stanley's bottom-line outcome for the most recent fiscal reporting period - were they profitable?"
+        "query": "I'm looking to confirm Coca-Cola Company's bottom-line outcome for the most recent fiscal reporting period - were they profitable?"
       },
       "expected": {
         "behavior": "answer",
@@ -1675,9 +1689,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-earn-011",
-        "company": "Morgan Stanley",
-        "ticker": "MS",
-        "year": "2022"
+        "company": "Coca-Cola Company",
+        "ticker": "KO",
+        "year": "2022",
+        "original_ticker": "MS"
       }
     },
     {
@@ -3483,7 +3498,7 @@
     {
       "id": "sec-rag-financial_metrics-1f183eb2",
       "input": {
-        "query": "Could you provide the total shareholders' equity for Ford Motor Company (F) in their most recent fiscal year?"
+        "query": "Could you provide the total shareholders' equity for Oracle Corporation (ORCL) in their most recent fiscal year?"
       },
       "expected": {
         "behavior": "answer",
@@ -3499,15 +3514,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-bs-004",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-financial_metrics-b9de13c1",
       "input": {
-        "query": "I'm looking to understand Ford's equity position - what was the shareholders' equity balance reported in their 2024 financial statements?"
+        "query": "I'm looking to understand Oracle's equity position - what was the shareholders' equity balance reported in their 2024 financial statements?"
       },
       "expected": {
         "behavior": "answer",
@@ -3523,15 +3539,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-bs-004",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-financial_metrics-101c8e01",
       "input": {
-        "query": "Can you help me find the total shareholders' equity line item for F in their latest annual report?"
+        "query": "Can you help me find the total shareholders' equity line item for ORCL in their latest annual report?"
       },
       "expected": {
         "behavior": "answer",
@@ -3547,9 +3564,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-bs-004",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
@@ -3699,7 +3717,7 @@
     {
       "id": "sec-rag-financial_metrics-b210366f",
       "input": {
-        "query": "Can you provide the total liabilities reported by AEP in their 2022 financial statements?"
+        "query": "Can you provide the total liabilities reported by MSFT in their 2022 financial statements?"
       },
       "expected": {
         "behavior": "answer",
@@ -3715,15 +3733,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-bs-007",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2022"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2022",
+        "original_ticker": "AEP"
       }
     },
     {
       "id": "sec-rag-financial_metrics-4aa3321a",
       "input": {
-        "query": "I'm looking to understand American Electric Power's comprehensive liability position for the fiscal year ending December 31st, 2022."
+        "query": "I'm looking to understand Microsoft Corporation's comprehensive liability position for the fiscal year ending December 31st, 2022."
       },
       "expected": {
         "behavior": "answer",
@@ -3739,15 +3758,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-bs-007",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2022"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2022",
+        "original_ticker": "AEP"
       }
     },
     {
       "id": "sec-rag-financial_metrics-d4fcbae1",
       "input": {
-        "query": "What is the aggregate liability figure shown on AEP's balance sheet for the 2022 reporting period?"
+        "query": "What is the aggregate liability figure shown on MSFT's balance sheet for the 2022 reporting period?"
       },
       "expected": {
         "behavior": "answer",
@@ -3763,9 +3783,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-bs-007",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2022"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2022",
+        "original_ticker": "AEP"
       }
     },
     {
@@ -4491,7 +4512,7 @@
     {
       "id": "sec-rag-financial_metrics-58271882",
       "input": {
-        "query": "Could you help me understand Ford's total debt minus cash and cash equivalents for fiscal year 2023?"
+        "query": "Could you help me understand Oracle's total debt minus cash and cash equivalents for fiscal year 2023?"
       },
       "expected": {
         "behavior": "answer",
@@ -4507,15 +4528,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "fm-bs-018",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2023"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2023",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-financial_metrics-8dcda01b",
       "input": {
-        "query": "I'm analyzing F's balance sheet and need clarity on their net debt levels at the end of last year. Can you break that down?"
+        "query": "I'm analyzing ORCL's balance sheet and need clarity on their net debt levels at the end of last year. Can you break that down?"
       },
       "expected": {
         "behavior": "answer",
@@ -4531,15 +4553,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "fm-bs-018",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2023"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2023",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-financial_metrics-0d6e4008",
       "input": {
-        "query": "What does Ford's net debt look like in the most recent annual report - how much are they carrying after accounting for liquid assets?"
+        "query": "What does Oracle's net debt look like in the most recent annual report - how much are they carrying after accounting for liquid assets?"
       },
       "expected": {
         "behavior": "answer",
@@ -4555,9 +4578,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "fm-bs-018",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2023"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2023",
+        "original_ticker": "F"
       }
     },
     {
@@ -5859,7 +5883,7 @@
     {
       "id": "sec-rag-financial_metrics-dfd983b2",
       "input": {
-        "query": "Could you help me identify the per-share dividend amount reported by Dominion Energy Inc. in their fiscal year 2022?"
+        "query": "Could you help me identify the per-share dividend amount reported by Medtronic plc in their fiscal year 2022?"
       },
       "expected": {
         "behavior": "answer",
@@ -5875,15 +5899,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-div-002",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2022"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2022",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-financial_metrics-76bc95ed",
       "input": {
-        "query": "I'm analyzing Dominion Energy's investor returns and need to confirm their dividend payout for the 2022 financial period."
+        "query": "I'm analyzing Medtronic Energy's investor returns and need to confirm their dividend payout for the 2022 financial period."
       },
       "expected": {
         "behavior": "answer",
@@ -5899,15 +5924,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-div-002",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2022"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2022",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-financial_metrics-9f9a1acb",
       "input": {
-        "query": "What specific dividend value did Dominion Energy distribute to shareholders on a per-share basis during the 2022 reporting year?"
+        "query": "What specific dividend value did Medtronic Energy distribute to shareholders on a per-share basis during the 2022 reporting year?"
       },
       "expected": {
         "behavior": "answer",
@@ -5923,9 +5949,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-div-002",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2022"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2022",
+        "original_ticker": "D"
       }
     },
     {
@@ -6867,7 +6894,7 @@
     {
       "id": "sec-rag-financial_metrics-c7c238a1",
       "input": {
-        "query": "Could you help me find the total number of outstanding shares for Bank of America Corporation in their latest fiscal year?"
+        "query": "Could you help me find the total number of outstanding shares for Crown Castle Inc. in their latest fiscal year?"
       },
       "expected": {
         "behavior": "answer",
@@ -6883,15 +6910,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-shares-001",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2024"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2024",
+        "original_ticker": "BAC"
       }
     },
     {
       "id": "sec-rag-financial_metrics-1caf39c3",
       "input": {
-        "query": "I'm analyzing BAC's equity structure and need to confirm their current share count for 2024. What precise number did they report?"
+        "query": "I'm analyzing CCI's equity structure and need to confirm their current share count for 2024. What precise number did they report?"
       },
       "expected": {
         "behavior": "answer",
@@ -6907,15 +6935,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-shares-001",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2024"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2024",
+        "original_ticker": "BAC"
       }
     },
     {
       "id": "sec-rag-financial_metrics-2a69a5b2",
       "input": {
-        "query": "How many total shares were issued by Bank of America at the end of their most recent reporting period?"
+        "query": "How many total shares were issued by Crown of America at the end of their most recent reporting period?"
       },
       "expected": {
         "behavior": "answer",
@@ -6931,9 +6960,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "fm-shares-001",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2024"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2024",
+        "original_ticker": "BAC"
       }
     },
     {
@@ -7083,7 +7113,7 @@
     {
       "id": "sec-rag-business_operations-f402c268",
       "input": {
-        "query": "Could you break down the primary operating segments for Berkshire Hathaway in their most recent financial reporting?"
+        "query": "Could you break down the primary operating segments for Comcast Hathaway in their most recent financial reporting?"
       },
       "expected": {
         "behavior": "answer",
@@ -7099,15 +7129,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-seg-001",
-        "company": "Berkshire Hathaway Inc.",
-        "ticker": "BRK.B",
-        "year": "2024"
+        "company": "Comcast Corporation",
+        "ticker": "CMCSA",
+        "year": "2024",
+        "original_ticker": "BRK.B"
       }
     },
     {
       "id": "sec-rag-business_operations-ff23f597",
       "input": {
-        "query": "Can you describe the key business divisions that comprise Berkshire Hathaway's corporate structure?"
+        "query": "Can you describe the key business divisions that comprise Comcast Hathaway's corporate structure?"
       },
       "expected": {
         "behavior": "answer",
@@ -7123,15 +7154,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-seg-001",
-        "company": "Berkshire Hathaway Inc.",
-        "ticker": "BRK.B",
-        "year": "2024"
+        "company": "Comcast Corporation",
+        "ticker": "CMCSA",
+        "year": "2024",
+        "original_ticker": "BRK.B"
       }
     },
     {
       "id": "sec-rag-business_operations-5f2e5c67",
       "input": {
-        "query": "I'm looking to understand the core business lines that drive Berkshire Hathaway's revenue and strategic focus."
+        "query": "I'm looking to understand the core business lines that drive Comcast Hathaway's revenue and strategic focus."
       },
       "expected": {
         "behavior": "answer",
@@ -7147,9 +7179,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-seg-001",
-        "company": "Berkshire Hathaway Inc.",
-        "ticker": "BRK.B",
-        "year": "2024"
+        "company": "Comcast Corporation",
+        "ticker": "CMCSA",
+        "year": "2024",
+        "original_ticker": "BRK.B"
       }
     },
     {
@@ -8307,7 +8340,7 @@
     {
       "id": "sec-rag-business_operations-f1d7b367",
       "input": {
-        "query": "What customer segments and markets does Ford Motor Company primarily serve in their revenue model?"
+        "query": "What customer segments and markets does Oracle Corporation primarily serve in their revenue model?"
       },
       "expected": {
         "behavior": "answer",
@@ -8323,15 +8356,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-cust-004",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-business_operations-de60c6c2",
       "input": {
-        "query": "Can you break down the key customer groups that Ford sells its vehicles and automotive products to?"
+        "query": "Can you break down the key customer groups that Oracle sells its vehicles and automotive products to?"
       },
       "expected": {
         "behavior": "answer",
@@ -8347,15 +8381,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-cust-004",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-business_operations-feaa69bb",
       "input": {
-        "query": "I'm looking to understand Ford's target markets and customer base - which industries and consumer types make up their primary sales channels?"
+        "query": "I'm looking to understand Oracle's target markets and customer base - which industries and consumer types make up their primary sales channels?"
       },
       "expected": {
         "behavior": "answer",
@@ -8371,9 +8406,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-cust-004",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
@@ -9027,7 +9063,7 @@
     {
       "id": "sec-rag-business_operations-3d281771",
       "input": {
-        "query": "What is the current workforce size for American Electric Power?"
+        "query": "What is the current workforce size for Microsoft Corporation?"
       },
       "expected": {
         "behavior": "answer",
@@ -9043,15 +9079,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-emp-001",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2023"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2023",
+        "original_ticker": "AEP"
       }
     },
     {
       "id": "sec-rag-business_operations-c146810e",
       "input": {
-        "query": "Can you tell me the total number of employees reported in AEP's latest financial statements?"
+        "query": "Can you tell me the total number of employees reported in MSFT's latest financial statements?"
       },
       "expected": {
         "behavior": "answer",
@@ -9067,15 +9104,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-emp-001",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2023"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2023",
+        "original_ticker": "AEP"
       }
     },
     {
       "id": "sec-rag-business_operations-0a94ed56",
       "input": {
-        "query": "I'm looking to understand AEP's staffing levels - what's their employee headcount?"
+        "query": "I'm looking to understand MSFT's staffing levels - what's their employee headcount?"
       },
       "expected": {
         "behavior": "answer",
@@ -9091,9 +9129,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-emp-001",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2023"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2023",
+        "original_ticker": "AEP"
       }
     },
     {
@@ -10035,7 +10074,7 @@
     {
       "id": "sec-rag-business_operations-85295b42",
       "input": {
-        "query": "How does Bank of America Corporation position itself within its current competitive environment?"
+        "query": "How does Crown Castle Inc. position itself within its current competitive environment?"
       },
       "expected": {
         "behavior": "answer",
@@ -10051,15 +10090,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-comp-005",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2023"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2023",
+        "original_ticker": "BAC"
       }
     },
     {
       "id": "sec-rag-business_operations-a4ac1908",
       "input": {
-        "query": "Can you break down the key market dynamics and competitive challenges facing Bank of America's core business segments?"
+        "query": "Can you break down the key market dynamics and competitive challenges facing Crown of America's core business segments?"
       },
       "expected": {
         "behavior": "answer",
@@ -10075,15 +10115,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-comp-005",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2023"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2023",
+        "original_ticker": "BAC"
       }
     },
     {
       "id": "sec-rag-business_operations-aab6ff9b",
       "input": {
-        "query": "I'm looking to understand the competitive pressures and strategic positioning of Bank of America in its primary financial markets."
+        "query": "I'm looking to understand the competitive pressures and strategic positioning of Crown of America in its primary financial markets."
       },
       "expected": {
         "behavior": "answer",
@@ -10099,9 +10140,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-comp-005",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2023"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2023",
+        "original_ticker": "BAC"
       }
     },
     {
@@ -10827,7 +10869,7 @@
     {
       "id": "sec-rag-business_operations-368fb9a3",
       "input": {
-        "query": "What was the total capital expenditure for business acquisitions in Newmont Corporation's most recent fiscal year?"
+        "query": "What was the total capital expenditure for business acquisitions in Duke Energy Corporation's most recent fiscal year?"
       },
       "expected": {
         "behavior": "answer",
@@ -10843,15 +10885,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-acq-002",
-        "company": "Newmont Corporation",
-        "ticker": "NEM",
-        "year": "2023"
+        "company": "Duke Energy Corporation",
+        "ticker": "DUK",
+        "year": "2023",
+        "original_ticker": "NEM"
       }
     },
     {
       "id": "sec-rag-business_operations-597910dc",
       "input": {
-        "query": "Can you break down Newmont's investment in corporate acquisitions during the 2023 reporting period?"
+        "query": "Can you break down Duke's investment in corporate acquisitions during the 2023 reporting period?"
       },
       "expected": {
         "behavior": "answer",
@@ -10867,15 +10910,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-acq-002",
-        "company": "Newmont Corporation",
-        "ticker": "NEM",
-        "year": "2023"
+        "company": "Duke Energy Corporation",
+        "ticker": "DUK",
+        "year": "2023",
+        "original_ticker": "NEM"
       }
     },
     {
       "id": "sec-rag-business_operations-d2de363f",
       "input": {
-        "query": "I'm looking to understand the acquisition spending for Newmont Corporation in their latest annual financial statement - what were the total dollars spent?"
+        "query": "I'm looking to understand the acquisition spending for Duke Energy Corporation in their latest annual financial statement - what were the total dollars spent?"
       },
       "expected": {
         "behavior": "answer",
@@ -10891,9 +10935,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-acq-002",
-        "company": "Newmont Corporation",
-        "ticker": "NEM",
-        "year": "2023"
+        "company": "Duke Energy Corporation",
+        "ticker": "DUK",
+        "year": "2023",
+        "original_ticker": "NEM"
       }
     },
     {
@@ -11043,7 +11088,7 @@
     {
       "id": "sec-rag-business_operations-70bd8252",
       "input": {
-        "query": "Can you provide details on the intellectual property portfolio of Ecolab Inc. in their latest annual report?"
+        "query": "Can you provide details on the intellectual property portfolio of Linde plc in their latest annual report?"
       },
       "expected": {
         "behavior": "answer",
@@ -11059,15 +11104,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-ip-001",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2023"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2023",
+        "original_ticker": "ECL"
       }
     },
     {
       "id": "sec-rag-business_operations-984c563a",
       "input": {
-        "query": "What key patents and trademarks does Ecolab currently hold that are material to their business operations?"
+        "query": "What key patents and trademarks does Linde currently hold that are material to their business operations?"
       },
       "expected": {
         "behavior": "answer",
@@ -11083,15 +11129,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-ip-001",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2023"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2023",
+        "original_ticker": "ECL"
       }
     },
     {
       "id": "sec-rag-business_operations-746e7723",
       "input": {
-        "query": "I'm looking to understand the scope of Ecolab's IP assets - what proprietary technologies or brands do they protect?"
+        "query": "I'm looking to understand the scope of Linde's IP assets - what proprietary technologies or brands do they protect?"
       },
       "expected": {
         "behavior": "answer",
@@ -11107,15 +11154,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-ip-001",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2023"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2023",
+        "original_ticker": "ECL"
       }
     },
     {
       "id": "sec-rag-business_operations-de6091c2",
       "input": {
-        "query": "Can you help me quantify Pioneer Natural Resources' intellectual property portfolio and specifically identify the total number of patents they currently hold?"
+        "query": "Can you help me quantify Oracle Corporation' intellectual property portfolio and specifically identify the total number of patents they currently hold?"
       },
       "expected": {
         "behavior": "answer",
@@ -11131,15 +11179,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-ip-002",
-        "company": "Pioneer Natural Resources",
-        "ticker": "PXD",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "PXD"
       }
     },
     {
       "id": "sec-rag-business_operations-ad028255",
       "input": {
-        "query": "What's the current patent count for Pioneer Natural Resources based on their latest regulatory filing?"
+        "query": "What's the current patent count for Oracle Corporation based on their latest regulatory filing?"
       },
       "expected": {
         "behavior": "answer",
@@ -11155,15 +11204,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-ip-002",
-        "company": "Pioneer Natural Resources",
-        "ticker": "PXD",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "PXD"
       }
     },
     {
       "id": "sec-rag-business_operations-60379434",
       "input": {
-        "query": "I'm trying to assess Pioneer Natural Resources' technological assets - could you tell me how many patents are listed in their recent financial documentation?"
+        "query": "I'm trying to assess Oracle Corporation' technological assets - could you tell me how many patents are listed in their recent financial documentation?"
       },
       "expected": {
         "behavior": "answer",
@@ -11179,15 +11229,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-ip-002",
-        "company": "Pioneer Natural Resources",
-        "ticker": "PXD",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "PXD"
       }
     },
     {
       "id": "sec-rag-business_operations-ab597233",
       "input": {
-        "query": "How does Morgan Stanley protect and leverage its intellectual property assets?"
+        "query": "How does Coca-Cola Company protect and leverage its intellectual property assets?"
       },
       "expected": {
         "behavior": "answer",
@@ -11203,9 +11254,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-ip-003",
-        "company": "Morgan Stanley",
-        "ticker": "MS",
-        "year": "2022"
+        "company": "Coca-Cola Company",
+        "ticker": "KO",
+        "year": "2022",
+        "original_ticker": "MS"
       }
     },
     {
@@ -11227,15 +11279,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-ip-003",
-        "company": "Morgan Stanley",
-        "ticker": "MS",
-        "year": "2022"
+        "company": "Coca-Cola Company",
+        "ticker": "KO",
+        "year": "2022",
+        "original_ticker": "MS"
       }
     },
     {
       "id": "sec-rag-business_operations-15882cee",
       "input": {
-        "query": "I'm interested in understanding the key components of Morgan Stanley's IP strategy and its role in their competitive positioning."
+        "query": "I'm interested in understanding the key components of Coca-Cola Company's IP strategy and its role in their competitive positioning."
       },
       "expected": {
         "behavior": "answer",
@@ -11251,9 +11304,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-ip-003",
-        "company": "Morgan Stanley",
-        "ticker": "MS",
-        "year": "2022"
+        "company": "Coca-Cola Company",
+        "ticker": "KO",
+        "year": "2022",
+        "original_ticker": "MS"
       }
     },
     {
@@ -11403,7 +11457,7 @@
     {
       "id": "sec-rag-business_operations-220e7f24",
       "input": {
-        "query": "Can you provide details on the global manufacturing locations for Air Products and Chemicals?"
+        "query": "Can you provide details on the global manufacturing locations for International Business Machines?"
       },
       "expected": {
         "behavior": "answer",
@@ -11419,15 +11473,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-mfg-001",
-        "company": "Air Products and Chemicals",
-        "ticker": "APD",
-        "year": "2024"
+        "company": "International Business Machines",
+        "ticker": "IBM",
+        "year": "2024",
+        "original_ticker": "APD"
       }
     },
     {
       "id": "sec-rag-business_operations-b37d70d8",
       "input": {
-        "query": "I'm looking to understand the geographic spread of Air Products and Chemicals's production infrastructure. What are their key manufacturing sites?"
+        "query": "I'm looking to understand the geographic spread of International Business Machines's production infrastructure. What are their key manufacturing sites?"
       },
       "expected": {
         "behavior": "answer",
@@ -11443,15 +11498,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-mfg-001",
-        "company": "Air Products and Chemicals",
-        "ticker": "APD",
-        "year": "2024"
+        "company": "International Business Machines",
+        "ticker": "IBM",
+        "year": "2024",
+        "original_ticker": "APD"
       }
     },
     {
       "id": "sec-rag-business_operations-47d2b611",
       "input": {
-        "query": "Could you outline the locations of Air Products and Chemicals's primary manufacturing facilities around the world?"
+        "query": "Could you outline the locations of International Business Machines's primary manufacturing facilities around the world?"
       },
       "expected": {
         "behavior": "answer",
@@ -11467,9 +11523,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "bo-mfg-001",
-        "company": "Air Products and Chemicals",
-        "ticker": "APD",
-        "year": "2024"
+        "company": "International Business Machines",
+        "ticker": "IBM",
+        "year": "2024",
+        "original_ticker": "APD"
       }
     },
     {
@@ -11619,7 +11676,7 @@
     {
       "id": "sec-rag-business_operations-1b7f3e22",
       "input": {
-        "query": "What are the primary distribution channels Ford Motor Company utilizes for its automotive product lineup?"
+        "query": "What are the primary distribution channels Oracle Corporation utilizes for its automotive product lineup?"
       },
       "expected": {
         "behavior": "answer",
@@ -11635,15 +11692,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-dist-001",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-business_operations-4f085e0f",
       "input": {
-        "query": "Can you explain how Ford gets its vehicles from manufacturing facilities to dealerships and end consumers?"
+        "query": "Can you explain how Oracle gets its vehicles from manufacturing facilities to dealerships and end consumers?"
       },
       "expected": {
         "behavior": "answer",
@@ -11659,15 +11717,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-dist-001",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-business_operations-a3642c84",
       "input": {
-        "query": "I'm looking to understand Ford's supply chain and distribution strategy - could you break down their method of bringing cars to market?"
+        "query": "I'm looking to understand Oracle's supply chain and distribution strategy - could you break down their method of bringing cars to market?"
       },
       "expected": {
         "behavior": "answer",
@@ -11683,9 +11742,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-dist-001",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
@@ -11763,7 +11823,7 @@
     {
       "id": "sec-rag-business_operations-3b543e44",
       "input": {
-        "query": "Does American Electric Power experience significant seasonal fluctuations in its revenue or operational performance?"
+        "query": "Does Microsoft Corporation experience significant seasonal fluctuations in its revenue or operational performance?"
       },
       "expected": {
         "behavior": "answer",
@@ -11779,15 +11839,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-seas-001",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2024"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2024",
+        "original_ticker": "AEP"
       }
     },
     {
       "id": "sec-rag-business_operations-99ce18de",
       "input": {
-        "query": "Can you help me understand how seasonal patterns might impact AEP's financial results throughout the year?"
+        "query": "Can you help me understand how seasonal patterns might impact MSFT's financial results throughout the year?"
       },
       "expected": {
         "behavior": "answer",
@@ -11803,15 +11864,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-seas-001",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2024"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2024",
+        "original_ticker": "AEP"
       }
     },
     {
       "id": "sec-rag-business_operations-6f4606e9",
       "input": {
-        "query": "I'm looking to determine whether seasonal factors play a notable role in American Electric Power's business dynamics."
+        "query": "I'm looking to determine whether seasonal factors play a notable role in Microsoft Corporation's business dynamics."
       },
       "expected": {
         "behavior": "answer",
@@ -11827,9 +11889,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "bo-seas-001",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2024"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2024",
+        "original_ticker": "AEP"
       }
     },
     {
@@ -12051,7 +12114,7 @@
     {
       "id": "sec-rag-risk_factors-3b4994dc",
       "input": {
-        "query": "Could you outline the primary risk factors affecting Ford Motor Company's operational and financial performance?"
+        "query": "Could you outline the primary risk factors affecting Oracle Corporation's operational and financial performance?"
       },
       "expected": {
         "behavior": "answer",
@@ -12067,15 +12130,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-gen-003",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-risk_factors-33afc7d4",
       "input": {
-        "query": "I'm looking to understand the most significant challenges and potential vulnerabilities in Ford's current business model. What risks should investors be aware of?"
+        "query": "I'm looking to understand the most significant challenges and potential vulnerabilities in Oracle's current business model. What risks should investors be aware of?"
       },
       "expected": {
         "behavior": "answer",
@@ -12091,15 +12155,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-gen-003",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
       "id": "sec-rag-risk_factors-7e434afb",
       "input": {
-        "query": "What potential threats could impact Ford Motor Company's strategic objectives and financial stability in the near term?"
+        "query": "What potential threats could impact Oracle Corporation's strategic objectives and financial stability in the near term?"
       },
       "expected": {
         "behavior": "answer",
@@ -12115,9 +12180,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-gen-003",
-        "company": "Ford Motor Company",
-        "ticker": "F",
-        "year": "2024"
+        "company": "Oracle Corporation",
+        "ticker": "ORCL",
+        "year": "2024",
+        "original_ticker": "F"
       }
     },
     {
@@ -12195,7 +12261,7 @@
     {
       "id": "sec-rag-risk_factors-a7c5fe13",
       "input": {
-        "query": "Could you summarize the key risk factors BlackRock Inc. highlights in their latest financial disclosure?"
+        "query": "Could you summarize the key risk factors Prologis Inc. highlights in their latest financial disclosure?"
       },
       "expected": {
         "behavior": "answer",
@@ -12211,15 +12277,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-gen-005",
-        "company": "BlackRock Inc.",
-        "ticker": "BLK",
-        "year": "2022"
+        "company": "Prologis Inc.",
+        "ticker": "PLD",
+        "year": "2022",
+        "original_ticker": "BLK"
       }
     },
     {
       "id": "sec-rag-risk_factors-a075f619",
       "input": {
-        "query": "I'm looking to understand the primary potential threats and material risks facing BlackRock's business operations as detailed in their SEC filing."
+        "query": "I'm looking to understand the primary potential threats and material risks facing Prologis's business operations as detailed in their SEC filing."
       },
       "expected": {
         "behavior": "answer",
@@ -12235,15 +12302,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-gen-005",
-        "company": "BlackRock Inc.",
-        "ticker": "BLK",
-        "year": "2022"
+        "company": "Prologis Inc.",
+        "ticker": "PLD",
+        "year": "2022",
+        "original_ticker": "BLK"
       }
     },
     {
       "id": "sec-rag-risk_factors-7182a943",
       "input": {
-        "query": "What critical risk exposures does BlackRock Inc. identify that could significantly impact their financial performance?"
+        "query": "What critical risk exposures does Prologis Inc. identify that could significantly impact their financial performance?"
       },
       "expected": {
         "behavior": "answer",
@@ -12259,9 +12327,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-gen-005",
-        "company": "BlackRock Inc.",
-        "ticker": "BLK",
-        "year": "2022"
+        "company": "Prologis Inc.",
+        "ticker": "PLD",
+        "year": "2022",
+        "original_ticker": "BLK"
       }
     },
     {
@@ -13419,7 +13488,7 @@
     {
       "id": "sec-rag-risk_factors-5dfb0256",
       "input": {
-        "query": "Can you detail the key supply chain vulnerabilities for Dominion Energy's operations in their latest annual report?"
+        "query": "Can you detail the key supply chain vulnerabilities for Medtronic Energy's operations in their latest annual report?"
       },
       "expected": {
         "behavior": "answer",
@@ -13435,15 +13504,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-sup-003",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2022"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2022",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-risk_factors-3ef98afa",
       "input": {
-        "query": "I'm looking to understand the potential procurement and vendor-related challenges that might impact Dominion Energy's financial performance."
+        "query": "I'm looking to understand the potential procurement and vendor-related challenges that might impact Medtronic Energy's financial performance."
       },
       "expected": {
         "behavior": "answer",
@@ -13459,15 +13529,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-sup-003",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2022"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2022",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-risk_factors-4cf77c4d",
       "input": {
-        "query": "What external supplier-related risks could potentially disrupt Dominion Energy's business model and operational continuity?"
+        "query": "What external supplier-related risks could potentially disrupt Medtronic Energy's business model and operational continuity?"
       },
       "expected": {
         "behavior": "answer",
@@ -13483,9 +13554,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-sup-003",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2022"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2022",
+        "original_ticker": "D"
       }
     },
     {
@@ -13563,7 +13635,7 @@
     {
       "id": "sec-rag-risk_factors-b20aec36",
       "input": {
-        "query": "Can you elaborate on the cybersecurity threat landscape disclosed in Newmont Corporation's risk factors?"
+        "query": "Can you elaborate on the cybersecurity threat landscape disclosed in Duke Energy Corporation's risk factors?"
       },
       "expected": {
         "behavior": "answer",
@@ -13579,15 +13651,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-cyber-001",
-        "company": "Newmont Corporation",
-        "ticker": "NEM",
-        "year": "2022"
+        "company": "Duke Energy Corporation",
+        "ticker": "DUK",
+        "year": "2022",
+        "original_ticker": "NEM"
       }
     },
     {
       "id": "sec-rag-risk_factors-f7ac4f40",
       "input": {
-        "query": "I'm interested in understanding the potential digital security challenges that could impact Newmont's operational resilience."
+        "query": "I'm interested in understanding the potential digital security challenges that could impact Duke's operational resilience."
       },
       "expected": {
         "behavior": "answer",
@@ -13603,15 +13676,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-cyber-001",
-        "company": "Newmont Corporation",
-        "ticker": "NEM",
-        "year": "2022"
+        "company": "Duke Energy Corporation",
+        "ticker": "DUK",
+        "year": "2022",
+        "original_ticker": "NEM"
       }
     },
     {
       "id": "sec-rag-risk_factors-524ad6a8",
       "input": {
-        "query": "What specific cyber-related vulnerabilities does Newmont identify that might pose risks to their business infrastructure?"
+        "query": "What specific cyber-related vulnerabilities does Duke identify that might pose risks to their business infrastructure?"
       },
       "expected": {
         "behavior": "answer",
@@ -13627,9 +13701,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-cyber-001",
-        "company": "Newmont Corporation",
-        "ticker": "NEM",
-        "year": "2022"
+        "company": "Duke Energy Corporation",
+        "ticker": "DUK",
+        "year": "2022",
+        "original_ticker": "NEM"
       }
     },
     {
@@ -15435,7 +15510,7 @@
     {
       "id": "sec-rag-risk_factors-c1645f2c",
       "input": {
-        "query": "What labor and workforce challenges does BlackRock Inc. highlight in its risk assessment section?"
+        "query": "What labor and workforce challenges does Prologis Inc. highlight in its risk assessment section?"
       },
       "expected": {
         "behavior": "answer",
@@ -15451,15 +15526,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-talent-003",
-        "company": "BlackRock Inc.",
-        "ticker": "BLK",
-        "year": "2022"
+        "company": "Prologis Inc.",
+        "ticker": "PLD",
+        "year": "2022",
+        "original_ticker": "BLK"
       }
     },
     {
       "id": "sec-rag-risk_factors-fc51b9f3",
       "input": {
-        "query": "Can you walk me through BlackRock's disclosure of potential employment-related risks in their latest filing?"
+        "query": "Can you walk me through Prologis's disclosure of potential employment-related risks in their latest filing?"
       },
       "expected": {
         "behavior": "answer",
@@ -15475,15 +15551,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-talent-003",
-        "company": "BlackRock Inc.",
-        "ticker": "BLK",
-        "year": "2022"
+        "company": "Prologis Inc.",
+        "ticker": "PLD",
+        "year": "2022",
+        "original_ticker": "BLK"
       }
     },
     {
       "id": "sec-rag-risk_factors-635a9f4a",
       "input": {
-        "query": "I'm looking to understand the specific labor risks BlackRock identifies that could impact their operational performance."
+        "query": "I'm looking to understand the specific labor risks Prologis identifies that could impact their operational performance."
       },
       "expected": {
         "behavior": "answer",
@@ -15499,9 +15576,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-talent-003",
-        "company": "BlackRock Inc.",
-        "ticker": "BLK",
-        "year": "2022"
+        "company": "Prologis Inc.",
+        "ticker": "PLD",
+        "year": "2022",
+        "original_ticker": "BLK"
       }
     },
     {
@@ -16011,7 +16089,7 @@
     {
       "id": "sec-rag-risk_factors-30bcd4ab",
       "input": {
-        "query": "Can you help me identify the international trade and regulatory risks outlined in Dominion Energy Inc.'s latest financial disclosures?"
+        "query": "Can you help me identify the international trade and regulatory risks outlined in Medtronic plc's latest financial disclosures?"
       },
       "expected": {
         "behavior": "answer",
@@ -16027,15 +16105,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-geo-003",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2024"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2024",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-risk_factors-27ab86c6",
       "input": {
-        "query": "I'm looking to understand how potential trade policy shifts might impact Dominion Energy Inc.'s operational and financial performance - what key risks are they highlighting?"
+        "query": "I'm looking to understand how potential trade policy shifts might impact Medtronic plc's operational and financial performance - what key risks are they highlighting?"
       },
       "expected": {
         "behavior": "answer",
@@ -16051,15 +16130,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-geo-003",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2024"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2024",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-risk_factors-cd534f53",
       "input": {
-        "query": "What specific trade-related risks and potential regulatory challenges does Dominion Energy Inc. flag in their risk factors section of the SEC filing?"
+        "query": "What specific trade-related risks and potential regulatory challenges does Medtronic plc flag in their risk factors section of the SEC filing?"
       },
       "expected": {
         "behavior": "answer",
@@ -16075,9 +16155,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-geo-003",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2024"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2024",
+        "original_ticker": "D"
       }
     },
     {
@@ -16155,7 +16236,7 @@
     {
       "id": "sec-rag-risk_factors-3ab0ac6d",
       "input": {
-        "query": "Can you help me understand the geographic risk exposure in Bank of America Corporation's financial portfolio?"
+        "query": "Can you help me understand the geographic risk exposure in Crown Castle Inc.'s financial portfolio?"
       },
       "expected": {
         "behavior": "answer",
@@ -16171,15 +16252,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-conc-002",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2022"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2022",
+        "original_ticker": "BAC"
       }
     },
     {
       "id": "sec-rag-risk_factors-ae41b532",
       "input": {
-        "query": "I'm looking to assess whether Bank of America's lending and operational activities demonstrate significant regional concentration that might impact their risk profile."
+        "query": "I'm looking to assess whether Crown of America's lending and operational activities demonstrate significant regional concentration that might impact their risk profile."
       },
       "expected": {
         "behavior": "answer",
@@ -16195,15 +16277,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-conc-002",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2022"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2022",
+        "original_ticker": "BAC"
       }
     },
     {
       "id": "sec-rag-risk_factors-7932283c",
       "input": {
-        "query": "What insights can you provide about potential geographic concentration risks for Bank of America based on their latest financial disclosures?"
+        "query": "What insights can you provide about potential geographic concentration risks for Crown of America based on their latest financial disclosures?"
       },
       "expected": {
         "behavior": "answer",
@@ -16219,9 +16302,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-conc-002",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2022"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2022",
+        "original_ticker": "BAC"
       }
     },
     {
@@ -16587,7 +16671,7 @@
     {
       "id": "sec-rag-risk_factors-dd92e263",
       "input": {
-        "query": "Can you outline the key merger and acquisition risks identified in Ecolab's latest financial reporting?"
+        "query": "Can you outline the key merger and acquisition risks identified in Linde's latest financial reporting?"
       },
       "expected": {
         "behavior": "answer",
@@ -16603,15 +16687,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-acq-002",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2023"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2023",
+        "original_ticker": "ECL"
       }
     },
     {
       "id": "sec-rag-risk_factors-cc119416",
       "input": {
-        "query": "I'm looking to understand potential challenges and exposures related to Ecolab's M&A strategy. What risks do they highlight in their SEC filings?"
+        "query": "I'm looking to understand potential challenges and exposures related to Linde's M&A strategy. What risks do they highlight in their SEC filings?"
       },
       "expected": {
         "behavior": "answer",
@@ -16627,15 +16712,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-acq-002",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2023"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2023",
+        "original_ticker": "ECL"
       }
     },
     {
       "id": "sec-rag-risk_factors-a71ad2f3",
       "input": {
-        "query": "Analyze the mergers and acquisitions risk factors disclosed by Ecolab Inc. that could impact their corporate development and financial performance."
+        "query": "Analyze the mergers and acquisitions risk factors disclosed by Linde plc that could impact their corporate development and financial performance."
       },
       "expected": {
         "behavior": "answer",
@@ -16651,9 +16737,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "rf-acq-002",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2023"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2023",
+        "original_ticker": "ECL"
       }
     },
     {
@@ -18387,7 +18474,7 @@
     {
       "id": "sec-rag-management_discussion-afbfb837",
       "input": {
-        "query": "What was the year-over-year performance variance for Morgan Stanley in the most recent fiscal period?"
+        "query": "What was the year-over-year performance variance for Coca-Cola Company in the most recent fiscal period?"
       },
       "expected": {
         "behavior": "answer",
@@ -18403,15 +18490,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-yoy-001",
-        "company": "Morgan Stanley",
-        "ticker": "MS",
-        "year": "2022"
+        "company": "Coca-Cola Company",
+        "ticker": "KO",
+        "year": "2022",
+        "original_ticker": "MS"
       }
     },
     {
       "id": "sec-rag-management_discussion-20034175",
       "input": {
-        "query": "Can you break down how Morgan Stanley's financial performance this year differs from last year's results?"
+        "query": "Can you break down how Coca-Cola Company's financial performance this year differs from last year's results?"
       },
       "expected": {
         "behavior": "answer",
@@ -18427,15 +18515,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-yoy-001",
-        "company": "Morgan Stanley",
-        "ticker": "MS",
-        "year": "2022"
+        "company": "Coca-Cola Company",
+        "ticker": "KO",
+        "year": "2022",
+        "original_ticker": "MS"
       }
     },
     {
       "id": "sec-rag-management_discussion-e8b91b20",
       "input": {
-        "query": "I'm looking to understand the comparative financial metrics for Morgan Stanley between the current and preceding annual reporting periods."
+        "query": "I'm looking to understand the comparative financial metrics for Coca-Cola Company between the current and preceding annual reporting periods."
       },
       "expected": {
         "behavior": "answer",
@@ -18451,9 +18540,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-yoy-001",
-        "company": "Morgan Stanley",
-        "ticker": "MS",
-        "year": "2022"
+        "company": "Coca-Cola Company",
+        "ticker": "KO",
+        "year": "2022",
+        "original_ticker": "MS"
       }
     },
     {
@@ -18675,7 +18765,7 @@
     {
       "id": "sec-rag-management_discussion-27e14b45",
       "input": {
-        "query": "What were the key financial results for Dominion Energy Inc.'s Services segment during the fiscal year 2022?"
+        "query": "What were the key financial results for Medtronic plc's Services segment during the fiscal year 2022?"
       },
       "expected": {
         "behavior": "answer",
@@ -18691,15 +18781,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-seg-001",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2022"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2022",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-management_discussion-95a9dc1f",
       "input": {
-        "query": "Can you break down the performance metrics of Dominion Energy's Services business unit for the most recent annual reporting period?"
+        "query": "Can you break down the performance metrics of Medtronic Energy's Services business unit for the most recent annual reporting period?"
       },
       "expected": {
         "behavior": "answer",
@@ -18715,15 +18806,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-seg-001",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2022"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2022",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-management_discussion-fd797c76",
       "input": {
-        "query": "I'm looking to understand the revenue and profitability trends in Dominion Energy's Services segment over the past year - what insights can you provide?"
+        "query": "I'm looking to understand the revenue and profitability trends in Medtronic Energy's Services segment over the past year - what insights can you provide?"
       },
       "expected": {
         "behavior": "answer",
@@ -18739,9 +18831,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-seg-001",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2022"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2022",
+        "original_ticker": "D"
       }
     },
     {
@@ -19035,7 +19128,7 @@
     {
       "id": "sec-rag-management_discussion-efd733c1",
       "input": {
-        "query": "Could you elaborate on the key liquidity sources for Air Products and Chemicals in their most recent financial reporting?"
+        "query": "Could you elaborate on the key liquidity sources for International Business Machines in their most recent financial reporting?"
       },
       "expected": {
         "behavior": "answer",
@@ -19051,15 +19144,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-liq-002",
-        "company": "Air Products and Chemicals",
-        "ticker": "APD",
-        "year": "2023"
+        "company": "International Business Machines",
+        "ticker": "IBM",
+        "year": "2023",
+        "original_ticker": "APD"
       }
     },
     {
       "id": "sec-rag-management_discussion-0268a911",
       "input": {
-        "query": "I'm looking to understand how Air Products and Chemicals is maintaining financial flexibility. What funding streams are they currently utilizing?"
+        "query": "I'm looking to understand how International Business Machines is maintaining financial flexibility. What funding streams are they currently utilizing?"
       },
       "expected": {
         "behavior": "answer",
@@ -19075,15 +19169,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-liq-002",
-        "company": "Air Products and Chemicals",
-        "ticker": "APD",
-        "year": "2023"
+        "company": "International Business Machines",
+        "ticker": "IBM",
+        "year": "2023",
+        "original_ticker": "APD"
       }
     },
     {
       "id": "sec-rag-management_discussion-3391f2a4",
       "input": {
-        "query": "Walk me through the primary methods Air Products and Chemicals is using to ensure they have sufficient cash and credit available for operations and investments."
+        "query": "Walk me through the primary methods International Business Machines is using to ensure they have sufficient cash and credit available for operations and investments."
       },
       "expected": {
         "behavior": "answer",
@@ -19099,9 +19194,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-liq-002",
-        "company": "Air Products and Chemicals",
-        "ticker": "APD",
-        "year": "2023"
+        "company": "International Business Machines",
+        "ticker": "IBM",
+        "year": "2023",
+        "original_ticker": "APD"
       }
     },
     {
@@ -20187,7 +20283,7 @@
     {
       "id": "sec-rag-management_discussion-93677492",
       "input": {
-        "query": "What insights does Bank of America's leadership provide regarding their cash flow dynamics in the most recent financial reporting?"
+        "query": "What insights does Crown of America's leadership provide regarding their cash flow dynamics in the most recent financial reporting?"
       },
       "expected": {
         "behavior": "answer",
@@ -20203,15 +20299,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-cf-001",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2023"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2023",
+        "original_ticker": "BAC"
       }
     },
     {
       "id": "sec-rag-management_discussion-ced77575",
       "input": {
-        "query": "Can you break down the management's narrative about cash flow movements for Bank of America Corporation?"
+        "query": "Can you break down the management's narrative about cash flow movements for Crown Castle Inc.?"
       },
       "expected": {
         "behavior": "answer",
@@ -20227,15 +20324,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-cf-001",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2023"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2023",
+        "original_ticker": "BAC"
       }
     },
     {
       "id": "sec-rag-management_discussion-34659ca3",
       "input": {
-        "query": "I'm looking to understand Bank of America's cash flow strategy based on their executive team's explanations in the annual report."
+        "query": "I'm looking to understand Crown of America's cash flow strategy based on their executive team's explanations in the annual report."
       },
       "expected": {
         "behavior": "answer",
@@ -20251,9 +20349,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "md-cf-001",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2023"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2023",
+        "original_ticker": "BAC"
       }
     },
     {
@@ -21051,7 +21150,7 @@
     {
       "id": "sec-rag-corporate_governance-136e5c16",
       "input": {
-        "query": "What is the current leadership structure of Dominion Energy?"
+        "query": "What is the current leadership structure of Medtronic Energy?"
       },
       "expected": {
         "behavior": "answer",
@@ -21067,15 +21166,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "cg-exec-005",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2023"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2023",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-corporate_governance-eaeb046a",
       "input": {
-        "query": "Can you tell me who serves as the CEO and key executives for Dominion Energy Inc.?"
+        "query": "Can you tell me who serves as the CEO and key executives for Medtronic plc?"
       },
       "expected": {
         "behavior": "answer",
@@ -21091,15 +21191,16 @@
       "complexity": 1,
       "metadata": {
         "template_id": "cg-exec-005",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2023"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2023",
+        "original_ticker": "D"
       }
     },
     {
       "id": "sec-rag-corporate_governance-0df81165",
       "input": {
-        "query": "I'd like to understand the top leadership roles at Dominion Energy - who are the primary executives running the company?"
+        "query": "I'd like to understand the top leadership roles at Medtronic Energy - who are the primary executives running the company?"
       },
       "expected": {
         "behavior": "answer",
@@ -21115,9 +21216,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "cg-exec-005",
-        "company": "Dominion Energy Inc.",
-        "ticker": "D",
-        "year": "2023"
+        "company": "Medtronic plc",
+        "ticker": "MDT",
+        "year": "2023",
+        "original_ticker": "D"
       }
     },
     {
@@ -21483,7 +21585,7 @@
     {
       "id": "sec-rag-corporate_governance-b31deae0",
       "input": {
-        "query": "Could you provide details on the total executive compensation for Citigroup's chief executive in their most recent fiscal year?"
+        "query": "Could you provide details on the total executive compensation for Chubb's chief executive in their most recent fiscal year?"
       },
       "expected": {
         "behavior": "answer",
@@ -21499,15 +21601,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "cg-comp-001",
-        "company": "Citigroup Inc.",
-        "ticker": "C",
-        "year": "2023"
+        "company": "Chubb Limited",
+        "ticker": "CB",
+        "year": "2023",
+        "original_ticker": "C"
       }
     },
     {
       "id": "sec-rag-corporate_governance-9e5256be",
       "input": {
-        "query": "How much did Citigroup's CEO earn in total compensation during 2023, including salary, bonuses, and stock awards?"
+        "query": "How much did Chubb's CEO earn in total compensation during 2023, including salary, bonuses, and stock awards?"
       },
       "expected": {
         "behavior": "answer",
@@ -21523,15 +21626,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "cg-comp-001",
-        "company": "Citigroup Inc.",
-        "ticker": "C",
-        "year": "2023"
+        "company": "Chubb Limited",
+        "ticker": "CB",
+        "year": "2023",
+        "original_ticker": "C"
       }
     },
     {
       "id": "sec-rag-corporate_governance-e0da9f26",
       "input": {
-        "query": "I'm analyzing Citigroup's leadership expenses and need to understand the precise breakdown of the CEO's remuneration package for the 2023 financial year."
+        "query": "I'm analyzing Chubb's leadership expenses and need to understand the precise breakdown of the CEO's remuneration package for the 2023 financial year."
       },
       "expected": {
         "behavior": "answer",
@@ -21547,9 +21651,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "cg-comp-001",
-        "company": "Citigroup Inc.",
-        "ticker": "C",
-        "year": "2023"
+        "company": "Chubb Limited",
+        "ticker": "CB",
+        "year": "2023",
+        "original_ticker": "C"
       }
     },
     {
@@ -23211,7 +23316,7 @@
     {
       "id": "sec-rag-corporate_governance-5805d4c7",
       "input": {
-        "query": "Could you detail the stock ownership guidelines for executives and board members at BlackRock Inc.?"
+        "query": "Could you detail the stock ownership guidelines for executives and board members at Prologis Inc.?"
       },
       "expected": {
         "behavior": "answer",
@@ -23227,15 +23332,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "cg-own-005",
-        "company": "BlackRock Inc.",
-        "ticker": "BLK",
-        "year": "2022"
+        "company": "Prologis Inc.",
+        "ticker": "PLD",
+        "year": "2022",
+        "original_ticker": "BLK"
       }
     },
     {
       "id": "sec-rag-corporate_governance-26253589",
       "input": {
-        "query": "I'm trying to understand the equity stake mandates for BlackRock's leadership team. What are their current insider ownership policies?"
+        "query": "I'm trying to understand the equity stake mandates for Prologis's leadership team. What are their current insider ownership policies?"
       },
       "expected": {
         "behavior": "answer",
@@ -23251,15 +23357,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "cg-own-005",
-        "company": "BlackRock Inc.",
-        "ticker": "BLK",
-        "year": "2022"
+        "company": "Prologis Inc.",
+        "ticker": "PLD",
+        "year": "2022",
+        "original_ticker": "BLK"
       }
     },
     {
       "id": "sec-rag-corporate_governance-786f01fb",
       "input": {
-        "query": "Can you break down the minimum shareholding requirements for BlackRock's senior management and directors?"
+        "query": "Can you break down the minimum shareholding requirements for Prologis's senior management and directors?"
       },
       "expected": {
         "behavior": "answer",
@@ -23275,9 +23382,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "cg-own-005",
-        "company": "BlackRock Inc.",
-        "ticker": "BLK",
-        "year": "2022"
+        "company": "Prologis Inc.",
+        "ticker": "PLD",
+        "year": "2022",
+        "original_ticker": "BLK"
       }
     },
     {
@@ -23427,7 +23535,7 @@
     {
       "id": "sec-rag-corporate_governance-92dc1593",
       "input": {
-        "query": "What are the total audit fees Citigroup Inc. reported in its latest fiscal year?"
+        "query": "What are the total audit fees Chubb Limited reported in its latest fiscal year?"
       },
       "expected": {
         "behavior": "answer",
@@ -23443,15 +23551,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "cg-aud-003",
-        "company": "Citigroup Inc.",
-        "ticker": "C",
-        "year": "2023"
+        "company": "Chubb Limited",
+        "ticker": "CB",
+        "year": "2023",
+        "original_ticker": "C"
       }
     },
     {
       "id": "sec-rag-corporate_governance-194b2d58",
       "input": {
-        "query": "Can you break down the external auditing expenses for Citigroup's most recent financial statement?"
+        "query": "Can you break down the external auditing expenses for Chubb's most recent financial statement?"
       },
       "expected": {
         "behavior": "answer",
@@ -23467,15 +23576,16 @@
       "complexity": 2,
       "metadata": {
         "template_id": "cg-aud-003",
-        "company": "Citigroup Inc.",
-        "ticker": "C",
-        "year": "2023"
+        "company": "Chubb Limited",
+        "ticker": "CB",
+        "year": "2023",
+        "original_ticker": "C"
       }
     },
     {
       "id": "sec-rag-corporate_governance-f0d3b9db",
       "input": {
-        "query": "I'm looking to understand the compensation Citigroup Inc. provides to its independent accounting firm. What details can you share?"
+        "query": "I'm looking to understand the compensation Chubb Limited provides to its independent accounting firm. What details can you share?"
       },
       "expected": {
         "behavior": "answer",
@@ -23491,9 +23601,10 @@
       "complexity": 2,
       "metadata": {
         "template_id": "cg-aud-003",
-        "company": "Citigroup Inc.",
-        "ticker": "C",
-        "year": "2023"
+        "company": "Chubb Limited",
+        "ticker": "CB",
+        "year": "2023",
+        "original_ticker": "C"
       }
     },
     {
@@ -24579,7 +24690,7 @@
     {
       "id": "sec-rag-complex_queries-882b4175",
       "input": {
-        "query": "What changes has Ecolab Inc. made to its business strategy between 2023 and 2024?"
+        "query": "What changes has Linde plc made to its business strategy between 2023 and 2024?"
       },
       "expected": {
         "behavior": "answer",
@@ -24595,15 +24706,16 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-comp-002",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2024"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2024",
+        "original_ticker": "ECL"
       }
     },
     {
       "id": "sec-rag-complex_queries-6346db49",
       "input": {
-        "query": "Can you tell me how Ecolab Inc.'s strategic approach has shifted from 2023 to 2024?"
+        "query": "Can you tell me how Linde plc's strategic approach has shifted from 2023 to 2024?"
       },
       "expected": {
         "behavior": "answer",
@@ -24619,15 +24731,16 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-comp-002",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2024"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2024",
+        "original_ticker": "ECL"
       }
     },
     {
       "id": "sec-rag-complex_queries-064df5b1",
       "input": {
-        "query": "I need to understand the evolution of Ecolab Inc.'s business strategy over the 2023 to 2024 period."
+        "query": "I need to understand the evolution of Linde plc's business strategy over the 2023 to 2024 period."
       },
       "expected": {
         "behavior": "answer",
@@ -24643,9 +24756,10 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-comp-002",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2024"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2024",
+        "original_ticker": "ECL"
       }
     },
     {
@@ -24939,7 +25053,7 @@
     {
       "id": "sec-rag-complex_queries-57f7c079",
       "input": {
-        "query": "What operational changes has Bank of America Corporation made between 2021 and 2022?"
+        "query": "What operational changes has Crown Castle Inc. made between 2021 and 2022?"
       },
       "expected": {
         "behavior": "answer",
@@ -24955,15 +25069,16 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-comp-007",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2022"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2022",
+        "original_ticker": "BAC"
       }
     },
     {
       "id": "sec-rag-complex_queries-bd504f22",
       "input": {
-        "query": "Can you tell me about the operational modifications Bank of America Corporation implemented from 2021 to 2022?"
+        "query": "Can you tell me about the operational modifications Crown Castle Inc. implemented from 2021 to 2022?"
       },
       "expected": {
         "behavior": "answer",
@@ -24979,15 +25094,16 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-comp-007",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2022"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2022",
+        "original_ticker": "BAC"
       }
     },
     {
       "id": "sec-rag-complex_queries-45f5af72",
       "input": {
-        "query": "I need to understand what operational shifts occurred at Bank of America Corporation during the 2021-2022 period."
+        "query": "I need to understand what operational shifts occurred at Crown Castle Inc. during the 2021-2022 period."
       },
       "expected": {
         "behavior": "answer",
@@ -25003,9 +25119,10 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-comp-007",
-        "company": "Bank of America Corporation",
-        "ticker": "BAC",
-        "year": "2022"
+        "company": "Crown Castle Inc.",
+        "ticker": "CCI",
+        "year": "2022",
+        "original_ticker": "BAC"
       }
     },
     {
@@ -25947,7 +26064,7 @@
     {
       "id": "sec-rag-complex_queries-175f03fb",
       "input": {
-        "query": "What were the key factors behind the shift in Newmont Corporation's competitive standing?"
+        "query": "What were the key factors behind the shift in Duke Energy Corporation's competitive standing?"
       },
       "expected": {
         "behavior": "answer",
@@ -25963,15 +26080,16 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-cause-004",
-        "company": "Newmont Corporation",
-        "ticker": "NEM",
-        "year": "2024"
+        "company": "Duke Energy Corporation",
+        "ticker": "DUK",
+        "year": "2024",
+        "original_ticker": "NEM"
       }
     },
     {
       "id": "sec-rag-complex_queries-990697c3",
       "input": {
-        "query": "Can you explain what caused the changes in Newmont Corporation's market position relative to competitors?"
+        "query": "Can you explain what caused the changes in Duke Energy Corporation's market position relative to competitors?"
       },
       "expected": {
         "behavior": "answer",
@@ -25987,15 +26105,16 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-cause-004",
-        "company": "Newmont Corporation",
-        "ticker": "NEM",
-        "year": "2024"
+        "company": "Duke Energy Corporation",
+        "ticker": "DUK",
+        "year": "2024",
+        "original_ticker": "NEM"
       }
     },
     {
       "id": "sec-rag-complex_queries-1d7bdb93",
       "input": {
-        "query": "I need to understand the drivers behind Newmont Corporation's evolving competitive landscape."
+        "query": "I need to understand the drivers behind Duke Energy Corporation's evolving competitive landscape."
       },
       "expected": {
         "behavior": "answer",
@@ -26011,9 +26130,10 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-cause-004",
-        "company": "Newmont Corporation",
-        "ticker": "NEM",
-        "year": "2024"
+        "company": "Duke Energy Corporation",
+        "ticker": "DUK",
+        "year": "2024",
+        "original_ticker": "NEM"
       }
     },
     {
@@ -26307,7 +26427,7 @@
     {
       "id": "sec-rag-complex_queries-e1bcc567",
       "input": {
-        "query": "Can you tell me how American Electric Power's capital expenditures have been trending?"
+        "query": "Can you tell me how Microsoft Corporation's capital expenditures have been trending?"
       },
       "expected": {
         "behavior": "answer",
@@ -26323,15 +26443,16 @@
       "complexity": 3,
       "metadata": {
         "template_id": "cx-trend-004",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2024"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2024",
+        "original_ticker": "AEP"
       }
     },
     {
       "id": "sec-rag-complex_queries-f572a7a7",
       "input": {
-        "query": "I need to understand the pattern in American Electric Power's capex over time."
+        "query": "I need to understand the pattern in Microsoft Corporation's capex over time."
       },
       "expected": {
         "behavior": "answer",
@@ -26347,15 +26468,16 @@
       "complexity": 3,
       "metadata": {
         "template_id": "cx-trend-004",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2024"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2024",
+        "original_ticker": "AEP"
       }
     },
     {
       "id": "sec-rag-complex_queries-84c4dd6c",
       "input": {
-        "query": "How have American Electric Power's capital investments changed in recent periods?"
+        "query": "How have Microsoft Corporation's capital investments changed in recent periods?"
       },
       "expected": {
         "behavior": "answer",
@@ -26371,9 +26493,10 @@
       "complexity": 3,
       "metadata": {
         "template_id": "cx-trend-004",
-        "company": "American Electric Power",
-        "ticker": "AEP",
-        "year": "2024"
+        "company": "Microsoft Corporation",
+        "ticker": "MSFT",
+        "year": "2024",
+        "original_ticker": "AEP"
       }
     },
     {
@@ -26523,7 +26646,7 @@
     {
       "id": "sec-rag-complex_queries-fdee60ed",
       "input": {
-        "query": "What are the margin variations between Ecolab Inc.'s different business segments?"
+        "query": "What are the margin variations between Linde plc's different business segments?"
       },
       "expected": {
         "behavior": "answer",
@@ -26539,15 +26662,16 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-seg-002",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2023"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2023",
+        "original_ticker": "ECL"
       }
     },
     {
       "id": "sec-rag-complex_queries-a9623b02",
       "input": {
-        "query": "Can you tell me about the profitability differences across Ecolab Inc.'s various business segments?"
+        "query": "Can you tell me about the profitability differences across Linde plc's various business segments?"
       },
       "expected": {
         "behavior": "answer",
@@ -26563,15 +26687,16 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-seg-002",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2023"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2023",
+        "original_ticker": "ECL"
       }
     },
     {
       "id": "sec-rag-complex_queries-af61a1e0",
       "input": {
-        "query": "I need to understand how profit margins compare among Ecolab Inc.'s operating segments."
+        "query": "I need to understand how profit margins compare among Linde plc's operating segments."
       },
       "expected": {
         "behavior": "answer",
@@ -26587,9 +26712,10 @@
       "complexity": 4,
       "metadata": {
         "template_id": "cx-seg-002",
-        "company": "Ecolab Inc.",
-        "ticker": "ECL",
-        "year": "2023"
+        "company": "Linde plc",
+        "ticker": "LIN",
+        "year": "2023",
+        "original_ticker": "ECL"
       }
     },
     {
@@ -27555,7 +27681,7 @@
     {
       "id": "sec-rag-rejection_out_of_scope-ad895673",
       "input": {
-        "query": "What does the news say about Morgan Stanley?"
+        "query": "What does the news say about Coca-Cola Company?"
       },
       "expected": {
         "behavior": "reject",
@@ -27571,9 +27697,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "rej-oos-004",
-        "company": "Morgan Stanley",
-        "ticker": "MS",
-        "rejection_category": "out_of_scope"
+        "company": "Coca-Cola Company",
+        "ticker": "KO",
+        "rejection_category": "out_of_scope",
+        "original_ticker": "MS"
       }
     },
     {
@@ -27747,7 +27874,7 @@
     {
       "id": "sec-rag-rejection_speculation-53f6d474",
       "input": {
-        "query": "Will Berkshire Hathaway Inc. raise dividends next year?"
+        "query": "Will Comcast Corporation raise dividends next year?"
       },
       "expected": {
         "behavior": "reject",
@@ -27763,9 +27890,10 @@
       "complexity": 1,
       "metadata": {
         "template_id": "rej-spec-004",
-        "company": "Berkshire Hathaway Inc.",
-        "ticker": "BRK.B",
-        "rejection_category": "speculation"
+        "company": "Comcast Corporation",
+        "ticker": "CMCSA",
+        "rejection_category": "speculation",
+        "original_ticker": "BRK.B"
       }
     },
     {

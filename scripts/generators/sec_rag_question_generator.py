@@ -160,7 +160,7 @@ class SECRAGQuestionGenerator:
         self, filled_template: str, use_sonnet: bool = False
     ) -> list[str]:
         """Generate 3 natural variations of a question using LLM."""
-        model = "claude-sonnet-4-20250514" if use_sonnet else "claude-3-5-haiku-latest"
+        model = "claude-sonnet-4-20250514" if use_sonnet else "claude-3-5-haiku-20241022"
 
         try:
             response = await self.client.messages.create(
@@ -197,7 +197,7 @@ class SECRAGQuestionGenerator:
         """Generate a rejection case question using LLM."""
         try:
             response = await self.client.messages.create(
-                model="claude-3-5-haiku-latest",
+                model="claude-3-5-haiku-20241022",
                 max_tokens=300,
                 system=REJECTION_SYSTEM_PROMPT,
                 messages=[

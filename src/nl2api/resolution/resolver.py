@@ -255,6 +255,7 @@ class ExternalEntityResolver:
                     entity_type=cached.get("entity_type", "company"),
                     confidence=cached.get("confidence", 0.8),
                     alternatives=tuple(cached.get("alternatives", [])),
+                    metadata=cached.get("metadata", {}),
                 )
                 # Populate L1 cache
                 self._cache[normalized] = result
@@ -299,6 +300,7 @@ class ExternalEntityResolver:
                 "entity_type": result.entity_type,
                 "confidence": result.confidence,
                 "alternatives": list(result.alternatives) if result.alternatives else [],
+                "metadata": dict(result.metadata) if result.metadata else {},
             }
             await self._redis_cache.set(cache_key, cache_data, ttl=self._redis_ttl)
 
@@ -427,6 +429,10 @@ class ExternalEntityResolver:
                         identifier=row["ric"],
                         entity_type=entity_type,
                         confidence=confidence,
+                        metadata={
+                            "ticker": row["ticker"],
+                            "company_name": row["primary_name"],
+                        },
                     )
 
         except Exception as e:
@@ -483,6 +489,22 @@ class ExternalEntityResolver:
             if ticker not in common_words:
                 entities.append(ticker)
 
+        # Pattern 3: Possessive forms (case-insensitive) - strong signal of entity
+        # Matches: "apple's", "Google's", "microsoft's"
+        possessive_pattern = r"\b([a-zA-Z][a-zA-Z]+)(?:'s|'s)\b"
+        possessive_matches = re.findall(possessive_pattern, query, re.IGNORECASE)
+        for match in possessive_matches:
+            # Title-case the match for consistency
+            entities.append(match.title())
+
+        # Pattern 4: Words before financial terms (case-insensitive)
+        # Matches: "apple revenue", "tesla earnings", "amazon 10-k"
+        financial_context_pattern = r"\b([a-zA-Z][a-zA-Z]+)\s+(?:revenue|earnings|income|profit|10-[kq]|filing|stock|shares|price)\b"
+        context_matches = re.findall(financial_context_pattern, query, re.IGNORECASE)
+        for match in context_matches:
+            if match.lower() not in self._ignore_words:
+                entities.append(match.title())
+
         # Deduplicate while preserving order and filter common words/noise
         seen = set()
         unique_entities = []
@@ -538,6 +560,10 @@ class ExternalEntityResolver:
                     identifier=figi_result["identifier"],
                     entity_type=figi_result.get("type", "company"),
                     confidence=figi_result.get("confidence", 0.8),
+                    metadata={
+                        "ticker": figi_result.get("ticker"),
+                        "company_name": figi_result.get("company_name"),
+                    },
                 )
         except Exception as e:
             logger.debug(f"OpenFIGI resolution failed: {e}")
@@ -568,6 +594,7 @@ class ExternalEntityResolver:
                                 entity_type=data.get("type", "company"),
                                 confidence=data.get("confidence", 0.8),
                                 alternatives=tuple(data.get("alternatives", [])),
+                                metadata=data.get("metadata", {}),
                             )
                     elif response.status >= 500:
                         # Server error - should trigger retry/circuit

@@ -111,6 +111,34 @@ class TestResolverEntityExtraction:
         assert "EPS" not in entities
         assert "PE" not in entities
 
+    def test_extracts_lowercase_possessive_forms(self):
+        """Test extraction of lowercase company names in possessive form."""
+        resolver = ExternalEntityResolver(use_cache=False)
+
+        # Possessive forms with lowercase should be extracted
+        entities = resolver._extract_entities("summarize apple's latest 10-q")
+        assert any("Apple" in e for e in entities), f"Expected 'Apple' in {entities}"
+
+        entities = resolver._extract_entities("what is tesla's revenue")
+        assert any("Tesla" in e for e in entities), f"Expected 'Tesla' in {entities}"
+
+        entities = resolver._extract_entities("microsoft's earnings report")
+        assert any("Microsoft" in e for e in entities), f"Expected 'Microsoft' in {entities}"
+
+    def test_extracts_lowercase_before_financial_terms(self):
+        """Test extraction of lowercase company names before financial terms."""
+        resolver = ExternalEntityResolver(use_cache=False)
+
+        # Lowercase company name followed by financial term
+        entities = resolver._extract_entities("show me apple revenue")
+        assert any("Apple" in e for e in entities), f"Expected 'Apple' in {entities}"
+
+        entities = resolver._extract_entities("get tesla earnings")
+        assert any("Tesla" in e for e in entities), f"Expected 'Tesla' in {entities}"
+
+        entities = resolver._extract_entities("amazon 10-k filing")
+        assert any("Amazon" in e for e in entities), f"Expected 'Amazon' in {entities}"
+
 
 class TestResolverCaching:
     """Test caching behavior."""

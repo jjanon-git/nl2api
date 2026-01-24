@@ -58,6 +58,8 @@ async def resolve_via_openfigi(
                             "type": "equity",
                             "confidence": 0.9,
                             "source": "openfigi",
+                            "ticker": figi_data.get("ticker"),
+                            "company_name": figi_data.get("name"),
                             "raw": figi_data,
                         }
                 else:
