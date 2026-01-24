@@ -158,7 +158,7 @@ Total: ~850ms, ~1100 tokens per request
 **Created:** 2026-01-21
 **Status:** Not Started
 **Severity:** CRITICAL
-**Docs:** See codebase audit analysis
+**Docs:** [docs/plans/eval-09-test-quality.md](docs/plans/eval-09-test-quality.md)
 
 The test suite has structural issues that allow broken agents to pass:
 
@@ -463,6 +463,7 @@ Split 1,428-line monolith into focused modules under `src/contracts/`:
 **Created:** 2026-01-21
 **Status:** Not Started
 **Severity:** MEDIUM
+**Docs:** [docs/plans/nl2api-05-orchestrator-refactor.md](docs/plans/nl2api-05-orchestrator-refactor.md)
 
 Orchestrator has several problems:
 1. Hidden lazy initialization (`_router_initialized` flag)
@@ -521,6 +522,7 @@ Six files exceed 500 lines:
 **Created:** 2026-01-21
 **Status:** Not Started
 **Severity:** HIGH (for production)
+**Docs:** [docs/plans/infra-02-deployment.md](docs/plans/infra-02-deployment.md)
 
 No deployment infrastructure:
 - No Kubernetes manifests

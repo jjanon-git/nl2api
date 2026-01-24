@@ -21,6 +21,7 @@
 - [nl2api-02-entity-resolution-database](nl2api-02-entity-resolution-database.md) - Database-backed entity expansion
 - [nl2api-03-entity-resolution-edge-cases](nl2api-03-entity-resolution-edge-cases.md) - Edge case handling
 - [nl2api-04-mcp-dual-mode](nl2api-04-mcp-dual-mode.md) - MCP server dual-mode migration
+- [nl2api-05-orchestrator-refactor](nl2api-05-orchestrator-refactor.md) - Orchestrator god class refactoring
 
 ### RAG (Retrieval & Ingestion)
 - [rag-01-infrastructure](rag-01-infrastructure.md) - RAG infrastructure setup
@@ -39,9 +40,11 @@
 - [eval-06-evalkit-extraction](eval-06-evalkit-extraction.md) - Evalkit codebase extraction
 - [eval-07-standards-audit](eval-07-standards-audit.md) - Codebase standards audit
 - [eval-08-temporal-data](eval-08-temporal-data.md) - Temporal evaluation data
+- [eval-09-test-quality](eval-09-test-quality.md) - Test quality improvements
 
 ### Infrastructure
 - [infra-01-observability](infra-01-observability.md) - Observability stack setup
+- [infra-02-deployment](infra-02-deployment.md) - Kubernetes/Terraform deployment
 
 ### Meta
 - [meta-01-release-audit](meta-01-release-audit.md) - Public release audit
