@@ -6,6 +6,7 @@ full-text search for keyword matching.
 
 Features:
 - Hybrid search (vector + keyword)
+- Two-stage retrieval with cross-encoder reranking
 - Optional Redis caching for query results
 """
 
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
     import asyncpg
 
     from src.common.cache import RedisCache
+    from src.nl2api.rag.reranker import Reranker
 
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)
@@ -37,6 +39,7 @@ class HybridRAGRetriever:
 
     Features:
     - Hybrid vector + keyword search
+    - Two-stage retrieval with optional cross-encoder reranking
     - Optional Redis caching for query results
     """
 
@@ -48,6 +51,8 @@ class HybridRAGRetriever:
         keyword_weight: float = 0.3,
         redis_cache: RedisCache | None = None,
         cache_ttl_seconds: int = 3600,
+        reranker: Reranker | None = None,
+        first_stage_limit: int = 50,
     ):
         """
         Initialize the hybrid retriever.
@@ -59,6 +64,8 @@ class HybridRAGRetriever:
             keyword_weight: Weight for keyword matching (0.0 to 1.0)
             redis_cache: Optional Redis cache for query results
             cache_ttl_seconds: TTL for cached query results (default 1 hour)
+            reranker: Optional reranker for two-stage retrieval
+            first_stage_limit: Number of candidates for first stage (before reranking)
         """
         self._pool = pool
         self._embedding_dimension = embedding_dimension
@@ -67,10 +74,16 @@ class HybridRAGRetriever:
         self._embedder: Any = None
         self._redis_cache = redis_cache
         self._cache_ttl = cache_ttl_seconds
+        self._reranker = reranker
+        self._first_stage_limit = first_stage_limit
 
     def set_embedder(self, embedder: Any) -> None:
         """Set the embedder for generating query embeddings."""
         self._embedder = embedder
+
+    def set_reranker(self, reranker: Reranker) -> None:
+        """Set the reranker for two-stage retrieval."""
+        self._reranker = reranker
 
     def _make_cache_key(
         self,
@@ -139,6 +152,9 @@ class HybridRAGRetriever:
         """Internal implementation of retrieve with span for tracing."""
         if self._embedder is None:
             raise RuntimeError("Embedder not set. Call set_embedder() first.")
+
+        # Use first_stage_limit if reranker is configured for two-stage retrieval
+        first_stage_limit = self._first_stage_limit if self._reranker else limit
 
         # Check Redis cache first
         cache_key = self._make_cache_key(query, domain, document_types, limit)
@@ -244,7 +260,7 @@ class HybridRAGRetriever:
             rows = await conn.fetch(
                 sql,
                 query_embedding,
-                limit,
+                first_stage_limit,  # Use first_stage_limit for two-stage retrieval
                 query,
                 self._vector_weight,
                 self._keyword_weight,
@@ -279,7 +295,19 @@ class HybridRAGRetriever:
                 )
             )
 
-        # Cache results in Redis
+        # Two-stage retrieval: rerank if reranker is configured
+        if self._reranker and len(results) > limit:
+            first_stage_count = len(results)
+            span.set_attribute("rag.reranking_enabled", True)
+            span.set_attribute("rag.first_stage_count", first_stage_count)
+            results = await self._reranker.rerank(query, results, top_k=limit)
+            logger.debug(f"Reranked {first_stage_count} candidates to {len(results)} results")
+        else:
+            span.set_attribute("rag.reranking_enabled", False)
+            # Trim to limit if no reranker
+            results = results[:limit]
+
+        # Cache results in Redis (cache final reranked results)
         if use_cache and self._redis_cache and results:
             cache_data = [
                 {
@@ -460,10 +488,20 @@ from src.nl2api.rag.embedders import (
     create_embedder,
 )
 
+# Re-export reranker for convenience
+from src.nl2api.rag.reranker import (
+    CrossEncoderReranker,
+    Reranker,
+    create_reranker,
+)
+
 __all__ = [
     "HybridRAGRetriever",
     "Embedder",
     "LocalEmbedder",
     "OpenAIEmbedder",
     "create_embedder",
+    "Reranker",
+    "CrossEncoderReranker",
+    "create_reranker",
 ]

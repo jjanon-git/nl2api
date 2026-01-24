@@ -76,3 +76,21 @@ class BatchRunnerConfig(BaseModel):
         default="structural",
         description="Temporal validation mode: behavioral, structural, or data",
     )
+
+    # Run tracking (for experiment management)
+    run_label: str = Field(
+        default="untracked",
+        description="Label for this evaluation run (e.g., 'baseline', 'new-embedder-v2')",
+    )
+    run_description: str | None = Field(
+        default=None,
+        description="Optional longer description of what change is being tested",
+    )
+    git_commit: str | None = Field(
+        default=None,
+        description="Git commit hash at time of run (auto-captured)",
+    )
+    git_branch: str | None = Field(
+        default=None,
+        description="Git branch at time of run (auto-captured)",
+    )

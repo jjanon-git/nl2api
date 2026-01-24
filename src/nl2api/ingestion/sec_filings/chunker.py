@@ -57,13 +57,27 @@ class DocumentChunker:
     - Splits on paragraph boundaries when possible
     - Falls back to sentence splitting for long paragraphs
     - Maintains configurable overlap between chunks
+    - **Contextual chunking**: Prepends document context to improve embeddings
     """
+
+    # Section name mappings for human-readable context
+    SECTION_LABELS = {
+        "business": "Business Description",
+        "mda": "Management's Discussion and Analysis",
+        "risk_factors": "Risk Factors",
+        "properties": "Properties",
+        "legal_proceedings": "Legal Proceedings",
+        "controls_procedures": "Controls and Procedures",
+        "financial_statements": "Financial Statements",
+        "exhibits": "Exhibits and Financial Statement Schedules",
+    }
 
     def __init__(
         self,
         chunk_size: int = 4000,
         chunk_overlap: int = 800,
         min_chunk_size: int = 200,
+        contextual_chunking: bool = True,
     ):
         """
         Initialize chunker.
@@ -72,10 +86,12 @@ class DocumentChunker:
             chunk_size: Target chunk size in characters
             chunk_overlap: Overlap between consecutive chunks
             min_chunk_size: Minimum chunk size (smaller chunks are merged or dropped)
+            contextual_chunking: If True, prepend document context to each chunk
         """
         self._chunk_size = chunk_size
         self._chunk_overlap = chunk_overlap
         self._min_chunk_size = min_chunk_size
+        self._contextual_chunking = contextual_chunking
 
         # Sentence boundary pattern
         self._sentence_pattern = re.compile(
@@ -92,7 +108,49 @@ class DocumentChunker:
             chunk_size=config.chunk_size,
             chunk_overlap=config.chunk_overlap,
             min_chunk_size=config.min_chunk_size,
+            contextual_chunking=getattr(config, "contextual_chunking", True),
         )
+
+    def _generate_context_prefix(
+        self,
+        filing: Filing,
+        section_name: str,
+    ) -> str:
+        """
+        Generate a context prefix for chunks.
+
+        This implements contextual chunking (also called "late chunking context").
+        The prefix provides document-level context that helps embeddings
+        better capture the semantic meaning of each chunk.
+
+        Research shows this can improve retrieval accuracy by 15-35%.
+
+        Args:
+            filing: Filing metadata
+            section_name: Section being chunked
+
+        Returns:
+            Context prefix string to prepend to chunk content
+        """
+        section_label = self.SECTION_LABELS.get(section_name, section_name.title())
+
+        # Format the fiscal period
+        period = filing.period_of_report
+        if "10-K" in filing.filing_type.value:
+            period_str = f"Fiscal Year {period.year}"
+        else:
+            quarter = derive_fiscal_quarter(period, filing.filing_type.value)
+            period_str = f"Q{quarter} {period.year}" if quarter else f"{period.strftime('%B %Y')}"
+
+        # Build context prefix
+        context_lines = [
+            f"Company: {filing.company_name} ({filing.ticker})",
+            f"Filing: {filing.filing_type.value}, {period_str}",
+            f"Section: {section_label}",
+            "",  # Blank line before content
+        ]
+
+        return "\n".join(context_lines)
 
     def chunk_filing(
         self,
@@ -145,8 +203,24 @@ class DocumentChunker:
         if not text or len(text) < self._min_chunk_size:
             return []
 
-        # Split into chunks
+        # Generate context prefix if contextual chunking is enabled
+        context_prefix = ""
+        if self._contextual_chunking:
+            context_prefix = self._generate_context_prefix(filing, section_name)
+
+        # Adjust chunk size to account for context prefix
+        effective_chunk_size = self._chunk_size
+        if context_prefix:
+            effective_chunk_size = max(
+                self._chunk_size - len(context_prefix),
+                self._min_chunk_size * 2,  # Ensure we still have room for content
+            )
+
+        # Split into chunks (using effective size if contextual)
+        original_chunk_size = self._chunk_size
+        self._chunk_size = effective_chunk_size
         text_chunks = self._split_text(text)
+        self._chunk_size = original_chunk_size
 
         # Create FilingChunk objects
         chunks = []
@@ -166,12 +240,15 @@ class DocumentChunker:
             fiscal_quarter = derive_fiscal_quarter(filing.period_of_report, filing_type_str)
             is_amendment = "/A" in filing_type_str
 
+            # Prepend context to chunk content if enabled
+            final_content = context_prefix + chunk_text if context_prefix else chunk_text
+
             chunk = FilingChunk(
                 chunk_id=chunk_id,
                 filing_accession=filing.accession_number,
                 section=section_name,
                 chunk_index=i,
-                content=chunk_text,
+                content=final_content,
                 char_start=chunk_start,
                 char_end=chunk_end,
                 metadata={
@@ -189,6 +266,7 @@ class DocumentChunker:
                     "section": section_name,
                     "chunk_index": i,
                     "total_chunks_in_section": len(text_chunks),
+                    "contextual_chunking": self._contextual_chunking,
                 },
             )
             chunks.append(chunk)

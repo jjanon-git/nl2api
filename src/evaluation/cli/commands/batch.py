@@ -52,6 +52,20 @@ def batch_run(
         str,
         typer.Option("--pack", "-p", help="Evaluation pack (nl2api, rag) - REQUIRED"),
     ],
+    label: Annotated[
+        str,
+        typer.Option(
+            "--label",
+            "-l",
+            help="Label for this run (e.g., 'baseline', 'new-embedder-v2') - REQUIRED",
+        ),
+    ],
+    description: Annotated[
+        str | None,
+        typer.Option(
+            "--description", help="Optional longer description of the change being tested"
+        ),
+    ] = None,
     tags: Annotated[
         list[str] | None,
         typer.Option("--tag", "-t", help="Filter by tags (can be repeated)"),
@@ -220,6 +234,8 @@ def batch_run(
     asyncio.run(
         _batch_run_async(
             pack=pack,
+            run_label=label,
+            run_description=description,
             tags=tags,
             complexity_min=complexity_min,
             complexity_max=complexity_max,
@@ -245,6 +261,8 @@ def batch_run(
 
 async def _batch_run_async(
     pack: str,
+    run_label: str,
+    run_description: str | None,
     tags: list[str] | None,
     complexity_min: int | None,
     complexity_max: int | None,
@@ -266,6 +284,7 @@ async def _batch_run_async(
     redis_url: str = "redis://localhost:6379",
 ) -> None:
     """Async implementation of batch run command."""
+    from src.common.git_info import get_git_info
     from src.common.storage import (
         StorageConfig,
         close_repositories,
@@ -279,6 +298,9 @@ async def _batch_run_async(
         create_tool_only_generator,
         simulate_correct_response,
     )
+
+    # Capture git info from current working directory
+    git_info = get_git_info()
 
     try:
         config = StorageConfig()
@@ -486,6 +508,10 @@ async def _batch_run_async(
             semantics_pass_threshold=semantics_threshold,
             evaluation_date=evaluation_date,
             temporal_mode=temporal_mode,
+            run_label=run_label,
+            run_description=run_description,
+            git_commit=git_info.commit,
+            git_branch=git_info.branch,
         )
 
         if semantics_enabled:
@@ -762,6 +788,14 @@ async def _batch_status_async(batch_id: str) -> None:
             status_display = f"[red]{status_display}[/red]"
 
         table.add_row("Status", status_display)
+        table.add_row("Run Label", f"[magenta]{batch_job.run_label}[/magenta]")
+        if batch_job.run_description:
+            table.add_row("Description", batch_job.run_description)
+        if batch_job.git_commit:
+            git_info = batch_job.git_commit
+            if batch_job.git_branch:
+                git_info += f" ({batch_job.git_branch})"
+            table.add_row("Git", git_info)
         table.add_row("Total Tests", str(batch_job.total_tests))
         table.add_row("Completed", f"[green]{summary['passed']}[/green]")
         table.add_row("Failed", f"[red]{summary['failed']}[/red]" if summary["failed"] > 0 else "0")
@@ -976,7 +1010,8 @@ async def _batch_list_async(limit: int) -> None:
 
         console.print()
         table = Table(title="Recent Batch Runs", show_header=True, header_style="bold")
-        table.add_column("Batch ID", width=38)
+        table.add_column("Batch ID", width=20)
+        table.add_column("Run Label", width=20)
         table.add_column("Status", width=12)
         table.add_column("Tests", width=8, justify="right")
         table.add_column("Passed", width=8, justify="right")
@@ -995,8 +1030,15 @@ async def _batch_list_async(limit: int) -> None:
             passed = f"[green]{batch.completed_count}[/green]"
             failed = f"[red]{batch.failed_count}[/red]" if batch.failed_count > 0 else "0"
 
+            # Truncate batch_id for display
+            batch_id_short = batch.batch_id[:18] + "..."
+            run_label = batch.run_label or "untracked"
+            if len(run_label) > 18:
+                run_label = run_label[:18] + "..."
+
             table.add_row(
-                batch.batch_id,
+                batch_id_short,
+                f"[magenta]{run_label}[/magenta]",
                 status,
                 str(batch.total_tests),
                 passed,

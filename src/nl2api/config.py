@@ -183,6 +183,32 @@ class NL2APIConfig(BaseSettings):
         description="Enable checkpointing for large indexing jobs",
     )
 
+    # RAG Reranking Settings
+    rag_reranking_enabled: bool = Field(
+        default=True,
+        description="Enable two-stage retrieval with cross-encoder reranking",
+    )
+    rag_reranking_provider: Literal["cross-encoder", "cohere"] = Field(
+        default="cross-encoder",
+        description="Reranking provider: 'cross-encoder' (local) or 'cohere' (API)",
+    )
+    rag_reranking_model: str = Field(
+        default="cross-encoder/ms-marco-MiniLM-L-6-v2",
+        description="Model for reranking (cross-encoder model name or cohere model)",
+    )
+    rag_reranking_first_stage_limit: int = Field(
+        default=50,
+        description="Number of candidates to retrieve in first stage before reranking",
+    )
+    rag_reranking_batch_size: int = Field(
+        default=32,
+        description="Batch size for cross-encoder scoring",
+    )
+    cohere_api_key: str | None = Field(
+        default=None,
+        description="Cohere API key (for cohere reranking provider)",
+    )
+
     # Redis Cache Settings
     redis_enabled: bool = Field(
         default=False,

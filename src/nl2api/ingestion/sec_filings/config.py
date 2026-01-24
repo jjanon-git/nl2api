@@ -111,6 +111,10 @@ class SECFilingConfig(BaseSettings):
         ge=50,
         le=1000,
     )
+    contextual_chunking: bool = Field(
+        default=True,
+        description="Prepend document context (company, filing type, section) to each chunk",
+    )
 
     # Directory paths
     data_dir: Path = Field(

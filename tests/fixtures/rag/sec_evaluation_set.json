@@ -1,0 +1,2317 @@
+{
+  "_meta": {
+    "name": "sec_filing_rag_evaluation",
+    "capability": "rag_retrieval",
+    "methodology": "Questions generated from chunk content by Claude 3.5 Haiku",
+    "generated_at": "2026-01-24T09:05:48.890134",
+    "total_cases": 100,
+    "categories": {
+      "simple_factual": 50,
+      "complex_analytical": 30,
+      "temporal_comparative": 20
+    },
+    "schema_version": "2.0"
+  },
+  "test_cases": [
+    {
+      "id": "simple_001",
+      "query": "What was the total notional amount of derivatives in 2024?",
+      "category": "simple_factual",
+      "company": "GS",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "8ec063fb-18ad-4694-ba24-f277738f58a0"
+      ],
+      "answer_keywords": [
+        "$37,127,322",
+        "total notional amounts",
+        "derivatives"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "GOLDMAN SACHS GROUP INC",
+        "filing_date": "2025-02-27T00:00:00",
+        "form_type": null,
+        "chunk_preview": "2024 2023 Not accounted for as hedges Exchange-traded $ 2,332,117 &#160; $ 3,854,689 &#160; OTC-cleared 12,571,690 &#160; 16,007,915 &#160; Bilateral OTC 10,569,501 &#160; 12,390,595 &#160; Total inte..."
+      }
+    },
+    {
+      "id": "simple_002",
+      "query": "In which years was the Blakeney Town Center property originally developed and last recorded?",
+      "category": "simple_factual",
+      "company": "REG",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "f389b610-6918-42cf-9c8c-35120ffbab2d"
+      ],
+      "answer_keywords": [
+        "1996",
+        "2014",
+        "2006",
+        "2021"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "REGENCY CENTERS CORP",
+        "filing_date": "2025-02-14T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Black Rock &#160; CT &#160; &#160; ( 15,148 ) &#160; &#160; 22,251 &#160; &#160; &#160; 20,815 &#160; &#160; &#160; 702 &#160; &#160; &#160; 22,251 &#160; &#160; &#160; 21,517 &#160; &#160; &#160; 43,..."
+      }
+    },
+    {
+      "id": "simple_003",
+      "query": "What board committee oversees environmental sustainability strategy?",
+      "category": "simple_factual",
+      "company": "EMR",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "bcfb11dd-6447-4afe-95c5-82ec3ccf5ca6"
+      ],
+      "answer_keywords": [
+        "Technology",
+        "Environmental Sustainability",
+        "Board committee"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "EMERSON ELECTRIC CO",
+        "filing_date": "2025-11-10T00:00:00",
+        "form_type": null,
+        "chunk_preview": "are unionized, while outside the U.S., we have employees in certain countries, particularly in Europe, that are represented by an employee representative organization, such as a union, works council o..."
+      }
+    },
+    {
+      "id": "simple_004",
+      "query": "What challenges does the company face with patent protection for its products?",
+      "category": "simple_factual",
+      "company": "LMAT",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "e83c16bf-af40-4045-a31e-f1866964a329"
+      ],
+      "answer_keywords": [
+        "most products not protected",
+        "patent protection unavailable",
+        "independent development",
+        "confidentiality agreements"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "LEMAITRE VASCULAR INC",
+        "filing_date": "2024-02-29T00:00:00",
+        "form_type": null,
+        "chunk_preview": "and in certain cases in other foreign countries. &#160; Most of our products are not protected by patents. Patent protection is not available when we acquire a commercialized product that is not paten..."
+      }
+    },
+    {
+      "id": "simple_005",
+      "query": "What therapeutic areas is the VNS Therapy System currently being studied for?",
+      "category": "simple_factual",
+      "company": "LIVN",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "d02e7dd5-87c2-4b2a-b4ad-8d8dfde44aa2"
+      ],
+      "answer_keywords": [
+        "Epilepsy",
+        "Depression",
+        "Obstructive Sleep Apnea"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "LivaNova PLC",
+        "filing_date": "2025-02-25T00:00:00",
+        "form_type": null,
+        "chunk_preview": "to open the airway while a patient sleeps. LivaNova&#8217;s Neuromodulation segment also includes costs associated with the Company&#8217;s former heart failure program, which the Company wound down d..."
+      }
+    },
+    {
+      "id": "simple_006",
+      "query": "How much cash was paid for interest in 2024?",
+      "category": "simple_factual",
+      "company": "PFE",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "a27a555a-902a-45ab-aafd-1f5c72119055"
+      ],
+      "answer_keywords": [
+        "3,227",
+        "interest",
+        "paid"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "PFIZER INC",
+        "filing_date": "2025-02-27T00:00:00",
+        "form_type": null,
+        "chunk_preview": ") ( 9,247 ) ( 8,983 ) Other financing activities, net ( 469 ) ( 631 ) ( 335 ) Net cash provided by/(used in) financing activities ( 17,140 ) 26,066 &#160; ( 14,834 ) Effect of exchange-rate changes on..."
+      }
+    },
+    {
+      "id": "simple_007",
+      "query": "How many shares of common stock did the company repurchase in fiscal 2025?",
+      "category": "simple_factual",
+      "company": "NTAP",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "355ec432-9ed5-476c-b500-d4b648a23306"
+      ],
+      "answer_keywords": [
+        "10.2 million",
+        "shares",
+        "average price",
+        "$112.55"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "NetApp, Inc.",
+        "filing_date": "2025-06-09T00:00:00",
+        "form_type": null,
+        "chunk_preview": "fiscal 2024 primarily as a result of differences in discrete tax impacts in each year. &#8226; Net income and Diluted net income per share: The increase in both net income and diluted net income per s..."
+      }
+    },
+    {
+      "id": "simple_008",
+      "query": "Who is the Chairman and Chief Executive Officer?",
+      "category": "simple_factual",
+      "company": "VZ",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "4f533db8-865f-495a-8e17-b5ae8f9bcde4"
+      ],
+      "answer_keywords": [
+        "Hans E. Vestberg",
+        "CEO",
+        "Chairman"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "VERIZON COMMUNICATIONS INC",
+        "filing_date": "2024-02-09T00:00:00",
+        "form_type": null,
+        "chunk_preview": "signed below by the following persons on behalf of the registrant and in the capacities and on the dates indicated. Principal Executive Officer: /s/ Hans E. Vestberg February 9, 2024 Hans E. Vestberg ..."
+      }
+    },
+    {
+      "id": "simple_009",
+      "query": "How much cash did the company pay in dividends in 2023?",
+      "category": "simple_factual",
+      "company": "PFE",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "e00f7682-53f3-4352-af8e-26cdb6f3b35f"
+      ],
+      "answer_keywords": [
+        "9,247",
+        "dividends",
+        "cash"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "PFIZER INC",
+        "filing_date": "2024-02-22T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#160; Net (payments on)/proceeds from short-term borrowings with original maturities of three months or less 3,161 &#160; ( 222 ) ( 96 ) Proceeds from issuances of long-term debt 30,831 &#160; &#8212..."
+      }
+    },
+    {
+      "id": "simple_010",
+      "query": "How many properties did the company own or have investments in as of December 31, 2024?",
+      "category": "simple_factual",
+      "company": "VTR",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "2cd68741-6dce-4ab2-b4e8-892ea0d8c7e6"
+      ],
+      "answer_keywords": [
+        "1,387",
+        "properties",
+        "owned",
+        "investments"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "Ventas, Inc.",
+        "filing_date": "2025-02-13T00:00:00",
+        "form_type": null,
+        "chunk_preview": "for our information systems, networks, infrastructure, cybersecurity and data analytics. She has more than 25 years of experience in the field of information technology and is a member of our senior l..."
+      }
+    },
+    {
+      "id": "simple_011",
+      "query": "How much board authority remained for stock or unit purchases as of December 31, 2024?",
+      "category": "simple_factual",
+      "company": "CHTR",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "2d857f0b-1738-49ca-85ff-b13b76d83f72"
+      ],
+      "answer_keywords": [
+        "$961",
+        "million",
+        "board authority",
+        "stock",
+        "units"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "CHARTER COMMUNICATIONS, INC. /MO/",
+        "filing_date": "2025-01-31T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Announced Plans or Programs (2) Approximate Dollar Value of Shares that May Yet Be Purchased Under the Plans or Programs (2) October 1 - 31, 2024 13,294 $ 331.00&#160; 10,400&#160; $742 November 1 - 3..."
+      }
+    },
+    {
+      "id": "simple_012",
+      "query": "What is the total accumulated depreciation for tax purposes?",
+      "category": "simple_factual",
+      "company": "BXP",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "e19a91a4-bfb3-4513-a441-4e32413546e1"
+      ],
+      "answer_keywords": [
+        "$6.6 billion",
+        "tax purposes",
+        "accumulated depreciation"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "BXP, Inc.",
+        "filing_date": "2024-02-27T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Accumulated Depreciation does not include approximately $ 40,324 of accumulated depreciation related to Furniture, Fixtures and Equipment. Office type includes office, life sciences, and retail proper..."
+      }
+    },
+    {
+      "id": "simple_013",
+      "query": "How might future legislation and regulations potentially impact the financial services industry?",
+      "category": "simple_factual",
+      "company": "WFC",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "a7a1c36c-42b3-40de-b252-d5e38642c36c"
+      ],
+      "answer_keywords": [
+        "increase cost",
+        "affect compensation",
+        "restrict/expand activities",
+        "competitive balance"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "WELLS FARGO & COMPANY/MN",
+        "filing_date": "2025-02-25T00:00:00",
+        "form_type": null,
+        "chunk_preview": "2024 Annual Report to Shareholders. Future Legislation or Regulation Economic, market and political conditions during the past several years have led to a significant amount of legislation and regulat..."
+      }
+    },
+    {
+      "id": "simple_014",
+      "query": "What is the amount of the unsecured revolving credit facility established on January 26, 2024?",
+      "category": "simple_factual",
+      "company": "NSC",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "3429a056-9ff2-4ece-8d5a-768dfdc55756"
+      ],
+      "answer_keywords": [
+        "$800 million",
+        "5-year",
+        "revolving credit facility"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "NORFOLK SOUTHERN CORP",
+        "filing_date": "2025-02-10T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Committee on November 18, 2021, is incorporated by reference to Exhibit 10(cc) to Norfolk Southern Corporation's Form 10-K filed on February 4, 2022. (SEC File No. 001-08339) (ii)*,** Form of Norfolk ..."
+      }
+    },
+    {
+      "id": "simple_015",
+      "query": "What manufacturing challenges does the company face?",
+      "category": "simple_factual",
+      "company": "BIIB",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "684afcbe-8f02-45e3-9e89-5169af8e8b3b"
+      ],
+      "answer_keywords": [
+        "biosimilars",
+        "third-party contract manufacturing",
+        "manufacturing facilities",
+        "Solothurn facility",
+        "RTP North Carolina facility"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "BIOGEN INC.",
+        "filing_date": "2025-02-12T00:00:00",
+        "form_type": null,
+        "chunk_preview": "to reduce healthcare costs and limit the overall level of government expenditures, including the impact of pricing actions and reduced reimbursement for our products, as well as the potential impact o..."
+      }
+    },
+    {
+      "id": "simple_016",
+      "query": "How many equity awards were assumed in connection with an acquisition?",
+      "category": "simple_factual",
+      "company": "SNPS",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "a7aab7f5-5453-4997-85c0-ca54551ccdf9"
+      ],
+      "answer_keywords": [
+        "130,963",
+        "Ansys",
+        "acquisition"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "SYNOPSYS INC",
+        "filing_date": "2025-12-22T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#160; 17,105,538 &#160; Assumption of equity awards in connection with the acquisition of Ansys 130,963 &#160; 130,963 &#160; 130,963 &#160; Common stock issued, net of shares withheld for employee t..."
+      }
+    },
+    {
+      "id": "simple_017",
+      "query": "On what page does the Risk Factors section begin?",
+      "category": "simple_factual",
+      "company": "MOS",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "be25a64d-bbb5-484d-991d-7906a1ee8b6b"
+      ],
+      "answer_keywords": [
+        "21",
+        "Item 1A",
+        "Risk Factors"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "MOSAIC CO",
+        "filing_date": "2024-02-22T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Business 1 &#8226;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; Overview 1 &#8226;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; Business Segment Information 3 &#8226;&#160;&#160;&#16..."
+      }
+    },
+    {
+      "id": "simple_018",
+      "query": "How often does the company conduct a cybersecurity capability maturity assessment?",
+      "category": "simple_factual",
+      "company": "CMCSA",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "95ef4b09-a98f-4327-94b1-234c11f90199"
+      ],
+      "answer_keywords": [
+        "every three years",
+        "National Institute of Standards and Technology",
+        "International Organization for Standardization"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "COMCAST CORP",
+        "filing_date": "2024-01-31T00:00:00",
+        "form_type": null,
+        "chunk_preview": "block cybersecurity events, as well as a dedicated team of cybersecurity personnel, which assist our CISOs in helping to assess, identify, monitor, detect and manage cybersecurity risks, threats, vuln..."
+      }
+    },
+    {
+      "id": "simple_019",
+      "query": "What parts of the document are incorporated by reference to the Proxy Statement?",
+      "category": "simple_factual",
+      "company": "EW",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "af0b3cd5-c822-4ee0-aa4c-49de98372889"
+      ],
+      "answer_keywords": [
+        "Equity Compensation Plan Information",
+        "Related Persons Transactions",
+        "Director Independence",
+        "Audit Matters",
+        "Fees Paid to Principal Accountants"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Edwards Lifesciences Corp",
+        "filing_date": "2024-02-12T00:00:00",
+        "form_type": null,
+        "chunk_preview": "and \"Equity Compensation Plan Information\" in the Proxy Statement is incorporated herein by reference. Item&#160;13.&#160;&#160;&#160;&#160;Certain Relationships and Related Transactions, and Director..."
+      }
+    },
+    {
+      "id": "simple_020",
+      "query": "What was the total amount of restructuring charges incurred by December 31, 2024?",
+      "category": "simple_factual",
+      "company": "TFX",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "ea930639-89f1-4bd0-a14e-1799df24436c"
+      ],
+      "answer_keywords": [
+        "$2.7",
+        "million",
+        "restructuring",
+        "charges"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "TELEFLEX INC",
+        "filing_date": "2025-02-28T00:00:00",
+        "form_type": null,
+        "chunk_preview": "addition, as of December 31, 2024, we have incurred aggregate restructuring related charges of $ 2.7 &#160;million with respect to the 2023 Footprint realignment plan, consisting of certain costs that..."
+      }
+    },
+    {
+      "id": "simple_021",
+      "query": "What was the total reinsurance recoverables amount as of December 31, 2024?",
+      "category": "simple_factual",
+      "company": "TRV",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "f49e4572-cc83-4ba7-ae59-60febb597f7b"
+      ],
+      "answer_keywords": [
+        "$8.00",
+        "billion",
+        "reinsurance",
+        "recoverables"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "TRAVELERS COMPANIES, INC.",
+        "filing_date": "2025-02-13T00:00:00",
+        "form_type": null,
+        "chunk_preview": "57,447 &#160; ( 1,028 ) 56,419 &#160; 7,669 &#160; 64,088 &#160; Accident and health &#8212; &#160; &#8212; &#160; &#8212; &#160; 5 &#160; 5 &#160; Total $ 57,447 &#160; $ ( 1,028 ) $ 56,419 &#160; $ ..."
+      }
+    },
+    {
+      "id": "simple_022",
+      "query": "What patent expiration range is expected for Crinecerfont?",
+      "category": "simple_factual",
+      "company": "NBIX",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "0ff317e4-6f46-4a05-98e8-3b340912775d"
+      ],
+      "answer_keywords": [
+        "2035",
+        "2044",
+        "patents"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "NEUROCRINE BIOSCIENCES INC",
+        "filing_date": "2024-02-09T00:00:00",
+        "form_type": null,
+        "chunk_preview": "matters. &#8226; Crinecerfont, a CRF1 receptor antagonist under clinical development for the treatment of CAH in adults and children, is covered by U.S. Patent Nos. 10,905,690, 11,311,544, and 11,730,..."
+      }
+    },
+    {
+      "id": "simple_023",
+      "query": "What types of XBRL documents are included in this filing?",
+      "category": "simple_factual",
+      "company": "TXN",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "23a43581-8027-4cb4-90f4-480c10037e1e"
+      ],
+      "answer_keywords": [
+        "Instance",
+        "Schema",
+        "Calculation",
+        "Definitions",
+        "Labels",
+        "Presentation"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "TEXAS INSTRUMENTS INC",
+        "filing_date": "2024-02-02T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Accounting Firm X 31(a) Rule 13a-14(a)/15(d)-14(a) Certification of Chief Executive Officer X 31(b) Rule 13a-14(a)/15(d)-14(a) Certification of Chief Financial Officer X 32(a) Section 1350 Certificati..."
+      }
+    },
+    {
+      "id": "simple_024",
+      "query": "What was the consolidated net sales in 2024?",
+      "category": "simple_factual",
+      "company": "MWA",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "d8fe4193-68a3-4f89-8534-bd7dc2aa8d72"
+      ],
+      "answer_keywords": [
+        "$1,314.7",
+        "million",
+        "net sales"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "Mueller Water Products, Inc.",
+        "filing_date": "2024-11-20T00:00:00",
+        "form_type": null,
+        "chunk_preview": "BUSINESS Our Company Mueller Water Products,&#160;Inc. (&#8220;Mueller,&#8221; &#8220;we,&#8221; &#8220;our,&#8221; or the &#8220;Company&#8221;) is a leading manufacturer and marketer of products and..."
+      }
+    },
+    {
+      "id": "simple_025",
+      "query": "What technology partnership enables ship-wide internet connectivity?",
+      "category": "simple_factual",
+      "company": "RCL",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "4f444b32-b8fd-4cbf-a096-f7fd98411939"
+      ],
+      "answer_keywords": [
+        "SpaceX",
+        "Starlink",
+        "partnership"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "ROYAL CARIBBEAN CRUISES LTD",
+        "filing_date": "2025-02-14T00:00:00",
+        "form_type": null,
+        "chunk_preview": "management as well as in how to model our maintenance or operational actions. Our entire fleet is equipped with Starlink through our partnership with SpaceX, bringing the next generation in shipboard ..."
+      }
+    },
+    {
+      "id": "simple_026",
+      "query": "How many common stock holders of record were there as of January 9, 2026?",
+      "category": "simple_factual",
+      "company": "ADBE",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "aca7b0b8-76de-480b-8b78-433209b62a75"
+      ],
+      "answer_keywords": [
+        "801",
+        "record holders",
+        "January 9, 2026"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "ADOBE INC.",
+        "filing_date": "2026-01-15T00:00:00",
+        "form_type": null,
+        "chunk_preview": "FOR REGISTRANT&#8217;S COMMON EQUITY, RELATED STOCKHOLDER MATTERS AND ISSUER PURCHASES OF EQUITY SECURITIES &#160; Market Information for Common Stock Our common stock is traded on the Nasdaq Global S..."
+      }
+    },
+    {
+      "id": "simple_027",
+      "query": "How many Onsite locations did the company have as of December 31, 2023?",
+      "category": "simple_factual",
+      "company": "FAST",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "6cb96bda-ad15-4830-8517-2c5eb95d2342"
+      ],
+      "answer_keywords": [
+        "1,822",
+        "Onsite",
+        "locations"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "FASTENAL CO",
+        "filing_date": "2024-02-06T00:00:00",
+        "form_type": null,
+        "chunk_preview": "In this model, we provide dedicated sales and service to a single customer from a location that is physically within, or strategically proximate to, the customers' facility, with inventory that is spe..."
+      }
+    },
+    {
+      "id": "simple_028",
+      "query": "What type of statements are not guarantees of future performance?",
+      "category": "simple_factual",
+      "company": "LUV",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "7131618f-5e5b-4d3c-b1d9-da6ce80a856e"
+      ],
+      "answer_keywords": [
+        "forward-looking",
+        "statements",
+        "risks",
+        "uncertainties"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "SOUTHWEST AIRLINES CO",
+        "filing_date": "2025-02-07T00:00:00",
+        "form_type": null,
+        "chunk_preview": "they do not relate strictly to historical or current facts and include, without limitation, words such as &#8220;anticipates,\" &#8220;believes,&#8221; &#8220;estimates,&#8221; &#8220;expects,&#8221; &..."
+      }
+    },
+    {
+      "id": "simple_029",
+      "query": "On what date was the Note Purchase Agreement signed?",
+      "category": "simple_factual",
+      "company": "AAL",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "1ca3a7ef-42a4-407d-afbe-92c4298a0c26"
+      ],
+      "answer_keywords": [
+        "May 15, 2018",
+        "May 15",
+        "2018"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "American Airlines Group Inc.",
+        "filing_date": "2025-02-19T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Pass Through Trust 2012-2C(R), American Airlines, Inc. and Wilmington Trust Company, not in its individual capacity but solely as Subordination Agent and Trustee (incorporated by reference to Exhibit ..."
+      }
+    },
+    {
+      "id": "simple_030",
+      "query": "What was the diluted earnings per share in fiscal 2025?",
+      "category": "simple_factual",
+      "company": "EXP",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "2666aaf5-1efc-4312-aa5f-3c826e2dd99b"
+      ],
+      "answer_keywords": [
+        "$13.77",
+        "earnings",
+        "per share"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "EAGLE MATERIALS INC",
+        "filing_date": "2025-05-20T00:00:00",
+        "form_type": null,
+        "chunk_preview": "raw materials or energy. Interest Expense, Net Interest Expense, net decreased by approximately $1.8 million, or 4%, during fiscal 2025. The decrease was primarily related to approximately $1.1 millio..."
+      }
+    },
+    {
+      "id": "simple_031",
+      "query": "Who is the Chairman of the Board according to this document?",
+      "category": "simple_factual",
+      "company": "HUM",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "e68c9dc0-abd9-4e34-8a39-5f10ddd10ca5"
+      ],
+      "answer_keywords": [
+        "Kurt",
+        "Hilzinger"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "HUMANA INC",
+        "filing_date": "2024-02-15T00:00:00",
+        "form_type": null,
+        "chunk_preview": "15, 2024 Bruce D. Broussard &#160;&#160; &#160; /s/&#160;&#160;&#160;&#160;KURT J. HILZINGER &#160;&#160; Chairman of the Board &#160; February 15, 2024 Kurt J. Hilzinger &#160;&#160; &#160; /s/&#160;..."
+      }
+    },
+    {
+      "id": "simple_032",
+      "query": "Where can investors access the company's SEC filings and financial reports?",
+      "category": "simple_factual",
+      "company": "DD",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "c724f22c-65a9-4a22-b90f-d198cc86f140"
+      ],
+      "answer_keywords": [
+        "website",
+        "investors.dupont.com",
+        "SEC.gov"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "DuPont de Nemours, Inc.",
+        "filing_date": "2025-02-14T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Section&#160;13(a) or 15(d) of the Securities Exchange Act of 1934. The SEC maintains an Internet site at http://www.sec.gov that contains reports, proxy and information statements, and other informat..."
+      }
+    },
+    {
+      "id": "simple_033",
+      "query": "How much stock-based compensation expense was recorded?",
+      "category": "simple_factual",
+      "company": "CDNS",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "3b7fa6fa-b54b-4b41-8f99-1a575d6b3870"
+      ],
+      "answer_keywords": [
+        "391,219",
+        "stock-based",
+        "compensation"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "CADENCE DESIGN SYSTEMS INC",
+        "filing_date": "2025-02-21T00:00:00",
+        "form_type": null,
+        "chunk_preview": "$ ( 550,026 ) Issuance of common stock and reissuance of treasury stock under equity incentive plans, net of forfeitures 3,035 &#160; 154,233 &#160; 50,004 &#160; &#8212;&#160; &#8212;&#160; $ 204,237..."
+      }
+    },
+    {
+      "id": "simple_034",
+      "query": "What types of restricted stock unit (RSU) award agreement forms are listed in this document?",
+      "category": "simple_factual",
+      "company": "GS",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "ad4621e6-29f8-4a1b-9075-fedc0841ed5b"
+      ],
+      "answer_keywords": [
+        "Non-Employee Director",
+        "One-Time/Year-End",
+        "Short-Term",
+        "Performance-Based",
+        "Base",
+        "Supplemental",
+        "Fully Vested"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "GOLDMAN SACHS GROUP INC",
+        "filing_date": "2025-02-27T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Form of Non-Employee Director RSU Award Agreement. &#8224; 10.33&#160;&#160;&#160;&#160; Form of Non-Employee Director RSU Award Agreement (Cash-Settled) 10.34&#160;&#160;&#160;&#160; Form of One-Time..."
+      }
+    },
+    {
+      "id": "simple_035",
+      "query": "Who is the President and Chief Financial Officer?",
+      "category": "simple_factual",
+      "company": "CRM",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "f5a7a24e-957d-49b4-9a07-8ce6e7975a5c"
+      ],
+      "answer_keywords": [
+        "Amy Weaver"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "Salesforce, Inc.",
+        "filing_date": "2025-03-05T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Executive Officer) March 5, 2025 Marc Benioff /s/ Amy Weaver President and Chief Financial Officer (Principal Financial Officer) March 5, 2025 Amy Weaver /s/ Sundeep Reddy Executive Vice President and..."
+      }
+    },
+    {
+      "id": "simple_036",
+      "query": "What are the key sections included in this business document?",
+      "category": "simple_factual",
+      "company": "MOS",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "b160ffbf-09ce-461d-bea4-bc8d4d02c734"
+      ],
+      "answer_keywords": [
+        "Business Overview",
+        "Business Segment Information",
+        "Sales and Distribution",
+        "Competition",
+        "Factors Affecting Demand",
+        "Executive Officers"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "MOSAIC CO",
+        "filing_date": "2025-03-03T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Business 1 &#8226;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; Overview 1 &#8226;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; Business Segment Information 3 &#8226;&#160;&#160;&#16..."
+      }
+    },
+    {
+      "id": "simple_037",
+      "query": "In what year was the company originally incorporated?",
+      "category": "simple_factual",
+      "company": "UBER",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "ceffe545-3320-4fb0-bfde-42cfbe3d237f"
+      ],
+      "answer_keywords": [
+        "2010",
+        "July",
+        "Ubercab, Inc."
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "Uber Technologies, Inc",
+        "filing_date": "2024-02-15T00:00:00",
+        "form_type": null,
+        "chunk_preview": "and our financial results would be adversely impacted.&#8221; included in Part I, Item 1A of this Annual Report on Form 10-K as well our 2023 Environmental, Social, and Governance Report. The informat..."
+      }
+    },
+    {
+      "id": "simple_038",
+      "query": "Who is the principal accountant for the company?",
+      "category": "simple_factual",
+      "company": "WEX",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "435b7645-dd87-44d7-80b1-9664de967678"
+      ],
+      "answer_keywords": [
+        "Deloitte & Touche LLP",
+        "PCAOB ID No. 34"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "WEX Inc.",
+        "filing_date": "2025-02-20T00:00:00",
+        "form_type": null,
+        "chunk_preview": "OF CERTAIN BENEFICIAL OWNERS AND MANAGEMENT AND RELATED STOCKHOLDER MATTERS See the information in the 2025 Proxy Statement set forth under the caption &#8220;Information About Stock Ownership&#8221; ..."
+      }
+    },
+    {
+      "id": "simple_039",
+      "query": "What was the fair value of investments in private equity funds as of December 2023?",
+      "category": "simple_factual",
+      "company": "GS",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "6079d880-9555-4f0f-9e74-939d1200c92c"
+      ],
+      "answer_keywords": [
+        "private",
+        "equity",
+        "funds",
+        "875"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "GOLDMAN SACHS GROUP INC",
+        "filing_date": "2025-02-27T00:00:00",
+        "form_type": null,
+        "chunk_preview": "portfolios, debt recapitalizations and property. Substantially all private equity, credit and real estate funds are closed-end funds in which the firm&#8217;s investments are generally not eligible fo..."
+      }
+    },
+    {
+      "id": "simple_040",
+      "query": "In which countries does the company have direct sales operations?",
+      "category": "simple_factual",
+      "company": "PEN",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "fdb9071a-bbe9-46cb-abf6-162fcd2b3d08"
+      ],
+      "answer_keywords": [
+        "Italy",
+        "Europe"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "Penumbra Inc",
+        "filing_date": "2024-02-22T00:00:00",
+        "form_type": null,
+        "chunk_preview": "our direct sales operations in Europe as well as distributor relationships in Europe and the Middle East; the offices in Brazil, Australia, Singapore, Japan and Taiwan support our sales and marketing ..."
+      }
+    },
+    {
+      "id": "simple_041",
+      "query": "What was the net earnings attributable to the company in 2023?",
+      "category": "simple_factual",
+      "company": "EMN",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "0ab80bb7-26da-42bf-b906-1159a99d4444"
+      ],
+      "answer_keywords": [
+        "$894",
+        "million",
+        "net earnings"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "EASTMAN CHEMICAL CO",
+        "filing_date": "2024-02-14T00:00:00",
+        "form_type": null,
+        "chunk_preview": "growth and accelerates innovation by enabling a deeper understanding of the value of Eastman's products and how they perform within customers' and end-users' products. Key areas of application develop..."
+      }
+    },
+    {
+      "id": "simple_042",
+      "query": "What was the diluted net income per unit for the year 2024?",
+      "category": "simple_factual",
+      "company": "EQR",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "5e0af474-6e27-4e1f-a818-186e53ddec34"
+      ],
+      "answer_keywords": [
+        "$2.72",
+        "diluted",
+        "net income per unit"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "EQUITY RESIDENTIAL",
+        "filing_date": "2025-02-13T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#160; &#160; &#160; Year Ended December 31, &#160; &#160; &#160; 2024 &#160; &#160; 2023 &#160; &#160; 2022 &#160; Numerator for net income per Unit &#8211; basic and diluted: &#160; &#160; &#160; &#..."
+      }
+    },
+    {
+      "id": "simple_043",
+      "query": "What types of risks are mentioned in this financial disclosure?",
+      "category": "simple_factual",
+      "company": "WYNN",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "4a470109-2d1b-41a0-8801-a395982e0096"
+      ],
+      "answer_keywords": [
+        "cybersecurity",
+        "labor",
+        "intellectual property",
+        "debt",
+        "regulatory compliance"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "WYNN RESORTS LTD",
+        "filing_date": "2024-02-23T00:00:00",
+        "form_type": null,
+        "chunk_preview": "with applicable governmental regulations, credit card industry standards and other applicable data security standards; &#8226; cybersecurity risk, including cyber and physical security breaches, syste..."
+      }
+    },
+    {
+      "id": "simple_044",
+      "query": "What percentage of total growth did the Europe segment experience?",
+      "category": "simple_factual",
+      "company": "PEP",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "f9addc21-2f84-49fb-b9d1-d3cd12fbc8a2"
+      ],
+      "answer_keywords": [
+        "163",
+        "Europe",
+        "percent",
+        "growth"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "PEPSICO INC",
+        "filing_date": "2025-02-04T00:00:00",
+        "form_type": null,
+        "chunk_preview": "(5) % &#8212;&#160; (5) % QFNA (38) % &#8212;&#160; 3&#160; &#8212;&#160; 3&#160; 14&#160; &#8212;&#160; (19) % &#8212;&#160; (19) % PBNA (11) % &#8212;&#160; 7&#160; &#8212;&#160; 9&#160; &#8212;&#16..."
+      }
+    },
+    {
+      "id": "simple_045",
+      "query": "How might unsuccessful data transfers impact the company's services?",
+      "category": "simple_factual",
+      "company": "CRM",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "20964170-6fe1-44b7-95ad-6dde43b462b1"
+      ],
+      "answer_keywords": [
+        "impair",
+        "delivery",
+        "damage",
+        "business"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Salesforce, Inc.",
+        "filing_date": "2025-03-05T00:00:00",
+        "form_type": null,
+        "chunk_preview": "all. Any loss of the right to use any of these hardware, software, data or cloud computing platforms could significantly increase our expenses and disrupt or otherwise result in delays in the provisio..."
+      }
+    },
+    {
+      "id": "simple_046",
+      "query": "How can investors obtain copies of the company's Annual Report on Form 10-K?",
+      "category": "simple_factual",
+      "company": "INTU",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "69dcc825-d196-4d80-b797-148522be5a1f"
+      ],
+      "answer_keywords": [
+        "Investor Relations",
+        "P.O. Box 7850",
+        "Mountain View",
+        "650-944-6000",
+        "investor_relations@intuit.com"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "INTUIT INC.",
+        "filing_date": "2024-09-04T00:00:00",
+        "form_type": null,
+        "chunk_preview": "file reports required of public companies with the Securities and Exchange Commission (SEC). These include annual reports on Form 10-K, quarterly reports on Form 10-Q, current reports on Form 8-K, pro..."
+      }
+    },
+    {
+      "id": "simple_047",
+      "query": "What economic interests do PM USA and JTIUH have in Horizon?",
+      "category": "simple_factual",
+      "company": "MO",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "89974bd7-54db-4a22-9505-b504f40ac085"
+      ],
+      "answer_keywords": [
+        "75%",
+        "25%",
+        "economic interest"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "ALTRIA GROUP, INC.",
+        "filing_date": "2025-02-26T00:00:00",
+        "form_type": null,
+        "chunk_preview": "by either party. We own a 75% economic interest in Horizon with JTIUH owning a 25% economic interest. Horizon is governed by a board of managers, which is comprised of four individuals designated by P..."
+      }
+    },
+    {
+      "id": "simple_048",
+      "query": "What was the company's cash and cash equivalents balance at the end of the period?",
+      "category": "simple_factual",
+      "company": "UNH",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "6b9eb0ca-e626-41b9-a496-c2e687a21e59"
+      ],
+      "answer_keywords": [
+        "$25,427",
+        "cash equivalents",
+        "end of period"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "UNITEDHEALTH GROUP INC",
+        "filing_date": "2024-02-28T00:00:00",
+        "form_type": null,
+        "chunk_preview": "equipment and capitalized software ( 3,386 ) ( 2,802 ) ( 2,454 ) Cash received from dispositions 685 &#160; 3,414 &#160; 15 &#160; Other, net ( 960 ) ( 793 ) ( 1,269 ) Cash flows used for investing ac..."
+      }
+    },
+    {
+      "id": "simple_049",
+      "query": "What act provided governmental support during economic challenges?",
+      "category": "simple_factual",
+      "company": "JBLU",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "0c75e2cf-4745-4297-a787-9344c4766286"
+      ],
+      "answer_keywords": [
+        "CARES Act",
+        "Consolidated Appropriations Act",
+        "American Rescue Plan Act"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "JETBLUE AIRWAYS CORP",
+        "filing_date": "2024-02-12T00:00:00",
+        "form_type": null,
+        "chunk_preview": "failure of, automated systems to operate our business; our inability to attract and retain qualified crewmembers; our being subject to potential unionization, work stoppages, slowdowns or increased la..."
+      }
+    },
+    {
+      "id": "simple_050",
+      "query": "What is the exhibit number for the Agreement and Plan of Merger between American Airlines, Inc. and US Airways, Inc.?",
+      "category": "simple_factual",
+      "company": "AAL",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "e431e61f-1a36-42c3-b3d5-07bbe871a9a4"
+      ],
+      "answer_keywords": [
+        "2.2",
+        "December 28, 2015",
+        "merger"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "American Airlines Group Inc.",
+        "filing_date": "2024-02-21T00:00:00",
+        "form_type": null,
+        "chunk_preview": ", 202 2 and 202 1 131 Consolidated Statements of Stockholder&#8217;s Equity for the Years Ended December&#160;31, 202 3 , 202 2 and 202 1 132 Notes to Consolidated Financial Statements 133 Schedules n..."
+      }
+    },
+    {
+      "id": "complex_001",
+      "query": "How did regional economic conditions and government regulations impact sales performance in China during 2023?",
+      "category": "complex_analytical",
+      "company": "WAT",
+      "expected_section": "risk_factors",
+      "relevant_chunk_ids": [
+        "ddfdd6c9-2419-44a1-b67b-c09c0efd997c"
+      ],
+      "answer_keywords": [
+        "22% decrease",
+        "government regulations",
+        "weak economic conditions",
+        "lower demand",
+        "instrument systems",
+        "chemistry products"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "WATERS CORP /DE/",
+        "filing_date": "2024-02-27T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#160; 784,889 &#160; &#160;&#160; &#160; 7 %&#160; &#160; &#160; &#8212;&#8194; &#160; &#160;&#160; &#160; &#160; &#160; &#160;&#160; &#160; &#160; &#160; &#160;&#160; &#160; &#160; &#160; &#160;&#16..."
+      }
+    },
+    {
+      "id": "complex_002",
+      "query": "How might the company's lease structure and terms impact its financial flexibility and operational costs?",
+      "category": "complex_analytical",
+      "company": "OSUR",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "fcbff788-f17e-4501-8783-2f1a0ecaf118"
+      ],
+      "answer_keywords": [
+        "lease terms",
+        "incremental borrowing rate",
+        "right-of-use assets",
+        "1-10 year lease duration",
+        "extension/termination options"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "ORASURE TECHNOLOGIES INC",
+        "filing_date": "2024-03-11T00:00:00",
+        "form_type": null,
+        "chunk_preview": "offices, warehouse space and equipment (including vehicles). As of December&#160;31, 2023, the Company is the lessee in all lease agreements. The Company's leases have remaining lease terms of 1 to 10..."
+      }
+    },
+    {
+      "id": "complex_003",
+      "query": "How might changes in the expected holding period of rental properties impact the company's financial assessment of asset impairment?",
+      "category": "complex_analytical",
+      "company": "ESS",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "315f776a-f344-41c7-b5fc-01e3884d32ef"
+      ],
+      "answer_keywords": [
+        "holding period",
+        "rental properties",
+        "impairment indicators",
+        "cash flows",
+        "useful life"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "ESSEX PROPERTY TRUST, INC.",
+        "filing_date": "2025-02-21T00:00:00",
+        "form_type": null,
+        "chunk_preview": "its intent with regard to each asset, and each property&#8217;s remaining useful life. As of December&#160;31, 2024, the Operating Partnership had $11.4 billion in rental properties. We identified the..."
+      }
+    },
+    {
+      "id": "complex_004",
+      "query": "How does the company's fair value measurement hierarchy impact financial reporting transparency?",
+      "category": "complex_analytical",
+      "company": "TTWO",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "f301b006-52c4-47a1-98b4-c1f3ba1e2e25"
+      ],
+      "answer_keywords": [
+        "three-level",
+        "observable inputs",
+        "unobservable inputs",
+        "Level 1",
+        "Level 2",
+        "Level 3"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "TAKE TWO INTERACTIVE SOFTWARE INC",
+        "filing_date": "2025-02-07T00:00:00",
+        "form_type": null,
+        "chunk_preview": "of time-based, market-based and performance-based restricted stock units held by ZMC were 1.4 and 1.3 as of December&#160;31, 2024 and March&#160;31, 2024, respectively. During the nine months ended D..."
+      }
+    },
+    {
+      "id": "complex_005",
+      "query": "How does the composition of long-term debt suggest the company's financial strategy for managing interest rates and debt maturity?",
+      "category": "complex_analytical",
+      "company": "SO",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "5321f2bb-7f59-4187-b6a4-d6b250d487f8"
+      ],
+      "answer_keywords": [
+        "long-term debt",
+        "senior notes",
+        "first mortgage bonds",
+        "maturity range",
+        "interest rates"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "SOUTHERN CO",
+        "filing_date": "2024-02-15T00:00:00",
+        "form_type": null,
+        "chunk_preview": "notes (a) 2025-2046 4.05 % $ 2,728 &#160; $ 2,998 &#160; Unamortized debt premium (discount), net ( 4 ) ( 5 ) Unamortized debt issuance expenses ( 13 ) ( 14 ) Total long-term debt 2,711 &#160; 2,979 &..."
+      }
+    },
+    {
+      "id": "complex_006",
+      "query": "How do stock-based compensation and equity awards impact the company's financial statements and shareholder value?",
+      "category": "complex_analytical",
+      "company": "CRWD",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "29fe37f7-a096-44e6-8b48-253f2070d898"
+      ],
+      "answer_keywords": [
+        "stock-based compensation",
+        "equity awards",
+        "net income",
+        "capitalized",
+        "pre-acquisition service"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "CrowdStrike Holdings, Inc.",
+        "filing_date": "2025-03-10T00:00:00",
+        "form_type": null,
+        "chunk_preview": "626,861 &#160; &#8212;&#160; &#8212;&#160; &#8212;&#160; 626,861 &#160; Capitalized stock-based compensation &#8212;&#160; &#8212;&#160; 34,385 &#160; &#8212;&#160; &#8212;&#160; &#8212;&#160; 34,385 ..."
+      }
+    },
+    {
+      "id": "complex_007",
+      "query": "How did stock repurchases and dividend payments impact the company's equity position in the reporting period?",
+      "category": "complex_analytical",
+      "company": "MLM",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "4444b7ce-8c55-4761-a3d5-8959b1e43f0f"
+      ],
+      "answer_keywords": [
+        "repurchases",
+        "dividends",
+        "equity",
+        "balance sheet"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "MARTIN MARIETTA MATERIALS INC",
+        "filing_date": "2025-02-21T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#160; 2 &#160; &#160; &#160; 8,036 &#160; Consolidated net earnings &#160; &#160; &#8212; &#160; &#160; &#160; &#8212; &#160; &#160; &#160; &#8212; &#160; &#160; &#160; &#8212; &#160; &#160; &#160; 1..."
+      }
+    },
+    {
+      "id": "complex_008",
+      "query": "What changes occurred in the company's cash and cash equivalents during this reporting period, and how might these changes impact financial flexibility?",
+      "category": "complex_analytical",
+      "company": "OFIX",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "c1bd6842-0983-4f36-ae93-80d3f39779fd"
+      ],
+      "answer_keywords": [
+        "net change",
+        "cash decline",
+        "restricted cash",
+        "cash equivalents"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Orthofix Medical Inc.",
+        "filing_date": "2025-11-04T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#160; Effect of exchange rate changes on cash &#160; &#160; 1,448 &#160; &#160; &#160; ( 40 ) Net change in cash and cash equivalents &#160; &#160; ( 19,792 ) &#160; &#160; ( 5,203 ) Cash, cash equiv..."
+      }
+    },
+    {
+      "id": "complex_009",
+      "query": "How is the company strategically positioning its R&D and manufacturing capabilities to support future growth in cell therapy?",
+      "category": "complex_analytical",
+      "company": "BMY",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "695e4e4a-d8c3-4149-bace-5159b8641fc2"
+      ],
+      "answer_keywords": [
+        "cell therapy",
+        "manufacturing facilities",
+        "R&D expansion",
+        "external partnerships",
+        "pipeline development"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "BRISTOL MYERS SQUIBB CO",
+        "filing_date": "2024-02-13T00:00:00",
+        "form_type": null,
+        "chunk_preview": "R&D facility in Cambridge, Massachusetts in 2023 and are opening an R&D facility in San Diego, California (planned for 2025). In addition, in support of a continued investment in our cell therapy port..."
+      }
+    },
+    {
+      "id": "complex_010",
+      "query": "How do the company's changing discount rates and expected long-term return on plan assets potentially impact its pension and postretirement benefit obligations?",
+      "category": "complex_analytical",
+      "company": "ADI",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "6e3326b7-33c9-4ce8-924b-7375ccb85b34"
+      ],
+      "answer_keywords": [
+        "discount rate",
+        "long-term return",
+        "asset allocation",
+        "investment strategy"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "ANALOG DEVICES INC",
+        "filing_date": "2025-11-25T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#160; $ 5,777 &#160; Assumptions The range of assumptions used for the Company&#8217;s pension and postretirement benefit plans reflects the different economic environments within the various countri..."
+      }
+    },
+    {
+      "id": "complex_011",
+      "query": "What key economic and operational challenges might impede the company's transition from a research-focused to a commercially viable organization?",
+      "category": "complex_analytical",
+      "company": "BHVN",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "7ffd38b4-5148-40df-9899-562d46101469"
+      ],
+      "answer_keywords": [
+        "operating losses",
+        "economic volatility",
+        "transition challenges",
+        "research to commercial",
+        "profitability risks"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Biohaven Ltd.",
+        "filing_date": "2025-03-03T00:00:00",
+        "form_type": null,
+        "chunk_preview": "to fluctuate from quarter to quarter and year to year due to a variety of factors, many of which are beyond our control. We will need to eventually transition from a company with a research and develo..."
+      }
+    },
+    {
+      "id": "complex_012",
+      "query": "What risks are inherent in the company's forward-looking statements that might impact investor expectations?",
+      "category": "complex_analytical",
+      "company": "COP",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "0195028b-5985-4774-a8ee-ace4c7a2f7c2"
+      ],
+      "answer_keywords": [
+        "forward-looking",
+        "risks",
+        "uncertainties",
+        "assumptions",
+        "actual outcomes"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "CONOCOPHILLIPS",
+        "filing_date": "2025-02-18T00:00:00",
+        "form_type": null,
+        "chunk_preview": "1995 This report includes forward-looking statements within the meaning of Section 27A of the Securities Act of 1933 and Section 21E of the Securities Exchange Act of 1934. All statements other than s..."
+      }
+    },
+    {
+      "id": "complex_013",
+      "query": "How do purchase accounting impacts affect the comparability of financial performance across geographic segments?",
+      "category": "complex_analytical",
+      "company": "LIN",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "f9c33976-7eda-4db1-8ad9-48cae6f3c984"
+      ],
+      "answer_keywords": [
+        "merger",
+        "non-GAAP",
+        "geographic segments",
+        "purchase accounting",
+        "financial comparability"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "LINDE PLC",
+        "filing_date": "2024-02-28T00:00:00",
+        "form_type": null,
+        "chunk_preview": "(a) (0.08) 1.77&#160; Add: Purchase accounting impacts - Linde AG (c) 1.66&#160; 2.28&#160; Total adjustments 1.61&#160; 4.06&#160; Adjusted diluted EPS $ 14.20&#160; $ 12.29&#160; Reported percentage..."
+      }
+    },
+    {
+      "id": "complex_014",
+      "query": "What financial signals suggest the company may be experiencing a turnaround from previous financial challenges?",
+      "category": "complex_analytical",
+      "company": "LITE",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "5eb59d0f-7ed8-4cd3-b78a-4d2935785ce7"
+      ],
+      "answer_keywords": [
+        "net income",
+        "comprehensive income",
+        "cash position",
+        "asset growth"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Lumentum Holdings Inc.",
+        "filing_date": "2025-08-19T00:00:00",
+        "form_type": null,
+        "chunk_preview": "accompanying Notes to Consolidated Financial Statements. LUMENTUM HOLDINGS INC. CONSOLIDATED STATEMENTS OF COMPREHENSIVE INCOME (LOSS) (in millions) &#160; Years Ended &#160; June 28, 2025 June 29, 20..."
+      }
+    },
+    {
+      "id": "complex_015",
+      "query": "What insights can be drawn from the trend in restricted stock grant fair values over the past three years?",
+      "category": "complex_analytical",
+      "company": "BMI",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "a34b8278-a3c0-41d1-adfd-f7eb51af26d5"
+      ],
+      "answer_keywords": [
+        "fair value",
+        "increasing",
+        "grant price",
+        "stock compensation"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "BADGER METER INC",
+        "filing_date": "2025-02-14T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#160; $ 2,175 &#160; Outstanding &#160; &#160; 23,323 &#160; &#160; &#160; 17,718 &#160; &#160; &#160; 12,529 &#160; Exercisable &#160; &#160; 22,356 &#160; &#160; &#160; 16,023 &#160; &#160; &#160; ..."
+      }
+    },
+    {
+      "id": "complex_016",
+      "query": "How might recent federal regulations around drug pricing impact the healthcare distribution industry's business model?",
+      "category": "complex_analytical",
+      "company": "HSIC",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "de1596b0-b7cd-4b88-8450-15cbcb849d0d"
+      ],
+      "answer_keywords": [
+        "Inflation Reduction Act",
+        "Medicare negotiation",
+        "pricing uncertainty",
+        "regulatory changes"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "HENRY SCHEIN INC",
+        "filing_date": "2025-02-25T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#160; action to establish prescription drug affordability boards or multi-payer purchasing pools to reduce the cost of &#160; prescription drugs. &#160; At the federal level, section 1927 of the Soci..."
+      }
+    },
+    {
+      "id": "complex_017",
+      "query": "What recent executive compensation and retention strategies are indicated by the various performance share and equity incentive plan documents filed in this SEC exhibit list?",
+      "category": "complex_analytical",
+      "company": "ADBE",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "deb8c42d-7b89-4359-9434-bf0bc4b0af89"
+      ],
+      "answer_keywords": [
+        "2024 Performance Share Program",
+        "2019 Equity Incentive Plan",
+        "Retention Agreement",
+        "Shantanu Narayen",
+        "Non-Employee Director Compensation"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "ADOBE INC.",
+        "filing_date": "2025-01-13T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Exhibit Number SEC File No. Filed Herewith 10.2G Form of 2024&#8239;Performance Share Award Grant Notice and Award Agreement pursuant to 2024&#8239;Performance Share Program * 8-K 1/26/24 10.3&#160; 0..."
+      }
+    },
+    {
+      "id": "complex_018",
+      "query": "How did acquisitions and property dispositions impact the company's property operating income and operating income for the quarter?",
+      "category": "complex_analytical",
+      "company": "FRT",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "9c8c25b5-2b97-4eb4-85eb-447b363169c6"
+      ],
+      "answer_keywords": [
+        "acquisitions",
+        "property dispositions",
+        "rental rates",
+        "occupancy",
+        "income increase"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "FEDERAL REALTY INVESTMENT TRUST",
+        "filing_date": "2025-10-31T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#8226; a decrease of $0.5 million from property dispositions. Property Operating Income Property operating income increased $12.9 million, or 6.3%, to $216.6 million in the three months ended Septemb..."
+      }
+    },
+    {
+      "id": "complex_019",
+      "query": "How do the valuation allowances for trade receivables and deferred tax assets suggest potential financial risks or accounting adjustments?",
+      "category": "complex_analytical",
+      "company": "AOS",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "e01b909f-9923-4b65-b243-bb425f50ceb9"
+      ],
+      "answer_keywords": [
+        "valuation allowance",
+        "trade receivables",
+        "deferred tax assets",
+        "balance sheet management"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "SMITH A O CORP",
+        "filing_date": "2025-02-11T00:00:00",
+        "form_type": null,
+        "chunk_preview": "2024 and 2023, (ii) the Consolidated Statement of Earnings for the three years ended December&#160;31, 2024, (iii) the Consolidated Statement of Comprehensive Earnings for the three years ended Decemb..."
+      }
+    },
+    {
+      "id": "complex_020",
+      "query": "How has the geographical distribution of property, equipment, and right-of-use assets changed between 2021 and 2023?",
+      "category": "complex_analytical",
+      "company": "MA",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "13ee19b3-62b4-45da-9bee-00a772595e31"
+      ],
+      "answer_keywords": [
+        "United States",
+        "Other countries",
+        "Asset distribution",
+        "Geographical expansion"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Mastercard Inc",
+        "filing_date": "2024-02-13T00:00:00",
+        "form_type": null,
+        "chunk_preview": "country, other than the U.S., generated more than 10% of net revenue in those periods. Mastercard did not have any individual customer that generated greater than 10% of net revenue in 2023, 2022 or 2..."
+      }
+    },
+    {
+      "id": "complex_021",
+      "query": "How did portfolio changes and volume decreases impact the company's sales and gross profit performance in 2023?",
+      "category": "complex_analytical",
+      "company": "IFF",
+      "expected_section": "risk_factors",
+      "relevant_chunk_ids": [
+        "7b985cfe-7a39-410b-b529-da59d1d42c3a"
+      ],
+      "answer_keywords": [
+        "sales decrease",
+        "divestitures",
+        "volume decreases",
+        "gross profit reduction"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "INTERNATIONAL FLAVORS & FRAGRANCES INC",
+        "filing_date": "2024-02-28T00:00:00",
+        "form_type": null,
+        "chunk_preview": "accidents and other events could adversely affect our business and financial results, including by disrupting development, manufacturing, distribution or sale of our products. 2023 Financial Performan..."
+      }
+    },
+    {
+      "id": "complex_022",
+      "query": "Who serves as the Principal Executive Officer and what potential governance implications might arise from their leadership role?",
+      "category": "complex_analytical",
+      "company": "QRVO",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "197af0f3-1c14-4a1f-85d5-e5659e814466"
+      ],
+      "answer_keywords": [
+        "Robert A. Bruggeworth",
+        "President",
+        "CEO",
+        "Principal Executive Officer"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Qorvo, Inc.",
+        "filing_date": "2025-05-19T00:00:00",
+        "form_type": null,
+        "chunk_preview": "and each of them, full power and authority to do and perform each and every act and thing requisite and necessary to be done in and about the premises, as fully to all intents and purposes as he might..."
+      }
+    },
+    {
+      "id": "complex_023",
+      "query": "How did changes in dealer inventory levels impact the company's sales volume across different geographic regions in 2024?",
+      "category": "complex_analytical",
+      "company": "CAT",
+      "expected_section": "risk_factors",
+      "relevant_chunk_ids": [
+        "a9a5b763-f038-4ff9-83af-43820c9cf079"
+      ],
+      "answer_keywords": [
+        "dealer inventory",
+        "sales volume",
+        "North America",
+        "Latin America",
+        "EAME",
+        "Asia/Pacific"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "CATERPILLAR INC",
+        "filing_date": "2025-02-14T00:00:00",
+        "form_type": null,
+        "chunk_preview": "and employees. Total sales and revenues for 2024 were $64.809 billion, a decrease of $2.251 billion, or 3 percent, compared with $67.060 billion in 2023. The decrease was primarily driven by lower sal..."
+      }
+    },
+    {
+      "id": "complex_024",
+      "query": "What can we infer about the company's financial governance and legal compliance from the exhibited corporate documents?",
+      "category": "complex_analytical",
+      "company": "FLS",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "6babec72-c703-4eef-827f-6a243491ad39"
+      ],
+      "answer_keywords": [
+        "Restated Certificate",
+        "By-Laws",
+        "Indenture",
+        "legal documentation",
+        "corporate governance"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "FLOWSERVE CORP",
+        "filing_date": "2024-02-20T00:00:00",
+        "form_type": null,
+        "chunk_preview": ") Flowserve Corporation Consolidated Financial Statements: Consolidated Balance Sheets at December&#160;31, 2023 and 2022: For each of the three years in the period ended December&#160;31, 2023: Conso..."
+      }
+    },
+    {
+      "id": "complex_025",
+      "query": "How might the company's inventory and procurement strategies expose it to financial risks during periods of uncertain product demand?",
+      "category": "complex_analytical",
+      "company": "CSCO",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "aba0b61b-984c-488b-a6b5-dbcb503a6d81"
+      ],
+      "answer_keywords": [
+        "supply chain",
+        "inventory commitments",
+        "excess inventory",
+        "component shortages",
+        "product gross margin"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "CISCO SYSTEMS, INC.",
+        "filing_date": "2024-09-05T00:00:00",
+        "form_type": null,
+        "chunk_preview": "and to help ensure adequate component supply, we enter into agreements with contract manufacturers and suppliers that either allow them to procure inventory based upon criteria as defined by us or tha..."
+      }
+    },
+    {
+      "id": "complex_026",
+      "query": "What external macroeconomic and geopolitical factors could potentially disrupt the company's financial performance and operations?",
+      "category": "complex_analytical",
+      "company": "SNAP",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "a59a3416-bdf0-4223-ba35-a4420d3d3c0e"
+      ],
+      "answer_keywords": [
+        "currency",
+        "war",
+        "inflation",
+        "geo-political conflicts",
+        "banking instability",
+        "terrorism"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Snap Inc",
+        "filing_date": "2024-02-07T00:00:00",
+        "form_type": null,
+        "chunk_preview": "restrictions on the data processing activities and personal data transfers critical to the operation of our current business model; &#8226; fluctuations in currency exchange rates and changes in the p..."
+      }
+    },
+    {
+      "id": "complex_027",
+      "query": "How has the company's service revenue trend and unsatisfied performance obligations evolved over the past three years?",
+      "category": "complex_analytical",
+      "company": "MLM",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "5a75f832-f0db-4dcf-9d66-96214a0d30f8"
+      ],
+      "answer_keywords": [
+        "service revenues",
+        "performance obligations",
+        "annual progression"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "MARTIN MARIETTA MATERIALS INC",
+        "filing_date": "2024-02-23T00:00:00",
+        "form_type": null,
+        "chunk_preview": "are single-performance obligations that are satisfied at a point in time. Performance obligations within paving service agreements are satisfied over time, primarily ranging from one day to two years ..."
+      }
+    },
+    {
+      "id": "complex_028",
+      "query": "How did changes in discount rates impact the pension plan's actuarial gains between 2023 and 2024?",
+      "category": "complex_analytical",
+      "company": "OC",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "3162b3ed-0527-4569-b3ae-eb70387704b8"
+      ],
+      "answer_keywords": [
+        "discount rates",
+        "actuarial gain",
+        "U.S. plan",
+        "Non-U.S. plans",
+        "34 million",
+        "12 million"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Owens Corning",
+        "filing_date": "2025-02-24T00:00:00",
+        "form_type": null,
+        "chunk_preview": "presents the amount recorded and respective location in the Consolidated Balance sheets: &#160; December 31, 2024 December 31, 2023 (In millions) Location U.S. Non-U.S. Total U.S. Non-U.S. Total Prepa..."
+      }
+    },
+    {
+      "id": "complex_029",
+      "query": "What insider trading compliance measures are in place to prevent unauthorized securities transactions?",
+      "category": "complex_analytical",
+      "company": "MSFT",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "7d8dad31-14de-4c11-846b-3a09a9174e08"
+      ],
+      "answer_keywords": [
+        "Restricted Trading Window Policy",
+        "open window period",
+        "pre-approval",
+        "corporate officers"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "MICROSOFT CORP",
+        "filing_date": "2024-07-30T00:00:00",
+        "form_type": null,
+        "chunk_preview": "disclosing material, nonpublic information Microsoft, or another publicly traded company, to others who may trade on the basis of that information. A copy of our General Insider Trading Policy is file..."
+      }
+    },
+    {
+      "id": "complex_030",
+      "query": "What financial agreements were executed for new ship hull acquisitions in mid-2021?",
+      "category": "complex_analytical",
+      "company": "RCL",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "d61f42f5-1fa2-4648-8b3d-e15d5b7e7e06"
+      ],
+      "answer_keywords": [
+        "supplemental agreements",
+        "Chantiers l'Atlantique",
+        "Hull No. A35",
+        "Hull No. L34",
+        "Hull No. M34"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "ROYAL CARIBBEAN CRUISES LTD",
+        "filing_date": "2024-02-21T00:00:00",
+        "form_type": null,
+        "chunk_preview": "SA/NV as Finnvera agent, the banks and financial institutions party thereto as mandated lead arrangers and the banks and financial institutions listed therein as lenders 8-K 10.2 3/19/2021 59 Incorpor..."
+      }
+    },
+    {
+      "id": "temporal_001",
+      "query": "How might economic instability impact advertising revenues across different platforms?",
+      "category": "temporal_comparative",
+      "company": "WBD",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "525cfa61-88e5-406a-a8cd-001bcb413365"
+      ],
+      "answer_keywords": [
+        "economic conditions",
+        "advertising expenditures",
+        "multiple platforms",
+        "viewership measurement"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Warner Bros. Discovery, Inc.",
+        "filing_date": "2025-02-27T00:00:00",
+        "form_type": null,
+        "chunk_preview": "will replace the declines in advertising revenues generated from our traditional linear business. The advertising market is also sensitive to general economic conditions and consumer buying patterns. ..."
+      }
+    },
+    {
+      "id": "temporal_002",
+      "query": "What language suggests this is a forward-looking statement about potential future business conditions?",
+      "category": "temporal_comparative",
+      "company": "SHW",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "ea590af5-e282-40dc-b002-3396af2b4ebc"
+      ],
+      "answer_keywords": [
+        "believe",
+        "expect",
+        "estimate",
+        "project",
+        "anticipate"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "SHERWIN WILLIAMS CO",
+        "filing_date": "2024-02-20T00:00:00",
+        "form_type": null,
+        "chunk_preview": "STATEMENT REGARDING FORWARD-LOOKING INFORMATION Certain statements contained in &#8220;Management&#8217;s Discussion and Analysis of Financial Condition and Results of Operations,&#8221; &#8220;Letter..."
+      }
+    },
+    {
+      "id": "temporal_003",
+      "query": "How much stock-based compensation was recorded in this financial period?",
+      "category": "temporal_comparative",
+      "company": "ALGN",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "775a5511-6749-43a1-9fbf-2fbe96671772"
+      ],
+      "answer_keywords": [
+        "stock-based compensation",
+        "173,703"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "ALIGN TECHNOLOGY INC",
+        "filing_date": "2025-02-28T00:00:00",
+        "form_type": null,
+        "chunk_preview": "25,281 &#160; &#8212;&#160; &#8212;&#160; 25,281 &#160; Tax withholdings related to net share settlements of equity awards ( 92 ) &#8212;&#160; ( 28,125 ) &#8212;&#160; &#8212;&#160; ( 28,125 ) Common..."
+      }
+    },
+    {
+      "id": "temporal_004",
+      "query": "How has the company expanded its global sales and support presence in recent years?",
+      "category": "temporal_comparative",
+      "company": "SNPS",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "f70cb671-8559-4ae0-bc6a-2676d5e94119"
+      ],
+      "answer_keywords": [
+        "United States",
+        "Canada",
+        "Europe",
+        "Israel",
+        "Asia",
+        "sales centers",
+        "support offices"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "SYNOPSYS INC",
+        "filing_date": "2025-12-22T00:00:00",
+        "form_type": null,
+        "chunk_preview": "libraries, the PyAnsys collection offers engineers a comprehensive set of tools and utilities that seamlessly integrate with Ansys software, empowering them to enhance their simulations and analyses. ..."
+      }
+    },
+    {
+      "id": "temporal_005",
+      "query": "Who signed the SEC filing as the Chief Financial Officer on this document?",
+      "category": "temporal_comparative",
+      "company": "MPWR",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "a43f3ead-feac-496c-9be5-9eb50cda6862"
+      ],
+      "answer_keywords": [
+        "T. Bernie Blegen",
+        "Chief Financial Officer",
+        "March 3, 2025"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "MONOLITHIC POWER SYSTEMS INC",
+        "filing_date": "2025-03-03T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Form 10-K Summary &#160; None. &#160; &#160; SIGNATURES &#160; Pursuant to the requirements of Section 13 or 15(d) of the Securities Exchange Act of 1934, the registrant has duly caused this report&#1..."
+      }
+    },
+    {
+      "id": "temporal_006",
+      "query": "What are the primary business segments of the company's operations over time?",
+      "category": "temporal_comparative",
+      "company": "CE",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "eb0fd3b4-bf2f-493b-8936-2650a65672c6"
+      ],
+      "answer_keywords": [
+        "EVA polymers",
+        "RDP",
+        "acetate tow",
+        "Other Activities"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Celanese Corp",
+        "filing_date": "2025-02-21T00:00:00",
+        "form_type": null,
+        "chunk_preview": "as paints and coatings, adhesives, construction, glass fiber, textiles and paper. The Company's EVA polymers business is a leading North American manufacturer of a full range of specialty EVA resins a..."
+      }
+    },
+    {
+      "id": "temporal_007",
+      "query": "How did research and development expenses change across the reporting periods as a percentage of revenues?",
+      "category": "temporal_comparative",
+      "company": "BDX",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "194bd875-946a-4214-bd27-c3565a332edb"
+      ],
+      "answer_keywords": [
+        "R&D",
+        "expense",
+        "percentage",
+        "4.7%",
+        "7.2%"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "BECTON DICKINSON & CO",
+        "filing_date": "2025-11-25T00:00:00",
+        "form_type": null,
+        "chunk_preview": "and development expense 445 &#160; 371 &#160; 225 &#160; 1,041 &#160; % of revenues 4.7 &#160; % 7.2 &#160; % 4.7 &#160; % Other operating income, net ( 6 ) ( 6 ) ( 4 ) ( 16 ) % of revenues ( 0.1 ) % ..."
+      }
+    },
+    {
+      "id": "temporal_008",
+      "query": "What was the timeline and financial impact of the Climate Technologies business divestiture in 2023?",
+      "category": "temporal_comparative",
+      "company": "EMR",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "135978d3-4db5-4ebb-9465-532bce191e16"
+      ],
+      "answer_keywords": [
+        "May 31, 2023",
+        "Blackstone",
+        "$14.0 billion",
+        "$9.7 billion upfront",
+        "40% equity retained"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "EMERSON ELECTRIC CO",
+        "filing_date": "2025-11-10T00:00:00",
+        "form_type": null,
+        "chunk_preview": "of Micromine to this mutual course of action. AspenTech did not pay any termination fee as part of this arrangement. (5) DISCONTINUED OPERATIONS On May 31, 2023, the Company completed the sale of a ma..."
+      }
+    },
+    {
+      "id": "temporal_009",
+      "query": "How has the proportion of Seniors Housing Operating properties changed in the property mix over the past six quarters?",
+      "category": "temporal_comparative",
+      "company": "WELL",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "1bfc25f6-176a-4460-86ce-ebf746c5a74f"
+      ],
+      "answer_keywords": [
+        "Seniors Housing Operating",
+        "54%",
+        "40%",
+        "property mix"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "WELLTOWER INC.",
+        "filing_date": "2024-07-30T00:00:00",
+        "form_type": null,
+        "chunk_preview": "charge coverage ratio 5.21x 3.98x 3.52x 3.60x 3.51x 3.13x Concentration Risk We evaluate our concentration risk in terms of NOI by property mix, relationship mix and geographic mix. Concentration risk..."
+      }
+    },
+    {
+      "id": "temporal_010",
+      "query": "What challenges does the company anticipate in conducting future clinical studies?",
+      "category": "temporal_comparative",
+      "company": "INSP",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "6066769f-14d8-4b38-8372-22c6f71e1491"
+      ],
+      "answer_keywords": [
+        "complex",
+        "expensive",
+        "uncertain outcomes",
+        "potential setbacks"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Inspire Medical Systems, Inc.",
+        "filing_date": "2024-02-09T00:00:00",
+        "form_type": null,
+        "chunk_preview": "or certification, with respect to our current or future products, elsewhere, we will be unable to expand the indications for or commercialize these products and may incur additional costs or experienc..."
+      }
+    },
+    {
+      "id": "temporal_011",
+      "query": "What was the total amortization expense for produced content in the fiscal year?",
+      "category": "temporal_comparative",
+      "company": "DIS",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "eb92f029-a9c8-4965-8262-9846a0c3a7b2"
+      ],
+      "answer_keywords": [
+        "$7,072 million",
+        "production costs",
+        "amortization expense"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "Walt Disney Co",
+        "filing_date": "2025-11-13T00:00:00",
+        "form_type": null,
+        "chunk_preview": "The communication of critical audit matters does not alter in any way our opinion on the consolidated financial statements, taken as a whole, and we are not, by communicating the critical audit matter..."
+      }
+    },
+    {
+      "id": "temporal_012",
+      "query": "Which quarry showed the most significant production increase from 2022 to 2023?",
+      "category": "temporal_comparative",
+      "company": "USLM",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "6b23cb88-07d3-4f3c-9602-09709e681122"
+      ],
+      "answer_keywords": [
+        "Love Hollow",
+        "266",
+        "57",
+        "significant increase"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "UNITED STATES LIME & MINERALS INC",
+        "filing_date": "2024-02-29T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#8203; (in thousands of tons) Mine/Location &#8203; 2023 2022 2021 Texas Lime Quarry &#8203; 1,575 1,610 1,421 Batesville Quarry &#8203; 785 1,017 898 Love Hollow Quarry &#8203; 266 57 - St. Clair Mi..."
+      }
+    },
+    {
+      "id": "temporal_013",
+      "query": "How has the proportion of recurring revenues changed between 2014 and 2024?",
+      "category": "temporal_comparative",
+      "company": "ICE",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "a5a8bc22-9021-4feb-a4e1-a286e667c006"
+      ],
+      "answer_keywords": [
+        "recurring revenues",
+        "34%",
+        "52%",
+        "data services",
+        "listings",
+        "mortgage technology"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "Intercontinental Exchange, Inc.",
+        "filing_date": "2025-02-06T00:00:00",
+        "form_type": null,
+        "chunk_preview": "conduct our business and may create uncertainty for market participants, which could affect trading volumes or demand for market data. As a result, it is difficult to predict all of the effects that t..."
+      }
+    },
+    {
+      "id": "temporal_014",
+      "query": "What fiscal years are included in the consolidated financial statements?",
+      "category": "temporal_comparative",
+      "company": "QCOM",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "ac74f7e9-4ec5-4c61-8bdf-e159eda4c71d"
+      ],
+      "answer_keywords": [
+        "2025",
+        "2024",
+        "2023"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "QUALCOMM INC/DE",
+        "filing_date": "2025-11-05T00:00:00",
+        "form_type": null,
+        "chunk_preview": "by reference. Item 11. Executive Compensation The information required by this item will be included in our 2026 Proxy Statement and is incorporated herein by reference. Item 12. Security Ownership of..."
+      }
+    },
+    {
+      "id": "temporal_015",
+      "query": "How did management's inventory demand forecasting accuracy compare between 2022 and 2023?",
+      "category": "temporal_comparative",
+      "company": "POWI",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "a0141394-a32b-4f7f-8a90-b58b1ce936a2"
+      ],
+      "answer_keywords": [
+        "usage",
+        "forecasted demand",
+        "product estimates"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "POWER INTEGRATIONS INC",
+        "filing_date": "2024-02-12T00:00:00",
+        "form_type": null,
+        "chunk_preview": "to its estimated net realizable value. Management&#8217;s assumptions regarding the inventory quantities considered to be excess and obsolete are determined by analyzing historical usage, demand forec..."
+      }
+    },
+    {
+      "id": "temporal_016",
+      "query": "What recent segment changes were made to align commercial metrics with strategic business management?",
+      "category": "temporal_comparative",
+      "company": "MSFT",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "ca97aedb-b2fb-4c38-abd9-0d8343eed51d"
+      ],
+      "answer_keywords": [
+        "Microsoft 365 Commercial cloud",
+        "Windows OEM",
+        "Devices",
+        "cloud revenue growth"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "MICROSOFT CORP",
+        "filing_date": "2025-07-30T00:00:00",
+        "form_type": null,
+        "chunk_preview": "with the segment changes described above. These changes align our metrics with how we manage and monitor certain businesses. The key change was bringing the commercial components of Microsoft 365 toge..."
+      }
+    },
+    {
+      "id": "temporal_017",
+      "query": "How might current economic market conditions impact the ability to service financial commitments in the near term?",
+      "category": "temporal_comparative",
+      "company": "MGM",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "564cd361-be29-4008-9a79-3623b945aa8a"
+      ],
+      "answer_keywords": [
+        "economic",
+        "capital",
+        "credit",
+        "market",
+        "conditions",
+        "indebtedness"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "MGM Resorts International",
+        "filing_date": "2025-02-18T00:00:00",
+        "form_type": null,
+        "chunk_preview": "website as a means of posting important information about MGM China. References in this document to our website address do not incorporate by reference the information contained on the websites into t..."
+      }
+    },
+    {
+      "id": "temporal_018",
+      "query": "How did the total measured and indicated limestone resources change between March 31, 2023, and March 31, 2024?",
+      "category": "temporal_comparative",
+      "company": "EXP",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "a9e98657-06a5-47d1-86c6-c55c4bd28d5b"
+      ],
+      "answer_keywords": [
+        "decreased",
+        "673.4 million tons",
+        "683.4 million tons",
+        "Tulsa quarry mining plan"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "EAGLE MATERIALS INC",
+        "filing_date": "2024-05-22T00:00:00",
+        "form_type": null,
+        "chunk_preview": "basis. We do not consider any of our individual quarries to be material for disclosure purposes. All of our individual locations have at least 25 years of reserves, with most of our locations having i..."
+      }
+    },
+    {
+      "id": "temporal_019",
+      "query": "Who signed the SEC filing document as the Chairman and Chief Executive Officer on this date?",
+      "category": "temporal_comparative",
+      "company": "VMC",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "b4f0e198-8527-444c-926f-f8fd6bdeb7e6"
+      ],
+      "answer_keywords": [
+        "J. Thomas Hill",
+        "February 20, 2025",
+        "Chairman"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "Vulcan Materials CO",
+        "filing_date": "2025-02-20T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Our SEC file number for documents filed with the SEC pursuant to the Securities Exchange Act of 1934, as amended, is 001-33841. ITEM 16 FORM 10-K SUMMARY We have chosen not to include an optional summ..."
+      }
+    },
+    {
+      "id": "temporal_020",
+      "query": "How did common stock and treasury stock change between December 31, 2022, and December 31, 2023?",
+      "category": "temporal_comparative",
+      "company": "NOW",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "0f750fad-9b3e-4106-b516-59ac121b3b06"
+      ],
+      "answer_keywords": [
+        "2,737",
+        "common stock",
+        "treasury stock"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "ServiceNow, Inc.",
+        "filing_date": "2024-01-25T00:00:00",
+        "form_type": null,
+        "chunk_preview": "325 &#160; Balance as of December 31, 2022 202,882 &#160; $ &#8212; &#160; &#8212; &#160; $ &#8212; &#160; $ 4,796 &#160; $ 338 &#160; $ ( 102 ) $ 5,032 &#160; Common stock and Treasury stock issued u..."
+      }
+    }
+  ]
+}

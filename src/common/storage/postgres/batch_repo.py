@@ -46,11 +46,13 @@ class PostgresBatchJobRepository:
             INSERT INTO batch_jobs (
                 id, total_tests, completed_count, failed_count,
                 status, submitted_by, priority, tags,
-                created_at, started_at, completed_at
+                created_at, started_at, completed_at,
+                run_label, run_description, git_commit, git_branch
             ) VALUES (
                 $1, $2, $3, $4,
                 $5, $6, $7, $8,
-                $9, $10, $11
+                $9, $10, $11,
+                $12, $13, $14, $15
             )
             """,
                 batch_uuid,
@@ -64,6 +66,10 @@ class PostgresBatchJobRepository:
                 batch_job.created_at,
                 batch_job.started_at,
                 batch_job.completed_at,
+                batch_job.run_label,
+                batch_job.run_description,
+                batch_job.git_commit,
+                batch_job.git_branch,
             )
 
     async def get(self, batch_id: str) -> BatchJob | None:
@@ -153,4 +159,8 @@ class PostgresBatchJobRepository:
             created_at=created_at,
             started_at=started_at,
             completed_at=completed_at,
+            run_label=row.get("run_label", "untracked"),
+            run_description=row.get("run_description"),
+            git_commit=row.get("git_commit"),
+            git_branch=row.get("git_branch"),
         )

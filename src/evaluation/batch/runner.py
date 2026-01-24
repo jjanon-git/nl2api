@@ -166,18 +166,30 @@ class BatchRunner:
             # BatchJob model requires total_tests >= 1, so we can't create an empty one
             return None
 
-        # Create batch job
+        # Create batch job with run tracking
         batch_job = BatchJob(
             total_tests=len(test_cases),
             status=TaskStatus.IN_PROGRESS,
             started_at=datetime.now(UTC),
             tags=tuple(tags) if tags else (),
+            run_label=self.config.run_label,
+            run_description=self.config.run_description,
+            git_commit=self.config.git_commit,
+            git_branch=self.config.git_branch,
         )
         await self.batch_repo.create(batch_job)
 
         if self.config.show_progress:
             console.print("\n[bold]Running batch evaluation...[/bold]")
             console.print(f"  Batch ID: [cyan]{batch_job.batch_id}[/cyan]")
+            console.print(f"  Run Label: [magenta]{self.config.run_label}[/magenta]")
+            if self.config.run_description:
+                console.print(f"  Description: {self.config.run_description}")
+            if self.config.git_commit:
+                git_info = f"{self.config.git_commit}"
+                if self.config.git_branch:
+                    git_info += f" ({self.config.git_branch})"
+                console.print(f"  Git: [dim]{git_info}[/dim]")
             console.print(f"  Test cases: {len(test_cases)}")
             console.print(f"  Concurrency: {self.config.max_concurrency}")
             console.print(f"  Client: [cyan]{self.config.client_type}[/cyan]", end="")
@@ -261,7 +273,7 @@ class BatchRunner:
         # Calculate duration
         duration_seconds = time.perf_counter() - start_time
 
-        # Update batch job
+        # Update batch job (preserve run tracking fields)
         completed_batch = BatchJob(
             batch_id=batch_job.batch_id,
             total_tests=len(test_cases),
@@ -272,6 +284,10 @@ class BatchRunner:
             started_at=batch_job.started_at,
             completed_at=datetime.now(UTC),
             tags=batch_job.tags,
+            run_label=batch_job.run_label,
+            run_description=batch_job.run_description,
+            git_commit=batch_job.git_commit,
+            git_branch=batch_job.git_branch,
         )
         await self.batch_repo.update(completed_batch)
 
