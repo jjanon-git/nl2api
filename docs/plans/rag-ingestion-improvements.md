@@ -13,10 +13,10 @@ The current RAG ingestion pipeline is functional but employs relatively naive te
 **Key Finding:** The current implementation uses fixed-size character-based chunking with general-purpose embeddings and no reranking—a pattern that research shows can result in 20-40% lower retrieval accuracy compared to modern approaches.
 
 **Recommended Priority Improvements:**
-1. **Add Cross-Encoder Reranking** (High impact, Medium effort) - +20-35% accuracy
+1. **Add Cross-Encoder Reranking** (High impact, Medium effort) - +20-35% accuracy ✅ Implemented
 2. **Implement Contextual Chunking** (High impact, Medium effort) - Better semantic boundaries
 3. **Small-to-Big Retrieval** (Medium impact, Medium effort) - Better precision + context
-4. **Domain-Adapted Embeddings** (Medium impact, High effort) - Financial domain optimization
+4. **Pre-trained Financial Embeddings** (Medium impact, Low effort) - Test bge-financial, finance-large models
 
 ---
 
@@ -619,18 +619,131 @@ class LateChunker:
 
 **Goal:** Use domain-adapted embeddings that understand financial terminology without training from scratch.
 
-**Available Open-Source Models (HuggingFace):**
+#### 3.6.1 Comprehensive Model Comparison
 
-| Model | Base | Dims | Notes |
-|-------|------|------|-------|
-| [bge-base-financial-matryoshka](https://huggingface.co/philschmid/bge-base-financial-matryoshka) | bge-base-en-v1.5 | 768 | Phil Schmid (HuggingFace), Matryoshka support |
-| [Finance_embedding_large_en](https://huggingface.co/baconnier/Finance_embedding_large_en-V0.1) | bge-large-en | 1024 | Larger model, better quality |
-| [finance-embeddings-investopedia](https://huggingface.co/FinLang/finance-embeddings-investopedia) | bge-base-en-v1.5 | 768 | Trained on Investopedia |
-| [FinE5](https://huggingface.co/FinanceMTEB/FinE5) | e5-mistral-7b | 4096 | SOTA on FinMTEB but 7B params (slow) |
+| Model | Provider | Dims | License | Local? | FinMTEB Score | Memory | Cost | Notes |
+|-------|----------|------|---------|--------|---------------|--------|------|-------|
+| **text-embedding-3-small** (baseline) | OpenAI | 1536 | Proprietary | No | N/A | N/A | $0.02/1M | General-purpose, current production |
+| **text-embedding-3-large** | OpenAI | 3072 | Proprietary | No | N/A | N/A | $0.13/1M | Higher quality, 6.5x cost |
+| **voyage-finance-2** | Voyage AI | 1024 | Proprietary | No | Top tier (+7% over OpenAI) | N/A | ~$0.10/1M | Finance-specific, 32K context |
+| **bge-base-financial-matryoshka** | HuggingFace | 768 | Apache 2.0 | Yes | Not benchmarked | ~400MB | Free | Financial fine-tuned, Matryoshka |
+| **Finance_embedding_large_en** | HuggingFace | 1024 | Apache 2.0 | Yes | Not benchmarked | ~1.3GB | Free | Larger financial model |
+| **jina-embeddings-v3** | Jina AI | 1024 | Apache 2.0 | Yes | 65.52 (MTEB) | ~2.2GB | Free | 8K context, task-specific LoRA |
+| **nomic-embed-text-v1.5** | Nomic AI | 768 | Apache 2.0 | Yes | 62.39 (MTEB) | ~500MB | Free | Matryoshka, 8K context |
+| **Fin-E5** | FinMTEB | 4096 | CC-BY-NC-ND | Yes | **0.6767** (1st) | ~14GB | Free | SOTA but 7B params, non-commercial |
 
-**Why not train our own?** Per [FinMTEB benchmark](https://arxiv.org/html/2502.10990v1): "While commercial solutions exist, there remains a lack of open-source LLM-based financial embedding models." These pre-trained models fill that gap without requiring training infrastructure.
+**Sources:**
+- [FinMTEB Benchmark](https://arxiv.org/html/2502.10990v1)
+- [bge-base-financial-matryoshka](https://huggingface.co/philschmid/bge-base-financial-matryoshka)
+- [Voyage Finance Announcement](https://blog.voyageai.com/2024/06/03/domain-specific-embeddings-finance-edition-voyage-finance-2/)
 
-**Recommended A/B Test Plan:**
+#### 3.6.2 Recommended Test Priority
+
+1. **bge-base-financial-matryoshka** (First priority)
+   - Free, local, Apache 2.0 license
+   - Purpose-built for SEC filings (trained on NVIDIA 10-K)
+   - Test at 768d and 256d (Matryoshka support)
+   - **Risk:** 512 token limit may truncate longer chunks
+
+2. **voyage-finance-2** (Second priority)
+   - Best reported financial domain performance (+7% over OpenAI)
+   - Higher cost but may justify with quality gains
+   - 32K context (no truncation concerns)
+
+3. **text-embedding-3-large** (Baseline comparison)
+   - Same API, easy to test
+   - Establish if general quality improvement helps
+
+4. **jina-embeddings-v3** (Optional)
+   - If above don't show sufficient improvement
+   - Strong general-purpose with long context (8K)
+
+**Not Recommended:**
+- **Fin-E5**: 7B parameters (14GB memory), CC-BY-NC-ND license (non-commercial)
+
+#### 3.6.3 Infrastructure Constraints
+
+**Dimension Change Impact:**
+| Model | Dimension | Storage Change | Index Rebuild |
+|-------|-----------|----------------|---------------|
+| bge-financial | 768 | -50% | Yes |
+| voyage-finance-2 | 1024 | -33% | Yes |
+| text-embedding-3-large | 3072 | +100% | Yes |
+
+**Tokenization Differences:**
+| Model | Tokenizer | Max Tokens | Chunk Size Impact |
+|-------|-----------|------------|-------------------|
+| OpenAI | tiktoken (cl100k) | 8191 | Current chunks fit |
+| bge-financial | BERT wordpiece | 512 | **May truncate** |
+| voyage-finance-2 | Custom | 32768 | Fits easily |
+| jina-v3 | SentencePiece | 8192 | Fits easily |
+
+**Memory Requirements:**
+| Model | Parameters | GPU Memory | CPU Memory |
+|-------|-----------|------------|------------|
+| bge-financial | 109M | ~500MB | ~800MB |
+| jina-v3 | 570M | ~2.5GB | ~4GB |
+| Fin-E5 | 7B | ~14GB | N/A |
+
+#### 3.6.4 A/B Test Plan
+
+**Test Tiers:**
+| Tier | Docs to Re-embed | Eval Questions | Estimated Time | Use Case |
+|------|------------------|----------------|----------------|----------|
+| **Pilot** | 1,000 | 50 | ~10 min local | Quick feasibility check |
+| **Standard** | 10,000 | 200 | ~1 hour | Model selection |
+| **Full** | 50,000 | 500 | ~5 hours | Final validation |
+
+**Recommendation:** Start with Standard tier (10K docs, 200 questions) for each model.
+
+**Success Criteria:**
+| Metric | Current Baseline | Target | Stretch |
+|--------|------------------|--------|---------|
+| Recall@5 | 23% | 35% | 50% |
+| MRR@5 | 17.9% | 30% | 45% |
+| Hit Rate | TBD | 80% | 90% |
+
+**Testing Procedure:**
+
+**Phase 1: Pilot (1 day)**
+1. Sample 1,000 chunks from 5 diverse companies
+2. Create temporary table with separate embedding columns
+3. Embed with each candidate model
+4. Run 50 eval queries, record metrics
+5. Eliminate obviously poor performers
+
+**Phase 2: Standard Evaluation (3 days)**
+1. Scale to 10,000 chunks (20 companies)
+2. Use 200 questions from `tests/fixtures/rag/sec_filings/questions.json`
+3. Run with and without cross-encoder reranking
+4. Compare all metrics with statistical significance tests
+
+**Phase 3: Production Validation (1 week)**
+1. Full re-embedding of winning model
+2. Shadow testing against production queries
+3. A/B test with real users (if applicable)
+
+#### 3.6.5 Cost Estimate
+
+**Testing Phase (10K docs):**
+| Model | API Cost | Local Cost |
+|-------|----------|------------|
+| text-embedding-3-small | $0.04 | N/A |
+| text-embedding-3-large | $0.26 | N/A |
+| voyage-finance-2 | $0.20 | N/A |
+| bge-financial | N/A | Free (compute only) |
+| jina-v3 | N/A | Free (compute only) |
+
+**Total Testing Cost:** ~$1-2 for API models
+
+**Production Re-embedding (242K docs):**
+| Model | Tokens | API Cost |
+|-------|--------|----------|
+| text-embedding-3-small | ~50M | $1.00 |
+| voyage-finance-2 | ~50M | $5.00 |
+| bge-financial (local) | ~50M | ~$0 (3-4 hours GPU time) |
+
+#### 3.6.6 Implementation
 
 ```python
 # scripts/compare_financial_embeddings.py
@@ -641,19 +754,21 @@ MODELS_TO_TEST = [
     # Financial domain models (local, no API cost)
     ("local", "philschmid/bge-base-financial-matryoshka", 768),
     ("local", "baconnier/Finance_embedding_large_en-V0.1", 1024),
+    # Optional: general-purpose comparison
+    ("openai", "text-embedding-3-large", 3072),
 ]
 
 async def run_embedding_comparison(
     eval_dataset: Path,
-    sample_size: int = 100,
+    sample_size: int = 10000,  # Standard tier
 ):
     """
     Compare embedding models on retrieval quality.
 
     For each model:
-    1. Re-embed sample of documents (100 docs per company, 5 companies = 500 docs)
+    1. Re-embed sample of documents
     2. Run eval queries against each index
-    3. Measure Recall@5, MRR@5, NDCG@5
+    3. Measure Recall@5, MRR@5, NDCG@5, Hit Rate
     """
     results = {}
 
@@ -662,26 +777,19 @@ async def run_embedding_comparison(
         if provider == "local":
             embedder = LocalEmbedder(model_name=model_name)
         else:
-            embedder = OpenAIEmbedder()
+            embedder = OpenAIEmbedder(model=model_name)
 
         # Re-embed sample documents to temp table
-        await reembed_sample(embedder, sample_size)
+        await reembed_sample(embedder, sample_size, dims)
 
-        # Run evaluation
+        # Run evaluation (with reranker to isolate embedding impact)
         metrics = await evaluate_retrieval(eval_dataset, embedder)
         results[model_name] = metrics
 
     return results
 ```
 
-**Test Setup:**
-
-1. **Sample Size:** 500 documents (100 per company × 5 companies)
-2. **Eval Queries:** Use `tests/fixtures/rag/sec_evaluation_set.json` (100 questions)
-3. **Metrics:** Recall@5, MRR@5, NDCG@5, Hit Rate
-4. **Comparison:** All models get same reranker (cross-encoder) to isolate embedding impact
-
-**Implementation:**
+**FinancialEmbedder Class:**
 
 ```python
 # src/nl2api/rag/embedders.py
@@ -723,19 +831,34 @@ class FinancialEmbedder:
         return [e.tolist() for e in embeddings]
 ```
 
-**Expected Impact:**
+**Schema Migration Pattern:**
+
+```sql
+-- For testing (create parallel column):
+ALTER TABLE rag_documents ADD COLUMN embedding_test vector(768);
+CREATE INDEX idx_rag_embedding_test ON rag_documents
+    USING hnsw (embedding_test vector_cosine_ops);
+
+-- For production (after validation):
+ALTER TABLE rag_documents ALTER COLUMN embedding TYPE vector(768);
+```
+
+#### 3.6.7 Expected Impact
+
 - FinBERT outperforms BERT by 15.6% on financial tasks ([FinMTEB](https://arxiv.org/html/2502.10990v1))
 - Domain models better handle: "EBITDA margin", "goodwill impairment", "non-GAAP reconciliation"
+- bge-financial reports: MAP@100=0.7907, NDCG@10=0.8215 on SEC filing retrieval
 
 **Effort:** Low - models are pre-trained, just need to integrate and test
 
-**Trade-offs:**
+**Trade-offs Summary:**
 | Aspect | bge-financial (768d) | finance-large (1024d) | OpenAI (1536d) |
 |--------|---------------------|----------------------|----------------|
 | Latency | Fast (local) | Medium (local) | Slow (API) |
 | Cost | Free | Free | ~$0.02/1M tokens |
 | Quality | Good (domain) | Better (domain) | Good (general) |
 | Storage | 768 floats/doc | 1024 floats/doc | 1536 floats/doc |
+| Token limit | 512 ⚠️ | 512 ⚠️ | 8191 |
 
 ---
 
@@ -879,7 +1002,8 @@ Results will be saved to `results/rag_*.json` with full metadata.
 
 ## 8. Open Questions for Review
 
-1. **Embedding model choice:** Should we prioritize local (cost) or OpenAI (quality) for production?
+1. **Embedding model choice:** ~~Should we prioritize local (cost) or OpenAI (quality) for production?~~
+   - **RESOLVED:** A/B test plan defined in Section 3.6.4. Test bge-financial and finance-large against OpenAI baseline.
 
 2. **Reranker latency budget:** What's acceptable latency increase for accuracy gain?
 
@@ -887,7 +1011,8 @@ Results will be saved to `results/rag_*.json` with full metadata.
 
 4. **HyDE adoption:** Query-type specific or universal?
 
-5. **Domain embeddings:** Worth the training investment given our scale?
+5. **Domain embeddings:** ~~Worth the training investment given our scale?~~
+   - **RESOLVED:** Use pre-trained models (no training required). See Section 3.6 for HuggingFace options.
 
 ---
 
