@@ -15,12 +15,12 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.common.storage.memory import (
+from src.evalkit.batch import BatchRunner, BatchRunnerConfig
+from src.evalkit.common.storage.memory import (
     InMemoryBatchJobRepository,
     InMemoryScorecardRepository,
     InMemoryTestCaseRepository,
 )
-from src.evaluation.batch import BatchRunner, BatchRunnerConfig
 
 # =============================================================================
 # Fixtures

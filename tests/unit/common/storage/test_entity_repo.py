@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.common.storage.postgres.entity_repo import (
+from src.evalkit.common.storage.postgres.entity_repo import (
     Entity,
     EntityAlias,
     EntityMatch,

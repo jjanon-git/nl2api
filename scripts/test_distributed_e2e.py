@@ -27,11 +27,11 @@ os.environ["OTEL_SERVICE_NAME"] = "distributed-eval-e2e-test"
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Initialize telemetry
-from src.common.telemetry import get_meter, get_tracer, init_telemetry
-from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.config import EvalMode, QueueBackend, QueueConfig, WorkerConfig
-from src.evaluation.distributed.queue import create_queue
-from src.evaluation.distributed.worker import EvalWorker
+from src.evalkit.common.telemetry import get_meter, get_tracer, init_telemetry
+from src.evalkit.contracts.worker import WorkerTask
+from src.evalkit.distributed.config import EvalMode, QueueBackend, QueueConfig, WorkerConfig
+from src.evalkit.distributed.queue import create_queue
+from src.evalkit.distributed.worker import EvalWorker
 
 init_telemetry(service_name="distributed-eval-e2e-test")
 tracer = get_tracer(__name__)

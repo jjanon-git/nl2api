@@ -9,10 +9,10 @@ Components:
 - AlertHandler: Multi-channel alerting (webhook, email)
 """
 
-from src.evaluation.continuous.alerts import AlertHandler, RegressionAlert
-from src.evaluation.continuous.config import ScheduleConfig
-from src.evaluation.continuous.regression import RegressionDetector, RegressionResult
-from src.evaluation.continuous.scheduler import EvalScheduler
+from src.evalkit.continuous.alerts import AlertHandler, RegressionAlert
+from src.evalkit.continuous.config import ScheduleConfig
+from src.evalkit.continuous.regression import RegressionDetector, RegressionResult
+from src.evalkit.continuous.scheduler import EvalScheduler
 
 __all__ = [
     "ScheduleConfig",

@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.evaluation.distributed.manager import LocalWorkerManager
+from src.evalkit.distributed.manager import LocalWorkerManager
 
 
 class TestLocalWorkerManagerInit:
@@ -59,7 +59,7 @@ class TestBuildWorkerCommand:
 
         assert cmd[0] == sys.executable
         assert "-m" in cmd
-        assert "src.evaluation.distributed" in cmd
+        assert "src.evalkit.distributed" in cmd
         assert "--worker-id" in cmd
         assert "worker-0" in cmd
         assert "--batch-id" in cmd

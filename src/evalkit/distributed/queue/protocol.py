@@ -12,8 +12,8 @@ from abc import abstractmethod
 from collections.abc import AsyncIterator
 from typing import Protocol, runtime_checkable
 
-from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.models import QueueMessage
+from src.evalkit.contracts.worker import WorkerTask
+from src.evalkit.distributed.models import QueueMessage
 
 
 @runtime_checkable

@@ -4,7 +4,7 @@ Tests for Redis cache (using in-memory fallback).
 
 import pytest
 
-from src.common.cache.redis_cache import (
+from src.evalkit.common.cache.redis_cache import (
     CacheConfig,
     MemoryCache,
     RedisCache,

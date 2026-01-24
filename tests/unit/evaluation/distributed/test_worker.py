@@ -10,10 +10,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.config import EvalMode, WorkerConfig
-from src.evaluation.distributed.models import QueueMessage
-from src.evaluation.distributed.worker import EvalWorker
+from src.evalkit.contracts.worker import WorkerTask
+from src.evalkit.distributed.config import EvalMode, WorkerConfig
+from src.evalkit.distributed.models import QueueMessage
+from src.evalkit.distributed.worker import EvalWorker
 
 # =============================================================================
 # Fixtures

@@ -13,7 +13,7 @@ import logging
 from dataclasses import asdict, dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 
 if TYPE_CHECKING:
     from src.nl2api.resolution.resolver import ExternalEntityResolver

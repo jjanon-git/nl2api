@@ -21,7 +21,7 @@ from CONTRACTS import (
     StageResult,
     ToolCall,
 )
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 
 tracer = get_tracer(__name__)
 

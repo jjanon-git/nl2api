@@ -11,8 +11,8 @@ from dataclasses import dataclass, field
 from datetime import date
 
 from CONTRACTS import TemporalValidationMode, ToolCall
-from src.evaluation.core.ast_comparator import ASTComparator, ComparisonResult
-from src.evaluation.core.temporal.date_resolver import DateResolver
+from src.evalkit.core.ast_comparator import ASTComparator, ComparisonResult
+from src.evalkit.core.temporal.date_resolver import DateResolver
 
 
 @dataclass

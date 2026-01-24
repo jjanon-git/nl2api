@@ -11,7 +11,7 @@ import logging
 import time
 from typing import TYPE_CHECKING, Any
 
-from src.common.telemetry import trace_span
+from src.evalkit.common.telemetry import trace_span
 from src.nl2api.llm.protocols import (
     LLMMessage,
     LLMProvider,

@@ -16,15 +16,20 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
-from src.common.resilience import CircuitBreaker, CircuitOpenError, RetryConfig, retry_with_backoff
-from src.common.telemetry import get_tracer
+from src.evalkit.common.resilience import (
+    CircuitBreaker,
+    CircuitOpenError,
+    RetryConfig,
+    retry_with_backoff,
+)
+from src.evalkit.common.telemetry import get_tracer
 from src.nl2api.resolution.openfigi import resolve_via_openfigi
 from src.nl2api.resolution.protocols import ResolvedEntity
 
 if TYPE_CHECKING:
     import asyncpg
 
-    from src.common.cache import RedisCache
+    from src.evalkit.common.cache import RedisCache
 
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)

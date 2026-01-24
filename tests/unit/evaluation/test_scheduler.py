@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.evaluation.continuous.config import ContinuousConfig, ScheduleConfig
-from src.evaluation.continuous.scheduler import (
+from src.evalkit.continuous.config import ContinuousConfig, ScheduleConfig
+from src.evalkit.continuous.scheduler import (
     EvalScheduler,
     parse_cron_expression,
     should_run_now,
@@ -184,7 +184,7 @@ class TestEvalScheduler:
         test_case_repo, scorecard_repo, batch_repo = mock_repos
 
         # Mock the batch runner to return a batch job
-        with patch("src.evaluation.batch.BatchRunner") as MockRunner:
+        with patch("src.evalkit.batch.BatchRunner") as MockRunner:
             mock_batch_job = MagicMock()
             mock_batch_job.batch_id = "test-batch-123"
             mock_instance = MagicMock()
@@ -402,7 +402,7 @@ class TestEvalSchedulerEdgeCases:
         )
 
         # Manual trigger should still work even if disabled
-        with patch("src.evaluation.batch.BatchRunner") as MockRunner:
+        with patch("src.evalkit.batch.BatchRunner") as MockRunner:
             mock_batch_job = MagicMock()
             mock_batch_job.batch_id = "test-batch-456"
             mock_instance = MagicMock()

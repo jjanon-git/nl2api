@@ -9,7 +9,7 @@ import logging
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 from src.nl2api.ingestion.sec_filings.models import FilingChunk
 from src.nl2api.rag.protocols import DocumentType
 
@@ -99,7 +99,9 @@ class FilingRAGIndexer:
                 batch_ids = await self._bulk_insert_chunks(batch, contents, embeddings)
                 doc_ids.extend(batch_ids)
 
-                logger.debug(f"Indexed batch of {len(batch)} chunks ({i + len(batch)}/{len(chunks)})")
+                logger.debug(
+                    f"Indexed batch of {len(batch)} chunks ({i + len(batch)}/{len(chunks)})"
+                )
 
             span.set_attribute("sec.indexed_count", len(doc_ids))
             logger.info(f"Indexed {len(doc_ids)} chunks for filing {filing_accession or 'unknown'}")
@@ -433,7 +435,7 @@ class FilingMetadataRepo:
 
             query = f"""
                 UPDATE sec_filings
-                SET {', '.join(updates)}, updated_at = NOW()
+                SET {", ".join(updates)}, updated_at = NOW()
                 WHERE accession_number = $1
             """
             await conn.execute(query, *params)

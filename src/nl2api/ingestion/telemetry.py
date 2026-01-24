@@ -19,7 +19,7 @@ _tracer = None
 _meter = None
 
 try:
-    from src.common.telemetry import get_meter, get_tracer
+    from src.evalkit.common.telemetry import get_meter, get_tracer
 
     _telemetry_available = True
 except ImportError:
@@ -73,7 +73,7 @@ def trace_ingestion_operation(
         return
 
     try:
-        from src.common.telemetry import is_telemetry_enabled
+        from src.evalkit.common.telemetry import is_telemetry_enabled
 
         if not is_telemetry_enabled():
             try:

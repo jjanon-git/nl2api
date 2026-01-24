@@ -15,8 +15,8 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
-from src.common.telemetry.metrics import get_regression_alert_metrics
-from src.evaluation.continuous.regression import RegressionResult, Severity
+from src.evalkit.common.telemetry.metrics import get_regression_alert_metrics
+from src.evalkit.continuous.regression import RegressionResult, Severity
 
 if TYPE_CHECKING:
     import asyncpg

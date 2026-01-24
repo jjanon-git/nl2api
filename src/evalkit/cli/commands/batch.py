@@ -29,7 +29,7 @@ from rich.console import Console
 from rich.table import Table
 
 from CONTRACTS import TaskStatus
-from src.evaluation.cli.commands.api_batch import api_app
+from src.evalkit.cli.commands.api_batch import api_app
 
 logger = logging.getLogger(__name__)
 
@@ -284,18 +284,18 @@ async def _batch_run_async(
     redis_url: str = "redis://localhost:6379",
 ) -> None:
     """Async implementation of batch run command."""
-    from src.common.git_info import get_git_info
-    from src.common.storage import (
-        StorageConfig,
-        close_repositories,
-        create_repositories,
-    )
-    from src.evaluation.batch import BatchRunner, BatchRunnerConfig
-    from src.evaluation.batch.response_generators import (
+    from src.evalkit.batch import BatchRunner, BatchRunnerConfig
+    from src.evalkit.batch.response_generators import (
         create_entity_resolver_generator,
         create_nl2api_generator,
         create_routing_generator,
         create_tool_only_generator,
+    )
+    from src.evalkit.common.git_info import get_git_info
+    from src.evalkit.common.storage import (
+        StorageConfig,
+        close_repositories,
+        create_repositories,
     )
 
     # Capture git info from current working directory
@@ -350,7 +350,7 @@ async def _batch_run_async(
             raise typer.Exit(code=1)
         elif mode == "resolver":
             # Use real EntityResolver for accuracy measurement
-            from src.common.storage.postgres.client import get_pool
+            from src.evalkit.common.storage.postgres.client import get_pool
             from src.nl2api.resolution.resolver import ExternalEntityResolver
 
             # Get database pool for entity lookups (2.9M entities, 3.7M aliases)
@@ -472,7 +472,7 @@ async def _batch_run_async(
         elif mode == "tool_only":
             # Use single agent for isolated tool generation testing
             # Includes entity resolution so agent gets proper RICs
-            from src.common.storage.postgres.client import get_pool
+            from src.evalkit.common.storage.postgres.client import get_pool
             from src.nl2api.agents import get_agent_by_name
             from src.nl2api.config import NL2APIConfig
             from src.nl2api.llm.factory import create_llm_provider
@@ -508,7 +508,7 @@ async def _batch_run_async(
         # Special handling for RAG pack - needs retrieval-based response generator
         if pack == "rag" and response_generator is None:
             # Default to simulated for RAG if no mode specified
-            from src.evaluation.batch.response_generators import create_rag_simulated_generator
+            from src.evalkit.batch.response_generators import create_rag_simulated_generator
 
             response_generator = create_rag_simulated_generator(pass_rate=0.7)
             console.print("[yellow]Using simulated RAG responses (pipeline test only).[/yellow]\n")
@@ -521,8 +521,8 @@ async def _batch_run_async(
 
             load_dotenv()  # Ensure env vars are loaded
 
-            from src.common.storage.postgres.client import get_pool
-            from src.evaluation.batch.response_generators import create_rag_retrieval_generator
+            from src.evalkit.batch.response_generators import create_rag_retrieval_generator
+            from src.evalkit.common.storage.postgres.client import get_pool
             from src.rag.retriever.embedders import OpenAIEmbedder
             from src.rag.retriever.retriever import HybridRAGRetriever
 
@@ -553,7 +553,7 @@ async def _batch_run_async(
             except Exception as e:
                 console.print(f"[red]Failed to initialize RAG retriever: {e}[/red]")
                 console.print("[yellow]Falling back to simulated RAG responses.[/yellow]\n")
-                from src.evaluation.batch.response_generators import create_rag_simulated_generator
+                from src.evalkit.batch.response_generators import create_rag_simulated_generator
 
                 response_generator = create_rag_simulated_generator(pass_rate=0.7)
 
@@ -683,12 +683,12 @@ async def _run_distributed_batch(
 
     from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 
-    from src.contracts.core import TaskStatus
-    from src.contracts.worker import BatchJob
-    from src.evaluation.distributed.config import CoordinatorConfig, QueueBackend, QueueConfig
-    from src.evaluation.distributed.coordinator import BatchCoordinator
-    from src.evaluation.distributed.manager import LocalWorkerManager
-    from src.evaluation.distributed.queue import create_queue
+    from src.evalkit.contracts.core import TaskStatus
+    from src.evalkit.contracts.worker import BatchJob
+    from src.evalkit.distributed.config import CoordinatorConfig, QueueBackend, QueueConfig
+    from src.evalkit.distributed.coordinator import BatchCoordinator
+    from src.evalkit.distributed.manager import LocalWorkerManager
+    from src.evalkit.distributed.queue import create_queue
 
     console.print("[cyan]Distributed mode enabled[/cyan]")
     console.print(f"  Workers: {num_workers}")
@@ -846,7 +846,7 @@ def batch_status(
 
 async def _batch_status_async(batch_id: str) -> None:
     """Async implementation of batch status command."""
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
 
     try:
         config = StorageConfig()
@@ -947,7 +947,7 @@ async def _batch_results_async(
     limit: int,
 ) -> None:
     """Async implementation of batch results command."""
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
 
     try:
         config = StorageConfig()
@@ -1084,7 +1084,7 @@ def batch_list(
 
 async def _batch_list_async(limit: int) -> None:
     """Async implementation of batch list command."""
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
 
     try:
         config = StorageConfig()
@@ -1180,7 +1180,7 @@ async def _batch_compare_async(
     """Async implementation of batch compare command."""
     from datetime import datetime
 
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
 
     try:
         config = StorageConfig()
@@ -1279,7 +1279,7 @@ async def _batch_trend_async(
     days: int,
 ) -> None:
     """Async implementation of batch trend command."""
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
 
     try:
         config = StorageConfig()

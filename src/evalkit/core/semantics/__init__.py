@@ -1,10 +1,10 @@
 """Semantics evaluation module for LLM-as-Judge."""
 
-from src.evaluation.core.semantics.evaluator import (
+from src.evalkit.core.semantics.evaluator import (
     ComparisonScores,
     SemanticsEvaluator,
 )
-from src.evaluation.core.semantics.prompts import (
+from src.evalkit.core.semantics.prompts import (
     COMPARISON_SYSTEM_PROMPT,
     COMPARISON_USER_PROMPT_TEMPLATE,
     GENERATION_SYSTEM_PROMPT,

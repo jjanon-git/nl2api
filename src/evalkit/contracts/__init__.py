@@ -11,11 +11,11 @@ Split into focused modules:
 - storage: Azure Table Storage helpers
 
 For backward compatibility, all models can be imported from this package:
-    from src.contracts import TestCase, Scorecard, BatchJob
+    from src.evalkit.contracts import TestCase, Scorecard, BatchJob
 """
 
 # Core models
-from src.contracts.core import (
+from src.evalkit.contracts.core import (
     CircuitState,
     ClientType,
     ErrorCode,
@@ -39,7 +39,7 @@ from src.contracts.core import (
 )
 
 # Evaluation models
-from src.contracts.evaluation import (
+from src.evalkit.contracts.evaluation import (
     EvalContext,
     EvaluationConfig,
     EvaluationPack,
@@ -51,13 +51,13 @@ from src.contracts.evaluation import (
 )
 
 # Storage models
-from src.contracts.storage import (
+from src.evalkit.contracts.storage import (
     IdempotencyRecord,
     TableStorageEntity,
 )
 
 # Tenant models
-from src.contracts.tenant import (
+from src.evalkit.contracts.tenant import (
     Client,
     EvaluationRun,
     LLMProvider,
@@ -67,7 +67,7 @@ from src.contracts.tenant import (
 )
 
 # Worker models
-from src.contracts.worker import (
+from src.evalkit.contracts.worker import (
     BatchJob,
     WorkerConfig,
     WorkerTask,

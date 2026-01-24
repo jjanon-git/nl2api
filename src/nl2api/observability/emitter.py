@@ -29,7 +29,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.common.telemetry.metrics import NL2APIMetrics
+    from src.evalkit.common.telemetry.metrics import NL2APIMetrics
     from src.nl2api.observability.metrics import RequestMetrics
 
 logger = logging.getLogger(__name__)
@@ -221,7 +221,7 @@ class OTELEmitter(MetricsEmitter):
     def _get_metrics(self) -> NL2APIMetrics:
         """Lazy load NL2API metrics to avoid import cycles."""
         if self._nl2api_metrics is None:
-            from src.common.telemetry import get_nl2api_metrics
+            from src.evalkit.common.telemetry import get_nl2api_metrics
 
             self._nl2api_metrics = get_nl2api_metrics()
         return self._nl2api_metrics

@@ -23,15 +23,15 @@ After running, wait 15-20 seconds for Prometheus scrape, then check:
 
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from CONTRACTS import BatchJob, Scorecard, StageResult
-from src.common.telemetry import get_eval_metrics, init_telemetry
-from src.common.telemetry.metrics import get_regression_alert_metrics
+from src.evalkit.common.telemetry import get_eval_metrics, init_telemetry
+from src.evalkit.common.telemetry.metrics import get_regression_alert_metrics
 
 
 def push_nl2api_metrics(eval_metrics, batch_id: str) -> None:
@@ -91,7 +91,9 @@ def push_nl2api_metrics(eval_metrics, batch_id: str) -> None:
             client_type="cli",
             client_version="1.0.0",
         )
-        print(f"  {sc.test_case_id}: passed={sc.overall_passed}, tokens={sc.input_tokens}/{sc.output_tokens}")
+        print(
+            f"  {sc.test_case_id}: passed={sc.overall_passed}, tokens={sc.input_tokens}/{sc.output_tokens}"
+        )
 
     # Batch completion
     batch_job = BatchJob(
@@ -107,7 +109,7 @@ def push_nl2api_metrics(eval_metrics, batch_id: str) -> None:
         pack_name="nl2api",
         client_type="cli",
     )
-    print(f"  Batch completed: 2/3 passed")
+    print("  Batch completed: 2/3 passed")
 
 
 def push_rag_metrics(eval_metrics, batch_id: str) -> None:
@@ -115,7 +117,14 @@ def push_rag_metrics(eval_metrics, batch_id: str) -> None:
     print("\n=== RAG Pack Metrics ===")
 
     # RAG has different stages
-    rag_stages = ["retrieval", "context_relevance", "faithfulness", "answer_relevance", "citation", "source_policy"]
+    rag_stages = [
+        "retrieval",
+        "context_relevance",
+        "faithfulness",
+        "answer_relevance",
+        "citation",
+        "source_policy",
+    ]
 
     scorecards = [
         # Good case - all stages pass
@@ -123,8 +132,7 @@ def push_rag_metrics(eval_metrics, batch_id: str) -> None:
             test_case_id="rag-test-001",
             pack_name="rag",
             stage_results={
-                stage: StageResult(stage_name=stage, passed=True, score=0.9)
-                for stage in rag_stages
+                stage: StageResult(stage_name=stage, passed=True, score=0.9) for stage in rag_stages
             },
             total_latency_ms=250,
         ),
@@ -134,7 +142,10 @@ def push_rag_metrics(eval_metrics, batch_id: str) -> None:
             pack_name="rag",
             stage_results={
                 "retrieval": StageResult(stage_name="retrieval", passed=False, score=0.2),
-                **{stage: StageResult(stage_name=stage, passed=True, score=0.8) for stage in rag_stages[1:]},
+                **{
+                    stage: StageResult(stage_name=stage, passed=True, score=0.8)
+                    for stage in rag_stages[1:]
+                },
             },
             total_latency_ms=180,
         ),
@@ -144,9 +155,13 @@ def push_rag_metrics(eval_metrics, batch_id: str) -> None:
             pack_name="rag",
             stage_results={
                 "retrieval": StageResult(stage_name="retrieval", passed=True, score=0.9),
-                "context_relevance": StageResult(stage_name="context_relevance", passed=True, score=0.85),
+                "context_relevance": StageResult(
+                    stage_name="context_relevance", passed=True, score=0.85
+                ),
                 "faithfulness": StageResult(stage_name="faithfulness", passed=False, score=0.3),
-                "answer_relevance": StageResult(stage_name="answer_relevance", passed=True, score=0.8),
+                "answer_relevance": StageResult(
+                    stage_name="answer_relevance", passed=True, score=0.8
+                ),
                 "citation": StageResult(stage_name="citation", passed=True, score=1.0),
                 "source_policy": StageResult(stage_name="source_policy", passed=True, score=1.0),
             },
@@ -177,7 +192,7 @@ def push_rag_metrics(eval_metrics, batch_id: str) -> None:
         pack_name="rag",
         client_type="cli",
     )
-    print(f"  Batch completed: 1/3 passed")
+    print("  Batch completed: 1/3 passed")
 
 
 def push_infrastructure_metrics(eval_metrics) -> None:
@@ -256,7 +271,7 @@ def main():
     regression_metrics = get_regression_alert_metrics()
 
     # Generate batch ID
-    batch_id = f"test-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+    batch_id = f"test-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
     print(f"\nBatch ID: {batch_id}")
 
     # Push all metrics

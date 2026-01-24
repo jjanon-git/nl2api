@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 from src.mcp_servers.entity_resolution.config import EntityServerConfig
 from src.mcp_servers.entity_resolution.context import (
     ClientContext,
@@ -26,7 +26,7 @@ from src.nl2api.resolution.resolver import ExternalEntityResolver
 if TYPE_CHECKING:
     import asyncpg
 
-    from src.common.cache import RedisCache
+    from src.evalkit.common.cache import RedisCache
 
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)
@@ -112,7 +112,7 @@ class EntityResolutionMCPServer:
             # Initialize Redis cache
             if self._config.redis_enabled:
                 try:
-                    from src.common.cache import RedisCache
+                    from src.evalkit.common.cache import RedisCache
 
                     self._redis_cache = RedisCache(
                         redis_url=self._config.redis_url,

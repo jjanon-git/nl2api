@@ -4,7 +4,7 @@ Unit tests for the LLM pricing module.
 
 import pytest
 
-from src.evaluation.batch.pricing import (
+from src.evalkit.batch.pricing import (
     MODEL_PRICING,
     calculate_cost,
     format_cost,

@@ -14,7 +14,7 @@ from typing import Any
 import asyncpg
 
 from CONTRACTS import TestCase, TestCaseMetadata, TestCaseStatus, ToolCall
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 
 tracer = get_tracer(__name__)
 

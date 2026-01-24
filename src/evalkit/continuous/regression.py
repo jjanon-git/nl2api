@@ -14,7 +14,7 @@ from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from src.common.storage.postgres.scorecard_repo import PostgresScorecardRepository
+    from src.evalkit.common.storage.postgres.scorecard_repo import PostgresScorecardRepository
 
 logger = logging.getLogger(__name__)
 

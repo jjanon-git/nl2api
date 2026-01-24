@@ -16,7 +16,7 @@ from CONTRACTS import (
     TestCase,
     ToolCall,
 )
-from src.evaluation.core.evaluator import Evaluator, EvaluatorConfig
+from src.evalkit.core.evaluator import Evaluator, EvaluatorConfig
 from src.evaluation.packs.nl2api import NL2APIPack
 
 # =============================================================================

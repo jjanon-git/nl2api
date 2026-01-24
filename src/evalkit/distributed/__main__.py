@@ -17,14 +17,14 @@ import os
 import sys
 from typing import Any
 
-from src.evaluation.distributed.config import (
+from src.evalkit.distributed.config import (
     EvalMode,
     QueueBackend,
     QueueConfig,
     WorkerConfig,
 )
-from src.evaluation.distributed.queue import create_queue
-from src.evaluation.distributed.worker import EvalWorker
+from src.evalkit.distributed.queue import create_queue
+from src.evalkit.distributed.worker import EvalWorker
 
 # Configure logging
 logging.basicConfig(
@@ -120,12 +120,12 @@ async def create_worker_dependencies(args: argparse.Namespace) -> tuple[Any, ...
 
     Returns tuple of (response_generator, evaluator, scorecard_saver, test_case_fetcher, deps)
     """
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
-    from src.contracts.evaluation import EvalContext, EvaluationConfig
-    from src.evaluation.batch.response_generators import (
+    from src.evalkit.batch.response_generators import (
         create_entity_resolver_generator,
         simulate_correct_response,
     )
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
+    from src.evalkit.contracts.evaluation import EvalContext, EvaluationConfig
     from src.evaluation.packs import NL2APIPack
 
     eval_mode = EvalMode(args.mode)
@@ -194,7 +194,7 @@ async def create_worker_dependencies(args: argparse.Namespace) -> tuple[Any, ...
 
     elif eval_mode == EvalMode.RESOLVER:
         # Resolver mode: use entity resolution
-        from src.common.storage.postgres.client import get_pool
+        from src.evalkit.common.storage.postgres.client import get_pool
         from src.nl2api.resolution.resolver import ExternalEntityResolver
 
         try:
@@ -215,7 +215,7 @@ async def create_worker_dependencies(args: argparse.Namespace) -> tuple[Any, ...
 
     elif eval_mode == EvalMode.ORCHESTRATOR:
         # Full orchestrator mode
-        from src.evaluation.batch.response_generators import create_nl2api_generator
+        from src.evalkit.batch.response_generators import create_nl2api_generator
         from src.nl2api.agents import AGENT_REGISTRY
         from src.nl2api.config import NL2APIConfig
         from src.nl2api.llm.factory import create_llm_provider
@@ -241,7 +241,7 @@ async def create_worker_dependencies(args: argparse.Namespace) -> tuple[Any, ...
 
     elif eval_mode == EvalMode.ROUTING:
         # Routing mode - LLM router only
-        from src.evaluation.batch.response_generators import create_routing_generator
+        from src.evalkit.batch.response_generators import create_routing_generator
         from src.nl2api.config import NL2APIConfig
         from src.nl2api.llm.factory import create_llm_provider
         from src.nl2api.routing.llm_router import LLMToolRouter
@@ -302,8 +302,8 @@ async def create_worker_dependencies(args: argparse.Namespace) -> tuple[Any, ...
         # Tool-only mode requires agent name from environment
         agent_name = os.environ.get("EVAL_AGENT_NAME", "datastream")
 
-        from src.common.storage.postgres.client import get_pool
-        from src.evaluation.batch.response_generators import create_tool_only_generator
+        from src.evalkit.batch.response_generators import create_tool_only_generator
+        from src.evalkit.common.storage.postgres.client import get_pool
         from src.nl2api.agents import get_agent_by_name
         from src.nl2api.config import NL2APIConfig
         from src.nl2api.llm.factory import create_llm_provider

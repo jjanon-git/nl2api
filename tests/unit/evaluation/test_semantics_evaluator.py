@@ -23,7 +23,7 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.evaluation.core.semantics.evaluator import (
+from src.evalkit.core.semantics.evaluator import (
     ComparisonScores,
     SemanticsEvaluator,
 )

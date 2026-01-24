@@ -37,7 +37,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import asyncpg
 from dotenv import load_dotenv
 
-from src.common.git_info import get_git_info
+from src.evalkit.common.git_info import get_git_info
 from src.rag.retriever.embedders import OpenAIEmbedder
 from src.rag.retriever.retriever import HybridRAGRetriever
 

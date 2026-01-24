@@ -15,7 +15,7 @@ from CONTRACTS import (
     TestCase,
     ToolCall,
 )
-from src.evaluation.core import (
+from src.evalkit.core import (
     CSVExporter,
     Evaluator,
     EvaluatorConfig,

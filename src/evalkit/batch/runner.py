@@ -36,13 +36,13 @@ from CONTRACTS import (
     TaskStatus,
     TestCase,
 )
-from src.evaluation.batch.config import BatchRunnerConfig
-from src.evaluation.batch.metrics import get_metrics
-from src.evaluation.batch.pricing import calculate_cost
+from src.evalkit.batch.config import BatchRunnerConfig
+from src.evalkit.batch.metrics import get_metrics
+from src.evalkit.batch.pricing import calculate_cost
 from src.evaluation.packs import get_pack
 
 if TYPE_CHECKING:
-    from src.common.storage.protocols import (
+    from src.evalkit.common.storage.protocols import (
         BatchJobRepository,
         ScorecardRepository,
         TestCaseRepository,

@@ -15,7 +15,7 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 
 if TYPE_CHECKING:
     from src.nl2api.rag.protocols import RetrievalResult

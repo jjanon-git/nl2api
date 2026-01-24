@@ -3,27 +3,27 @@ NL2API Contracts - Pydantic v2 Schemas
 
 BACKWARD COMPATIBILITY WRAPPER
 
-This module re-exports all contracts from src/contracts/ for backward compatibility.
-New code should import from src/contracts directly:
+This module re-exports all contracts from src.evalkit.contracts for backward compatibility.
+New code should import from src.evalkit.contracts directly:
 
     # Preferred (new code)
-    from src.contracts import TestCase, Scorecard
-    from src.contracts.core import ToolCall
-    from src.contracts.evaluation import EvaluationConfig
+    from src.evalkit.contracts import TestCase, Scorecard
+    from src.evalkit.contracts.core import ToolCall
+    from src.evalkit.contracts.evaluation import EvaluationConfig
 
     # Still works (backward compatible)
     from CONTRACTS import TestCase, Scorecard
 
 The contracts have been split into focused modules:
-- src/contracts/core.py: Fundamental types, enums, test case models
-- src/contracts/evaluation.py: Scorecard, stage results, evaluator config
-- src/contracts/worker.py: Batch jobs, worker tasks, worker config
-- src/contracts/tenant.py: Multi-tenant models (clients, test suites, runs)
-- src/contracts/storage.py: Azure Table Storage helpers
+- evalkit/contracts/core.py: Fundamental types, enums, test case models
+- evalkit/contracts/evaluation.py: Scorecard, stage results, evaluator config
+- evalkit/contracts/worker.py: Batch jobs, worker tasks, worker config
+- evalkit/contracts/tenant.py: Multi-tenant models (clients, test suites, runs)
+- evalkit/contracts/storage.py: Azure Table Storage helpers
 """
 
 # Re-export everything from the contracts package
-from src.contracts import (
+from src.evalkit.contracts import (
     # Worker
     BatchJob,
     # Enums

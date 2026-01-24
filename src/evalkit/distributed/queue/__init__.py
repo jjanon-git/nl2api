@@ -9,9 +9,9 @@ Implementations:
 - AzureServiceBusQueue: Future (Azure Service Bus)
 """
 
-from src.evaluation.distributed.queue.factory import create_queue
-from src.evaluation.distributed.queue.memory import InMemoryQueue
-from src.evaluation.distributed.queue.protocol import TaskQueue
+from src.evalkit.distributed.queue.factory import create_queue
+from src.evalkit.distributed.queue.memory import InMemoryQueue
+from src.evalkit.distributed.queue.protocol import TaskQueue
 
 __all__ = [
     "TaskQueue",

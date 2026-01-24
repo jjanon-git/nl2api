@@ -18,7 +18,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from src.contracts import LLMJudgeConfig
+from src.evalkit.contracts import LLMJudgeConfig
 
 
 @dataclass

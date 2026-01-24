@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING, Any
 
-from src.common.telemetry.setup import get_meter, is_telemetry_enabled
+from src.evalkit.common.telemetry.setup import get_meter, is_telemetry_enabled
 
 if TYPE_CHECKING:
     from CONTRACTS import BatchJob, Scorecard

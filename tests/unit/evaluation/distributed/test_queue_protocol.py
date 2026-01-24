@@ -10,11 +10,11 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.config import QueueBackend, QueueConfig
-from src.evaluation.distributed.models import QueueMessage
-from src.evaluation.distributed.queue import InMemoryQueue, TaskQueue, create_queue
-from src.evaluation.distributed.queue.protocol import QueueAckError
+from src.evalkit.contracts.worker import WorkerTask
+from src.evalkit.distributed.config import QueueBackend, QueueConfig
+from src.evalkit.distributed.models import QueueMessage
+from src.evalkit.distributed.queue import InMemoryQueue, TaskQueue, create_queue
+from src.evalkit.distributed.queue.protocol import QueueAckError
 
 # =============================================================================
 # Fixtures

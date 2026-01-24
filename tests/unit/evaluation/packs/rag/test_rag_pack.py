@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.contracts import EvalContext, Scorecard, TestCase
+from src.evalkit.contracts import EvalContext, Scorecard, TestCase
 from src.evaluation.packs.rag import RAGPack
 from src.evaluation.packs.rag.pack import RAGPackConfig
 
@@ -144,7 +144,7 @@ class TestRAGPackScoring:
 
     def test_compute_overall_score_weighted(self, pack):
         """Overall score is weighted average."""
-        from src.contracts import StageResult
+        from src.evalkit.contracts import StageResult
 
         stage_results = {
             "retrieval": StageResult(stage_name="retrieval", passed=True, score=0.9),
@@ -159,7 +159,7 @@ class TestRAGPackScoring:
 
     def test_compute_overall_score_custom_weights(self, pack):
         """Custom weights override defaults."""
-        from src.contracts import StageResult
+        from src.evalkit.contracts import StageResult
 
         stage_results = {
             "retrieval": StageResult(stage_name="retrieval", passed=True, score=1.0),
@@ -176,7 +176,7 @@ class TestRAGPackScoring:
 
     def test_compute_overall_score_excludes_gate_stages(self, pack):
         """Gate stages not included in weighted score."""
-        from src.contracts import StageResult
+        from src.evalkit.contracts import StageResult
 
         stage_results = {
             "retrieval": StageResult(stage_name="retrieval", passed=True, score=1.0),
@@ -192,7 +192,7 @@ class TestRAGPackScoring:
 
     def test_compute_overall_passed_all_pass(self, pack):
         """All stages passing means overall pass."""
-        from src.contracts import StageResult
+        from src.evalkit.contracts import StageResult
 
         stage_results = {
             "retrieval": StageResult(stage_name="retrieval", passed=True, score=0.8),
@@ -206,7 +206,7 @@ class TestRAGPackScoring:
 
     def test_compute_overall_passed_gate_fails(self, pack):
         """Gate stage failing means overall fail."""
-        from src.contracts import StageResult
+        from src.evalkit.contracts import StageResult
 
         stage_results = {
             "retrieval": StageResult(stage_name="retrieval", passed=True, score=0.9),
@@ -217,7 +217,7 @@ class TestRAGPackScoring:
 
     def test_compute_overall_passed_low_average(self, pack):
         """Very low average score fails even without gate failures."""
-        from src.contracts import StageResult
+        from src.evalkit.contracts import StageResult
 
         stage_results = {
             "retrieval": StageResult(stage_name="retrieval", passed=False, score=0.1),

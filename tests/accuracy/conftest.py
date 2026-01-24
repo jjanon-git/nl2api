@@ -26,7 +26,7 @@ def pytest_configure(config):
     # Initialize telemetry for accuracy metrics
     # Metrics will be sent to OTEL collector if available
     try:
-        from src.common.telemetry import init_telemetry
+        from src.evalkit.common.telemetry import init_telemetry
 
         endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
         initialized = init_telemetry(
@@ -44,7 +44,7 @@ def pytest_configure(config):
 def pytest_unconfigure(config):
     """Shutdown telemetry and flush pending metrics."""
     try:
-        from src.common.telemetry import shutdown_telemetry
+        from src.evalkit.common.telemetry import shutdown_telemetry
 
         shutdown_telemetry()
         print("\n[Telemetry] Shutdown complete, metrics flushed")

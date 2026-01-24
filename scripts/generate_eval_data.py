@@ -30,7 +30,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.evaluation.core.semantics.prompts import (  # noqa: E402
+from src.evalkit.core.semantics.prompts import (  # noqa: E402
     GENERATION_SYSTEM_PROMPT,
     GENERATION_USER_PROMPT_TEMPLATE,
 )

@@ -9,7 +9,7 @@ Tests the safeguards that ensure evaluations are run properly:
 
 from typer.testing import CliRunner
 
-from src.evaluation.cli.main import app
+from src.evalkit.cli.main import app
 
 runner = CliRunner()
 

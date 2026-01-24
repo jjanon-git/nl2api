@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 
-from src.common.git_info import GitInfo, get_git_info
+from src.evalkit.common.git_info import GitInfo, get_git_info
 
 
 class TestGitInfo:

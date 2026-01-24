@@ -29,8 +29,8 @@ from CONTRACTS import (
     StageResult,
     TestCase,
 )
-from src.common.telemetry import get_meter, get_tracer
-from src.evaluation.core.semantics.prompts import (
+from src.evalkit.common.telemetry import get_meter, get_tracer
+from src.evalkit.core.semantics.prompts import (
     COMPARISON_SYSTEM_PROMPT,
     COMPARISON_USER_PROMPT_TEMPLATE,
 )

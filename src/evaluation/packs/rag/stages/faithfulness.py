@@ -18,10 +18,10 @@ import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
-from src.contracts import StageResult, TestCase
+from src.evalkit.contracts import StageResult, TestCase
 
 if TYPE_CHECKING:
-    from src.contracts import EvalContext
+    from src.evalkit.contracts import EvalContext
 
 
 @dataclass

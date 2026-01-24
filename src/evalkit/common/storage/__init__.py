@@ -5,14 +5,18 @@ Provides pluggable backends for test case and scorecard persistence.
 Supports local PostgreSQL development and future Azure services migration.
 """
 
-from src.common.storage.config import StorageConfig
-from src.common.storage.factory import (
+from src.evalkit.common.storage.config import StorageConfig
+from src.evalkit.common.storage.factory import (
     close_repositories,
     create_repositories,
     get_repositories,
     repository_context,
 )
-from src.common.storage.protocols import BatchJobRepository, ScorecardRepository, TestCaseRepository
+from src.evalkit.common.storage.protocols import (
+    BatchJobRepository,
+    ScorecardRepository,
+    TestCaseRepository,
+)
 
 __all__ = [
     "StorageConfig",

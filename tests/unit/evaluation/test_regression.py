@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.evaluation.continuous.regression import (
+from src.evalkit.continuous.regression import (
     RegressionDetector,
     RegressionResult,
     Severity,

@@ -10,8 +10,8 @@ import uuid
 import pytest
 import pytest_asyncio
 
-from src.evaluation.continuous.alerts import AlertHandler, RegressionAlert
-from src.evaluation.continuous.regression import RegressionResult, Severity
+from src.evalkit.continuous.alerts import AlertHandler, RegressionAlert
+from src.evalkit.continuous.regression import RegressionResult, Severity
 
 
 @pytest_asyncio.fixture(loop_scope="session")

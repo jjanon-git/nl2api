@@ -11,7 +11,7 @@ import warnings
 from abc import ABC, abstractmethod
 
 from CONTRACTS import ToolCall
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import (
     LLMMessage,

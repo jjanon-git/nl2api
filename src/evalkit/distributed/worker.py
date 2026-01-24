@@ -18,15 +18,15 @@ from collections.abc import Awaitable, Callable
 from contextlib import asynccontextmanager
 from typing import Any
 
-from src.contracts.core import _now_utc
-from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.config import WorkerConfig
-from src.evaluation.distributed.models import QueueMessage, WorkerStatus
-from src.evaluation.distributed.queue.protocol import TaskQueue
+from src.evalkit.contracts.core import _now_utc
+from src.evalkit.contracts.worker import WorkerTask
+from src.evalkit.distributed.config import WorkerConfig
+from src.evalkit.distributed.models import QueueMessage, WorkerStatus
+from src.evalkit.distributed.queue.protocol import TaskQueue
 
 # Telemetry imports (optional)
 try:
-    from src.common.telemetry import get_meter, get_tracer, trace_span_safe
+    from src.evalkit.common.telemetry import get_meter, get_tracer, trace_span_safe
 
     tracer = get_tracer(__name__)
     meter = get_meter(__name__)

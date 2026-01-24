@@ -13,7 +13,7 @@ from typing import Any, ClassVar, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
-from src.contracts.core import (
+from src.evalkit.contracts.core import (
     ErrorCode,
     EvaluationStage,
     SystemResponse,

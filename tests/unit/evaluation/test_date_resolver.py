@@ -11,7 +11,7 @@ Tests temporal expression resolution including:
 
 from datetime import date
 
-from src.evaluation.core.temporal.date_resolver import DateResolver
+from src.evalkit.core.temporal.date_resolver import DateResolver
 
 
 class TestRelativeDays:

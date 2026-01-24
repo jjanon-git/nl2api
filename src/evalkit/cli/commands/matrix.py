@@ -168,14 +168,14 @@ async def _matrix_run_async(
     verbose: bool,
 ) -> None:
     """Async implementation of matrix run command."""
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
-    from src.evaluation.batch import BatchRunner, BatchRunnerConfig
-    from src.evaluation.batch.response_generators import (
+    from src.evalkit.batch import BatchRunner, BatchRunnerConfig
+    from src.evalkit.batch.response_generators import (
         create_entity_resolver_generator,
         create_nl2api_generator,
         create_routing_generator,
         create_tool_only_generator,
     )
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
     from src.nl2api.agents import get_agent_by_name, list_available_agents
     from src.nl2api.config import NL2APIConfig
     from src.nl2api.llm.factory import create_llm_provider
@@ -285,7 +285,7 @@ async def _matrix_run_async(
 
         elif component_lower == "resolver":
             eval_mode = "resolver"
-            from src.common.storage.postgres.client import get_pool
+            from src.evalkit.common.storage.postgres.client import get_pool
             from src.nl2api.resolution.resolver import ExternalEntityResolver
 
             try:
@@ -392,8 +392,8 @@ def matrix_compare(
 
 async def _matrix_compare_async(runs: str, metric: str) -> None:
     """Async implementation of matrix compare command."""
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
-    from src.evaluation.batch.pricing import format_cost
+    from src.evalkit.batch.pricing import format_cost
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
 
     try:
         config = StorageConfig()

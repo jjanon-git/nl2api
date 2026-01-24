@@ -12,16 +12,16 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from src.common.storage.protocols import (
+from src.evalkit.common.storage.protocols import (
     BatchJobRepository,
     ScorecardRepository,
     TestCaseRepository,
 )
-from src.contracts.core import TestCase
-from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.config import CoordinatorConfig
-from src.evaluation.distributed.models import BatchProgress
-from src.evaluation.distributed.queue.protocol import TaskQueue
+from src.evalkit.contracts.core import TestCase
+from src.evalkit.contracts.worker import WorkerTask
+from src.evalkit.distributed.config import CoordinatorConfig
+from src.evalkit.distributed.models import BatchProgress
+from src.evalkit.distributed.queue.protocol import TaskQueue
 
 logger = logging.getLogger(__name__)
 

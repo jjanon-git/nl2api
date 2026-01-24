@@ -5,15 +5,17 @@ Tests the PostgreSQL storage layer with the new generic evaluation fields.
 """
 
 import uuid
+
 import pytest
+
 from CONTRACTS import (
     EvaluationStage,
     Scorecard,
     StageResult,
     ToolCall,
 )
-from src.common.storage import create_repositories
-from src.common.storage.config import StorageConfig
+from src.evalkit.common.storage import create_repositories
+from src.evalkit.common.storage.config import StorageConfig
 
 
 class TestGenericScorecardStorage:
@@ -141,9 +143,7 @@ class TestGenericScorecardStorage:
             batch_id=str(uuid.uuid4()),
             syntax_result=syntax_result,
             logic_result=logic_result,
-            generated_tool_calls=(
-                ToolCall(tool_name="get_price", arguments={"ticker": "AAPL"}),
-            ),
+            generated_tool_calls=(ToolCall(tool_name="get_price", arguments={"ticker": "AAPL"}),),
             generated_nl_response="Apple's price is $150",
             pack_name="nl2api",
             stage_results={"syntax": syntax_result, "logic": logic_result},

@@ -11,7 +11,7 @@ import logging
 from collections.abc import Callable
 from typing import Any, TypeVar
 
-from src.common.telemetry.setup import get_tracer, is_telemetry_enabled
+from src.evalkit.common.telemetry.setup import get_tracer, is_telemetry_enabled
 
 logger = logging.getLogger(__name__)
 
@@ -245,7 +245,7 @@ def trace_span_safe(
     Yields:
         The active span (or NoOpSpan on any error)
     """
-    from src.common.telemetry.setup import _NoOpSpan
+    from src.evalkit.common.telemetry.setup import _NoOpSpan
 
     try:
         tracer = get_tracer()

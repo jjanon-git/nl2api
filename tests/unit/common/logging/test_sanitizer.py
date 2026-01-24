@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import re
 
-from src.common.logging.sanitizer import (
+from src.evalkit.common.logging.sanitizer import (
     SanitizingFilter,
     configure_sanitized_logging,
     get_sanitized_logger,

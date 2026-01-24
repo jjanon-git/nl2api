@@ -4,7 +4,7 @@ Result Exporters
 Export evaluation results to various formats for analysis and reporting.
 
 Usage:
-    from src.evaluation.core.exporters import JSONExporter, CSVExporter, SummaryExporter
+    from src.evalkit.core.exporters import JSONExporter, CSVExporter, SummaryExporter
 
     # Export to JSON
     exporter = JSONExporter()

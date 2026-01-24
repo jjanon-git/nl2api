@@ -15,7 +15,7 @@ from CONTRACTS import (
     Scorecard,
     StageResult,
 )
-from src.evaluation.core.exporters import (
+from src.evalkit.core.exporters import (
     CSVExporter,
     JSONExporter,
     SummaryExporter,

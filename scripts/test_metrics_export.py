@@ -20,11 +20,11 @@ os.environ["NL2API_TELEMETRY_ENABLED"] = "true"
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from src.common.telemetry.metrics import (
+from src.evalkit.common.telemetry.metrics import (
     get_eval_metrics,
     get_regression_alert_metrics,
 )
-from src.common.telemetry.setup import init_telemetry
+from src.evalkit.common.telemetry.setup import init_telemetry
 
 
 def main():

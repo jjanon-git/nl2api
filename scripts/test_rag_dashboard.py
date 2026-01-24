@@ -33,7 +33,7 @@ import argparse
 import asyncio
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
@@ -42,7 +42,6 @@ import httpx
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from CONTRACTS import BatchJob, Scorecard, StageResult, TestCase, TestCaseMetadata
-
 
 # =============================================================================
 # Quick Mode: Direct Metrics Push
@@ -65,7 +64,7 @@ def push_rag_metrics_directly(num_tests: int = 10, pass_rate: float = 0.7) -> di
     """
     import random
 
-    from src.common.telemetry import get_eval_metrics, init_telemetry
+    from src.evalkit.common.telemetry import get_eval_metrics, init_telemetry
 
     print("\n=== Pushing RAG Metrics Directly ===")
 
@@ -76,7 +75,7 @@ def push_rag_metrics_directly(num_tests: int = 10, pass_rate: float = 0.7) -> di
     )
 
     eval_metrics = get_eval_metrics()
-    batch_id = f"rag-test-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
+    batch_id = f"rag-test-{datetime.now(UTC).strftime('%Y%m%d-%H%M%S')}"
 
     # RAG stages
     rag_stages = [
@@ -174,7 +173,7 @@ def push_rag_metrics_directly(num_tests: int = 10, pass_rate: float = 0.7) -> di
         client_type="test-script",
     )
 
-    print(f"\nBatch completed:")
+    print("\nBatch completed:")
     print(f"  Batch ID: {batch_id}")
     print(f"  Total: {num_tests}")
     print(f"  Passed: {passed_count}")
@@ -206,7 +205,9 @@ def make_rag_test_case(id: str, query: str, expected: dict, subcategory: str) ->
         expected=expected,
         category="rag",
         subcategory=subcategory,
-        metadata=TestCaseMetadata(api_version="v1.0", complexity_level=1, tags=("rag", subcategory)),
+        metadata=TestCaseMetadata(
+            api_version="v1.0", complexity_level=1, tags=("rag", subcategory)
+        ),
     )
 
 
@@ -266,7 +267,11 @@ async def create_rag_test_cases() -> list[TestCase]:
         make_rag_test_case(
             "rag-test-008",
             "What does the legal disclaimer say?",
-            {"relevant_docs": ["doc-legal"], "source_policies": {"doc-legal": "quote_only"}, "behavior": "answer"},
+            {
+                "relevant_docs": ["doc-legal"],
+                "source_policies": {"doc-legal": "quote_only"},
+                "behavior": "answer",
+            },
             "source_policy_test",
         ),
         # 9. Training cutoff test
@@ -288,9 +293,9 @@ async def create_rag_test_cases() -> list[TestCase]:
 
 async def run_rag_evaluation(test_cases: list[TestCase], pass_rate: float = 0.7) -> dict:
     """Run RAG evaluation using BatchRunner."""
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
-    from src.evaluation.batch import BatchRunner, BatchRunnerConfig
-    from src.evaluation.batch.response_generators import create_rag_simulated_generator
+    from src.evalkit.batch import BatchRunner, BatchRunnerConfig
+    from src.evalkit.batch.response_generators import create_rag_simulated_generator
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
 
     print("\n=== Running RAG Evaluation (Full Mode) ===")
 
@@ -330,7 +335,7 @@ async def run_rag_evaluation(test_cases: list[TestCase], pass_rate: float = 0.7)
         if batch_job is None:
             return {"success": False, "error": "No test cases found"}
 
-        print(f"\nBatch completed:")
+        print("\nBatch completed:")
         print(f"  Total: {batch_job.total_tests}")
         print(f"  Passed: {batch_job.completed_count}")
         print(f"  Failed: {batch_job.failed_count}")
@@ -444,7 +449,7 @@ def print_summary(eval_result: dict, prometheus_result: dict, grafana_result: di
 
     # Evaluation
     if eval_result.get("success"):
-        print(f"\n[PASS] Evaluation completed")
+        print("\n[PASS] Evaluation completed")
         print(f"       - Batch ID: {eval_result.get('batch_id', 'N/A')}")
         print(f"       - Total: {eval_result.get('total', 0)}")
         print(f"       - Passed: {eval_result.get('passed', 0)}")
@@ -466,7 +471,9 @@ def print_summary(eval_result: dict, prometheus_result: dict, grafana_result: di
 
     # Grafana
     if grafana_result.get("status") == "OK":
-        print(f"\n[PASS] Grafana dashboard available: {grafana_result.get('title', 'RAG Evaluation')}")
+        print(
+            f"\n[PASS] Grafana dashboard available: {grafana_result.get('title', 'RAG Evaluation')}"
+        )
     elif grafana_result.get("status") == "UNAVAILABLE":
         print("\n[SKIP] Grafana not running")
     else:
@@ -559,7 +566,9 @@ Examples:
 
     args = parser.parse_args()
 
-    exit_code = asyncio.run(main_async(quick=args.quick, pass_rate=args.pass_rate, num_tests=args.num_tests))
+    exit_code = asyncio.run(
+        main_async(quick=args.quick, pass_rate=args.pass_rate, num_tests=args.num_tests)
+    )
     sys.exit(exit_code)
 
 

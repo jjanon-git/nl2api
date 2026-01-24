@@ -15,7 +15,7 @@ from CONTRACTS import (
     Scorecard,
     StageResult,
 )
-from src.common.storage.postgres import (
+from src.evalkit.common.storage.postgres import (
     PostgresScorecardRepository,
     PostgresTestCaseRepository,
 )

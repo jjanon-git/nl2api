@@ -11,7 +11,7 @@ Key components:
 - DistributedMetrics for observability
 
 Usage:
-    from src.evaluation.distributed import (
+    from src.evalkit.distributed import (
         create_queue,
         EvalWorker,
         BatchCoordinator,
@@ -26,7 +26,7 @@ Usage:
     await worker.run()
 """
 
-from src.evaluation.distributed.config import (
+from src.evalkit.distributed.config import (
     AlertConfig,
     CoordinatorConfig,
     EvalMode,
@@ -34,17 +34,17 @@ from src.evaluation.distributed.config import (
     QueueConfig,
     WorkerConfig,
 )
-from src.evaluation.distributed.coordinator import BatchCoordinator, BatchResult
-from src.evaluation.distributed.manager import LocalWorkerManager
-from src.evaluation.distributed.models import BatchProgress, QueueMessage, WorkerStatus
+from src.evalkit.distributed.coordinator import BatchCoordinator, BatchResult
+from src.evalkit.distributed.manager import LocalWorkerManager
+from src.evalkit.distributed.models import BatchProgress, QueueMessage, WorkerStatus
 
 # Queue imports (protocol and factory)
-from src.evaluation.distributed.queue import (
+from src.evalkit.distributed.queue import (
     InMemoryQueue,
     TaskQueue,
     create_queue,
 )
-from src.evaluation.distributed.worker import EvalWorker
+from src.evalkit.distributed.worker import EvalWorker
 
 __all__ = [
     # Config

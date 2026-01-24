@@ -40,7 +40,7 @@ async def db_pool():
 @pytest.fixture
 async def entity_repo(db_pool):
     """Create entity repository."""
-    from src.common.storage.postgres.entity_repo import PostgresEntityRepository
+    from src.evalkit.common.storage.postgres.entity_repo import PostgresEntityRepository
 
     return PostgresEntityRepository(db_pool)
 
@@ -63,7 +63,7 @@ async def has_entity_tables(db_pool) -> bool:
 @pytest.fixture
 def sample_entity():
     """Create a sample entity for testing with unique identifiers."""
-    from src.common.storage.postgres.entity_repo import Entity
+    from src.evalkit.common.storage.postgres.entity_repo import Entity
 
     # Use unique test identifiers that won't conflict with production data
     unique_suffix = uuid.uuid4().hex[:8].upper()
@@ -217,7 +217,7 @@ class TestEntityCRUD:
         await entity_repo.save(sample_entity)
 
         # Create updated entity with same ID
-        from src.common.storage.postgres.entity_repo import Entity
+        from src.evalkit.common.storage.postgres.entity_repo import Entity
 
         updated = Entity(
             id=sample_entity.id,
@@ -360,7 +360,7 @@ class TestEntityResolution:
         if not has_entity_tables:
             pytest.skip("Entity tables not created")
 
-        from src.common.storage.postgres.entity_repo import Entity
+        from src.evalkit.common.storage.postgres.entity_repo import Entity
 
         # Create two entities
         entity1 = Entity(
@@ -538,7 +538,7 @@ class TestEntityBatchOperations:
         if not has_entity_tables:
             pytest.skip("Entity tables not created")
 
-        from src.common.storage.postgres.entity_repo import Entity
+        from src.evalkit.common.storage.postgres.entity_repo import Entity
 
         entities = [
             Entity(

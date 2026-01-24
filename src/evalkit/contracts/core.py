@@ -204,7 +204,7 @@ class ToolRegistry:
     - Be defined here as the single source of truth
 
     Usage:
-        from src.contracts.core import ToolRegistry
+        from src.evalkit.contracts.core import ToolRegistry
         name=ToolRegistry.DATASTREAM_GET_DATA
     """
 

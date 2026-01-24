@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any
 import asyncpg
 
 if TYPE_CHECKING:
-    from src.common.storage.config import StorageConfig
+    from src.evalkit.common.storage.config import StorageConfig
 
 # Module-level pool for connection reuse
 _pool: asyncpg.Pool | None = None

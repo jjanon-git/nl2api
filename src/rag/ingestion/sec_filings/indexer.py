@@ -9,7 +9,7 @@ import logging
 import uuid
 from typing import TYPE_CHECKING, Any
 
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 from src.rag.ingestion.sec_filings.models import FilingChunk
 from src.rag.retriever.protocols import DocumentType
 

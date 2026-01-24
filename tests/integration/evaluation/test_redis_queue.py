@@ -9,10 +9,10 @@ from uuid import uuid4
 
 import pytest
 
-from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.config import QueueBackend, QueueConfig
-from src.evaluation.distributed.queue import create_queue
-from src.evaluation.distributed.queue.redis_stream import RedisStreamQueue
+from src.evalkit.contracts.worker import WorkerTask
+from src.evalkit.distributed.config import QueueBackend, QueueConfig
+from src.evalkit.distributed.queue import create_queue
+from src.evalkit.distributed.queue.redis_stream import RedisStreamQueue
 
 # Skip all tests if Redis is not available
 pytestmark = pytest.mark.integration

@@ -12,7 +12,7 @@ from datetime import UTC
 import asyncpg
 
 from CONTRACTS import BatchJob, TaskPriority, TaskStatus
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 
 tracer = get_tracer(__name__)
 

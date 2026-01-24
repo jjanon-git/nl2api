@@ -17,13 +17,13 @@ import json
 import logging
 from typing import TYPE_CHECKING, Any
 
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 from src.rag.retriever.protocols import DocumentType, RetrievalResult
 
 if TYPE_CHECKING:
     import asyncpg
 
-    from src.common.cache import RedisCache
+    from src.evalkit.common.cache import RedisCache
     from src.rag.retriever.reranker import Reranker
 
 logger = logging.getLogger(__name__)

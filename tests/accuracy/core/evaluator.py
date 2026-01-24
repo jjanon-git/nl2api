@@ -37,7 +37,7 @@ def _get_metrics():
     global _accuracy_metrics
     if _accuracy_metrics is None:
         try:
-            from src.common.telemetry import get_accuracy_metrics
+            from src.evalkit.common.telemetry import get_accuracy_metrics
 
             _accuracy_metrics = get_accuracy_metrics()
         except ImportError:

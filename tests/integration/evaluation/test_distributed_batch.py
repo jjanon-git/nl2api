@@ -15,21 +15,21 @@ import uuid
 import pytest
 import pytest_asyncio
 
-from src.common.storage.postgres import (
+from src.evalkit.common.storage.postgres import (
     PostgresBatchJobRepository,
     PostgresScorecardRepository,
     PostgresTestCaseRepository,
 )
-from src.contracts.core import TaskStatus, TestCase, TestCaseMetadata, ToolCall
-from src.contracts.worker import BatchJob
-from src.evaluation.distributed.config import (
+from src.evalkit.contracts.core import TaskStatus, TestCase, TestCaseMetadata, ToolCall
+from src.evalkit.contracts.worker import BatchJob
+from src.evalkit.distributed.config import (
     CoordinatorConfig,
     QueueBackend,
     QueueConfig,
 )
-from src.evaluation.distributed.coordinator import BatchCoordinator
-from src.evaluation.distributed.manager import LocalWorkerManager
-from src.evaluation.distributed.queue import create_queue
+from src.evalkit.distributed.coordinator import BatchCoordinator
+from src.evalkit.distributed.manager import LocalWorkerManager
+from src.evalkit.distributed.queue import create_queue
 
 # Skip all tests if dependencies not available
 pytestmark = pytest.mark.integration

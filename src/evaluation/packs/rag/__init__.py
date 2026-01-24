@@ -7,7 +7,7 @@ Evaluates Retrieval-Augmented Generation systems with:
 
 Usage:
     from src.evaluation.packs.rag import RAGPack
-    from src.evaluation.core.evaluator import Evaluator
+    from src.evalkit.core.evaluator import Evaluator
 
     pack = RAGPack()
     evaluator = Evaluator(pack=pack)

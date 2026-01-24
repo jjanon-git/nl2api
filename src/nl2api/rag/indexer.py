@@ -19,7 +19,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 from src.nl2api.rag.checkpoint import CheckpointManager, IndexingCheckpoint
 from src.nl2api.rag.protocols import DocumentType
 

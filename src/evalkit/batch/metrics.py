@@ -15,7 +15,7 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
-from src.common.telemetry import (
+from src.evalkit.common.telemetry import (
     EvalMetrics,
     get_eval_metrics,
     init_telemetry,

@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import pytest
 
-from src.common.telemetry.metrics import (
+from src.evalkit.common.telemetry.metrics import (
     EvalMetrics,
     NL2APIMetrics,
 )
-from src.common.telemetry.setup import (
+from src.evalkit.common.telemetry.setup import (
     TelemetryConfig,
     _NoOpCounter,
     _NoOpHistogram,
@@ -18,7 +18,7 @@ from src.common.telemetry.setup import (
     get_meter,
     get_tracer,
 )
-from src.common.telemetry.tracing import (
+from src.evalkit.common.telemetry.tracing import (
     add_span_attributes,
     record_exception,
     trace_async,

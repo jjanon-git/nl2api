@@ -13,14 +13,14 @@ import logging
 from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-from src.evaluation.continuous.alerts import AlertHandler, RegressionAlert
-from src.evaluation.continuous.config import ContinuousConfig, ScheduleConfig
-from src.evaluation.continuous.regression import RegressionDetector
+from src.evalkit.continuous.alerts import AlertHandler, RegressionAlert
+from src.evalkit.continuous.config import ContinuousConfig, ScheduleConfig
+from src.evalkit.continuous.regression import RegressionDetector
 
 if TYPE_CHECKING:
     import asyncpg
 
-    from src.common.storage.protocols import (
+    from src.evalkit.common.storage.protocols import (
         BatchJobRepository,
         ScorecardRepository,
         TestCaseRepository,
@@ -263,7 +263,7 @@ class EvalScheduler:
 
         try:
             # Import here to avoid circular imports
-            from src.evaluation.batch import BatchRunner, BatchRunnerConfig
+            from src.evalkit.batch import BatchRunner, BatchRunnerConfig
 
             # Create runner config
             runner_config = BatchRunnerConfig(

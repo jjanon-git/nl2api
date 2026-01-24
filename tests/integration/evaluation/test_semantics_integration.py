@@ -133,7 +133,7 @@ class TestNL2APIPackSemanticsIntegration:
         pack = NL2APIPack(semantics_enabled=True)
 
         # Create a mock semantics evaluator and pass via context
-        from src.evaluation.core.semantics import SemanticsEvaluator
+        from src.evalkit.core.semantics import SemanticsEvaluator
 
         mock_sem_eval = SemanticsEvaluator(config=llm_config, llm=mock_llm_for_semantics)
         context = EvalContext(
@@ -210,7 +210,7 @@ class TestNL2APIPackSemanticsIntegration:
         pack = NL2APIPack(semantics_enabled=True)
 
         # Create and inject mock semantics evaluator
-        from src.evaluation.core.semantics import SemanticsEvaluator
+        from src.evalkit.core.semantics import SemanticsEvaluator
 
         mock_sem_eval = SemanticsEvaluator(config=llm_config, llm=mock_llm_for_semantics)
         context = EvalContext(
@@ -260,7 +260,7 @@ class TestNL2APIPackSemanticsIntegration:
             )
         )
 
-        from src.evaluation.core.semantics import SemanticsEvaluator
+        from src.evalkit.core.semantics import SemanticsEvaluator
 
         mock_sem_eval = SemanticsEvaluator(config=llm_config, llm=mock_llm_fail)
         context = EvalContext(
@@ -288,8 +288,8 @@ class TestBatchRunnerWithSemantics:
     @pytest.mark.asyncio
     async def test_batch_runner_creates_pack_with_semantics(self):
         """BatchRunner should create NL2APIPack with semantics enabled."""
-        from src.evaluation.batch.config import BatchRunnerConfig
-        from src.evaluation.batch.runner import BatchRunner
+        from src.evalkit.batch.config import BatchRunnerConfig
+        from src.evalkit.batch.runner import BatchRunner
         from src.evaluation.packs.nl2api import NL2APIPack
 
         # Mock repositories
@@ -318,8 +318,8 @@ class TestBatchRunnerWithSemantics:
     @pytest.mark.asyncio
     async def test_batch_runner_without_semantics(self):
         """BatchRunner should create NL2APIPack with semantics disabled."""
-        from src.evaluation.batch.config import BatchRunnerConfig
-        from src.evaluation.batch.runner import BatchRunner
+        from src.evalkit.batch.config import BatchRunnerConfig
+        from src.evalkit.batch.runner import BatchRunner
         from src.evaluation.packs.nl2api import NL2APIPack
 
         # Mock repositories

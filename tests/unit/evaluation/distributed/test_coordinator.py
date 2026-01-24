@@ -8,11 +8,11 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.contracts.core import TestCase, TestCaseMetadata, ToolCall
-from src.contracts.worker import BatchJob
-from src.evaluation.distributed.config import CoordinatorConfig
-from src.evaluation.distributed.coordinator import BatchCoordinator, BatchResult
-from src.evaluation.distributed.models import BatchProgress
+from src.evalkit.contracts.core import TestCase, TestCaseMetadata, ToolCall
+from src.evalkit.contracts.worker import BatchJob
+from src.evalkit.distributed.config import CoordinatorConfig
+from src.evalkit.distributed.coordinator import BatchCoordinator, BatchResult
+from src.evalkit.distributed.models import BatchProgress
 
 
 @pytest.fixture

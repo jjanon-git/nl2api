@@ -11,7 +11,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
-from src.contracts.core import _now_utc
+from src.evalkit.contracts.core import _now_utc
 
 # =============================================================================
 # Table Storage Entity

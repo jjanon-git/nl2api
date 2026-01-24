@@ -42,7 +42,7 @@ from CONTRACTS import (
 from CONTRACTS import (
     ToolCall as ToolCallModel,
 )
-from src.common.storage.postgres import (
+from src.evalkit.common.storage.postgres import (
     PostgresBatchJobRepository,
     PostgresScorecardRepository,
     PostgresTestCaseRepository,

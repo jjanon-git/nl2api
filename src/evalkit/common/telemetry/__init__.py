@@ -7,7 +7,7 @@ Provides centralized OpenTelemetry instrumentation for:
 - Structured logging
 
 Usage:
-    from src.common.telemetry import init_telemetry, get_tracer, get_meter
+    from src.evalkit.common.telemetry import init_telemetry, get_tracer, get_meter
 
     # Initialize at application startup
     init_telemetry(service_name="nl2api", otlp_endpoint="http://localhost:4317")
@@ -24,7 +24,7 @@ Usage:
     requests_counter.add(1, {"domain": "estimates"})
 """
 
-from src.common.telemetry.metrics import (
+from src.evalkit.common.telemetry.metrics import (
     AccuracyMetrics,
     EvalMetrics,
     NL2APIMetrics,
@@ -32,7 +32,7 @@ from src.common.telemetry.metrics import (
     get_eval_metrics,
     get_nl2api_metrics,
 )
-from src.common.telemetry.setup import (
+from src.evalkit.common.telemetry.setup import (
     TelemetryConfig,
     get_meter,
     get_tracer,
@@ -40,7 +40,7 @@ from src.common.telemetry.setup import (
     is_telemetry_enabled,
     shutdown_telemetry,
 )
-from src.common.telemetry.tracing import (
+from src.evalkit.common.telemetry.tracing import (
     add_span_attributes,
     add_span_event,
     record_exception,

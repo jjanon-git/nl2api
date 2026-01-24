@@ -13,7 +13,7 @@ import time
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
-from src.common.telemetry import record_exception, trace_span
+from src.evalkit.common.telemetry import record_exception, trace_span
 from src.nl2api.agents.protocols import AgentContext, DomainAgent
 from src.nl2api.clarification.detector import AmbiguityDetector
 from src.nl2api.conversation.manager import ConversationManager, ConversationStorage

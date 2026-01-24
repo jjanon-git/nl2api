@@ -17,7 +17,10 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.common.storage.memory import InMemoryScorecardRepository, InMemoryTestCaseRepository
+from src.evalkit.common.storage.memory import (
+    InMemoryScorecardRepository,
+    InMemoryTestCaseRepository,
+)
 
 # =============================================================================
 # TestCaseRepository Tests

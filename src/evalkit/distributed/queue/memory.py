@@ -14,10 +14,10 @@ from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 
-from src.contracts.core import _generate_id, _now_utc
-from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.models import QueueMessage
-from src.evaluation.distributed.queue.protocol import (
+from src.evalkit.contracts.core import _generate_id, _now_utc
+from src.evalkit.contracts.worker import WorkerTask
+from src.evalkit.distributed.models import QueueMessage
+from src.evalkit.distributed.queue.protocol import (
     QueueAckError,
     QueueError,
 )

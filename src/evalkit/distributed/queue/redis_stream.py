@@ -19,11 +19,11 @@ import redis.asyncio as redis
 from redis.asyncio import Redis
 from redis.exceptions import ResponseError
 
-from src.contracts.core import _now_utc
-from src.contracts.worker import WorkerTask
-from src.evaluation.distributed.config import QueueConfig
-from src.evaluation.distributed.models import QueueMessage
-from src.evaluation.distributed.queue.protocol import (
+from src.evalkit.contracts.core import _now_utc
+from src.evalkit.contracts.worker import WorkerTask
+from src.evalkit.distributed.config import QueueConfig
+from src.evalkit.distributed.models import QueueMessage
+from src.evalkit.distributed.queue.protocol import (
     QueueAckError,
     QueueConnectionError,
     QueueConsumeError,
@@ -33,7 +33,7 @@ from src.evaluation.distributed.queue.protocol import (
 
 # Telemetry imports (optional)
 try:
-    from src.common.telemetry import get_meter
+    from src.evalkit.common.telemetry import get_meter
 
     meter = get_meter(__name__)
     TELEMETRY_AVAILABLE = True

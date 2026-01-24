@@ -17,7 +17,7 @@ Domain Gates:
 
 Usage:
     from src.evaluation.packs.rag import RAGPack
-    from src.evaluation.core.evaluator import Evaluator
+    from src.evalkit.core.evaluator import Evaluator
 
     pack = RAGPack()
     evaluator = Evaluator(pack=pack)
@@ -30,8 +30,8 @@ import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from src.common.telemetry import get_tracer
-from src.contracts import Scorecard, StageResult, TestCase
+from src.evalkit.common.telemetry import get_tracer
+from src.evalkit.contracts import Scorecard, StageResult, TestCase
 
 from .stages import (
     AnswerRelevanceStage,
@@ -45,7 +45,7 @@ from .stages import (
 )
 
 if TYPE_CHECKING:
-    from src.contracts import EvalContext
+    from src.evalkit.contracts import EvalContext
 
 tracer = get_tracer(__name__)
 
@@ -300,7 +300,7 @@ class RAGPack:
         Returns:
             Scorecard with all stage results
         """
-        from src.contracts import EvalContext
+        from src.evalkit.contracts import EvalContext
 
         context = context or EvalContext()
         start_time = time.perf_counter()

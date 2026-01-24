@@ -29,9 +29,9 @@ from CONTRACTS import (
     TestCase,
     ToolCall,
 )
-from src.common.telemetry import get_tracer
-from src.evaluation.core.ast_comparator import ASTComparator, ComparisonResult
-from src.evaluation.core.temporal import DateResolver, TemporalComparator
+from src.evalkit.common.telemetry import get_tracer
+from src.evalkit.core.ast_comparator import ASTComparator, ComparisonResult
+from src.evalkit.core.temporal import DateResolver, TemporalComparator
 
 tracer = get_tracer(__name__)
 

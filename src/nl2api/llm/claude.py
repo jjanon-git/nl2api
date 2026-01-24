@@ -11,7 +11,7 @@ import logging
 import random
 from typing import Any
 
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 from src.nl2api.llm.protocols import (
     LLMMessage,
     LLMResponse,

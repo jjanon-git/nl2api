@@ -116,7 +116,7 @@ class LocalWorkerManager:
         cmd = [
             sys.executable,
             "-m",
-            "src.evaluation.distributed",
+            "src.evalkit.distributed",
             "--worker-id",
             worker_id,
             "--batch-id",

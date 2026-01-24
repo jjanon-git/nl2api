@@ -5,7 +5,7 @@ Provides a simple API for running evaluations with any EvaluationPack.
 This is the primary entry point for the evaluation framework.
 
 Usage:
-    from src.evaluation.core import Evaluator
+    from src.evalkit.core import Evaluator
     from src.evaluation.packs import NL2APIPack
 
     # Create evaluator with pack
@@ -32,7 +32,7 @@ from CONTRACTS import (
     StageResult,
     TestCase,
 )
-from src.common.telemetry import get_tracer
+from src.evalkit.common.telemetry import get_tracer
 
 tracer = get_tracer(__name__)
 

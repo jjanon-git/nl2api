@@ -10,7 +10,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, model_validator
 
-from src.contracts.core import TaskPriority, TaskStatus, _generate_id, _now_utc
+from src.evalkit.contracts.core import TaskPriority, TaskStatus, _generate_id, _now_utc
 
 # =============================================================================
 # Worker Task

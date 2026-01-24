@@ -29,7 +29,7 @@ async def backfill_scorecards(dry_run: bool = False) -> None:
     Args:
         dry_run: If True, only show what would be updated without making changes
     """
-    from src.common.storage.postgres.client import close_pool, get_pool
+    from src.evalkit.common.storage.postgres.client import close_pool, get_pool
 
     try:
         pool = await get_pool()

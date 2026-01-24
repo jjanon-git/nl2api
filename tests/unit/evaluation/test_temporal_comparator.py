@@ -14,7 +14,7 @@ from datetime import date
 import pytest
 
 from CONTRACTS import TemporalValidationMode, ToolCall
-from src.evaluation.core.temporal import (
+from src.evalkit.core.temporal import (
     DateResolver,
     TemporalComparator,
     compare_tool_calls_temporal,

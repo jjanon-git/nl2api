@@ -67,10 +67,10 @@ def continuous_start(
 
 async def _continuous_start_async(config_path: Path, foreground: bool) -> None:
     """Async implementation of continuous start command."""
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
-    from src.common.storage.postgres.client import get_pool
-    from src.evaluation.continuous import EvalScheduler
-    from src.evaluation.continuous.config import ContinuousConfig
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
+    from src.evalkit.common.storage.postgres.client import get_pool
+    from src.evalkit.continuous import EvalScheduler
+    from src.evalkit.continuous.config import ContinuousConfig
 
     try:
         # Load configuration
@@ -164,10 +164,10 @@ def continuous_trigger(
 
 async def _continuous_trigger_async(schedule_name: str, config_path: Path) -> None:
     """Async implementation of continuous trigger command."""
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
-    from src.common.storage.postgres.client import get_pool
-    from src.evaluation.continuous import EvalScheduler
-    from src.evaluation.continuous.config import ContinuousConfig
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
+    from src.evalkit.common.storage.postgres.client import get_pool
+    from src.evalkit.continuous import EvalScheduler
+    from src.evalkit.continuous.config import ContinuousConfig
 
     try:
         # Load configuration
@@ -257,8 +257,8 @@ async def _continuous_alerts_async(days: int, limit: int) -> None:
     """Async implementation of continuous alerts command."""
     import os
 
-    from src.common.storage.postgres import close_pool, create_pool
-    from src.evaluation.continuous import AlertHandler
+    from src.evalkit.common.storage.postgres import close_pool, create_pool
+    from src.evalkit.continuous import AlertHandler
 
     try:
         # Create database pool
@@ -359,8 +359,8 @@ async def _continuous_acknowledge_async(
     """Async implementation of continuous acknowledge command."""
     import os
 
-    from src.common.storage.postgres import close_pool, create_pool
-    from src.evaluation.continuous import AlertHandler
+    from src.evalkit.common.storage.postgres import close_pool, create_pool
+    from src.evalkit.continuous import AlertHandler
 
     try:
         # Create database pool

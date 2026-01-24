@@ -105,7 +105,7 @@ async def _run_async(
     verbose: bool,
 ) -> None:
     """Async implementation of run command."""
-    from src.common.storage import StorageConfig, close_repositories, create_repositories
+    from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
 
     test_case: TestCase | None = None
     test_case_repo = None

@@ -12,7 +12,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
-from src.contracts.core import _generate_id, _now_utc
+from src.evalkit.contracts.core import _generate_id, _now_utc
 
 # =============================================================================
 # Enumerations

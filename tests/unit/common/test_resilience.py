@@ -6,13 +6,13 @@ import asyncio
 
 import pytest
 
-from src.common.resilience import (
+from src.evalkit.common.resilience import (
     CircuitBreaker,
     CircuitOpenError,
     RetryConfig,
     retry_with_backoff,
 )
-from src.common.resilience.circuit_breaker import CircuitState
+from src.evalkit.common.resilience.circuit_breaker import CircuitState
 
 
 class TestCircuitBreaker:
