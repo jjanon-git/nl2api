@@ -1,6 +1,6 @@
 # Entity Resolution Improvement Plan
 
-**Status:** Draft - Pending Review
+**Status:** ✅ Completed (design superseded by nl2api-01)
 **Priority:** P0.2 (Critical)
 **Author:** Mostly Claude, with some minor assistance from Sid
 **Last Updated:** 2026-01-21

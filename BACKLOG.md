@@ -2,7 +2,7 @@
 
 This file tracks all planned work, technical debt, and in-flight items for the NL2API project.
 
-**Last Updated:** 2026-01-22 (Temporal handling, protocol enforcement, PII redaction)
+**Last Updated:** 2026-01-24 (Evalkit extraction Stage 1 complete, distributed workers Phases 1-3 complete)
 
 ---
 
@@ -102,10 +102,10 @@ Total: ~850ms, ~1100 tokens per request
 
 | # | Item | Rationale |
 |---|------|-----------|
-| 1 | **Evaluation Framework Generalization (Phases 1-2)** | Extract generic core, create EvaluationPack protocol, NL2API pack, simple API facade |
-| 2 | **NL2API Codebase Separation** | Separate nl2api implementation from evalframework - nl2api was first use case, not the framework |
-| 3 | **RAG Evaluation Pack (Phase 3)** | Blocked by #1 - plan ready at docs/plans/rag-evaluation-plan.md |
-| 4 | **Distributed Evaluation Infrastructure** | Enables horizontal scaling |
+| 1 | ~~**Evaluation Framework Generalization (Phases 1-2)**~~ | ✅ Stage 1 Complete - evalkit namespace created |
+| 2 | ~~**NL2API Codebase Separation**~~ | ✅ Stage 1 Complete - merged with evalkit extraction |
+| 3 | **RAG Evaluation Pack** | Unblocked - plan ready at docs/plans/rag-03-evaluation-design.md |
+| 4 | **Distributed Evaluation Infrastructure (Phase 4+)** | Phases 1-3 complete, coordinator & batch API remaining |
 | 5 | **Test Quality Improvements** | Critical - current tests don't validate correctness |
 
 ---
@@ -229,8 +229,8 @@ logger = get_sanitized_logger(__name__)
 
 ### Evaluation Framework Generalization (evalframework)
 **Created:** 2026-01-22
-**Status:** In Progress
-**Docs:** [docs/plans/evaluation-platform-review.md](docs/plans/evaluation-platform-review.md)
+**Status:** ✅ Stage 1 Complete
+**Docs:** [docs/plans/eval-06-evalkit-extraction.md](docs/plans/eval-06-evalkit-extraction.md)
 
 Transform the evaluation platform from an NL2API-specific tool into a general-purpose ML evaluation framework (`evalframework`).
 
@@ -272,8 +272,8 @@ results.to_json("results.json")
 
 ### NL2API Codebase Separation
 **Created:** 2026-01-22
-**Status:** Not Started
-**Priority:** HIGH (fast-follow after evalframework)
+**Status:** ✅ Stage 1 Complete (merged with evalkit extraction)
+**Docs:** [docs/plans/eval-06-evalkit-extraction.md](docs/plans/eval-06-evalkit-extraction.md)
 
 NL2API was the first concrete use case for the evaluation framework. The codebase should be reorganized to clearly separate:
 
@@ -301,8 +301,8 @@ NL2API was the first concrete use case for the evaluation framework. The codebas
 
 ### Distributed Evaluation Infrastructure
 **Created:** 2026-01-21
-**Status:** Not Started
-**Severity:** HIGH
+**Status:** In Progress - Phases 1-3 Complete
+**Docs:** [docs/plans/eval-05-distributed-workers.md](docs/plans/eval-05-distributed-workers.md)
 
 Current evaluation runner (`BatchRunner`) uses `asyncio.Semaphore` for local concurrency but lacks true distributed processing capabilities.
 - No task queue (Celery/BullMQ/Redis Streams)
@@ -320,8 +320,8 @@ Current evaluation runner (`BatchRunner`) uses `asyncio.Semaphore` for local con
 
 ### Multi-Client Evaluation Platform (Eval Matrix)
 **Created:** 2026-01-21
-**Status:** Phase 0 Complete
-**Docs:** [docs/plans/eval-matrix.md](docs/plans/eval-matrix.md)
+**Status:** In Progress - Phase 0 Complete
+**Docs:** [docs/plans/eval-03-multi-client-platform.md](docs/plans/eval-03-multi-client-platform.md)
 
 Multi-dimensional evaluation framework for comparing components × LLMs × configs.
 
@@ -380,7 +380,7 @@ eval matrix compare --runs <id1>,<id2>
 ### Temporal Evaluation Data Handling ✅ COMPLETE
 **Created:** 2026-01-21
 **Completed:** 2026-01-22
-**Docs:** [docs/plans/temporal-eval-data.md](docs/plans/temporal-eval-data.md)
+**Docs:** [docs/plans/eval-08-temporal-data.md](docs/plans/eval-08-temporal-data.md)
 
 **Solution implemented:**
 - [x] `DateResolver` - resolves relative dates (-1D, -1M, -1Y, FY0, FQ0) to absolute
@@ -752,7 +752,7 @@ Create small (100-500 cases) fully-hydrated synthetic dataset:
 ### OTEL Coverage Gaps ✅ COMPLETE
 **Created:** 2026-01-21
 **Completed:** 2026-01-21
-**Docs:** [docs/plans/codebase-standards-audit.md](docs/plans/codebase-standards-audit.md)
+**Docs:** [docs/plans/eval-07-standards-audit.md](docs/plans/eval-07-standards-audit.md)
 
 **All components instrumented:**
 - [x] LLM providers (claude.py, openai.py)
@@ -773,7 +773,7 @@ Create small (100-500 cases) fully-hydrated synthetic dataset:
 **Created:** 2026-01-21
 **Reviewed:** 2026-01-21
 **Status:** Already covered
-**Docs:** [docs/plans/codebase-standards-audit.md](docs/plans/codebase-standards-audit.md)
+**Docs:** [docs/plans/eval-07-standards-audit.md](docs/plans/eval-07-standards-audit.md)
 
 **Existing coverage found:**
 - [x] Repository CRUD (test_case, scorecard, batch): `tests/unit/storage/test_postgres_repos.py` (runs against real DB)
@@ -809,7 +809,7 @@ Currently, when a query is ambiguous, we return clarification questions in the r
 ### Domain MCP Tools - Live API Integration
 **Created:** 2026-01-21
 **Status:** Partially Complete
-**Docs:** [docs/plans/mcp-migration.md](docs/plans/mcp-migration.md)
+**Docs:** [docs/plans/nl2api-04-mcp-dual-mode.md](docs/plans/nl2api-04-mcp-dual-mode.md)
 
 **Already implemented:**
 - Entity resolution MCP server with `resolve_entity`, `resolve_entities_batch`, `extract_and_resolve`
@@ -932,7 +932,7 @@ Ambiguous queries reduce accuracy. Implement query rewriting for clarity.
 ### MCP Tool Execution
 **Created:** 2026-01-20
 **Status:** Experimental
-**Docs:** [docs/plans/mcp-migration.md](docs/plans/mcp-migration.md)
+**Docs:** [docs/plans/nl2api-04-mcp-dual-mode.md](docs/plans/nl2api-04-mcp-dual-mode.md)
 
 MCP client has tool discovery implemented. Tool execution (`tools/call`) not yet implemented.
 
@@ -1025,7 +1025,7 @@ Migrate from pgvector to Azure AI Search for production scale.
 
 - [x] **Haiku Routing Spike: Haiku wins** - Haiku achieves **94.1%** vs Sonnet's 88.9% on 270 routing cases at 1/10th cost. Recommendation: use Haiku for production routing.
 - [x] **Routing Validation Benchmark (P1.1): 88.9% baseline** - 270 routing test cases, Claude Sonnet 4. By category: fundamentals/officers/screening 100%, estimates 97.5%, edge cases 96%, datastream 87.5%, negative (out-of-domain) 10%. Excluding out-of-domain: **95.2%**. Enables Haiku cost comparison spike.
-- [x] **Entity Resolution (P0.2): 99.5% accuracy** - Database-backed resolution with 2.9M entities, pg_trgm fuzzy matching, multi-stage lookup (aliases → primary_name → ticker → fuzzy). See [edge cases doc](docs/plans/entity-resolution-edge-cases.md) for remaining 0.5%.
+- [x] **Entity Resolution (P0.2): 99.5% accuracy** - Database-backed resolution with 2.9M entities, pg_trgm fuzzy matching, multi-stage lookup (aliases → primary_name → ticker → fuzzy). See [edge cases doc](docs/plans/nl2api-03-entity-resolution-edge-cases.md) for remaining 0.5%.
 - [x] Public Release Audit (P0): LICENSE, CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, GitHub templates
 - [x] pyproject.toml metadata for PyPI
 - [x] MCP experimental notice + tracking in docs/status.md
