@@ -1159,34 +1159,82 @@ Application (OTLP) → OTEL Collector (4317) → Prometheus Exporter (8889) → 
 
 ## Current Status
 
-**Phase 5+ Complete** - Scale, Production, and Observability features implemented.
+**Codebase Separation Complete** - Reorganized into evalkit framework + applications.
 
+### Codebase Structure
+```
+src/
+├── evalkit/        # Evaluation framework (publishable)
+│   ├── contracts/  # Data models
+│   ├── common/     # Infrastructure (storage, telemetry, cache)
+│   ├── core/       # Evaluators (AST, temporal, semantics)
+│   ├── batch/      # Batch runner and metrics
+│   ├── cli/        # CLI commands
+│   ├── distributed/# Worker coordinator
+│   ├── continuous/ # Scheduler and alerts
+│   └── packs/      # Pack registry
+├── nl2api/         # NL2API application
+│   ├── evaluation/ # NL2API pack
+│   └── ...
+├── rag/            # RAG application
+│   ├── evaluation/ # RAG pack
+│   ├── retriever/
+│   ├── ingestion/
+│   └── ui/
+└── mcp_servers/    # MCP servers
+```
+
+### Infrastructure Components
 | Component | Description |
 |-----------|-------------|
-| Circuit Breaker | `src/common/resilience/circuit_breaker.py` - Fail-fast for external services |
-| Retry with Backoff | `src/common/resilience/retry.py` - Exponential backoff |
-| Redis Cache | `src/common/cache/redis_cache.py` - L1/L2 caching |
+| Circuit Breaker | `src/evalkit/common/resilience/circuit_breaker.py` - Fail-fast for external services |
+| Retry with Backoff | `src/evalkit/common/resilience/retry.py` - Exponential backoff |
+| Redis Cache | `src/evalkit/common/cache/redis_cache.py` - L1/L2 caching |
 | Bulk Indexing | COPY protocol for fast RAG inserts |
 | Checkpoint/Resume | Resumable indexing for large jobs |
-| OTEL Telemetry | `src/common/telemetry/` - Metrics, tracing via OTEL Collector |
+| OTEL Telemetry | `src/evalkit/common/telemetry/` - Metrics, tracing via OTEL Collector |
 | Accuracy Testing | `tests/accuracy/` - Real LLM accuracy evaluation framework |
 
-**Total Tests: 606+ (unit) + accuracy tests**
+**Total Tests: 1964 (unit) + accuracy tests**
 
 ## Important Files to Review
 
+### Evalkit (Evaluation Framework)
 | File | Purpose |
 |------|---------|
-| `src/contracts/` | All Pydantic v2 data models (core.py, evaluation.py, worker.py, tenant.py) |
+| `src/evalkit/contracts/` | All Pydantic v2 data models (core.py, evaluation.py, worker.py, tenant.py) |
+| `src/evalkit/common/` | Shared infrastructure (storage, telemetry, cache, resilience) |
+| `src/evalkit/core/` | Evaluation pipeline stages (AST comparator, temporal, semantics) |
+| `src/evalkit/batch/runner.py` | Batch evaluation runner |
+| `src/evalkit/batch/metrics.py` | OTEL metrics for evaluation |
+| `src/evalkit/cli/` | CLI commands (batch, continuous, matrix) |
+| `src/evalkit/distributed/` | Distributed worker coordinator |
+| `src/evalkit/packs/` | Pack registry and factory |
+
+### NL2API (Application)
+| File | Purpose |
+|------|---------|
 | `src/nl2api/orchestrator.py` | NL2API main entry point |
 | `src/nl2api/agents/*.py` | Domain agent implementations |
 | `src/nl2api/resolution/resolver.py` | Entity resolution implementation |
-| `src/evaluation/core/evaluators.py` | Evaluation pipeline stages (Syntax, Logic, etc.) |
-| `src/evaluation/batch/runner.py` | Batch evaluation runner |
-| `src/evaluation/batch/metrics.py` | OTEL metrics for evaluation |
+| `src/nl2api/evaluation/pack.py` | NL2API evaluation pack (4-stage waterfall) |
+
+### RAG (Application)
+| File | Purpose |
+|------|---------|
+| `src/rag/retriever/` | Hybrid RAG retriever |
+| `src/rag/ingestion/` | SEC EDGAR ingestion |
+| `src/rag/ui/` | Streamlit chat interface |
+| `src/rag/evaluation/pack.py` | RAG evaluation pack (8 stages) |
+
+### Testing & Docs
+| File | Purpose |
+|------|---------|
 | `scripts/generators/entity_resolution_generator.py` | Entity resolution test case generator |
 | `tests/unit/nl2api/test_fixture_coverage.py` | Dynamic test infrastructure |
 | `tests/unit/nl2api/fixture_loader.py` | Fixture loading utility |
 | `tests/accuracy/core/evaluator.py` | Accuracy testing evaluator |
 | `docs/accuracy-testing.md` | Accuracy testing pattern documentation |
 | `docs/evaluation-data.md` | Evaluation data and fixture documentation |
+
+**Note:** Old import paths (`src/contracts`, `src/common`, `src/evaluation`) still work via compatibility shims but new code should use `src/evalkit/*`.

@@ -1,5 +1,18 @@
 # Codebase Separation Plan
 
+**Status: Stage 1 Complete** (2026-01-24)
+
+All phases of Stage 1 have been implemented:
+- Phase 1: RAG code consolidated under src/rag/
+- Phase 2: Evalkit namespace created with backward-compatible shims
+- Phase 3: Packs reorganized into application directories
+- Phase 4: CLI entry points updated
+- Phase 5: Documentation updated
+
+All 1964 unit tests pass. Stage 2 (publishable packages) is deferred.
+
+---
+
 ## Executive Summary
 
 Separate the monolithic `nl2api` codebase into three distinct components:
