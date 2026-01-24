@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.nl2api.rag.protocols import DocumentType, RetrievalResult
+from src.rag.retriever.protocols import DocumentType, RetrievalResult
 
 
 class TestDocumentType:
@@ -107,7 +107,7 @@ class TestHybridRAGRetriever:
     @pytest.mark.asyncio
     async def test_retrieve_field_codes(self, mock_pool, mock_embedder) -> None:
         """Test retrieving field codes."""
-        from src.nl2api.rag.retriever import HybridRAGRetriever
+        from src.rag.retriever.retriever import HybridRAGRetriever
 
         pool, conn = mock_pool
         conn.fetch = AsyncMock(
@@ -141,7 +141,7 @@ class TestHybridRAGRetriever:
     @pytest.mark.asyncio
     async def test_retrieve_examples(self, mock_pool, mock_embedder) -> None:
         """Test retrieving query examples."""
-        from src.nl2api.rag.retriever import HybridRAGRetriever
+        from src.rag.retriever.retriever import HybridRAGRetriever
 
         pool, conn = mock_pool
         conn.fetch = AsyncMock(
@@ -175,7 +175,7 @@ class TestHybridRAGRetriever:
     @pytest.mark.asyncio
     async def test_retrieve_with_hybrid_scoring(self, mock_pool, mock_embedder) -> None:
         """Test hybrid vector + keyword scoring."""
-        from src.nl2api.rag.retriever import HybridRAGRetriever
+        from src.rag.retriever.retriever import HybridRAGRetriever
 
         pool, conn = mock_pool
         # Return results with both vector and text scores
@@ -217,7 +217,7 @@ class TestHybridRAGRetriever:
     @pytest.mark.asyncio
     async def test_retrieve_empty_results(self, mock_pool, mock_embedder) -> None:
         """Test handling of empty results."""
-        from src.nl2api.rag.retriever import HybridRAGRetriever
+        from src.rag.retriever.retriever import HybridRAGRetriever
 
         pool, conn = mock_pool
         conn.fetch = AsyncMock(return_value=[])
@@ -235,7 +235,7 @@ class TestHybridRAGRetriever:
     @pytest.mark.asyncio
     async def test_retrieve_without_embedder_raises(self, mock_pool) -> None:
         """Test that hybrid retrieve() without embedder raises RuntimeError."""
-        from src.nl2api.rag.retriever import HybridRAGRetriever
+        from src.rag.retriever.retriever import HybridRAGRetriever
 
         pool, conn = mock_pool
 
@@ -249,7 +249,7 @@ class TestHybridRAGRetriever:
     @pytest.mark.asyncio
     async def test_retrieve_field_codes_falls_back_to_keyword(self, mock_pool) -> None:
         """Test that retrieve_field_codes falls back to keyword search without embedder."""
-        from src.nl2api.rag.retriever import HybridRAGRetriever
+        from src.rag.retriever.retriever import HybridRAGRetriever
 
         pool, conn = mock_pool
 
@@ -289,7 +289,7 @@ class TestOpenAIEmbedder:
         """Test embedding a single text."""
         import asyncio
 
-        from src.nl2api.rag.retriever import OpenAIEmbedder
+        from src.rag.retriever.retriever import OpenAIEmbedder
 
         # Add usage tracking to mock response
         mock_openai.embeddings.create.return_value.usage = MagicMock()
@@ -314,7 +314,7 @@ class TestOpenAIEmbedder:
         """Test embedding a batch of texts."""
         import asyncio
 
-        from src.nl2api.rag.retriever import OpenAIEmbedder
+        from src.rag.retriever.retriever import OpenAIEmbedder
 
         mock_embedding1 = MagicMock()
         mock_embedding1.embedding = [0.1] * 1536
@@ -341,7 +341,7 @@ class TestOpenAIEmbedder:
 
     def test_dimension_property(self) -> None:
         """Test dimension property returns correct value for model."""
-        from src.nl2api.rag.retriever import OpenAIEmbedder
+        from src.rag.retriever.retriever import OpenAIEmbedder
 
         embedder = OpenAIEmbedder.__new__(OpenAIEmbedder)
         embedder._model = "text-embedding-3-small"
@@ -362,7 +362,7 @@ class TestRAGRetrieverProtocol:
 
     def test_protocol_is_runtime_checkable(self) -> None:
         """Test that RAGRetriever is runtime checkable."""
-        from src.nl2api.rag.protocols import RAGRetriever
+        from src.rag.retriever.protocols import RAGRetriever
 
         # Create a minimal implementation with correct signatures
         class MinimalRetriever:
@@ -386,7 +386,7 @@ class TestLocalEmbedder:
 
     def test_local_embedder_imports(self) -> None:
         """Test that LocalEmbedder can be imported."""
-        from src.nl2api.rag.embedders import Embedder, LocalEmbedder
+        from src.rag.retriever.embedders import Embedder, LocalEmbedder
 
         # LocalEmbedder should be a subclass of Embedder
         assert issubclass(LocalEmbedder, Embedder)
@@ -394,7 +394,7 @@ class TestLocalEmbedder:
     def test_create_embedder_local(self) -> None:
         """Test create_embedder factory with local provider."""
         pytest.importorskip("sentence_transformers")
-        from src.nl2api.rag.embedders import LocalEmbedder, create_embedder
+        from src.rag.retriever.embedders import LocalEmbedder, create_embedder
 
         embedder = create_embedder("local")
         assert isinstance(embedder, LocalEmbedder)
@@ -402,14 +402,14 @@ class TestLocalEmbedder:
 
     def test_create_embedder_invalid_provider(self) -> None:
         """Test create_embedder raises for unknown provider."""
-        from src.nl2api.rag.embedders import create_embedder
+        from src.rag.retriever.embedders import create_embedder
 
         with pytest.raises(ValueError, match="Unknown embedding provider"):
             create_embedder("invalid_provider")
 
     def test_create_embedder_openai_requires_api_key(self) -> None:
         """Test create_embedder raises when OpenAI API key missing."""
-        from src.nl2api.rag.embedders import create_embedder
+        from src.rag.retriever.embedders import create_embedder
 
         with pytest.raises(ValueError, match="api_key"):
             create_embedder("openai")
@@ -418,7 +418,7 @@ class TestLocalEmbedder:
     async def test_local_embedder_embed(self) -> None:
         """Test LocalEmbedder can generate embeddings."""
         pytest.importorskip("sentence_transformers")
-        from src.nl2api.rag.embedders import LocalEmbedder
+        from src.rag.retriever.embedders import LocalEmbedder
 
         embedder = LocalEmbedder()
         embedding = await embedder.embed("Apple stock price")
@@ -431,7 +431,7 @@ class TestLocalEmbedder:
     async def test_local_embedder_embed_batch(self) -> None:
         """Test LocalEmbedder can generate batch embeddings."""
         pytest.importorskip("sentence_transformers")
-        from src.nl2api.rag.embedders import LocalEmbedder
+        from src.rag.retriever.embedders import LocalEmbedder
 
         embedder = LocalEmbedder()
         embeddings = await embedder.embed_batch(["Apple", "Microsoft", "Google"])

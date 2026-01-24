@@ -4,7 +4,7 @@ SEC Filing Q&A - Streamlit Application
 Chat interface for asking questions about ingested SEC filings.
 
 Run with:
-    streamlit run src/rag_ui/app.py
+    streamlit run src/rag/ui/app.py
     # or
     python scripts/run_rag_ui.py
 """
@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 # Add project root to path for imports
-PROJECT_ROOT = Path(__file__).parent.parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Load .env file before other imports that depend on environment variables
@@ -27,8 +27,8 @@ load_dotenv(PROJECT_ROOT / ".env")
 import asyncpg
 import streamlit as st
 
-from src.rag_ui.config import RAGUIConfig
-from src.rag_ui.query_handler import RAGQueryHandler
+from src.rag.ui.config import RAGUIConfig
+from src.rag.ui.query_handler import RAGQueryHandler
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -10,8 +10,7 @@ Mark tests that require external network with @pytest.mark.network
 
 import os
 from datetime import datetime
-from pathlib import Path
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -43,7 +42,7 @@ class TestFilingRAGIndexer:
     @pytest.fixture
     def sample_chunks(self):
         """Create sample filing chunks for testing."""
-        from src.nl2api.ingestion.sec_filings.models import FilingChunk
+        from src.rag.ingestion.sec_filings.models import FilingChunk
 
         return [
             FilingChunk(
@@ -89,7 +88,7 @@ class TestFilingRAGIndexer:
     @pytest.mark.asyncio
     async def test_index_chunks_with_mock_embedder(self, pool, sample_chunks):
         """Test indexing chunks with mocked embedder."""
-        from src.nl2api.ingestion.sec_filings.indexer import FilingRAGIndexer
+        from src.rag.ingestion.sec_filings.indexer import FilingRAGIndexer
 
         # Create mock embedder
         mock_embedder = AsyncMock()
@@ -116,6 +115,7 @@ class TestFilingRAGIndexer:
                 )
                 # Note: metadata key might be 'filing_accession' depending on implementation
                 # This test validates the indexing flow
+                assert count is not None  # Validates the query executed
 
         finally:
             # Cleanup
@@ -124,7 +124,7 @@ class TestFilingRAGIndexer:
     @pytest.mark.asyncio
     async def test_delete_filing_chunks(self, pool, sample_chunks):
         """Test deleting filing chunks."""
-        from src.nl2api.ingestion.sec_filings.indexer import FilingRAGIndexer
+        from src.rag.ingestion.sec_filings.indexer import FilingRAGIndexer
 
         mock_embedder = AsyncMock()
         mock_embedder.embed_batch = AsyncMock(return_value=[[0.1] * 384, [0.2] * 384])
@@ -135,7 +135,7 @@ class TestFilingRAGIndexer:
         await indexer.index_chunks(sample_chunks, "test-delete-accession")
 
         # Delete chunks
-        deleted = await indexer.delete_filing_chunks("test-delete-accession")
+        _deleted = await indexer.delete_filing_chunks("test-delete-accession")
 
         # Verify deletion
         async with pool.acquire() as conn:
@@ -152,7 +152,7 @@ class TestFilingRAGIndexer:
     @pytest.mark.asyncio
     async def test_get_stats(self, pool):
         """Test getting indexing statistics."""
-        from src.nl2api.ingestion.sec_filings.indexer import FilingRAGIndexer
+        from src.rag.ingestion.sec_filings.indexer import FilingRAGIndexer
 
         indexer = FilingRAGIndexer(pool, batch_size=10)
 
@@ -182,7 +182,7 @@ class TestFilingMetadataRepo:
     @pytest.mark.asyncio
     async def test_upsert_and_get_filings(self, pool):
         """Test upserting and retrieving filing metadata."""
-        from src.nl2api.ingestion.sec_filings.indexer import FilingMetadataRepo
+        from src.rag.ingestion.sec_filings.indexer import FilingMetadataRepo
 
         repo = FilingMetadataRepo(pool)
 
@@ -221,7 +221,7 @@ class TestFilingMetadataRepo:
     @pytest.mark.asyncio
     async def test_update_status(self, pool):
         """Test updating filing status."""
-        from src.nl2api.ingestion.sec_filings.indexer import FilingMetadataRepo
+        from src.rag.ingestion.sec_filings.indexer import FilingMetadataRepo
 
         repo = FilingMetadataRepo(pool)
 
@@ -269,7 +269,7 @@ class TestFilingMetadataRepo:
     @pytest.mark.asyncio
     async def test_get_ingestion_summary(self, pool):
         """Test getting ingestion summary."""
-        from src.nl2api.ingestion.sec_filings.indexer import FilingMetadataRepo
+        from src.rag.ingestion.sec_filings.indexer import FilingMetadataRepo
 
         repo = FilingMetadataRepo(pool)
 
@@ -292,9 +292,9 @@ class TestSECEdgarClientIntegration:
     @pytest.mark.asyncio
     async def test_get_apple_filings(self):
         """Test fetching Apple's filings from SEC EDGAR."""
-        from src.nl2api.ingestion.sec_filings.client import SECEdgarClient
-        from src.nl2api.ingestion.sec_filings.config import SECFilingConfig
-        from src.nl2api.ingestion.sec_filings.models import FilingType
+        from src.rag.ingestion.sec_filings.client import SECEdgarClient
+        from src.rag.ingestion.sec_filings.config import SECFilingConfig
+        from src.rag.ingestion.sec_filings.models import FilingType
 
         config = SECFilingConfig(
             user_agent="NL2API Test Suite contact@example.com",

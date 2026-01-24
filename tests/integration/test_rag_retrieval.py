@@ -39,7 +39,7 @@ async def db_pool():
 @pytest.fixture
 async def retriever(db_pool):
     """Create RAG retriever without embedder (keyword-only mode)."""
-    from src.nl2api.rag.retriever import HybridRAGRetriever
+    from src.rag.retriever.retriever import HybridRAGRetriever
 
     return HybridRAGRetriever(db_pool)
 
@@ -106,7 +106,7 @@ class TestRAGKeywordRetrieval:
         if not has_indexed_data:
             pytest.skip("No RAG documents indexed")
 
-        from src.nl2api.rag.protocols import DocumentType
+        from src.rag.retriever.protocols import DocumentType
 
         results = await retriever.retrieve_by_keyword(
             query="market cap",

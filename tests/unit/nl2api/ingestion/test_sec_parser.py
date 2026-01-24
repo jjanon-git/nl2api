@@ -4,8 +4,8 @@ from datetime import datetime
 
 import pytest
 
-from src.nl2api.ingestion.sec_filings.models import Filing, FilingType
-from src.nl2api.ingestion.sec_filings.parser import (
+from src.rag.ingestion.sec_filings.models import Filing, FilingType
+from src.rag.ingestion.sec_filings.parser import (
     FilingParser,
     get_section_metadata,
 )
@@ -108,7 +108,7 @@ class TestFilingParser:
         The following discussion should be read...
         """
 
-        from src.nl2api.ingestion.sec_filings.parser import (
+        from src.rag.ingestion.sec_filings.parser import (
             KEY_SECTIONS_10K,
             SECTION_PATTERNS_10K,
         )

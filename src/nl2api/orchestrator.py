@@ -22,9 +22,9 @@ from src.nl2api.llm.protocols import LLMMessage, LLMProvider, MessageRole
 from src.nl2api.mcp.context import ContextProvider
 from src.nl2api.models import ClarificationQuestion, NL2APIResponse
 from src.nl2api.observability import RequestMetrics, emit_metrics
-from src.nl2api.rag.protocols import RAGRetriever
 from src.nl2api.resolution.protocols import EntityResolver
 from src.nl2api.routing.protocols import QueryRouter
+from src.rag.retriever.protocols import RAGRetriever
 
 if TYPE_CHECKING:
     from src.nl2api.routing.cache import RoutingCache

@@ -4,9 +4,9 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.nl2api.rag.protocols import DocumentType, RetrievalResult
-from src.rag_ui.config import RAGUIConfig
-from src.rag_ui.query_handler import QueryResult, RAGQueryHandler
+from src.rag.retriever.protocols import DocumentType, RetrievalResult
+from src.rag.ui.config import RAGUIConfig
+from src.rag.ui.query_handler import QueryResult, RAGQueryHandler
 
 
 @pytest.fixture

@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from src.nl2api.ingestion.sec_filings.models import Filing, FilingSection, FilingType
+from src.rag.ingestion.sec_filings.models import Filing, FilingSection, FilingType
 
 logger = logging.getLogger(__name__)
 
@@ -242,7 +242,9 @@ class FilingParser:
             soup = BeautifulSoup(html, "lxml")
 
             # Remove script, style, and XBRL elements
-            for element in soup(["script", "style", "ix:nonfraction", "ix:nonnumeric", "ix:header"]):
+            for element in soup(
+                ["script", "style", "ix:nonfraction", "ix:nonnumeric", "ix:header"]
+            ):
                 element.decompose()
 
             # Get text

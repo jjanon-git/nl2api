@@ -4,9 +4,9 @@ from datetime import datetime
 
 import pytest
 
-from src.nl2api.ingestion.sec_filings.chunker import DocumentChunker, estimate_chunk_count
-from src.nl2api.ingestion.sec_filings.config import SECFilingConfig
-from src.nl2api.ingestion.sec_filings.models import Filing, FilingType
+from src.rag.ingestion.sec_filings.chunker import DocumentChunker, estimate_chunk_count
+from src.rag.ingestion.sec_filings.config import SECFilingConfig
+from src.rag.ingestion.sec_filings.models import Filing, FilingType
 
 
 class TestDocumentChunker:
@@ -111,9 +111,7 @@ class TestDocumentChunker:
             assert chunk.metadata["section"] == "risk_factors"
             assert chunk.metadata["filing_type"] == "10-K"
 
-    def test_chunk_filing_multiple_sections(
-        self, chunker: DocumentChunker, sample_filing: Filing
-    ):
+    def test_chunk_filing_multiple_sections(self, chunker: DocumentChunker, sample_filing: Filing):
         """Test chunking multiple sections of a filing."""
         sections = {
             "business": "Apple Inc. designs and manufactures smartphones. " * 20,
@@ -135,9 +133,7 @@ class TestDocumentChunker:
         chunk_ids = [chunk.chunk_id for chunk in chunks]
         assert len(chunk_ids) == len(set(chunk_ids))  # All unique
 
-    def test_empty_text_returns_empty_list(
-        self, chunker: DocumentChunker, sample_filing: Filing
-    ):
+    def test_empty_text_returns_empty_list(self, chunker: DocumentChunker, sample_filing: Filing):
         """Test that empty text returns empty chunk list."""
         chunks = chunker.chunk_section("", sample_filing, "mda")
         assert chunks == []

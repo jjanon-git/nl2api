@@ -9,8 +9,8 @@ import logging
 import re
 from datetime import datetime
 
-from src.nl2api.ingestion.sec_filings.config import SECFilingConfig
-from src.nl2api.ingestion.sec_filings.models import Filing, FilingChunk
+from src.rag.ingestion.sec_filings.config import SECFilingConfig
+from src.rag.ingestion.sec_filings.models import Filing, FilingChunk
 
 logger = logging.getLogger(__name__)
 

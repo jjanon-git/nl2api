@@ -10,13 +10,13 @@ import uuid
 from typing import TYPE_CHECKING, Any
 
 from src.common.telemetry import get_tracer
-from src.nl2api.ingestion.sec_filings.models import FilingChunk
-from src.nl2api.rag.protocols import DocumentType
+from src.rag.ingestion.sec_filings.models import FilingChunk
+from src.rag.retriever.protocols import DocumentType
 
 if TYPE_CHECKING:
     import asyncpg
 
-    from src.nl2api.rag.embedders import Embedder
+    from src.rag.retriever.embedders import Embedder
 
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)
@@ -55,7 +55,7 @@ class FilingRAGIndexer:
         """Ensure embedder is available, creating default if needed."""
         if self._embedder is None:
             # Import here to avoid circular dependency
-            from src.nl2api.rag.embedders import create_embedder
+            from src.rag.retriever.embedders import create_embedder
 
             self._embedder = create_embedder("local")
             logger.info("Created default local embedder (384 dimensions)")
@@ -99,7 +99,9 @@ class FilingRAGIndexer:
                 batch_ids = await self._bulk_insert_chunks(batch, contents, embeddings)
                 doc_ids.extend(batch_ids)
 
-                logger.debug(f"Indexed batch of {len(batch)} chunks ({i + len(batch)}/{len(chunks)})")
+                logger.debug(
+                    f"Indexed batch of {len(batch)} chunks ({i + len(batch)}/{len(chunks)})"
+                )
 
             span.set_attribute("sec.indexed_count", len(doc_ids))
             logger.info(f"Indexed {len(doc_ids)} chunks for filing {filing_accession or 'unknown'}")
@@ -433,7 +435,7 @@ class FilingMetadataRepo:
 
             query = f"""
                 UPDATE sec_filings
-                SET {', '.join(updates)}, updated_at = NOW()
+                SET {", ".join(updates)}, updated_at = NOW()
                 WHERE accession_number = $1
             """
             await conn.execute(query, *params)

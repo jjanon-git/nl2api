@@ -23,7 +23,7 @@ from src.nl2api.agents.screening import ScreeningAgent
 
 if TYPE_CHECKING:
     from src.nl2api.llm.protocols import LLMProvider
-    from src.nl2api.rag.protocols import RAGRetriever
+    from src.rag.retriever.protocols import RAGRetriever
 
 
 # Agent registry mapping domain names to agent classes

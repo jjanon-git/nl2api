@@ -37,15 +37,15 @@ sys.path.insert(0, str(PROJECT_ROOT))
 import asyncpg
 
 from src.nl2api.ingestion.errors import DownloadError, IngestionAbortError
-from src.nl2api.ingestion.sec_filings.chunker import DocumentChunker
-from src.nl2api.ingestion.sec_filings.client import (
+from src.rag.ingestion.sec_filings.chunker import DocumentChunker
+from src.rag.ingestion.sec_filings.client import (
     SECEdgarClient,
     load_sp500_companies,
 )
-from src.nl2api.ingestion.sec_filings.config import SECFilingConfig
-from src.nl2api.ingestion.sec_filings.indexer import FilingMetadataRepo, FilingRAGIndexer
-from src.nl2api.ingestion.sec_filings.models import Filing, FilingCheckpoint
-from src.nl2api.ingestion.sec_filings.parser import FilingParser
+from src.rag.ingestion.sec_filings.config import SECFilingConfig
+from src.rag.ingestion.sec_filings.indexer import FilingMetadataRepo, FilingRAGIndexer
+from src.rag.ingestion.sec_filings.models import Filing, FilingCheckpoint
+from src.rag.ingestion.sec_filings.parser import FilingParser
 
 # Configure logging
 logging.basicConfig(
@@ -71,7 +71,9 @@ class CheckpointManager:
             json.dump(checkpoint.to_dict(), f, indent=2)
 
         os.replace(temp_path, self._checkpoint_path)
-        logger.debug(f"Saved checkpoint: {checkpoint.companies_processed}/{checkpoint.total_companies} companies")
+        logger.debug(
+            f"Saved checkpoint: {checkpoint.companies_processed}/{checkpoint.total_companies} companies"
+        )
 
     def load(self) -> FilingCheckpoint | None:
         """Load existing checkpoint."""
@@ -119,7 +121,9 @@ async def process_filing(
     """
     try:
         # Download filing
-        logger.info(f"Processing: {filing.company_name} ({filing.ticker}) - {filing.filing_type.value} {filing.filing_date.strftime('%Y-%m-%d')}")
+        logger.info(
+            f"Processing: {filing.company_name} ({filing.ticker}) - {filing.filing_type.value} {filing.filing_date.strftime('%Y-%m-%d')}"
+        )
 
         if metadata_repo:
             await metadata_repo.upsert_filing(
@@ -333,7 +337,9 @@ async def run_ingestion(
         return checkpoint
 
     # Connect to database
-    database_url = os.environ.get("DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api")
+    database_url = os.environ.get(
+        "DATABASE_URL", "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+    )
 
     pool = await asyncpg.create_pool(database_url)
     if pool is None:
@@ -369,7 +375,9 @@ async def run_ingestion(
                     checkpoint.complete_company()
 
                 except Exception as e:
-                    logger.error(f"Error processing company {company.get('name', company['cik'])}: {e}")
+                    logger.error(
+                        f"Error processing company {company.get('name', company['cik'])}: {e}"
+                    )
                     checkpoint.error_count += 1
                     checkpoint.last_error = str(e)
 
@@ -386,7 +394,9 @@ async def run_ingestion(
                 # Save checkpoint periodically
                 if (idx + 1) % config.checkpoint_interval == 0:
                     checkpoint_manager.save(checkpoint)
-                    logger.info(f"Checkpoint saved: {checkpoint.companies_processed}/{checkpoint.total_companies} companies")
+                    logger.info(
+                        f"Checkpoint saved: {checkpoint.companies_processed}/{checkpoint.total_companies} companies"
+                    )
 
                 # Delay between companies to be respectful of SEC servers
                 if config.inter_company_delay_seconds > 0 and idx < len(companies) - 1:
@@ -498,7 +508,9 @@ async def main() -> int:
             found_tickers = {c.get("ticker", "").upper() for c in companies}
             for ticker in tickers:
                 if ticker not in found_tickers:
-                    logger.warning(f"Ticker {ticker} not in S&P 500 data, will attempt to look up CIK")
+                    logger.warning(
+                        f"Ticker {ticker} not in S&P 500 data, will attempt to look up CIK"
+                    )
                     # We'd need to look up CIK from SEC - for now skip
         except FileNotFoundError:
             logger.error(f"S&P 500 data file not found: {args.data_file}")
@@ -525,7 +537,9 @@ async def main() -> int:
     if args.resume:
         resume_checkpoint = checkpoint_manager.load()
         if resume_checkpoint and resume_checkpoint.is_resumable:
-            logger.info(f"Found resumable checkpoint: {resume_checkpoint.companies_processed}/{resume_checkpoint.total_companies} companies")
+            logger.info(
+                f"Found resumable checkpoint: {resume_checkpoint.companies_processed}/{resume_checkpoint.total_companies} companies"
+            )
         else:
             logger.info("No resumable checkpoint found, starting fresh")
             resume_checkpoint = None

@@ -1,16 +1,24 @@
 #!/usr/bin/env python3
 """
-Run RAG retrieval baseline evaluation.
+DEPRECATED: Use batch evaluation framework instead.
 
+This standalone script does NOT integrate with the observability stack (Prometheus/Grafana)
+and results are not tracked over time. Use the batch evaluation framework:
+
+    # Load fixtures first (one-time)
+    python scripts/load_rag_fixtures.py
+
+    # Run RAG evaluation with proper tracking
+    python -m src.evaluation.cli.main batch run --pack rag --tag rag --label your-label
+
+See docs/plans/rag-ingestion-improvements.md for details.
+
+---
+Original description (for reference):
 Measures retrieval performance on the SEC evaluation dataset:
 - Recall@K: Fraction of relevant docs retrieved in top K
 - MRR@K: Mean Reciprocal Rank in top K
 - NDCG@K: Normalized Discounted Cumulative Gain
-
-Usage:
-    python scripts/run_rag_baseline.py                     # Run evaluation
-    python scripts/run_rag_baseline.py --top-k 10          # Custom top-k
-    python scripts/run_rag_baseline.py --output results/baseline.json
 """
 
 import argparse
@@ -29,8 +37,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import asyncpg
 from dotenv import load_dotenv
 
-from src.nl2api.rag.embedders import OpenAIEmbedder
-from src.nl2api.rag.retriever import HybridRAGRetriever
+from src.common.git_info import get_git_info
+from src.rag.retriever.embedders import OpenAIEmbedder
+from src.rag.retriever.retriever import HybridRAGRetriever
 
 load_dotenv()
 
@@ -269,7 +278,7 @@ async def main(args: argparse.Namespace):
         # Create reranker if requested
         reranker = None
         if args.with_reranking:
-            from src.nl2api.rag.reranker import create_reranker
+            from src.rag.retriever.reranker import create_reranker
 
             logger.info("Loading cross-encoder reranker...")
             reranker = create_reranker()
@@ -289,8 +298,17 @@ async def main(args: argparse.Namespace):
         logger.info(f"Running evaluation with top_k={args.top_k}...")
         results = await run_evaluation(pool, retriever, test_cases, top_k=args.top_k)
 
-        # Add metadata
+        # Capture git info for experiment tracking
+        git_info = get_git_info()
+
+        # Add metadata with run tracking
         results["metadata"] = {
+            # Run tracking
+            "run_label": args.label,
+            "run_description": args.description,
+            "git_commit": git_info.commit,
+            "git_branch": git_info.branch,
+            # Evaluation info
             "evaluation_dataset": str(eval_path),
             "timestamp": datetime.now().isoformat(),
             "top_k": args.top_k,
@@ -310,8 +328,13 @@ async def main(args: argparse.Namespace):
 
         # Print results
         print("\n" + "=" * 60)
-        print("RAG RETRIEVAL BASELINE RESULTS")
+        print("RAG RETRIEVAL EVALUATION RESULTS")
         print("=" * 60)
+        print(f"\nRun Label: {args.label}")
+        if args.description:
+            print(f"Description: {args.description}")
+        if git_info.commit:
+            print(f"Git: {git_info.commit} ({git_info.branch or 'detached'})")
         print(f"\nOverall Metrics (top-{args.top_k}):")
         for metric, value in results["metrics"].items():
             if isinstance(value, float):
@@ -339,7 +362,36 @@ async def main(args: argparse.Namespace):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run RAG baseline evaluation")
+    # Deprecation warning
+    import warnings
+
+    warnings.warn(
+        "\n" + "=" * 70 + "\n"
+        "DEPRECATED: This script does not integrate with observability stack.\n"
+        "Results will NOT appear in Grafana dashboards or Prometheus metrics.\n"
+        "\n"
+        "Use the batch evaluation framework instead:\n"
+        "  1. python scripts/load_rag_fixtures.py  # Load fixtures (one-time)\n"
+        "  2. python -m src.evaluation.cli.main batch run --pack rag --tag rag --label YOUR_LABEL\n"
+        "\n"
+        "See docs/plans/rag-ingestion-improvements.md for details.\n" + "=" * 70,
+        DeprecationWarning,
+        stacklevel=1,
+    )
+
+    parser = argparse.ArgumentParser(description="[DEPRECATED] Run RAG retrieval evaluation")
+    parser.add_argument(
+        "--label",
+        type=str,
+        required=True,
+        help="Label for this run (e.g., 'baseline-v1', 'contextual-chunking'). Required for tracking.",
+    )
+    parser.add_argument(
+        "--description",
+        type=str,
+        default=None,
+        help="Optional description for this run",
+    )
     parser.add_argument(
         "--eval-dataset",
         type=str,
@@ -349,14 +401,14 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output",
         type=str,
-        default="results/rag_baseline.json",
-        help="Output file for results",
+        default=None,
+        help="Output file for results (default: results/rag_{label}.json)",
     )
     parser.add_argument(
         "--top-k",
         type=int,
-        default=10,
-        help="Top-K for retrieval metrics",
+        default=5,
+        help="Top-K for retrieval metrics (default: 5)",
     )
     parser.add_argument(
         "--force",
@@ -376,4 +428,9 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    # Auto-generate output path from label if not specified
+    if args.output is None:
+        args.output = f"results/rag_{args.label}.json"
+
     asyncio.run(main(args))

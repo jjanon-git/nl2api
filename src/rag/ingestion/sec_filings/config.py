@@ -9,7 +9,7 @@ from pathlib import Path
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from src.nl2api.ingestion.sec_filings.models import FilingType
+from src.rag.ingestion.sec_filings.models import FilingType
 
 
 class SECFilingConfig(BaseSettings):

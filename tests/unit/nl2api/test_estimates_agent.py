@@ -14,7 +14,7 @@ from src.nl2api.llm.protocols import (
     LLMToolCall,
     LLMToolDefinition,
 )
-from src.nl2api.rag.indexer import (
+from src.rag.retriever.indexer import (
     FieldCodeDocument,
     QueryExampleDocument,
     parse_estimates_reference,

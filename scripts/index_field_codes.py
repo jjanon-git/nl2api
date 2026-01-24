@@ -82,8 +82,8 @@ async def main():
     args = parser.parse_args()
 
     # Import here to avoid circular imports
-    from src.nl2api.rag import indexer as indexer_module
-    from src.nl2api.rag.indexer import (
+    from src.rag.retriever import indexer as indexer_module
+    from src.rag.retriever.indexer import (
         FieldCodeDocument,
         RAGIndexer,
         index_with_rich_progress,
@@ -156,7 +156,7 @@ async def main():
 
         # Set up embedder if generating embeddings
         if not args.no_embeddings:
-            from src.nl2api.rag.embedders import create_embedder
+            from src.rag.retriever.embedders import create_embedder
 
             if embedding_provider == "openai":
                 embedder = create_embedder(

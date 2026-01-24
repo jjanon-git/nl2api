@@ -325,6 +325,20 @@ class PostgresTestCaseRepository:
         if isinstance(raw_data, str):
             raw_data = json.loads(raw_data)
 
+        # Parse generic input/expected fields (for RAG and other packs)
+        # Note: asyncpg.Record doesn't support .get(), so we check keys directly
+        input_data = {}
+        if "input_json" in row.keys() and row["input_json"]:
+            input_data = row["input_json"]
+            if isinstance(input_data, str):
+                input_data = json.loads(input_data)
+
+        expected_data = {}
+        if "expected_json" in row.keys() and row["expected_json"]:
+            expected_data = row["expected_json"]
+            if isinstance(expected_data, str):
+                expected_data = json.loads(expected_data)
+
         # Parse embedding
         embedding = None
         if row["embedding"] is not None:
@@ -347,6 +361,10 @@ class PostgresTestCaseRepository:
 
         return TestCase(
             id=str(row["id"]),
+            # Generic fields (for RAG and other packs)
+            input=input_data,
+            expected=expected_data,
+            # NL2API-specific fields (backwards compatible)
             nl_query=row["nl_query"],
             expected_tool_calls=tool_calls,
             expected_response=raw_data,

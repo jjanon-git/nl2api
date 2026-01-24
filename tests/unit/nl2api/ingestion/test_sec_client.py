@@ -7,14 +7,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.nl2api.ingestion.sec_filings.client import (
+from src.rag.ingestion.sec_filings.client import (
     AsyncRateLimiter,
     SECEdgarClient,
     filter_filings_by_date,
     load_sp500_companies,
 )
-from src.nl2api.ingestion.sec_filings.config import SECFilingConfig
-from src.nl2api.ingestion.sec_filings.models import Filing, FilingType
+from src.rag.ingestion.sec_filings.config import SECFilingConfig
+from src.rag.ingestion.sec_filings.models import Filing, FilingType
 
 
 class TestAsyncRateLimiter:

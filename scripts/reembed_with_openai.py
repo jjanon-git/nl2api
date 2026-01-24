@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 import asyncpg
 from dotenv import load_dotenv
 
-from src.nl2api.rag.embedders import OpenAIEmbedder
+from src.rag.retriever.embedders import OpenAIEmbedder
 
 # Load environment
 load_dotenv()

@@ -13,22 +13,22 @@ Components:
     - FilingRAGIndexer: Indexes chunks with local embeddings
 """
 
-from src.nl2api.ingestion.sec_filings.chunker import DocumentChunker, estimate_chunk_count
-from src.nl2api.ingestion.sec_filings.client import (
+from src.rag.ingestion.sec_filings.chunker import DocumentChunker, estimate_chunk_count
+from src.rag.ingestion.sec_filings.client import (
     SECEdgarClient,
     filter_filings_by_date,
     load_sp500_companies,
 )
-from src.nl2api.ingestion.sec_filings.config import SECFilingConfig
-from src.nl2api.ingestion.sec_filings.indexer import FilingMetadataRepo, FilingRAGIndexer
-from src.nl2api.ingestion.sec_filings.models import (
+from src.rag.ingestion.sec_filings.config import SECFilingConfig
+from src.rag.ingestion.sec_filings.indexer import FilingMetadataRepo, FilingRAGIndexer
+from src.rag.ingestion.sec_filings.models import (
     Filing,
     FilingCheckpoint,
     FilingChunk,
     FilingSection,
     FilingType,
 )
-from src.nl2api.ingestion.sec_filings.parser import FilingParser, get_section_metadata
+from src.rag.ingestion.sec_filings.parser import FilingParser, get_section_metadata
 
 __all__ = [
     # Config

@@ -4,7 +4,7 @@ from datetime import datetime
 
 import pytest
 
-from src.nl2api.ingestion.sec_filings.models import (
+from src.rag.ingestion.sec_filings.models import (
     Filing,
     FilingCheckpoint,
     FilingChunk,

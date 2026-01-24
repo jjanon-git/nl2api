@@ -107,7 +107,7 @@ SUB_TYPES = [
 
 def generate_indicators(limit: int):
     """Generate a list of economic indicator documents."""
-    from src.nl2api.rag.indexer import EconomicIndicatorDocument
+    from src.rag.retriever.indexer import EconomicIndicatorDocument
 
     docs = []
     count = 0
@@ -192,7 +192,7 @@ async def main():
         TimeRemainingColumn,
     )
 
-    from src.nl2api.rag.indexer import RAGIndexer
+    from src.rag.retriever.indexer import RAGIndexer
 
     print(f"Generating {args.limit} economic indicators...")
     docs = generate_indicators(args.limit)
@@ -219,7 +219,7 @@ async def main():
                 print("ERROR: OPENAI_API_KEY not set! Use --no-embeddings to skip.")
                 return
 
-            from src.nl2api.rag.retriever import OpenAIEmbedder
+            from src.rag.retriever.retriever import OpenAIEmbedder
 
             embedder = OpenAIEmbedder(api_key=openai_key)
             indexer.set_embedder(embedder)

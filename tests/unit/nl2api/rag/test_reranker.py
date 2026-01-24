@@ -4,8 +4,8 @@ Unit tests for cross-encoder reranker.
 
 import pytest
 
-from src.nl2api.rag.protocols import DocumentType, RetrievalResult
-from src.nl2api.rag.reranker import CrossEncoderReranker, create_reranker
+from src.rag.retriever.protocols import DocumentType, RetrievalResult
+from src.rag.retriever.reranker import CrossEncoderReranker, create_reranker
 
 
 @pytest.fixture

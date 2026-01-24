@@ -19,7 +19,7 @@ from src.nl2api.llm.protocols import (
     LLMToolDefinition,
     MessageRole,
 )
-from src.nl2api.rag.protocols import RAGRetriever
+from src.rag.retriever.protocols import RAGRetriever
 
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)

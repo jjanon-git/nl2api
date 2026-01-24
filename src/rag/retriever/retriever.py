@@ -18,13 +18,13 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from src.common.telemetry import get_tracer
-from src.nl2api.rag.protocols import DocumentType, RetrievalResult
+from src.rag.retriever.protocols import DocumentType, RetrievalResult
 
 if TYPE_CHECKING:
     import asyncpg
 
     from src.common.cache import RedisCache
-    from src.nl2api.rag.reranker import Reranker
+    from src.rag.retriever.reranker import Reranker
 
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)
@@ -480,8 +480,8 @@ class HybridRAGRetriever:
 
 
 # Re-export embedders for backwards compatibility
-# Prefer using src.nl2api.rag.embedders directly
-from src.nl2api.rag.embedders import (
+# Prefer using src.rag.retriever.embedders directly
+from src.rag.retriever.embedders import (
     Embedder,
     LocalEmbedder,
     OpenAIEmbedder,
@@ -489,7 +489,7 @@ from src.nl2api.rag.embedders import (
 )
 
 # Re-export reranker for convenience
-from src.nl2api.rag.reranker import (
+from src.rag.retriever.reranker import (
     CrossEncoderReranker,
     Reranker,
     create_reranker,

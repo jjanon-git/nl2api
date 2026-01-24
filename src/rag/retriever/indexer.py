@@ -20,8 +20,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from src.common.telemetry import get_tracer
-from src.nl2api.rag.checkpoint import CheckpointManager, IndexingCheckpoint
-from src.nl2api.rag.protocols import DocumentType
+from src.rag.retriever.checkpoint import CheckpointManager, IndexingCheckpoint
+from src.rag.retriever.protocols import DocumentType
 
 if TYPE_CHECKING:
     import asyncpg

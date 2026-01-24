@@ -71,7 +71,9 @@ class Filing:
     @property
     def filing_directory_url(self) -> str:
         """Return URL to the filing directory on EDGAR."""
-        return f"https://www.sec.gov/Archives/edgar/data/{self.cik}/{self.accession_number_no_dashes}"
+        return (
+            f"https://www.sec.gov/Archives/edgar/data/{self.cik}/{self.accession_number_no_dashes}"
+        )
 
     @property
     def primary_document_url(self) -> str:

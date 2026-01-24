@@ -598,17 +598,35 @@ When modifying `src/evaluation/batch/`:
 - **Unit tests** are for verifying **code correctness** with mocked dependencies
 - **Simulated responses** produce 100% pass rates and are meaningless for tracking improvement
 
-**Pack selection is REQUIRED:**
+**Pack AND Tag selection is REQUIRED:**
 ```bash
-# --pack is required - no default pack
-.venv/bin/python -m src.evaluation.cli.main batch run --pack nl2api --tag entity_resolution --limit 100
+# --pack and --tag are REQUIRED - ensures reproducible, trackable evaluation runs
+.venv/bin/python -m src.evaluation.cli.main batch run --pack nl2api --tag entity_resolution --label my-test
 
-# Available packs and modes
-batch run --pack nl2api --mode resolver       # Real accuracy (DEFAULT mode)
-batch run --pack nl2api --mode orchestrator   # Full pipeline (requires LLM API key)
-batch run --pack nl2api --mode simulated      # Pipeline testing only (NOT for tracking)
-batch run --pack rag                          # RAG evaluation (retrieval, faithfulness)
+# Available packs, tags, and modes
+batch run --pack nl2api --tag entity_resolution --label <label>  # Entity resolution accuracy
+batch run --pack nl2api --tag lookups --label <label>            # Single/multi-field queries
+batch run --pack nl2api --tag temporal --label <label>           # Date-based queries
+batch run --pack nl2api --tag screening --label <label>          # Screening/filtering
+batch run --pack rag --tag rag --label <label>                   # RAG retrieval evaluation
+
+# Additional mode options for NL2API
+--mode resolver      # (DEFAULT) Entity resolution only
+--mode orchestrator  # Full pipeline (requires LLM API key)
 ```
+
+**RAG Evaluation Prerequisites:**
+```bash
+# 1. Load RAG fixtures to database (one-time setup)
+python scripts/load_rag_fixtures.py
+
+# 2. Run RAG evaluation with proper tracking
+python -m src.evaluation.cli.main batch run --pack rag --tag rag --label my-experiment
+
+# 3. View results in Grafana at http://localhost:3000
+```
+
+**IMPORTANT:** Never use `scripts/run_rag_baseline.py` directly - it's deprecated and doesn't integrate with the observability stack. Always use the batch framework for tracked, reproducible evaluation runs.
 
 **What gets persisted to track over time:**
 - Scorecards with pass/fail for each test case

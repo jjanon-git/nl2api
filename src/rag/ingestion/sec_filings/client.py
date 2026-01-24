@@ -15,12 +15,12 @@ from typing import Any
 import httpx
 
 from src.nl2api.ingestion.errors import DownloadError
-from src.nl2api.ingestion.sec_filings.config import (
+from src.rag.ingestion.sec_filings.config import (
     SEC_ARCHIVES_BASE_URL,
     SEC_COMPANY_SUBMISSIONS_URL,
     SECFilingConfig,
 )
-from src.nl2api.ingestion.sec_filings.models import Filing, FilingType
+from src.rag.ingestion.sec_filings.models import Filing, FilingType
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,9 @@ class SECEdgarClient:
     def _get_client(self) -> httpx.AsyncClient:
         """Get HTTP client, raising if not initialized."""
         if self._client is None:
-            raise RuntimeError("Client not initialized. Use 'async with SECEdgarClient()' context manager.")
+            raise RuntimeError(
+                "Client not initialized. Use 'async with SECEdgarClient()' context manager."
+            )
         return self._client
 
     async def _request_with_retry(
@@ -126,15 +128,17 @@ class SECEdgarClient:
 
                 if response.status_code == 429:
                     # Rate limited - wait and retry
-                    wait_time = 2 ** attempt
+                    wait_time = 2**attempt
                     logger.warning(f"Rate limited by SEC EDGAR. Waiting {wait_time}s before retry.")
                     await asyncio.sleep(wait_time)
                     continue
 
                 if response.status_code >= 500:
                     # Server error - retry with backoff
-                    wait_time = 2 ** attempt
-                    logger.warning(f"SEC EDGAR server error {response.status_code}. Waiting {wait_time}s.")
+                    wait_time = 2**attempt
+                    logger.warning(
+                        f"SEC EDGAR server error {response.status_code}. Waiting {wait_time}s."
+                    )
                     await asyncio.sleep(wait_time)
                     continue
 
@@ -143,14 +147,16 @@ class SECEdgarClient:
 
             except httpx.TimeoutException as e:
                 last_error = e
-                wait_time = 2 ** attempt
-                logger.warning(f"Request timeout. Retry {attempt + 1}/{max_retries} after {wait_time}s.")
+                wait_time = 2**attempt
+                logger.warning(
+                    f"Request timeout. Retry {attempt + 1}/{max_retries} after {wait_time}s."
+                )
                 await asyncio.sleep(wait_time)
 
             except httpx.HTTPStatusError as e:
                 if e.response.status_code in (429, 500, 502, 503, 504):
                     last_error = e
-                    wait_time = 2 ** attempt
+                    wait_time = 2**attempt
                     await asyncio.sleep(wait_time)
                 else:
                     raise DownloadError(

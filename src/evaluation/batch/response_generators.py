@@ -342,6 +342,92 @@ def create_tool_only_generator(
     return generate_tool_only_response
 
 
+def create_rag_retrieval_generator(retriever, embedder=None):
+    """
+    Create a response generator that uses real RAG retrieval.
+
+    This generator runs actual retrieval queries through the HybridRAGRetriever,
+    returning the retrieved chunks for comparison against ground truth.
+
+    Args:
+        retriever: HybridRAGRetriever instance
+        embedder: Optional embedder to set on retriever
+
+    Returns:
+        Async function that generates SystemResponse from TestCase
+    """
+
+    async def generate_rag_retrieval_response(test_case: TestCase) -> SystemResponse:
+        """
+        Generate response by running real RAG retrieval.
+
+        Uses test_case.input['query'] to run retrieval and returns
+        the retrieved document IDs for comparison against expected.
+        """
+        import time
+
+        start_time = time.perf_counter()
+
+        try:
+            # Get query from test case
+            query = test_case.input.get("query", test_case.nl_query or "")
+
+            if not query:
+                return SystemResponse(
+                    raw_output=json.dumps({"error": "No query provided"}),
+                    nl_response=None,
+                    latency_ms=0,
+                    error="No query in test case",
+                )
+
+            # Run retrieval
+            results = await retriever.retrieve(
+                query=query,
+                document_types=None,  # All types
+                limit=10,
+                threshold=0.0,  # No threshold for evaluation
+                use_cache=False,
+            )
+
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
+
+            # Extract retrieved doc IDs
+            retrieved_doc_ids = [str(r.id) for r in results]
+            retrieved_chunks = [
+                {
+                    "id": str(r.id),
+                    "text": r.content[:500],  # Truncate for storage
+                    "score": r.score,
+                }
+                for r in results
+            ]
+
+            return SystemResponse(
+                raw_output=json.dumps(
+                    {
+                        "response": f"Retrieved {len(results)} documents for: {query[:50]}...",
+                        "retrieved_doc_ids": retrieved_doc_ids,
+                        "retrieved_chunks": retrieved_chunks,
+                        "context": "\n\n".join([r.content[:200] for r in results[:3]]),
+                        "sources": [],
+                    }
+                ),
+                nl_response=f"Retrieved {len(results)} documents.",
+                latency_ms=latency_ms,
+            )
+
+        except Exception as e:
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
+            return SystemResponse(
+                raw_output=json.dumps({"error": str(e)}),
+                nl_response=None,
+                latency_ms=latency_ms,
+                error=str(e),
+            )
+
+    return generate_rag_retrieval_response
+
+
 def create_rag_simulated_generator(pass_rate: float = 0.7):
     """
     Create a response generator for RAG evaluation with simulated responses.

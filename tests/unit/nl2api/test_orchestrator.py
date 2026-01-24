@@ -331,7 +331,7 @@ class TestOrchestratorWithRAG:
     @pytest.mark.asyncio
     async def test_rag_context_passed_to_agent(self) -> None:
         """Test that RAG context is passed to the agent."""
-        from src.nl2api.rag.protocols import DocumentType, RetrievalResult
+        from src.rag.retriever.protocols import DocumentType, RetrievalResult
 
         llm = MockLLMProvider()
         captured_context = None
@@ -446,7 +446,7 @@ class TestOrchestratorContextRetrieval:
     @pytest.mark.asyncio
     async def test_orchestrator_uses_rag_fallback_when_no_context_retriever(self) -> None:
         """Test that orchestrator uses RAG as fallback when no context_retriever."""
-        from src.nl2api.rag.protocols import DocumentType, RetrievalResult
+        from src.rag.retriever.protocols import DocumentType, RetrievalResult
 
         llm = MockLLMProvider()
         agent = MockAgent()

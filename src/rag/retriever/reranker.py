@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 from src.common.telemetry import get_tracer
 
 if TYPE_CHECKING:
-    from src.nl2api.rag.protocols import RetrievalResult
+    from src.rag.retriever.protocols import RetrievalResult
 
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)

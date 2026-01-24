@@ -236,12 +236,12 @@ Hierarchical tree of summaries, retrieve at multiple granularities.
 
 | Improvement | Impact | Effort | Dependencies | Priority |
 |-------------|--------|--------|--------------|----------|
-| Cross-encoder reranking | High (+20-35%) | Medium | None | **P0** |
+| Cross-encoder reranking | High (+20-35%) | Medium | None | **P0** ✅ |
 | Contextual chunking | High | Medium | LLM calls | **P1** |
 | Small-to-big retrieval | Medium (+65% win) | Medium | Schema change | **P1** |
+| Pre-trained financial embeddings | Medium (+15%) | Low | None (HuggingFace) | **P2** |
 | HyDE query expansion | Medium | Low | LLM calls | **P2** |
-| Late chunking | Medium | High | Long-context embedder | **P2** |
-| Domain-adapted embeddings | Medium | High | Training infra | **P3** |
+| Late chunking | Medium | High | Long-context embedder | **P3** |
 | ColBERT multi-vector | Medium | Very High | Storage, new index | **P3** |
 
 ### 3.1 P0: Cross-Encoder Reranking
@@ -615,65 +615,127 @@ class LateChunker:
 
 **Complexity:** High - requires different embedding workflow
 
-### 3.6 P3: Domain-Adapted Embeddings
+### 3.6 P2: Pre-trained Financial Embeddings
 
-**Goal:** Fine-tune embeddings for financial domain.
+**Goal:** Use domain-adapted embeddings that understand financial terminology without training from scratch.
 
-**Approach (from FinSage paper):**
+**Available Open-Source Models (HuggingFace):**
 
-1. Generate synthetic QA pairs from SEC filings using LLM
-2. Use LLM to judge relevance (creates training signal)
-3. Iteratively mine hard negatives from corpus
-4. Train contrastive loss on (query, positive, negatives)
+| Model | Base | Dims | Notes |
+|-------|------|------|-------|
+| [bge-base-financial-matryoshka](https://huggingface.co/philschmid/bge-base-financial-matryoshka) | bge-base-en-v1.5 | 768 | Phil Schmid (HuggingFace), Matryoshka support |
+| [Finance_embedding_large_en](https://huggingface.co/baconnier/Finance_embedding_large_en-V0.1) | bge-large-en | 1024 | Larger model, better quality |
+| [finance-embeddings-investopedia](https://huggingface.co/FinLang/finance-embeddings-investopedia) | bge-base-en-v1.5 | 768 | Trained on Investopedia |
+| [FinE5](https://huggingface.co/FinanceMTEB/FinE5) | e5-mistral-7b | 4096 | SOTA on FinMTEB but 7B params (slow) |
 
-**Training Pipeline:**
+**Why not train our own?** Per [FinMTEB benchmark](https://arxiv.org/html/2502.10990v1): "While commercial solutions exist, there remains a lack of open-source LLM-based financial embedding models." These pre-trained models fill that gap without requiring training infrastructure.
+
+**Recommended A/B Test Plan:**
 
 ```python
-# scripts/train_financial_embeddings.py
+# scripts/compare_financial_embeddings.py
 
-class FinancialEmbeddingTrainer:
-    def __init__(self, base_model: str = "all-MiniLM-L6-v2"):
-        self._model = SentenceTransformer(base_model)
+MODELS_TO_TEST = [
+    # Baseline
+    ("openai", "text-embedding-3-small", 1536),
+    # Financial domain models (local, no API cost)
+    ("local", "philschmid/bge-base-financial-matryoshka", 768),
+    ("local", "baconnier/Finance_embedding_large_en-V0.1", 1024),
+]
 
-    async def generate_training_data(
-        self,
-        chunks: list[FilingChunk],
-        llm_client,
-    ) -> list[tuple[str, str, list[str]]]:
-        """Generate (query, positive, negatives) tuples."""
-        training_data = []
+async def run_embedding_comparison(
+    eval_dataset: Path,
+    sample_size: int = 100,
+):
+    """
+    Compare embedding models on retrieval quality.
 
-        for chunk in chunks:
-            # Generate questions this chunk answers
-            questions = await self._generate_questions(chunk, llm_client)
+    For each model:
+    1. Re-embed sample of documents (100 docs per company, 5 companies = 500 docs)
+    2. Run eval queries against each index
+    3. Measure Recall@5, MRR@5, NDCG@5
+    """
+    results = {}
 
-            # Mine hard negatives
-            negatives = await self._mine_hard_negatives(questions[0], chunk)
+    for provider, model_name, dims in MODELS_TO_TEST:
+        # Create embedder
+        if provider == "local":
+            embedder = LocalEmbedder(model_name=model_name)
+        else:
+            embedder = OpenAIEmbedder()
 
-            training_data.append((questions[0], chunk.content, negatives))
+        # Re-embed sample documents to temp table
+        await reembed_sample(embedder, sample_size)
 
-        return training_data
+        # Run evaluation
+        metrics = await evaluate_retrieval(eval_dataset, embedder)
+        results[model_name] = metrics
 
-    def train(self, training_data, epochs: int = 3):
-        """Fine-tune with contrastive loss."""
-        train_examples = [
-            InputExample(texts=[q, pos, neg])
-            for q, pos, negs in training_data
-            for neg in negs
-        ]
-
-        train_dataloader = DataLoader(train_examples, shuffle=True, batch_size=16)
-        train_loss = losses.TripletLoss(model=self._model)
-
-        self._model.fit(
-            train_objectives=[(train_dataloader, train_loss)],
-            epochs=epochs,
-        )
+    return results
 ```
 
-**Expected Impact:** Better domain-specific retrieval
+**Test Setup:**
 
-**Effort:** High - requires training infrastructure, evaluation pipeline
+1. **Sample Size:** 500 documents (100 per company × 5 companies)
+2. **Eval Queries:** Use `tests/fixtures/rag/sec_evaluation_set.json` (100 questions)
+3. **Metrics:** Recall@5, MRR@5, NDCG@5, Hit Rate
+4. **Comparison:** All models get same reranker (cross-encoder) to isolate embedding impact
+
+**Implementation:**
+
+```python
+# src/nl2api/rag/embedders.py
+
+class FinancialEmbedder:
+    """Local financial domain embeddings using sentence-transformers."""
+
+    SUPPORTED_MODELS = {
+        "bge-financial": "philschmid/bge-base-financial-matryoshka",
+        "finance-large": "baconnier/Finance_embedding_large_en-V0.1",
+    }
+
+    def __init__(
+        self,
+        model_key: str = "bge-financial",
+        device: str | None = None,
+    ):
+        model_name = self.SUPPORTED_MODELS.get(model_key, model_key)
+        self._model = SentenceTransformer(model_name, device=device)
+        self._dimension = self._model.get_sentence_embedding_dimension()
+
+    @property
+    def dimension(self) -> int:
+        return self._dimension
+
+    async def embed(self, text: str) -> list[float]:
+        loop = asyncio.get_event_loop()
+        embedding = await loop.run_in_executor(
+            None, self._model.encode, text
+        )
+        return embedding.tolist()
+
+    async def embed_batch(self, texts: list[str]) -> list[list[float]]:
+        loop = asyncio.get_event_loop()
+        embeddings = await loop.run_in_executor(
+            None,
+            lambda: self._model.encode(texts, show_progress_bar=True)
+        )
+        return [e.tolist() for e in embeddings]
+```
+
+**Expected Impact:**
+- FinBERT outperforms BERT by 15.6% on financial tasks ([FinMTEB](https://arxiv.org/html/2502.10990v1))
+- Domain models better handle: "EBITDA margin", "goodwill impairment", "non-GAAP reconciliation"
+
+**Effort:** Low - models are pre-trained, just need to integrate and test
+
+**Trade-offs:**
+| Aspect | bge-financial (768d) | finance-large (1024d) | OpenAI (1536d) |
+|--------|---------------------|----------------------|----------------|
+| Latency | Fast (local) | Medium (local) | Slow (API) |
+| Cost | Free | Free | ~$0.02/1M tokens |
+| Quality | Good (domain) | Better (domain) | Good (general) |
+| Storage | 768 floats/doc | 1024 floats/doc | 1536 floats/doc |
 
 ---
 
@@ -751,7 +813,59 @@ Use paired statistical tests to validate significance.
 
 ---
 
-## 6. Risk Assessment
+## 6. Evaluation Results
+
+### 6.1 Baseline Results (Pre-Contextual Chunking)
+
+**Date:** 2026-01-24
+**Git Commit:** 58e5653 (main)
+**Embedding Model:** text-embedding-3-small (1536 dims)
+**Eval Dataset:** 100 test cases from `tests/fixtures/rag/sec_evaluation_set.json`
+
+> **Note:** These results were captured from stdout. The `results/` directory did not exist, so JSON files were not persisted. Results documented here for tracking.
+
+| Configuration | Recall@5 | MRR@5 | NDCG@5 | Hit Rate |
+|--------------|----------|-------|--------|----------|
+| No reranking | 21.0% | 14.82% | - | - |
+| Rerank (first_stage=50) | 22.0% | 16.87% | - | - |
+| Rerank (first_stage=100) | 23.0% | 17.87% | - | - |
+
+**Retriever Configuration:**
+- Vector weight: 0.7
+- Keyword weight: 0.3
+- Reranker model: `cross-encoder/ms-marco-MiniLM-L-6-v2`
+
+**Observations:**
+1. Cross-encoder reranking provides modest improvement (+2% recall, +3% MRR)
+2. Larger first-stage candidate pool (100 vs 50) helps marginally
+3. Overall recall is low - indicates room for improvement from better chunking
+
+### 6.2 Contextual Chunking Results
+
+**Status:** In progress (re-embedding ~25% complete as of 2026-01-24 10:30)
+
+**Changes Applied:**
+- Added context prefix to all 242,664 SEC filing chunks
+- Prefix format:
+  ```
+  Company: {company_name} ({ticker})
+  Filing: {filing_type}, {period}
+  Section: {section_label}
+
+  [original chunk content]
+  ```
+
+**Pending:**
+- [ ] Complete re-embedding (~2.5 hours remaining)
+- [ ] Regenerate evaluation dataset (chunk content changed)
+- [ ] Run evaluation with `--label contextual-v1`
+- [ ] Run evaluation with `--label contextual-rerank-v1`
+
+Results will be saved to `results/rag_*.json` with full metadata.
+
+---
+
+## 7. Risk Assessment
 
 | Risk | Mitigation |
 |------|------------|
@@ -763,7 +877,7 @@ Use paired statistical tests to validate significance.
 
 ---
 
-## 7. Open Questions for Review
+## 8. Open Questions for Review
 
 1. **Embedding model choice:** Should we prioritize local (cost) or OpenAI (quality) for production?
 
@@ -777,7 +891,7 @@ Use paired statistical tests to validate significance.
 
 ---
 
-## 8. References
+## 9. References
 
 ### Research Papers
 - [Late Chunking](https://arxiv.org/pdf/2409.04701) - Jina AI, 2024

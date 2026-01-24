@@ -39,9 +39,9 @@ import anthropic
 import asyncpg
 from dotenv import load_dotenv
 
-from src.nl2api.rag.embedders import LocalEmbedder, OpenAIEmbedder
-from src.nl2api.rag.protocols import DocumentType, RetrievalResult
-from src.nl2api.rag.retriever import HybridRAGRetriever
+from src.rag.retriever.embedders import LocalEmbedder, OpenAIEmbedder
+from src.rag.retriever.protocols import DocumentType, RetrievalResult
+from src.rag.retriever.retriever import HybridRAGRetriever
 
 
 class CompanyExtractor:

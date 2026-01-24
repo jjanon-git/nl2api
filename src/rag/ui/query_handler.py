@@ -15,11 +15,11 @@ from typing import Any
 import anthropic
 import asyncpg
 
-from src.nl2api.rag.embedders import LocalEmbedder, OpenAIEmbedder
-from src.nl2api.rag.protocols import DocumentType, RetrievalResult
-from src.nl2api.rag.retriever import HybridRAGRetriever
 from src.nl2api.resolution.resolver import ExternalEntityResolver
-from src.rag_ui.config import RAGUIConfig
+from src.rag.retriever.embedders import LocalEmbedder, OpenAIEmbedder
+from src.rag.retriever.protocols import DocumentType, RetrievalResult
+from src.rag.retriever.retriever import HybridRAGRetriever
+from src.rag.ui.config import RAGUIConfig
 
 logger = logging.getLogger(__name__)
 

@@ -17,7 +17,7 @@ from CONTRACTS import ToolCall, ToolRegistry
 from src.nl2api.agents.base import BaseDomainAgent
 from src.nl2api.agents.protocols import AgentContext, AgentResult
 from src.nl2api.llm.protocols import LLMProvider, LLMToolDefinition
-from src.nl2api.rag.protocols import RAGRetriever
+from src.rag.retriever.protocols import RAGRetriever
 
 
 class DatastreamAgent(BaseDomainAgent):
