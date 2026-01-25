@@ -634,7 +634,9 @@ class TestOrchestratorRoutingModel:
         """Config should default to Haiku for routing (cost optimization)."""
         from src.nl2api.config import NL2APIConfig
 
-        cfg = NL2APIConfig()
+        # Use _env_file=None to avoid loading from .env file which may have
+        # unrelated variables (e.g., RAG_UI_*) that conflict with pydantic-settings
+        cfg = NL2APIConfig(_env_file=None)
         assert cfg.routing_model == "claude-3-5-haiku-20241022"
         assert cfg.routing_model != cfg.llm_model  # Should differ from main model
 
