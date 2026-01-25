@@ -1,17 +1,36 @@
-# Public Repository Release Audit
+# Evalkit Release Audit
 
 **Date:** 2026-01-21
 **Updated:** 2026-01-25
-**Status:** P0 Complete, Core Stability Phase Complete, Continuing Remediation
+**Status:** Phase 1 Complete, Continuing Remediation
 **Author:** Mostly Claude, with some minor assistance from Sid
 
 ---
 
 ## Executive Summary
 
-The nl2api codebase has good test coverage (1964+ tests). **P0 blockers are resolved** and **Core Stability (Phase 1)** is largely complete. The remaining work focuses on distributed system reliability and enterprise features.
+**Evalkit** is a generic evaluation framework designed to support multiple evaluation packs (NL2API, RAG, code-gen, etc.). This audit focuses on the framework's readiness for public release.
 
-**Evalkit Platform Grade: B- (3.0/5)** - Single-process production-ready, distributed needs work.
+| Aspect | Grade | Status |
+|--------|-------|--------|
+| **Single-process batch evaluation** | B+ | Production-ready |
+| **Distributed multi-worker mode** | D | Critical gaps, not production-ready |
+| **Enterprise features** | F | Missing auth, audit, tenant isolation |
+| **Generic abstraction** | D | Core models still coupled to NL2API |
+
+**Overall: B- (3.0/5)** - Use single-process mode only. Distributed mode has critical bugs.
+
+### What Works
+- Single-process `BatchRunner` with checkpoint/resume
+- Proper concurrency handling (asyncio.Lock)
+- Repository provider pattern (no singletons)
+- OTEL telemetry integration
+- PostgreSQL and in-memory backends
+
+### What's Broken
+- Distributed workers: no heartbeat, no exactly-once delivery, no leader election
+- Core `TestCase` and `Scorecard` models have NL2API-specific fields baked in
+- No authentication, authorization, or audit logging
 
 ---
 
