@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy only what's needed for install
-COPY pyproject.toml .
-COPY README.md .
+COPY src/services/entity_resolution/pyproject.toml .
+COPY src/services/entity_resolution/README.md .
 COPY src/services/entity_resolution src/services/entity_resolution
 
 # Install the package with HTTP and Redis extras
