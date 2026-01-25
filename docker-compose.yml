@@ -93,6 +93,31 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  # Entity Resolution HTTP Service (standalone, for nl2api and RAG)
+  entity-resolution:
+    build:
+      context: .
+      dockerfile: src/services/entity_resolution/Dockerfile
+    container_name: nl2api-entity-resolution
+    environment:
+      ENTITY_HOST: "0.0.0.0"
+      ENTITY_PORT: "8085"
+      ENTITY_POSTGRES_URL: postgresql://${POSTGRES_USER:-nl2api}:${POSTGRES_PASSWORD:-nl2api}@postgres:5432/${POSTGRES_DB:-nl2api}
+      ENTITY_REDIS_ENABLED: "false"  # Disable Redis for simpler local setup
+      ENTITY_LOG_LEVEL: INFO
+    ports:
+      - "127.0.0.1:8085:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+
   # === Observability Stack ===
 
   # OpenTelemetry Collector - receives telemetry and routes to backends

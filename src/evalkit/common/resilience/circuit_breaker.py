@@ -27,12 +27,8 @@ class CircuitState(Enum):
     HALF_OPEN = "half_open"  # Testing if service recovered
 
 
-class CircuitOpenError(Exception):
-    """Raised when circuit is open and request is rejected."""
-
-    def __init__(self, message: str = "Circuit breaker is open", retry_after: float | None = None):
-        super().__init__(message)
-        self.retry_after = retry_after
+# Re-export from centralized exceptions module for backward compatibility
+from src.evalkit.exceptions import CircuitOpenError
 
 
 @dataclass

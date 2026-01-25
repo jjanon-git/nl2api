@@ -51,9 +51,7 @@ def create_entity_resolver(
 
     if config.entity_resolution_api_endpoint:
         # Use HTTP client to call the standalone service
-        logger.info(
-            f"Using HTTP entity resolver: {config.entity_resolution_api_endpoint}"
-        )
+        logger.info(f"Using HTTP entity resolver: {config.entity_resolution_api_endpoint}")
         return HttpEntityResolver(
             base_url=config.entity_resolution_api_endpoint,
             api_key=config.entity_resolution_api_key,
@@ -73,4 +71,5 @@ def create_entity_resolver(
             circuit_failure_threshold=config.entity_resolution_circuit_failure_threshold,
             circuit_recovery_seconds=config.entity_resolution_circuit_recovery_seconds,
             retry_max_attempts=config.entity_resolution_retry_max_attempts,
+            _internal=True,  # Suppress deprecation warning when used via factory
         )

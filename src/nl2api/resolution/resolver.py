@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import logging
 import re
+import warnings
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
@@ -39,6 +40,11 @@ class ExternalEntityResolver:
     """
     Entity resolver using database and external APIs for company/RIC resolution.
 
+    .. deprecated::
+        Direct instantiation is deprecated. Use ``create_entity_resolver(config)``
+        from ``src.nl2api.resolution`` instead, which returns the appropriate
+        resolver based on configuration (HTTP service or local).
+
     Extracts company mentions from queries and resolves them to RICs
     using database lookups and external APIs (OpenFIGI).
 
@@ -63,9 +69,14 @@ class ExternalEntityResolver:
         redis_cache: RedisCache | None = None,
         redis_cache_ttl_seconds: int = 86400,
         db_pool: asyncpg.Pool | None = None,
+        *,
+        _internal: bool = False,  # Set by factory to suppress warning
     ):
         """
         Initialize the entity resolver.
+
+        .. deprecated::
+            Use ``create_entity_resolver(config)`` instead of direct instantiation.
 
         Args:
             api_endpoint: External API endpoint for resolution
@@ -79,6 +90,14 @@ class ExternalEntityResolver:
             redis_cache_ttl_seconds: TTL for Redis cache entries (default 24 hours)
             db_pool: Optional asyncpg connection pool for database lookups
         """
+        if not _internal:
+            warnings.warn(
+                "Direct instantiation of ExternalEntityResolver is deprecated. "
+                "Use create_entity_resolver(config) from src.nl2api.resolution instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
         self._api_endpoint = api_endpoint
         self._api_key = api_key
         self._use_cache = use_cache

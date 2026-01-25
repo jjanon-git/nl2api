@@ -117,7 +117,7 @@ class RedisStreamQueue:
             logger.info(f"Connected to Redis at {config.redis_url}")
             return cls(client, config)
         except Exception as e:
-            raise QueueConnectionError(f"Failed to connect to Redis: {e}") from e
+            raise QueueConnectionError("redis", str(e)) from e
 
     def _stream_name(self, batch_id: str) -> str:
         """Get stream name for a batch."""
@@ -158,7 +158,7 @@ class RedisStreamQueue:
 
             return message_id
         except Exception as e:
-            raise QueueEnqueueError(f"Failed to enqueue task: {e}") from e
+            raise QueueEnqueueError(batch_id, str(e)) from e
 
     async def enqueue_batch(
         self,
@@ -203,7 +203,7 @@ class RedisStreamQueue:
             return message_ids
 
         except Exception as e:
-            raise QueueEnqueueError(f"Failed to enqueue batch: {e}") from e
+            raise QueueEnqueueError(batch_id, str(e)) from e
 
     # =========================================================================
     # Consume Operations
@@ -269,7 +269,7 @@ class RedisStreamQueue:
             logger.info(f"Consumer {consumer_id} cancelled")
             raise
         except Exception as e:
-            raise QueueConsumeError(f"Failed to consume: {e}") from e
+            raise QueueConsumeError(consumer_id, str(e)) from e
 
     async def ack(self, message: QueueMessage) -> None:
         """Acknowledge successful processing using XACK."""
@@ -292,7 +292,7 @@ class RedisStreamQueue:
                 if _ack_counter:
                     _ack_counter.add(1, {"batch_id": batch_id})
         except Exception as e:
-            raise QueueAckError(f"Failed to ack message: {e}") from e
+            raise QueueAckError(message.message_id, str(e)) from e
 
     async def nack(
         self,

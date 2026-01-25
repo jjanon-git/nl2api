@@ -184,7 +184,7 @@ class InMemoryQueue:
                 stream.completed.add(message.message_id)
                 logger.debug(f"Acked message {message.message_id}")
             else:
-                raise QueueAckError(f"Message {message.message_id} not found in processing")
+                raise QueueAckError(message.message_id, "not found in processing")
 
     async def nack(
         self,

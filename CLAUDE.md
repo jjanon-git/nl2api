@@ -825,6 +825,29 @@ For high-volume API calls (accuracy tests, batch evaluation):
 - Use exponential backoff with jitter on retries
 - Config in `tests/accuracy/core/config.py`
 
+### 7. Entity Resolution via Factory
+
+**Always use `create_entity_resolver(config)` instead of directly instantiating resolvers.**
+
+```python
+# CORRECT - uses factory, works with HTTP service or local
+from src.nl2api.resolution import create_entity_resolver
+
+resolver = create_entity_resolver(config, db_pool=pool)
+
+# WRONG - direct instantiation is deprecated
+from src.nl2api.resolution.resolver import ExternalEntityResolver
+
+resolver = ExternalEntityResolver(db_pool=pool)  # Triggers DeprecationWarning
+```
+
+The factory returns:
+- `HttpEntityResolver` when `config.entity_resolution_api_endpoint` is set
+- `ExternalEntityResolver` when using local mode (endpoint not set)
+- `MockEntityResolver` when `config.entity_resolution_enabled=False`
+
+For RAG UI, set `RAG_UI_ENTITY_RESOLUTION_ENDPOINT` to use the HTTP service.
+
 ---
 
 ## MCP Server Development

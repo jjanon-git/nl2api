@@ -161,11 +161,67 @@ class RegressionDetector:
         current_batch_id: str,
         client_type: str | None,
     ) -> dict[str, Any] | None:
-        """Find and get metrics for the previous batch of the same client type."""
-        # This is a simplified implementation - in production, you'd query
-        # for the most recent batch before the current one with the same client_type
-        # For now, we return None to indicate no comparison available
-        return None
+        """
+        Find and get metrics for the previous batch of the same client type.
+
+        Queries the database for the most recent completed batch before the
+        current one that has scorecards with the matching client_type.
+
+        Args:
+            current_batch_id: ID of the current batch
+            client_type: Client type to match (e.g., "internal", "mcp_claude")
+
+        Returns:
+            Metrics dict if a previous batch is found, None otherwise
+        """
+        if client_type is None:
+            logger.debug("No client_type specified, skipping previous batch lookup")
+            return None
+
+        try:
+            # Get current batch's created_at for comparison
+            current_scorecards = await self.scorecard_repo.get_by_batch(current_batch_id)
+            if not current_scorecards:
+                logger.warning(f"No scorecards found for current batch {current_batch_id}")
+                return None
+
+            current_batch_time = min(sc.created_at for sc in current_scorecards)
+
+            # Find the most recent previous batch with the same client_type
+            # This uses the repository's underlying pool for a custom query
+            pool = self.scorecard_repo.pool
+
+            previous_batch_row = await pool.fetchrow(
+                """
+                SELECT DISTINCT batch_id, MAX(created_at) as latest_created_at
+                FROM scorecards
+                WHERE client_type = $1
+                  AND batch_id != $2
+                  AND created_at < $3
+                GROUP BY batch_id
+                ORDER BY latest_created_at DESC
+                LIMIT 1
+                """,
+                client_type,
+                current_batch_id,
+                current_batch_time,
+            )
+
+            if not previous_batch_row:
+                logger.debug(f"No previous batch found for client_type={client_type}")
+                return None
+
+            previous_batch_id = previous_batch_row["batch_id"]
+            logger.info(
+                f"Found previous batch {previous_batch_id} for client_type={client_type}"
+            )
+
+            # Get metrics for the previous batch
+            return await self._get_batch_metrics(previous_batch_id)
+
+        except Exception as e:
+            logger.exception(f"Error finding previous batch metrics: {e}")
+            return None
 
     def _compare_metric(
         self,

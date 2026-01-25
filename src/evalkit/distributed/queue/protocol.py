@@ -340,34 +340,15 @@ class TaskQueue(Protocol):
         ...
 
 
-class QueueError(Exception):
-    """Base exception for queue operations."""
-
-    pass
-
-
-class QueueConnectionError(QueueError):
-    """Failed to connect to queue backend."""
-
-    pass
-
-
-class QueueEnqueueError(QueueError):
-    """Failed to enqueue message."""
-
-    pass
-
-
-class QueueConsumeError(QueueError):
-    """Failed to consume message."""
-
-    pass
-
-
-class QueueAckError(QueueError):
-    """Failed to acknowledge message."""
-
-    pass
+# Re-export queue exceptions from the centralized exceptions module
+# for backward compatibility with existing code that imports from here
+from src.evalkit.exceptions import (
+    QueueAckError,
+    QueueConnectionError,
+    QueueConsumeError,
+    QueueEnqueueError,
+    QueueError,
+)
 
 
 __all__ = [

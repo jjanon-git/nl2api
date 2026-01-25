@@ -15,6 +15,7 @@ from typing import Any
 import anthropic
 import asyncpg
 
+from src.nl2api.resolution import HttpEntityResolver
 from src.nl2api.resolution.resolver import ExternalEntityResolver
 from src.rag.retriever.embedders import LocalEmbedder, OpenAIEmbedder
 from src.rag.retriever.protocols import DocumentType, RetrievalResult
@@ -122,11 +123,21 @@ class RAGQueryHandler:
         )
         self._retriever.set_embedder(self._embedder)
 
-        # Initialize entity resolver (uses DB for lookups, OpenFIGI for fallback)
-        self._entity_resolver = ExternalEntityResolver(
-            db_pool=self._pool,
-            use_cache=True,
-        )
+        # Initialize entity resolver
+        if self._config.entity_resolution_endpoint:
+            # Use HTTP service
+            logger.info(f"Using HTTP entity resolver: {self._config.entity_resolution_endpoint}")
+            self._entity_resolver = HttpEntityResolver(
+                base_url=self._config.entity_resolution_endpoint,
+                timeout_seconds=self._config.entity_resolution_timeout,
+            )
+        else:
+            # Use local resolver (DB lookups + OpenFIGI fallback)
+            logger.info("Using local entity resolver")
+            self._entity_resolver = ExternalEntityResolver(
+                db_pool=self._pool,
+                use_cache=True,
+            )
 
         # Initialize Anthropic client
         if not self._config.anthropic_api_key:
