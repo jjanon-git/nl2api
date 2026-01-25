@@ -294,13 +294,12 @@ class ExternalEntityResolver:
                 span.set_attribute("entity.source", "database")
                 return db_result
 
-        # Try external API (OpenFIGI)
-        if self._api_endpoint or True:  # Fallback to OpenFIGI even if endpoint not set
-            result = await self._resolve_via_api(entity)
-            if result:
-                await self._cache_result(normalized, result)
-                span.set_attribute("entity.source", "external_api")
-                return result
+        # Try external API (OpenFIGI) - always attempt as fallback
+        result = await self._resolve_via_api(entity)
+        if result:
+            await self._cache_result(normalized, result)
+            span.set_attribute("entity.source", "external_api")
+            return result
 
         # No resolution found
         span.set_attribute("entity.source", "not_found")

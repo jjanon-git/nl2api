@@ -269,21 +269,21 @@ class _NoOpTracer:
 class _NoOpCounter:
     """No-op counter for when OTEL is not available."""
 
-    def add(self, amount: int | float, attributes: dict[str, Any] | None = None) -> None:
+    def add(self, _amount: int | float, _attributes: dict[str, Any] | None = None) -> None:
         pass
 
 
 class _NoOpHistogram:
     """No-op histogram for when OTEL is not available."""
 
-    def record(self, value: int | float, attributes: dict[str, Any] | None = None) -> None:
+    def record(self, _value: int | float, _attributes: dict[str, Any] | None = None) -> None:
         pass
 
 
 class _NoOpGauge:
     """No-op gauge for when OTEL is not available."""
 
-    def set(self, value: int | float, attributes: dict[str, Any] | None = None) -> None:
+    def set(self, _value: int | float, _attributes: dict[str, Any] | None = None) -> None:
         pass
 
 
