@@ -91,7 +91,7 @@ def batch_run(
         typer.Option(
             "--mode",
             "-m",
-            help="Response mode: resolver, orchestrator, routing, tool_only, or simulated",
+            help="Response mode: resolver, orchestrator, routing, tool_only, simulated, or generation",
         ),
     ] = "resolver",
     agent: Annotated[
@@ -206,9 +206,10 @@ def batch_run(
         console.print(f"Available packs: {', '.join(valid_packs)}")
         raise typer.Exit(1)
 
-    if mode not in ("resolver", "orchestrator", "simulated", "routing", "tool_only"):
+    valid_modes = ("resolver", "orchestrator", "simulated", "routing", "tool_only", "generation")
+    if mode not in valid_modes:
         console.print(f"[red]Error:[/red] Invalid mode '{mode}'.")
-        console.print("Use 'resolver', 'orchestrator', 'routing', 'tool_only', or 'simulated'.")
+        console.print(f"Use one of: {', '.join(valid_modes)}.")
         raise typer.Exit(1)
 
     if mode == "tool_only" and agent is None:
@@ -513,15 +514,14 @@ async def _batch_run_async(
             response_generator = create_rag_simulated_generator(pass_rate=0.7)
             console.print("[yellow]Using simulated RAG responses (pipeline test only).[/yellow]\n")
 
-        if pack == "rag" and mode == "resolver":
-            # For RAG pack with resolver mode, use real retrieval
+        if pack == "rag" and mode in ("resolver", "generation"):
+            # For RAG pack with resolver/generation mode, use real retrieval
             import os
 
             from dotenv import load_dotenv
 
             load_dotenv()  # Ensure env vars are loaded
 
-            from src.evalkit.batch.response_generators import create_rag_retrieval_generator
             from src.evalkit.common.storage.postgres.client import get_pool
             from src.rag.retriever.embedders import OpenAIEmbedder
             from src.rag.retriever.retriever import HybridRAGRetriever
@@ -548,10 +548,33 @@ async def _batch_run_async(
                 )
                 retriever.set_embedder(embedder)
 
-                response_generator = create_rag_retrieval_generator(retriever)
-                console.print("[green]Using RAG retrieval with HybridRAGRetriever.[/green]\n")
+                if mode == "generation":
+                    # Full RAG: retrieval + LLM generation
+                    from anthropic import Anthropic
+
+                    from src.evalkit.batch.response_generators import (
+                        create_rag_generation_generator,
+                    )
+
+                    anthropic_key = os.getenv("NL2API_ANTHROPIC_API_KEY")
+                    if not anthropic_key:
+                        raise RuntimeError("NL2API_ANTHROPIC_API_KEY not set for generation mode")
+
+                    llm_client = Anthropic(api_key=anthropic_key)
+                    response_generator = create_rag_generation_generator(retriever, llm_client)
+                    console.print(
+                        "[green]Using full RAG pipeline (retrieval + generation).[/green]\n"
+                    )
+                else:
+                    # Retrieval only
+                    from src.evalkit.batch.response_generators import (
+                        create_rag_retrieval_generator,
+                    )
+
+                    response_generator = create_rag_retrieval_generator(retriever)
+                    console.print("[green]Using RAG retrieval with HybridRAGRetriever.[/green]\n")
             except Exception as e:
-                console.print(f"[red]Failed to initialize RAG retriever: {e}[/red]")
+                console.print(f"[red]Failed to initialize RAG: {e}[/red]")
                 console.print("[yellow]Falling back to simulated RAG responses.[/yellow]\n")
                 from src.evalkit.batch.response_generators import create_rag_simulated_generator
 
@@ -564,6 +587,7 @@ async def _batch_run_async(
             "routing": "routing",
             "tool_only": "tool_only",
             "simulated": "orchestrator",  # Simulated still uses orchestrator eval mode
+            "generation": "generation",  # Full RAG with LLM generation
         }
 
         # Handle distributed mode

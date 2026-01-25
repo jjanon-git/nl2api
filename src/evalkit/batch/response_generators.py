@@ -438,6 +438,164 @@ def create_rag_retrieval_generator(retriever, embedder=None):
     return generate_rag_retrieval_response
 
 
+def create_rag_generation_generator(retriever, llm_client, embedder=None):
+    """
+    Create a response generator that does full RAG: retrieval + LLM generation.
+
+    This generator:
+    1. Retrieves relevant documents using the retriever
+    2. Builds a prompt with the retrieved context
+    3. Calls an LLM to generate an answer with citations
+    4. Returns the full response for evaluation
+
+    This enables evaluation of:
+    - faithfulness: Is the response grounded in retrieved context?
+    - answer_relevance: Does the response answer the question?
+    - citation: Are citations present and accurate?
+    - context_relevance: Is the retrieved context relevant?
+
+    Args:
+        retriever: HybridRAGRetriever instance
+        llm_client: Anthropic client for generation
+        embedder: Optional embedder to set on retriever
+
+    Returns:
+        Async function that generates SystemResponse from TestCase
+    """
+
+    RAG_SYSTEM_PROMPT = """You are a helpful financial analyst assistant that answers questions based on SEC filings.
+
+IMPORTANT RULES:
+1. ONLY use information from the provided context to answer
+2. If the context doesn't contain enough information, say so
+3. Cite your sources using [Source N] format where N is the chunk number
+4. Be specific and factual - avoid speculation
+5. If asked for financial advice, politely decline and explain you can only provide factual information from filings
+
+For questions that violate policy (financial advice, PII requests, etc.), respond with:
+"I cannot provide [type of request]. I can only answer factual questions based on SEC filing information."
+"""
+
+    RAG_USER_PROMPT = """Based on the following SEC filing excerpts, answer this question:
+
+Question: {query}
+
+Context:
+{context}
+
+Provide a clear, factual answer with citations. Use [Source N] to cite specific excerpts."""
+
+    async def generate_rag_full_response(test_case: TestCase) -> SystemResponse:
+        """
+        Generate response using full RAG pipeline: retrieval + LLM generation.
+        """
+        import time
+
+        start_time = time.perf_counter()
+        input_tokens = 0
+        output_tokens = 0
+
+        try:
+            # Get query from test case
+            nl_query = getattr(test_case, "nl_query", None)
+            query = test_case.input.get("query", nl_query or "")
+
+            if not query:
+                return SystemResponse(
+                    raw_output=json.dumps({"error": "No query provided"}),
+                    nl_response=None,
+                    latency_ms=0,
+                    error="No query in test case",
+                )
+
+            # Add company context if available
+            company_name = test_case.input.get("company_name")
+            retrieval_query = f"{company_name}: {query}" if company_name else query
+
+            # Step 1: Retrieve documents
+            results = await retriever.retrieve(
+                query=retrieval_query,
+                document_types=None,
+                limit=5,  # Top 5 for generation context
+                threshold=0.0,
+                use_cache=False,
+            )
+
+            # Extract retrieved doc IDs and build context
+            retrieved_doc_ids = [str(r.id) for r in results]
+            retrieved_chunks = [
+                {
+                    "id": str(r.id),
+                    "text": r.content[:1000],  # More content for generation
+                    "score": r.score,
+                }
+                for r in results
+            ]
+
+            # Build context string with numbered sources
+            context_parts = []
+            for i, r in enumerate(results, 1):
+                context_parts.append(f"[Source {i}]\n{r.content[:1500]}")
+            context = "\n\n---\n\n".join(context_parts)
+
+            # Step 2: Generate answer using LLM
+            user_prompt = RAG_USER_PROMPT.format(query=query, context=context)
+
+            response = llm_client.messages.create(
+                model="claude-3-5-haiku-20241022",
+                max_tokens=1024,
+                system=RAG_SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": user_prompt}],
+            )
+
+            generated_answer = response.content[0].text
+            input_tokens = response.usage.input_tokens
+            output_tokens = response.usage.output_tokens
+
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
+
+            # Build sources list with citations
+            sources = []
+            for i, r in enumerate(results, 1):
+                # Check if this source was cited
+                cited = f"[Source {i}]" in generated_answer
+                sources.append(
+                    {
+                        "id": str(r.id),
+                        "citation_marker": f"[Source {i}]",
+                        "cited": cited,
+                        "text_preview": r.content[:200],
+                    }
+                )
+
+            return SystemResponse(
+                raw_output=json.dumps(
+                    {
+                        "response": generated_answer,
+                        "retrieved_doc_ids": retrieved_doc_ids,
+                        "retrieved_chunks": retrieved_chunks,
+                        "context": context[:2000],  # Truncate for storage
+                        "sources": sources,
+                    }
+                ),
+                nl_response=generated_answer,
+                latency_ms=latency_ms,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+            )
+
+        except Exception as e:
+            latency_ms = int((time.perf_counter() - start_time) * 1000)
+            return SystemResponse(
+                raw_output=json.dumps({"error": str(e)}),
+                nl_response=None,
+                latency_ms=latency_ms,
+                error=str(e),
+            )
+
+    return generate_rag_full_response
+
+
 def create_rag_simulated_generator(pass_rate: float = 0.7):
     """
     Create a response generator for RAG evaluation with simulated responses.
