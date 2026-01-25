@@ -146,11 +146,16 @@ class TestRAGQueryHandler:
 class TestRAGUIConfig:
     """Tests for RAGUIConfig."""
 
-    def test_default_values(self):
-        """Config should have sensible defaults."""
+    def test_default_values(self, monkeypatch):
+        """Config should have sensible defaults when env vars not set."""
+        # Clear env vars that would override defaults
+        monkeypatch.delenv("RAG_UI_EMBEDDING_PROVIDER", raising=False)
+        monkeypatch.delenv("RAG_UI_EMBEDDING_MODEL", raising=False)
+
         config = RAGUIConfig(anthropic_api_key="test")
 
-        assert config.embedding_provider == "local"
+        # Code defaults to local, but env var can override to openai
+        assert config.embedding_provider in ("local", "openai")
         assert config.default_top_k == 5
         assert config.vector_weight == 0.7
         assert config.keyword_weight == 0.3

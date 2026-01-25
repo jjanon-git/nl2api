@@ -154,6 +154,6 @@ class TestBatchCLIErrorMessages:
             catch_exceptions=False,
         )
 
-        assert "pytest tests/unit/evaluation/" in result.stdout
+        assert "pytest tests/unit/evalkit/" in result.stdout
         assert "--mode resolver" in result.stdout
         assert "--mode orchestrator" in result.stdout

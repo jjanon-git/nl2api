@@ -46,11 +46,11 @@ class CitationStage:
     coverage_weight: float = 0.2
 
     # Citation patterns (common formats)
+    # Note: [Source N] is the primary format used by RAG system
     citation_patterns: tuple[str, ...] = (
+        r"\[Source\s*(\d+)\]",  # [Source 1], [Source 5] - primary RAG format
         r"\[(\d+)\]",  # [1], [2]
-        r"\[([A-Za-z0-9_-]+)\]",  # [doc-id]
-        r"\(Source:?\s*([^)]+)\)",  # (Source: X)
-        r"(?:According to|Per|From)\s+([^,\.]+)",  # According to X
+        r"\(Source\s*(\d+)\)",  # (Source 1)
         r"\[\[(\d+)\]\]",  # [[1]]
     )
 

@@ -38,27 +38,28 @@ class TestCitationExtraction:
         assert "1" in citations
         assert "2" in citations
 
-    def test_extract_bracketed_ids(self, stage):
-        """Extract [doc-id] style citations."""
-        response = "According to the report [doc-123], sales increased [report-456]."
+    def test_extract_source_n_format(self, stage):
+        """Extract [Source N] style citations - the primary RAG format."""
+        response = "The data shows growth [Source 1]. Revenue increased [Source 2]."
         citations = stage._extract_citations(response)
 
-        assert "doc-123" in citations
-        assert "report-456" in citations
+        assert "1" in citations
+        assert "2" in citations
 
     def test_extract_source_parenthetical(self, stage):
-        """Extract (Source: X) style citations."""
-        response = "The data shows growth (Source: Q1 Report)."
+        """Extract (Source N) style citations."""
+        response = "The data shows growth (Source 1)."
         citations = stage._extract_citations(response)
 
-        assert "Q1 Report" in citations
+        assert "1" in citations
 
-    def test_extract_according_to(self, stage):
-        """Extract 'According to X' style citations."""
-        response = "According to the CEO, revenue increased."
+    def test_extract_double_bracket(self, stage):
+        """Extract [[N]] style citations."""
+        response = "This is documented in [[1]] and confirmed [[2]]."
         citations = stage._extract_citations(response)
 
-        assert len(citations) > 0
+        assert "1" in citations
+        assert "2" in citations
 
     def test_no_citations(self, stage):
         """No citations returns empty set."""
@@ -73,11 +74,11 @@ class TestCitationValidation:
 
     def test_validate_direct_match(self, stage):
         """Citations matching source IDs are valid."""
-        citations = {"1", "2", "doc-123"}
+        citations = {"1", "2", "3"}
         sources = {
             "1": {"text": "source 1"},
             "2": {"text": "source 2"},
-            "doc-123": {"text": "source 3"},
+            "3": {"text": "source 3"},
         }
 
         valid = stage._validate_citations(citations, sources)
@@ -97,14 +98,18 @@ class TestCitationValidation:
         assert "1" in valid
         # "2" is within range of 2 sources
 
-    def test_validate_fuzzy_match(self, stage):
-        """Fuzzy matching on source IDs."""
-        citations = {"doc"}
-        sources = {"doc-123": {"text": "content"}}
+    def test_validate_source_n_format(self, stage):
+        """Source N format validated against source count."""
+        citations = {"Source 1", "Source 2"}
+        sources = {
+            "1": {"text": "source 1"},
+            "2": {"text": "source 2"},
+        }
 
         valid = stage._validate_citations(citations, sources)
 
-        assert "doc" in valid
+        assert "Source 1" in valid
+        assert "Source 2" in valid
 
     def test_validate_no_match(self, stage):
         """Unmatched citations are invalid."""
