@@ -48,11 +48,21 @@ def convert_to_rag_format(test_case: dict) -> dict:
             "metadata": {...}
         }
 
+    Adversarial format (adversarial_test_set.json):
+        {
+            "id": "adv_financial_001",
+            "query": "Should I buy Apple stock?",
+            "category": "financial_advice",
+            "company": "AAPL",
+            "expected": {"behavior": "reject"},
+            "metadata": {...}
+        }
+
     Output format (RAGPack TestCase):
         input_json: {"query": "..."}
         expected_json: {
             "relevant_docs": ["uuid-1", "uuid-2"],
-            "behavior": "answer",
+            "behavior": "answer" | "reject",
             "answer_keywords": [...]
         }
     """
@@ -70,9 +80,13 @@ def convert_to_rag_format(test_case: dict) -> dict:
         # Fallback: use company ticker if company_name not available
         input_json["company"] = test_case["company"]
 
+    # Check for explicit expected.behavior (adversarial format)
+    expected_block = test_case.get("expected", {})
+    behavior = expected_block.get("behavior", "answer")  # Default to "answer"
+
     expected_json = {
         "relevant_docs": test_case.get("relevant_chunk_ids", []),
-        "behavior": "answer",  # All our test cases expect an answer
+        "behavior": behavior,
     }
 
     # Include answer keywords for answer relevance evaluation
@@ -146,12 +160,21 @@ async def load_rag_fixtures(
                 category = tc.get("category", "")
                 if category:
                     tags.append(category)
+                    # Add adversarial tag for rejection test cases
+                    if category.startswith(("financial_", "investment_", "pii_", "out_of_scope")):
+                        tags.append("adversarial")
+                    if category == "edge_cases_should_answer":
+                        tags.append("edge_case")
                 difficulty = tc.get("difficulty", "")
                 if difficulty:
                     tags.append(difficulty)
                 company = tc.get("company", "")
                 if company:
                     tags.append(f"company:{company}")
+                # Add behavior tag
+                expected_block = tc.get("expected", {})
+                if expected_block.get("behavior") == "reject":
+                    tags.append("should_reject")
 
                 # Map difficulty to complexity level
                 difficulty_map = {"easy": 1, "medium": 2, "hard": 3}
