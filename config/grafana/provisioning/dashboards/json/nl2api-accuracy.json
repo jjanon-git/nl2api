@@ -623,7 +623,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax'}[2d])) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='syntax'}[2d])) or vector(0)), 1) or vector(0)",
+          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax'}[2d])) / clamp_min((sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax'}[2d])) or vector(0)) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='syntax'}[2d])) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -685,7 +685,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic'}[2d])) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='logic'}[2d])) or vector(0)), 1) or vector(0)",
+          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic'}[2d])) / clamp_min((sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic'}[2d])) or vector(0)) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='logic'}[2d])) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -747,7 +747,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution'}[2d])) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='execution'}[2d])) or vector(0)), 1) or vector(0)",
+          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution'}[2d])) / clamp_min((sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution'}[2d])) or vector(0)) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='execution'}[2d])) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -809,7 +809,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics'}[2d])) / clamp_min(sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics'}[2d])) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='semantics'}[2d])) or vector(0)), 1) or vector(0)",
+          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics'}[2d])) / clamp_min((sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics'}[2d])) or vector(0)) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='semantics'}[2d])) or vector(0)), 1)",
           "refId": "A"
         }
       ],
