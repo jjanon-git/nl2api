@@ -1104,9 +1104,10 @@ This table tracks all experiments from the original naive implementation to curr
 2. **Cross-encoder reranking has diminishing returns** when retrieval is poor - need good candidates first
 3. **Company context is critical** for multi-tenant document collections
 4. **Dashboard tracking is essential** - moved from stdout to Prometheus/Grafana for proper tracking
-5. **Watch for evaluation infrastructure bugs** - the 35% "failing" tests were actually evaluation bugs, not retrieval failures
-6. **Full RAG pipeline is now testable** - `--mode generation` enables end-to-end evaluation including LLM answer quality
-7. **Low faithfulness scores reflect retrieval quality** - faithfulness evaluation depends on correct docs being retrieved first
+5. **Prometheus query patterns matter** - when `sum(failed)` returns empty (0 failures), adding it to `sum(passed)` returns empty; fix by wrapping both with `or vector(0)`
+6. **Watch for evaluation infrastructure bugs** - the 35% "failing" tests were actually evaluation bugs, not retrieval failures
+7. **Full RAG pipeline is now testable** - `--mode generation` enables end-to-end evaluation including LLM answer quality
+8. **Low faithfulness scores reflect retrieval quality** - faithfulness evaluation depends on correct docs being retrieved first
 
 **Bug Fix Details (2026-01-24):**
 - **Root cause:** Generic `TestCase` class doesn't have `nl_query` or `expected_response` attributes; `NL2APITestCase` subclass does
