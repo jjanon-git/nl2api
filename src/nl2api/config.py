@@ -23,6 +23,7 @@ class NL2APIConfig(BaseSettings):
         env_prefix="NL2API_",
         env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
 
     # LLM Provider Settings

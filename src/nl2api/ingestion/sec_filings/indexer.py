@@ -11,12 +11,12 @@ from typing import TYPE_CHECKING, Any
 
 from src.evalkit.common.telemetry import get_tracer
 from src.nl2api.ingestion.sec_filings.models import FilingChunk
-from src.nl2api.rag.protocols import DocumentType
+from src.rag.retriever.protocols import DocumentType
 
 if TYPE_CHECKING:
     import asyncpg
 
-    from src.nl2api.rag.embedders import Embedder
+    from src.rag.retriever.embedders import Embedder
 
 logger = logging.getLogger(__name__)
 tracer = get_tracer(__name__)
@@ -55,7 +55,7 @@ class FilingRAGIndexer:
         """Ensure embedder is available, creating default if needed."""
         if self._embedder is None:
             # Import here to avoid circular dependency
-            from src.nl2api.rag.embedders import create_embedder
+            from src.rag.retriever.embedders import create_embedder
 
             self._embedder = create_embedder("local")
             logger.info("Created default local embedder (384 dimensions)")

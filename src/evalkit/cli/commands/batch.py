@@ -154,6 +154,14 @@ def batch_run(
         str,
         typer.Option("--redis-url", help="Redis URL for distributed queue"),
     ] = "redis://localhost:6379",
+    resume: Annotated[
+        str | None,
+        typer.Option(
+            "--resume",
+            "-r",
+            help="Resume an interrupted batch by ID (skips already-evaluated test cases)",
+        ),
+    ] = None,
 ) -> None:
     """
     Run batch evaluation on test cases from database.
@@ -196,6 +204,12 @@ def batch_run(
     - Use --redis-url to specify Redis connection (default: redis://localhost:6379).
     - Workers are auto-spawned and terminated on completion or Ctrl+C.
     - Requires Redis to be running (docker compose up -d).
+
+    RESUME:
+    - Use --resume <batch_id> to continue an interrupted batch.
+    - Skips test cases that already have scorecards for that batch.
+    - Useful for large batches that were interrupted (network, Ctrl+C, etc.).
+    - Example: batch run --pack nl2api --tag lookups --resume abc123-def456
     """
     from datetime import date as date_type
 
@@ -256,6 +270,7 @@ def batch_run(
             distributed=distributed,
             num_workers=workers,
             redis_url=redis_url,
+            resume_batch_id=resume,
         )
     )
 
@@ -283,6 +298,7 @@ async def _batch_run_async(
     distributed: bool = False,
     num_workers: int = 4,
     redis_url: str = "redis://localhost:6379",
+    resume_batch_id: str | None = None,
 ) -> None:
     """Async implementation of batch run command."""
     from src.evalkit.batch import BatchRunner, BatchRunnerConfig
@@ -344,7 +360,7 @@ async def _batch_run_async(
                 "[red]Simulated results produce 100% pass rates and are meaningless.[/red]"
             )
             console.print("\nFor pipeline testing, use unit tests instead:")
-            console.print("  pytest tests/unit/evaluation/ -v")
+            console.print("  pytest tests/unit/evalkit/ -v")
             console.print("\nFor real accuracy measurement:")
             console.print("  --mode resolver  (entity resolution / RAG retrieval)")
             console.print("  --mode orchestrator  (full NL2API pipeline)")
@@ -657,6 +673,7 @@ async def _batch_run_async(
             complexity_max=complexity_max,
             limit=limit,
             response_simulator=response_generator,
+            resume_batch_id=resume_batch_id,
         )
 
         # Handle no test cases found
