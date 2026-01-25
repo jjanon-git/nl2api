@@ -76,11 +76,26 @@ class LLMJudge:
 
     def _create_llm_client(self) -> Any:
         """Create LLM client based on config."""
+        import os
+
         # Import here to avoid circular dependencies
         try:
             from anthropic import AsyncAnthropic
 
-            return AsyncAnthropic()
+            # Get API key from environment (try multiple sources)
+            api_key = (
+                os.getenv("ANTHROPIC_API_KEY")
+                or os.getenv("NL2API_ANTHROPIC_API_KEY")
+                or os.getenv("RAG_UI_ANTHROPIC_API_KEY")
+            )
+
+            if not api_key:
+                raise RuntimeError(
+                    "Anthropic API key required for LLM judge. "
+                    "Set ANTHROPIC_API_KEY, NL2API_ANTHROPIC_API_KEY, or RAG_UI_ANTHROPIC_API_KEY"
+                )
+
+            return AsyncAnthropic(api_key=api_key)
         except ImportError:
             raise RuntimeError(
                 "anthropic package required for LLM judge. Install with: pip install anthropic"

@@ -400,11 +400,18 @@ class BatchRunner:
             # Convert SystemResponse to pack-specific system_output dict
             system_output = self._response_to_output(response, test_case)
 
-            # Create evaluation context
+            # Create evaluation context with LLM judge for RAG pack
+            llm_judge = None
+            if self.config.pack_name == "rag":
+                from src.rag.evaluation.llm_judge import LLMJudge
+
+                llm_judge = LLMJudge()
+
             context = EvalContext(
                 batch_id=batch_id,
                 worker_id=f"batch-{batch_id[:8]}",
                 config={},
+                llm_judge=llm_judge,
             )
 
             # Run evaluation through pack
