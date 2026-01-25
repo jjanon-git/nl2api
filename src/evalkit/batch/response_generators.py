@@ -370,7 +370,9 @@ def create_rag_retrieval_generator(retriever, embedder=None):
 
         try:
             # Get query from test case
-            query = test_case.input.get("query", test_case.nl_query or "")
+            # Note: nl_query may not exist as attribute if not provided, use getattr
+            nl_query = getattr(test_case, "nl_query", None)
+            query = test_case.input.get("query", nl_query or "")
 
             if not query:
                 return SystemResponse(
@@ -379,6 +381,14 @@ def create_rag_retrieval_generator(retriever, embedder=None):
                     latency_ms=0,
                     error="No query in test case",
                 )
+
+            # Add company context if available (improves retrieval precision)
+            # Company info is stored in input_json from load_rag_fixtures.py
+            company_name = test_case.input.get("company_name")
+
+            if company_name:
+                # Prepend company context to query for better retrieval
+                query = f"{company_name}: {query}"
 
             # Run retrieval
             results = await retriever.retrieve(

@@ -980,7 +980,12 @@ async def _batch_results_async(
                     {
                         "test_case_id": sc.test_case_id,
                         "scorecard_id": sc.scorecard_id,
-                        "nl_query": test_case.nl_query if test_case else "Unknown",
+                        "nl_query": (
+                            getattr(test_case, "nl_query", None)
+                            or test_case.input.get("query", "Unknown")
+                            if test_case
+                            else "Unknown"
+                        ),
                         "passed": sc.overall_passed,
                         "score": sc.overall_score,
                         "syntax_passed": sc.syntax_result.passed,
@@ -1030,7 +1035,12 @@ async def _batch_results_async(
 
             # Get test case for query
             test_case = await test_case_repo.get(sc.test_case_id)
-            query = test_case.nl_query if test_case else "Unknown"
+            # Use nl_query if available, else input.query, else Unknown
+            query = (
+                getattr(test_case, "nl_query", None) or test_case.input.get("query", "Unknown")
+                if test_case
+                else "Unknown"
+            )
             if len(query) > 47:
                 query = query[:47] + "..."
 

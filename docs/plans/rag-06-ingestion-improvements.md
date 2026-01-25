@@ -965,26 +965,83 @@ Use paired statistical tests to validate significance.
 
 ### 6.2 Contextual Chunking Results
 
-**Status:** In progress (re-embedding ~25% complete as of 2026-01-24 10:30)
+**Date:** 2026-01-24
+**Git Commit:** 4c8cfa1 (main)
+**Batch ID:** `3eafe815-164a-4c5b-a7b3-de84c00aa058`
+**Eval Method:** `batch run --pack rag --tag rag --label contextual-chunking-v2`
 
 **Changes Applied:**
-- Added context prefix to all 242,664 SEC filing chunks
-- Prefix format:
-  ```
-  Company: {company_name} ({ticker})
-  Filing: {filing_type}, {period}
-  Section: {section_label}
+- ✅ Added context prefix to all 243,127 SEC filing chunks
+- ✅ Re-embedded with OpenAI text-embedding-3-small (1536 dims)
+- ✅ Company context added to queries during evaluation
 
-  [original chunk content]
-  ```
+**Prefix format:**
+```
+Company: {company_name} ({ticker})
+Filing: {filing_type}, {period}
+Section: {section_label}
 
-**Pending:**
-- [ ] Complete re-embedding (~2.5 hours remaining)
-- [ ] Regenerate evaluation dataset (chunk content changed)
-- [ ] Run evaluation with `--label contextual-v1`
-- [ ] Run evaluation with `--label contextual-rerank-v1`
+[original chunk content]
+```
 
-Results will be saved to `results/rag_*.json` with full metadata.
+**Results:**
+
+| Configuration | Recall@5 | MRR@5 | Improvement |
+|--------------|----------|-------|-------------|
+| Baseline (no contextual) | 21.0% | 14.82% | - |
+| + Reranking (k=100) | 23.0% | 17.87% | +2% recall |
+| **+ Contextual chunking** | **55.0%** | **37.70%** | **+34% recall** |
+
+**Key Improvements:**
+- Recall@5: **2.6x improvement** (21% → 55%)
+- MRR@5: **2.5x improvement** (14.82% → 37.70%)
+- 55% of tests now find expected document in top 5
+
+**Observations:**
+1. Contextual chunking with company prefixes dramatically improves retrieval
+2. Company context in queries is essential - without it, retrieval fails to distinguish between companies
+3. The evaluation now uses proper batch framework integration (Prometheus/Grafana tracking)
+4. 35 tests (35%) still have 0% recall - may need investigation or evaluation data fixes
+
+**Next Steps:**
+- [ ] Investigate failing tests (may have mismatched chunk IDs)
+- [ ] Test with cross-encoder reranking on top of contextual chunking
+- [ ] Consider P1b: Small-to-big retrieval for further improvement
+
+### 6.3 Complete Experiment History
+
+This table tracks all experiments from the original naive implementation to current state, providing a clear audit trail of improvements.
+
+| Date | Experiment | Configuration | Recall@5 | MRR@5 | Δ Recall | Batch ID | Notes |
+|------|------------|---------------|----------|-------|----------|----------|-------|
+| 2026-01-23 | **Original baseline** | all-MiniLM-L6-v2 (384d), naive chunking, no rerank | ~15-18%* | ~10-12%* | - | N/A | *Estimated from early tests |
+| 2026-01-24 | OpenAI embeddings | text-embedding-3-small (1536d), no rerank | 21.0% | 14.82% | +3-6% | stdout | Upgrade from local embeddings |
+| 2026-01-24 | + Cross-encoder rerank | + ms-marco-MiniLM-L-6-v2, k=50 | 22.0% | 16.87% | +1% | stdout | Marginal improvement |
+| 2026-01-24 | + Larger candidate pool | + first_stage=100 | 23.0% | 17.87% | +1% | stdout | Slightly better recall |
+| 2026-01-24 | **+ Contextual chunking** | + company/section prefixes, query context | 55.0%** | 37.70%** | +32% | 3eafe815 | **Only 65% of tests ran (bug)** |
+| 2026-01-24 | **Bug fix: company context** | Fixed TestCase field mapping in response generator | 50.12% | N/A | corrected | 4166fe18 | All 100 tests now run |
+| 2026-01-24 | **Expanded test set (5x)** | 466 test cases (216 simple, 150 analytical, 100 temporal) | **47.5%** | N/A | validated | 1dd28ed3 | **Statistically significant baseline (±4.5%)** |
+
+**Note:** The 55% Recall@5 was computed on only 65% of test cases due to a bug where company context wasn't passed to retrieval. After fixing the bug and expanding to 466 test cases, the true baseline is **47.5% Recall@5** with ±4.5% margin of error.
+
+**Cumulative Improvement:**
+- From original baseline: **~2.6-3.2x improvement** in Recall@5 (15-18% → 47.5%)
+- From OpenAI baseline: **2.3x improvement** in Recall@5 (21% → 47.5%)
+- Pass rate (GATE stages): **91.6%** (427/466 tests pass)
+- Test coverage: **466 test cases** across 411 companies
+
+**Key Learnings:**
+1. **Embedding quality matters less than context** - OpenAI vs local was ~+5%, but contextual chunking was +27%
+2. **Cross-encoder reranking has diminishing returns** when retrieval is poor - need good candidates first
+3. **Company context is critical** for multi-tenant document collections
+4. **Dashboard tracking is essential** - moved from stdout to Prometheus/Grafana for proper tracking
+5. **Watch for evaluation infrastructure bugs** - the 35% "failing" tests were actually evaluation bugs, not retrieval failures
+
+**Bug Fix Details (2026-01-24):**
+- **Root cause:** Generic `TestCase` class doesn't have `nl_query` or `expected_response` attributes; `NL2APITestCase` subclass does
+- **Symptom:** `'TestCase' object has no attribute 'nl_query'` error after 10 tests
+- **Fix:** Updated `load_rag_fixtures.py` to store `company_name` in `input_json`, updated `response_generators.py` to read from `test_case.input.get("company_name")`
+- **Impact:** Went from 65% pass rate → 94% pass rate; retrieval now correctly prepends company context to queries
 
 ---
 

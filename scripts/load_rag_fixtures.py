@@ -56,9 +56,19 @@ def convert_to_rag_format(test_case: dict) -> dict:
             "answer_keywords": [...]
         }
     """
+    # Include company context in input for retrieval enhancement
+    # The response generator can use this to prefix queries for better retrieval
     input_json = {
         "query": test_case["query"],
     }
+
+    # Add company_name from metadata to input (for retrieval context)
+    metadata = test_case.get("metadata", {})
+    if metadata.get("company_name"):
+        input_json["company_name"] = metadata["company_name"]
+    elif test_case.get("company"):
+        # Fallback: use company ticker if company_name not available
+        input_json["company"] = test_case["company"]
 
     expected_json = {
         "relevant_docs": test_case.get("relevant_chunk_ids", []),

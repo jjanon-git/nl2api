@@ -200,7 +200,9 @@ class BatchRunner:
             console.print(f"  Eval mode: [cyan]{self.config.eval_mode}[/cyan]")
             console.print(f"  Pack: [cyan]{self.config.pack_name}[/cyan]\n")
 
-        # Track results
+        # Track results with lock for thread-safe counter updates
+        # asyncio.gather runs tasks concurrently, so counter increments need synchronization
+        counter_lock = asyncio.Lock()
         passed_count = 0
         failed_count = 0
         failed_tests: list[tuple[str, str, float]] = []  # (id, query, score)
@@ -228,22 +230,31 @@ class BatchRunner:
                 async def evaluate_with_progress(tc: TestCase) -> Scorecard:
                     nonlocal passed_count, failed_count
                     scorecard = await self._evaluate_one(tc, batch_job.batch_id, simulator)
-                    if scorecard.overall_passed:
-                        passed_count += 1
-                    else:
-                        failed_count += 1
-                        failed_tests.append(
-                            (
-                                tc.id,
-                                tc.nl_query[:60] + "..." if len(tc.nl_query) > 60 else tc.nl_query,
-                                scorecard.overall_score,
+                    # Use lock to ensure atomic counter updates under concurrency
+                    async with counter_lock:
+                        if scorecard.overall_passed:
+                            passed_count += 1
+                        else:
+                            failed_count += 1
+                            # Use nl_query if available, else input.query, else id
+                            query_text = getattr(tc, "nl_query", None) or tc.input.get(
+                                "query", tc.id
                             )
+                            display_query = (
+                                query_text[:60] + "..." if len(query_text) > 60 else query_text
+                            )
+                            failed_tests.append(
+                                (
+                                    tc.id,
+                                    display_query,
+                                    scorecard.overall_score,
+                                )
+                            )
+                        progress.update(
+                            task,
+                            advance=1,
+                            description=f"[cyan]Evaluating... [green]{passed_count} passed[/green] [red]{failed_count} failed[/red]",
                         )
-                    progress.update(
-                        task,
-                        advance=1,
-                        description=f"[cyan]Evaluating... [green]{passed_count} passed[/green] [red]{failed_count} failed[/red]",
-                    )
                     return scorecard
 
                 # Run all evaluations concurrently
@@ -255,17 +266,24 @@ class BatchRunner:
             async def evaluate_silent(tc: TestCase) -> Scorecard:
                 nonlocal passed_count, failed_count
                 scorecard = await self._evaluate_one(tc, batch_job.batch_id, simulator)
-                if scorecard.overall_passed:
-                    passed_count += 1
-                else:
-                    failed_count += 1
-                    failed_tests.append(
-                        (
-                            tc.id,
-                            tc.nl_query[:60] + "..." if len(tc.nl_query) > 60 else tc.nl_query,
-                            scorecard.overall_score,
+                # Use lock to ensure atomic counter updates under concurrency
+                async with counter_lock:
+                    if scorecard.overall_passed:
+                        passed_count += 1
+                    else:
+                        failed_count += 1
+                        # Use nl_query if available, else input.query, else id
+                        query_text = getattr(tc, "nl_query", None) or tc.input.get("query", tc.id)
+                        display_query = (
+                            query_text[:60] + "..." if len(query_text) > 60 else query_text
                         )
-                    )
+                        failed_tests.append(
+                            (
+                                tc.id,
+                                display_query,
+                                scorecard.overall_score,
+                            )
+                        )
                 return scorecard
 
             scorecards = await asyncio.gather(*[evaluate_silent(tc) for tc in test_cases])
