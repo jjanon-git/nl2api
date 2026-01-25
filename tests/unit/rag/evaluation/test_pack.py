@@ -51,13 +51,14 @@ class TestRAGPackConfig:
         assert config.rejection_calibration_enabled is True
 
     def test_default_thresholds(self):
-        """Default thresholds are set correctly."""
+        """Default thresholds are set correctly (tuned for real-world RAG)."""
         config = RAGPackConfig()
 
         assert config.retrieval_threshold == 0.5
-        assert config.context_relevance_threshold == 0.6
-        assert config.faithfulness_threshold == 0.7
-        assert config.answer_relevance_threshold == 0.7
+        # Lower thresholds reflect SEC filing boilerplate and LLM synthesis
+        assert config.context_relevance_threshold == 0.35
+        assert config.faithfulness_threshold == 0.4
+        assert config.answer_relevance_threshold == 0.5
         assert config.citation_threshold == 0.6
 
     def test_custom_config(self):

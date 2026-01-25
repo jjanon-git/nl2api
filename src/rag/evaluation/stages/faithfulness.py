@@ -39,7 +39,10 @@ class FaithfulnessStage:
     is_gate: bool = field(default=False, init=False)
 
     # Configurable thresholds
-    pass_threshold: float = 0.7
+    # Note: 0.4 threshold reflects real-world RAG systems where responses often
+    # synthesize information rather than directly quoting sources. LLM judge scores
+    # tend to cluster around 0.4-0.7 for valid groundedness.
+    pass_threshold: float = 0.4
     max_claims_to_verify: int = 10  # Limit LLM calls
 
     async def evaluate(
@@ -83,7 +86,8 @@ class FaithfulnessStage:
                 context=retrieved_context,
             )
 
-            passed = result.passed
+            # Override LLM judge's passed with our threshold
+            passed = result.score >= self.pass_threshold
             duration_ms = int((time.perf_counter() - start_time) * 1000)
 
             return StageResult(

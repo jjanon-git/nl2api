@@ -283,54 +283,45 @@ def _display_results(test_case: TestCase, scorecard: Any, verbose: bool) -> None
     table.add_column("Score", width=10)
     table.add_column("Details", width=40)
 
-    # Stage 1: Syntax
-    syntax = scorecard.syntax_result
-    status_icon = "[green]PASS[/green]" if syntax.passed else "[red]FAIL[/red]"
-    table.add_row(
-        "1. Syntax",
-        status_icon,
-        f"{syntax.score:.2f}",
-        syntax.reason or "",
-    )
+    # Get all stage results using the generic interface
+    all_results = scorecard.get_all_stage_results()
 
-    # Stage 2: Logic
-    if scorecard.logic_result:
-        logic = scorecard.logic_result
-        status_icon = "[green]PASS[/green]" if logic.passed else "[red]FAIL[/red]"
-        table.add_row(
-            "2. Logic",
-            status_icon,
-            f"{logic.score:.2f}",
-            logic.reason or "",
-        )
-    else:
-        table.add_row("2. Logic", "[dim]SKIP[/dim]", "-", "Skipped (syntax failed)")
+    # For NL2API pack, display in canonical order; for others, show alphabetically
+    nl2api_stage_order = ["syntax", "logic", "execution", "semantics"]
+    nl2api_stage_labels = {
+        "syntax": "1. Syntax",
+        "logic": "2. Logic",
+        "execution": "3. Execution",
+        "semantics": "4. Semantics",
+    }
 
-    # Stage 3: Execution (placeholder)
-    if scorecard.execution_result:
-        execution = scorecard.execution_result
-        status_icon = "[green]PASS[/green]" if execution.passed else "[red]FAIL[/red]"
-        table.add_row(
-            "3. Execution",
-            status_icon,
-            f"{execution.score:.2f}",
-            execution.reason or "",
-        )
+    if scorecard.pack_name == "nl2api":
+        # Display NL2API stages in order
+        for stage_name in nl2api_stage_order:
+            label = nl2api_stage_labels.get(stage_name, stage_name.title())
+            result = all_results.get(stage_name)
+            if result:
+                status_icon = "[green]PASS[/green]" if result.passed else "[red]FAIL[/red]"
+                table.add_row(
+                    label,
+                    status_icon,
+                    f"{result.score:.2f}",
+                    result.reason or "",
+                )
+            else:
+                skip_reason = "Skipped" if stage_name in ["logic", "execution", "semantics"] else ""
+                table.add_row(label, "[dim]SKIP[/dim]", "-", skip_reason)
     else:
-        table.add_row("3. Execution", "[dim]SKIP[/dim]", "-", "Disabled (Sprint 1)")
-
-    # Stage 4: Semantics (placeholder)
-    if scorecard.semantics_result:
-        semantics = scorecard.semantics_result
-        status_icon = "[green]PASS[/green]" if semantics.passed else "[red]FAIL[/red]"
-        table.add_row(
-            "4. Semantics",
-            status_icon,
-            f"{semantics.score:.2f}",
-            semantics.reason or "",
-        )
-    else:
-        table.add_row("4. Semantics", "[dim]SKIP[/dim]", "-", "Disabled (Sprint 1)")
+        # For other packs, display stages in alphabetical order
+        for i, (stage_name, result) in enumerate(sorted(all_results.items()), 1):
+            label = f"{i}. {stage_name.title()}"
+            status_icon = "[green]PASS[/green]" if result.passed else "[red]FAIL[/red]"
+            table.add_row(
+                label,
+                status_icon,
+                f"{result.score:.2f}",
+                result.reason or "",
+            )
 
     console.print(table)
 
@@ -350,11 +341,10 @@ def _display_results(test_case: TestCase, scorecard: Any, verbose: bool) -> None
         console.print()
         console.print("[bold]Artifacts:[/bold]")
 
-        if scorecard.syntax_result.artifacts:
-            console.print("  Syntax:", scorecard.syntax_result.artifacts)
-
-        if scorecard.logic_result and scorecard.logic_result.artifacts:
-            console.print("  Logic:", scorecard.logic_result.artifacts)
+        # Display artifacts from all stages using generic interface
+        for stage_name, result in all_results.items():
+            if result and result.artifacts:
+                console.print(f"  {stage_name.title()}:", result.artifacts)
 
         if scorecard.generated_tool_calls:
             console.print()

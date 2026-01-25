@@ -381,7 +381,7 @@ class TestStalledTaskRecovery:
         message = await anext(consumer)
 
         # Artificially age the message by modifying internal state
-        stream = queue._get_stream("batch-001")
+        stream = await queue._get_stream("batch-001")
         old_time = datetime.now(UTC) - timedelta(minutes=5)
         aged_message = message.model_copy(update={"claimed_at": old_time})
         stream.processing[message.message_id] = aged_message

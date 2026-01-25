@@ -205,7 +205,8 @@ class TestFaithfulnessWithLLM:
         result = await stage.evaluate(test_case, system_output, context)
 
         assert result.score == 0.5
-        assert result.passed is False
+        # With pass_threshold=0.4, a score of 0.5 passes
+        assert result.passed is True
         assert result.metrics["supported_claims"] == 2
 
     @pytest.mark.asyncio

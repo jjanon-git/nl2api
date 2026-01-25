@@ -30,6 +30,7 @@ from src.evalkit.common.storage.protocols import (
     ScorecardRepository,
     TestCaseRepository,
 )
+from src.evalkit.exceptions import StorageConnectionError
 
 if TYPE_CHECKING:
     import asyncpg
@@ -85,21 +86,27 @@ class RepositoryProvider:
     def test_cases(self) -> TestCaseRepository:
         """Get the test case repository."""
         if self._test_case_repo is None:
-            raise RuntimeError("Provider not initialized. Call initialize() or use as context manager.")
+            raise RuntimeError(
+                "Provider not initialized. Call initialize() or use as context manager."
+            )
         return self._test_case_repo
 
     @property
     def scorecards(self) -> ScorecardRepository:
         """Get the scorecard repository."""
         if self._scorecard_repo is None:
-            raise RuntimeError("Provider not initialized. Call initialize() or use as context manager.")
+            raise RuntimeError(
+                "Provider not initialized. Call initialize() or use as context manager."
+            )
         return self._scorecard_repo
 
     @property
     def batch_jobs(self) -> BatchJobRepository:
         """Get the batch job repository."""
         if self._batch_repo is None:
-            raise RuntimeError("Provider not initialized. Call initialize() or use as context manager.")
+            raise RuntimeError(
+                "Provider not initialized. Call initialize() or use as context manager."
+            )
         return self._batch_repo
 
     @property
@@ -129,11 +136,27 @@ class RepositoryProvider:
                 create_pool,
             )
 
-            self._pool = await create_pool(
-                self._config.postgres_url,
-                min_size=self._config.postgres_pool_min,
-                max_size=self._config.postgres_pool_max,
-            )
+            try:
+                self._pool = await create_pool(
+                    self._config.postgres_url,
+                    min_size=self._config.postgres_pool_min,
+                    max_size=self._config.postgres_pool_max,
+                )
+
+                # Validate connection by running a simple query
+                async with self._pool.acquire() as conn:
+                    await conn.fetchval("SELECT 1")
+                logger.debug("PostgreSQL connection validated successfully")
+
+            except Exception as e:
+                # Clean up pool if validation fails
+                if self._pool is not None:
+                    await self._pool.close()
+                    self._pool = None
+                raise StorageConnectionError(
+                    "postgres", f"Failed to connect to {self._config.postgres_url}: {e}"
+                ) from e
+
             self._test_case_repo = PostgresTestCaseRepository(self._pool)
             self._scorecard_repo = PostgresScorecardRepository(self._pool)
             self._batch_repo = PostgresBatchJobRepository(self._pool)
@@ -180,7 +203,9 @@ class RepositoryProvider:
         self._initialized = False
         logger.debug("RepositoryProvider closed")
 
-    def get_repositories(self) -> tuple[TestCaseRepository, ScorecardRepository, BatchJobRepository]:
+    def get_repositories(
+        self,
+    ) -> tuple[TestCaseRepository, ScorecardRepository, BatchJobRepository]:
         """
         Get all repositories as a tuple.
 
@@ -192,7 +217,7 @@ class RepositoryProvider:
         """
         return self.test_cases, self.scorecards, self.batch_jobs
 
-    async def __aenter__(self) -> "RepositoryProvider":
+    async def __aenter__(self) -> RepositoryProvider:
         """Enter async context manager."""
         await self.initialize()
         return self
@@ -235,7 +260,9 @@ async def create_repositories(
     global _global_provider
 
     if _global_provider is not None and _global_provider.is_initialized:
-        logger.warning("Repositories already initialized. Call close_repositories() first to reinitialize.")
+        logger.warning(
+            "Repositories already initialized. Call close_repositories() first to reinitialize."
+        )
         return _global_provider.get_repositories()
 
     _global_provider = RepositoryProvider(config)

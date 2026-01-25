@@ -28,22 +28,36 @@ async def simulate_correct_response(test_case: TestCase) -> SystemResponse:
     Results from this generator should NOT be persisted for tracking.
 
     For real accuracy measurement, use create_entity_resolver_generator().
+
+    Supports both NL2API-specific and generic test case formats.
     """
     # Simulate some latency
     latency_ms = random.randint(50, 200)
     await asyncio.sleep(latency_ms / 1000)
 
-    # Build raw output from expected tool calls
-    raw_output = json.dumps(
-        [
+    # Get expected tool calls from either NL2API or generic format
+    if test_case.expected_tool_calls:
+        tool_calls = [
             {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
             for tc in test_case.expected_tool_calls
         ]
+    elif test_case.expected.get("tool_calls"):
+        tool_calls = test_case.expected["tool_calls"]
+    else:
+        tool_calls = []
+
+    raw_output = json.dumps(tool_calls)
+
+    # Get expected NL response from either format
+    nl_response = (
+        test_case.expected_nl_response
+        or test_case.expected.get("nl_response")
+        or test_case.expected.get("response")
     )
 
     return SystemResponse(
         raw_output=raw_output,
-        nl_response=test_case.expected_nl_response,
+        nl_response=nl_response,
         latency_ms=latency_ms,
     )
 
@@ -75,9 +89,17 @@ def create_entity_resolver_generator(resolver: EntityResolver):
         start_time = time.perf_counter()
 
         try:
-            # Get input_entity from metadata stored in expected_response
-            metadata = test_case.expected_response or {}
+            # Get input_entity from metadata stored in expected_response or expected
+            metadata = test_case.expected_response or test_case.expected or {}
             input_entity = metadata.get("input_entity") if metadata else None
+
+            # Get query from generic or NL2API-specific field
+            query = (
+                test_case.input.get("nl_query")
+                or test_case.input.get("query")
+                or test_case.nl_query
+                or ""
+            )
 
             tool_calls = []
             if input_entity:
@@ -96,7 +118,7 @@ def create_entity_resolver_generator(resolver: EntityResolver):
                     )
             else:
                 # Fallback for non-entity_resolution tests: parse full query
-                resolved = await resolver.resolve(test_case.nl_query)
+                resolved = await resolver.resolve(query)
                 if resolved:
                     rics = list(resolved.values())
                     if rics:
@@ -150,14 +172,23 @@ def create_routing_generator(router):
         Generate response by running the real router.
 
         Returns a tool call with the routed domain as the tool_name.
+        Supports both NL2API-specific and generic test case formats.
         """
         import time
 
         start_time = time.perf_counter()
 
         try:
+            # Get query from generic or NL2API-specific field
+            query = (
+                test_case.input.get("nl_query")
+                or test_case.input.get("query")
+                or test_case.nl_query
+                or ""
+            )
+
             # Call the router to get routing decision
-            result = await router.route(test_case.nl_query)
+            result = await router.route(query)
 
             latency_ms = int((time.perf_counter() - start_time) * 1000)
 
@@ -208,13 +239,23 @@ def create_nl2api_generator(orchestrator):
     async def generate_orchestrator_response(test_case: TestCase) -> SystemResponse:
         """
         Generate response by running the full NL2API orchestrator.
+
+        Supports both NL2API-specific and generic test case formats.
         """
         import time
 
         start_time = time.perf_counter()
 
         try:
-            result = await orchestrator.process(test_case.nl_query)
+            # Get query from generic or NL2API-specific field
+            query = (
+                test_case.input.get("nl_query")
+                or test_case.input.get("query")
+                or test_case.nl_query
+                or ""
+            )
+
+            result = await orchestrator.process(query)
 
             latency_ms = int((time.perf_counter() - start_time) * 1000)
 
@@ -282,26 +323,37 @@ def create_tool_only_generator(
         1. Use provided resolved_entities if given
         2. Use entity_resolver to resolve from query if provided
         3. Look for resolved_entities in test case metadata
+
+        Supports both NL2API-specific and generic test case formats.
         """
         import time
 
         start_time = time.perf_counter()
 
         try:
+            # Get query from generic or NL2API-specific field
+            query = (
+                test_case.input.get("nl_query")
+                or test_case.input.get("query")
+                or test_case.nl_query
+                or ""
+            )
+
             # Priority 1: Use provided resolved_entities
             entities = resolved_entities
 
             # Priority 2: Resolve entities live using resolver
             if entities is None and entity_resolver is not None:
-                entities = await entity_resolver.resolve(test_case.nl_query)
+                entities = await entity_resolver.resolve(query)
 
-            # Priority 3: Look in test case metadata
-            if entities is None and test_case.expected_response:
-                entities = test_case.expected_response.get("resolved_entities", {})
+            # Priority 3: Look in test case metadata (generic or NL2API-specific)
+            if entities is None:
+                metadata = test_case.expected or test_case.expected_response or {}
+                entities = metadata.get("resolved_entities", {})
 
             # Build AgentContext for the agent (matches process() signature)
             context = AgentContext(
-                query=test_case.nl_query,
+                query=query,
                 resolved_entities=entities or {},
             )
 

@@ -318,54 +318,59 @@ async def _batch_run_async(
     # Capture git info from current working directory
     git_info = get_git_info()
 
+    # Tag is REQUIRED for all packs to ensure proper filtering and tracking
+    # Without a tag, evaluations are not reproducible or comparable
+    # Validate BEFORE connecting to storage to avoid unnecessary connections
+    if not tags:
+        console.print("[red]ERROR: --tag is required for all batch evaluations.[/red]")
+        console.print("\nA tag ensures proper filtering and reproducible results.\n")
+        if pack == "rag":
+            console.print("For RAG evaluation:")
+            console.print("  batch run --pack rag --tag rag --label <label>")
+        else:
+            console.print("Common tags for NL2API:")
+            console.print("  --tag entity_resolution  (entity resolution accuracy)")
+            console.print("  --tag lookups            (single/multi-field queries)")
+            console.print("  --tag temporal           (date-based queries)")
+            console.print("  --tag screening          (screening/filtering)")
+            console.print("\nExample:")
+            console.print(f"  batch run --pack {pack} --tag entity_resolution --label <label>")
+        raise typer.Exit(code=1)
+
+    # Additional pack-specific tag validation (before storage connection)
+    PACK_REQUIRED_TAGS = {
+        "rag": "rag",  # RAG pack must use rag tag
+    }
+    if pack in PACK_REQUIRED_TAGS:
+        required_tag = PACK_REQUIRED_TAGS[pack]
+        if required_tag not in tags:
+            console.print(f"[red]ERROR: {pack} pack requires --tag {required_tag}[/red]")
+            console.print(
+                f"\nExample:\n  batch run --pack {pack} --tag {required_tag} --label <label>"
+            )
+            raise typer.Exit(code=1)
+
+    # Simulated mode validation (before storage connection)
+    if mode == "simulated":
+        console.print("[red]ERROR: Simulated mode is disabled.[/red]")
+        console.print(
+            "\nSimulated mode produces 100% pass rates and is meaningless for accuracy tracking."
+        )
+        console.print("\nFor pipeline testing, use unit tests:")
+        console.print("  pytest tests/unit/evalkit/")
+        console.print("\nFor accuracy testing, use one of:")
+        console.print("  --mode resolver     (entity resolution / RAG retrieval)")
+        console.print("  --mode orchestrator (full NL2API pipeline)")
+        raise typer.Exit(code=1)
+
     try:
         config = StorageConfig()
         test_case_repo, scorecard_repo, batch_repo = await create_repositories(config)
 
-        # Tag is REQUIRED for all packs to ensure proper filtering and tracking
-        # Without a tag, evaluations are not reproducible or comparable
-        if not tags:
-            console.print("[red]ERROR: --tag is required for all batch evaluations.[/red]")
-            console.print("\nA tag ensures proper filtering and reproducible results.\n")
-            if pack == "rag":
-                console.print("For RAG evaluation:")
-                console.print("  batch run --pack rag --tag rag --label <label>")
-            else:
-                console.print("Common tags for NL2API:")
-                console.print("  --tag entity_resolution  (entity resolution accuracy)")
-                console.print("  --tag lookups            (single/multi-field queries)")
-                console.print("  --tag temporal           (date-based queries)")
-                console.print("  --tag screening          (screening/filtering)")
-                console.print("\nExample:")
-                console.print(f"  batch run --pack {pack} --tag entity_resolution --label <label>")
-            raise typer.Exit(code=1)
-
-        # Additional pack-specific tag validation
-        PACK_REQUIRED_TAGS = {
-            "rag": "rag",  # RAG pack must use rag tag
-        }
-        if pack in PACK_REQUIRED_TAGS:
-            required_tag = PACK_REQUIRED_TAGS[pack]
-            if required_tag not in tags:
-                console.print(f"[red]ERROR: {pack} pack requires --tag {required_tag}[/red]")
-                console.print("\nCorrect usage:")
-                console.print(f"  batch run --pack {pack} --tag {required_tag} --label <label>")
-                raise typer.Exit(code=1)
-
         # Select response generator based on mode
+        # (validation for tags/mode already done before storage connection)
         response_generator = None
-        if mode == "simulated":
-            console.print("[red]ERROR: Simulated mode is disabled for production use.[/red]")
-            console.print(
-                "[red]Simulated results produce 100% pass rates and are meaningless.[/red]"
-            )
-            console.print("\nFor pipeline testing, use unit tests instead:")
-            console.print("  pytest tests/unit/evalkit/ -v")
-            console.print("\nFor real accuracy measurement:")
-            console.print("  --mode resolver  (entity resolution / RAG retrieval)")
-            console.print("  --mode orchestrator  (full NL2API pipeline)")
-            raise typer.Exit(code=1)
-        elif mode == "resolver":
+        if mode == "resolver":
             # Use real EntityResolver for accuracy measurement
             from src.evalkit.common.storage.postgres.client import get_pool
             from src.nl2api.resolution.resolver import ExternalEntityResolver

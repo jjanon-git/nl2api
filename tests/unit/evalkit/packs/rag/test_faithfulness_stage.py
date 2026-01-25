@@ -178,16 +178,16 @@ class TestFaithfulnessWithLLM:
 
     @pytest.mark.asyncio
     async def test_partial_faithfulness(self, stage, mock_llm_judge):
-        """Some claims supported, some not."""
+        """Some claims supported, some not - score below threshold."""
         mock_llm_judge.evaluate_faithfulness.return_value = JudgeResult(
-            score=0.5,
+            score=0.3,  # Below pass_threshold of 0.4
             passed=False,
-            reasoning="Half of claims are unsupported",
+            reasoning="Most claims are unsupported",
             raw_response="",
             metrics={
                 "num_claims": 4,
-                "supported_claims": 2,
-                "unsupported_claims": ["claim3", "claim4"],
+                "supported_claims": 1,
+                "unsupported_claims": ["claim2", "claim3", "claim4"],
             },
         )
 
@@ -204,9 +204,9 @@ class TestFaithfulnessWithLLM:
 
         result = await stage.evaluate(test_case, system_output, context)
 
-        assert result.score == 0.5
-        assert result.passed is False
-        assert result.metrics["supported_claims"] == 2
+        assert result.score == 0.3
+        assert result.passed is False  # 0.3 < 0.4 (pass_threshold)
+        assert result.metrics["supported_claims"] == 1
 
     @pytest.mark.asyncio
     async def test_llm_judge_error_handled(self, stage, mock_llm_judge):

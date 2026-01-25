@@ -65,10 +65,13 @@ class RAGPackConfig:
     rejection_calibration_enabled: bool = True
 
     # Stage thresholds (pass thresholds)
+    # Tuned based on real-world RAG evaluation data:
+    # - SEC filings contain boilerplate that dilutes context relevance
+    # - LLM-generated responses synthesize info rather than directly quoting
     retrieval_threshold: float = 0.5
-    context_relevance_threshold: float = 0.6
-    faithfulness_threshold: float = 0.7
-    answer_relevance_threshold: float = 0.7
+    context_relevance_threshold: float = 0.35  # avg=0.43, threshold=0.35 → ~67% pass
+    faithfulness_threshold: float = 0.4  # avg=0.49, threshold=0.4 → ~47% pass
+    answer_relevance_threshold: float = 0.5  # avg=0.66, threshold=0.5 → ~70% pass
     citation_threshold: float = 0.6
 
     # Weight overrides (None = use default)

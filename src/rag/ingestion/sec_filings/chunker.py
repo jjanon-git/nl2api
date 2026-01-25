@@ -445,6 +445,241 @@ class DocumentChunker:
 
         return overlap
 
+    def chunk_section_hierarchical(
+        self,
+        text: str,
+        filing: Filing,
+        section_name: str,
+        parent_chunk_size: int = 4000,
+        child_chunk_size: int = 512,
+        child_overlap: int = 64,
+    ) -> list[FilingChunk]:
+        """
+        Chunk a section using small-to-big retrieval strategy.
+
+        Creates a two-level hierarchy:
+        - Parent chunks (chunk_level=0): Large context windows for retrieval output
+        - Child chunks (chunk_level=1): Small precise chunks for search matching
+
+        Search is performed on children, but parents are returned for context.
+
+        Args:
+            text: Section text content
+            filing: Filing metadata
+            section_name: Name of the section
+            parent_chunk_size: Size of parent chunks (default 4000)
+            child_chunk_size: Size of child chunks (default 512)
+            child_overlap: Overlap for child chunks (default 64)
+
+        Returns:
+            List of FilingChunk objects (both parents and children)
+        """
+        if not text or len(text) < self._min_chunk_size:
+            return []
+
+        # Generate context prefix if contextual chunking is enabled
+        context_prefix = ""
+        if self._contextual_chunking:
+            context_prefix = self._generate_context_prefix(filing, section_name)
+
+        all_chunks: list[FilingChunk] = []
+
+        # First, create parent chunks (large context)
+        # Temporarily adjust chunk size
+        original_size = self._chunk_size
+        original_overlap = self._chunk_overlap
+        self._chunk_size = parent_chunk_size
+        self._chunk_overlap = 0  # No overlap for parents
+        parent_texts = self._split_text(text)
+        self._chunk_size = original_size
+        self._chunk_overlap = original_overlap
+
+        parent_char_offset = 0
+
+        for parent_idx, parent_text in enumerate(parent_texts):
+            parent_chunk_id = f"{filing.accession_number}_{section_name}_p{parent_idx}"
+
+            # Find position in original text
+            parent_start = text.find(parent_text[:100], parent_char_offset)
+            if parent_start == -1:
+                parent_start = parent_char_offset
+            parent_end = parent_start + len(parent_text)
+
+            # Derive additional metadata
+            filing_type_str = filing.filing_type.value
+            fiscal_quarter = derive_fiscal_quarter(filing.period_of_report, filing_type_str)
+
+            # Create parent chunk
+            final_content = context_prefix + parent_text if context_prefix else parent_text
+            parent_chunk = FilingChunk(
+                chunk_id=parent_chunk_id,
+                filing_accession=filing.accession_number,
+                section=section_name,
+                chunk_index=parent_idx,
+                content=final_content,
+                char_start=parent_start,
+                char_end=parent_end,
+                parent_chunk_id=None,  # Parents have no parent
+                chunk_level=0,  # Parent level
+                metadata={
+                    "source": "sec_edgar",
+                    "document_type": "sec_filing",
+                    "filing_type": filing_type_str,
+                    "cik": filing.cik,
+                    "ticker": filing.ticker,
+                    "company_name": filing.company_name,
+                    "filing_date": filing.filing_date.isoformat(),
+                    "period_of_report": filing.period_of_report.isoformat(),
+                    "fiscal_year": filing.period_of_report.year,
+                    "fiscal_quarter": fiscal_quarter,
+                    "section": section_name,
+                    "chunk_level": 0,
+                    "chunk_type": "parent",
+                },
+            )
+            all_chunks.append(parent_chunk)
+
+            # Now create child chunks from this parent
+            child_texts = self._split_into_children(parent_text, child_chunk_size, child_overlap)
+
+            for child_idx, child_text in enumerate(child_texts):
+                child_chunk_id = (
+                    f"{filing.accession_number}_{section_name}_p{parent_idx}_c{child_idx}"
+                )
+
+                # Create child chunk (no context prefix - context comes from parent)
+                child_chunk = FilingChunk(
+                    chunk_id=child_chunk_id,
+                    filing_accession=filing.accession_number,
+                    section=section_name,
+                    chunk_index=child_idx,
+                    content=child_text,
+                    char_start=parent_start,  # Approximate - within parent
+                    char_end=parent_start + len(child_text),
+                    parent_chunk_id=parent_chunk_id,  # Link to parent
+                    chunk_level=1,  # Child level
+                    metadata={
+                        "source": "sec_edgar",
+                        "document_type": "sec_filing",
+                        "filing_type": filing_type_str,
+                        "cik": filing.cik,
+                        "ticker": filing.ticker,
+                        "company_name": filing.company_name,
+                        "filing_date": filing.filing_date.isoformat(),
+                        "period_of_report": filing.period_of_report.isoformat(),
+                        "fiscal_year": filing.period_of_report.year,
+                        "fiscal_quarter": fiscal_quarter,
+                        "section": section_name,
+                        "chunk_level": 1,
+                        "chunk_type": "child",
+                        "parent_chunk_id": parent_chunk_id,
+                    },
+                )
+                all_chunks.append(child_chunk)
+
+            parent_char_offset = parent_end
+
+        logger.info(
+            f"Hierarchical chunking {section_name}: "
+            f"{len(parent_texts)} parents, {len(all_chunks) - len(parent_texts)} children"
+        )
+        return all_chunks
+
+    def _split_into_children(
+        self,
+        text: str,
+        child_size: int,
+        overlap: int,
+    ) -> list[str]:
+        """
+        Split text into small child chunks.
+
+        Args:
+            text: Parent chunk text
+            child_size: Target size for children
+            overlap: Overlap between children
+
+        Returns:
+            List of child chunk texts
+        """
+        if len(text) <= child_size:
+            return [text.strip()] if text.strip() else []
+
+        # Try to split on sentence boundaries first
+        sentences = self._sentence_pattern.split(text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+
+        children = []
+        current = ""
+
+        for sentence in sentences:
+            test = current + " " + sentence if current else sentence
+
+            if len(test) <= child_size:
+                current = test
+            else:
+                if current:
+                    children.append(current.strip())
+
+                # Add overlap from previous
+                if overlap > 0 and current:
+                    overlap_text = current[-overlap:] if len(current) > overlap else current
+                    # Find word boundary
+                    space_idx = overlap_text.find(" ")
+                    if space_idx > 0:
+                        overlap_text = overlap_text[space_idx + 1 :]
+                    current = overlap_text + " " + sentence if overlap_text else sentence
+                else:
+                    current = sentence
+
+        if current and len(current.strip()) >= 50:  # Min child size
+            children.append(current.strip())
+
+        return children
+
+    def chunk_filing_hierarchical(
+        self,
+        sections: dict[str, str],
+        filing: Filing,
+        parent_chunk_size: int = 4000,
+        child_chunk_size: int = 512,
+        child_overlap: int = 64,
+    ) -> list[FilingChunk]:
+        """
+        Chunk all sections of a filing using hierarchical small-to-big strategy.
+
+        Args:
+            sections: Dict mapping section names to text content
+            filing: Filing metadata
+            parent_chunk_size: Size of parent chunks (default 4000)
+            child_chunk_size: Size of child chunks (default 512)
+            child_overlap: Overlap for child chunks (default 64)
+
+        Returns:
+            List of FilingChunk objects (both parents and children)
+        """
+        all_chunks = []
+
+        for section_name, section_text in sections.items():
+            section_chunks = self.chunk_section_hierarchical(
+                text=section_text,
+                filing=filing,
+                section_name=section_name,
+                parent_chunk_size=parent_chunk_size,
+                child_chunk_size=child_chunk_size,
+                child_overlap=child_overlap,
+            )
+            all_chunks.extend(section_chunks)
+
+        parent_count = sum(1 for c in all_chunks if c.chunk_level == 0)
+        child_count = sum(1 for c in all_chunks if c.chunk_level == 1)
+
+        logger.info(
+            f"Hierarchical chunking {filing.accession_number}: "
+            f"{len(sections)} sections → {parent_count} parents, {child_count} children"
+        )
+        return all_chunks
+
 
 def estimate_chunk_count(
     sections: dict[str, str],

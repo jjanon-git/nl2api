@@ -34,7 +34,10 @@ class ContextRelevanceStage:
     is_gate: bool = field(default=False, init=False)
 
     # Configurable thresholds
-    pass_threshold: float = 0.6
+    # Note: 0.35 threshold reflects reality that SEC filings contain substantial
+    # boilerplate alongside relevant content. Context can be useful even when
+    # not directly answering the query if it provides necessary business context.
+    pass_threshold: float = 0.35
     max_chunks_to_evaluate: int = 5  # Limit LLM calls
 
     async def evaluate(

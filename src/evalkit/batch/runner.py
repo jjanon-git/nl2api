@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import random
 import time
 from collections.abc import Callable
@@ -261,10 +262,37 @@ class BatchRunner:
                         )
                     return scorecard
 
-                # Run all evaluations concurrently
-                scorecards = await asyncio.gather(
-                    *[evaluate_with_progress(tc) for tc in test_cases]
+                # Run all evaluations concurrently with exception handling
+                # return_exceptions=True ensures one failure doesn't lose all results
+                results = await asyncio.gather(
+                    *[evaluate_with_progress(tc) for tc in test_cases],
+                    return_exceptions=True,
                 )
+
+                # Filter out exceptions and log them
+                scorecards = []
+                for i, result in enumerate(results):
+                    if isinstance(result, Exception):
+                        # Log the error but continue processing
+                        logging.getLogger(__name__).error(
+                            f"Evaluation failed for test case {test_cases[i].id}: {result}"
+                        )
+                        async with counter_lock:
+                            failed_count += 1
+                            failed_tests.append(
+                                (
+                                    test_cases[i].id,
+                                    str(result)[:60],
+                                    0.0,
+                                )
+                            )
+                            progress.update(
+                                task,
+                                advance=1,
+                                description=f"[cyan]Evaluating... [green]{passed_count} passed[/green] [red]{failed_count} failed[/red]",
+                            )
+                    else:
+                        scorecards.append(result)
         else:
             # Run without progress bar
             async def evaluate_silent(tc: TestCase) -> Scorecard:
@@ -290,7 +318,30 @@ class BatchRunner:
                         )
                 return scorecard
 
-            scorecards = await asyncio.gather(*[evaluate_silent(tc) for tc in test_cases])
+            # Run all evaluations concurrently with exception handling
+            results = await asyncio.gather(
+                *[evaluate_silent(tc) for tc in test_cases],
+                return_exceptions=True,
+            )
+
+            # Filter out exceptions and log them
+            scorecards = []
+            for i, result in enumerate(results):
+                if isinstance(result, Exception):
+                    logging.getLogger(__name__).error(
+                        f"Evaluation failed for test case {test_cases[i].id}: {result}"
+                    )
+                    async with counter_lock:
+                        failed_count += 1
+                        failed_tests.append(
+                            (
+                                test_cases[i].id,
+                                str(result)[:60],
+                                0.0,
+                            )
+                        )
+                else:
+                    scorecards.append(result)
 
         # Calculate duration
         duration_seconds = time.perf_counter() - start_time

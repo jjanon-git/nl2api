@@ -116,6 +116,11 @@ class FilingChunk:
     A chunk of text from a parsed SEC filing.
 
     Contains the text content and metadata for RAG indexing.
+
+    For small-to-big retrieval:
+    - Parent chunks (chunk_level=0): Large context windows (~4000 chars)
+    - Child chunks (chunk_level=1): Small precise chunks (~512 chars)
+    - Children link to parents via parent_chunk_id
     """
 
     chunk_id: str  # Unique ID: {accession_number}_{section}_{chunk_index}
@@ -125,6 +130,10 @@ class FilingChunk:
     content: str  # The actual text content
     char_start: int  # Start position in original section text
     char_end: int  # End position in original section text
+
+    # Small-to-big retrieval support
+    parent_chunk_id: str | None = None  # Reference to parent chunk (for child chunks)
+    chunk_level: int = 0  # 0=parent (4000 chars), 1=child (512 chars)
 
     # Inherited metadata from filing
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -144,6 +153,8 @@ class FilingChunk:
             "content": self.content,
             "char_start": self.char_start,
             "char_end": self.char_end,
+            "parent_chunk_id": self.parent_chunk_id,
+            "chunk_level": self.chunk_level,
             "metadata": self.metadata,
         }
 

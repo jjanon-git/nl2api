@@ -108,7 +108,8 @@ class AnswerRelevanceStage:
                 context_type="answer",
             )
 
-            passed = result.passed
+            # Override LLM judge's passed with our threshold
+            passed = result.score >= self.pass_threshold
             duration_ms = int((time.perf_counter() - start_time) * 1000)
 
             return StageResult(

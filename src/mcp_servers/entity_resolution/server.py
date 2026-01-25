@@ -148,7 +148,6 @@ class EntityResolutionMCPServer:
             self._resource_handlers = ResourceHandlers(
                 resolver=self._resolver,
                 db_pool=self._db_pool,
-                _internal=True,
                 redis_cache=self._redis_cache,
             )
 

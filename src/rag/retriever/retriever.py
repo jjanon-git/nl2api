@@ -478,6 +478,249 @@ class HybridRAGRetriever:
             threshold=0.4,
         )
 
+    def _parse_metadata(self, raw_metadata: Any) -> dict[str, Any]:
+        """Parse metadata from database row (JSONB, JSON string, or None)."""
+        if raw_metadata is None:
+            return {}
+        elif isinstance(raw_metadata, str):
+            try:
+                return json.loads(raw_metadata)
+            except json.JSONDecodeError:
+                return {}
+        else:
+            return raw_metadata
+
+    async def retrieve_with_parents(
+        self,
+        query: str,
+        limit: int = 10,
+        child_limit: int = 30,
+        threshold: float = 0.0,
+        domain: str | None = None,
+        use_cache: bool = True,
+    ) -> list[RetrievalResult]:
+        """
+        Small-to-big retrieval: search children, return parents.
+
+        This strategy:
+        1. Searches small child chunks (512 chars) for precise matching
+        2. Groups children by their parent chunks
+        3. Returns parent chunks (4000 chars) ranked by matching children
+        4. Provides better context while maintaining precise search
+
+        Args:
+            query: Search query
+            limit: Maximum parent chunks to return
+            child_limit: Number of children to retrieve in first stage
+            threshold: Minimum relevance score
+            domain: Optional domain filter
+            use_cache: Whether to use caching
+
+        Returns:
+            List of parent RetrievalResult objects with full context
+        """
+        with tracer.start_as_current_span("rag.retrieve_with_parents") as span:
+            span.set_attribute("rag.query_length", len(query))
+            span.set_attribute("rag.domain", domain or "all")
+            span.set_attribute("rag.limit", limit)
+            span.set_attribute("rag.child_limit", child_limit)
+            span.set_attribute("rag.retrieval_type", "small_to_big")
+
+            if not self._embedder:
+                raise RuntimeError("Embedder not set. Call set_embedder() first.")
+
+            # Generate cache key for this specific retrieval type
+            cache_key = f"rag_parents:{hashlib.md5(f'{query}{domain}{limit}'.encode()).hexdigest()}"
+
+            # Check cache
+            if use_cache and self._redis_cache:
+                cached = await self._redis_cache.get(cache_key)
+                if cached:
+                    span.set_attribute("rag.cache_hit", True)
+                    return [
+                        RetrievalResult(
+                            id=r["id"],
+                            content=r["content"],
+                            document_type=DocumentType(r["document_type"]),
+                            score=r["score"],
+                            domain=r.get("domain"),
+                            field_code=r.get("field_code"),
+                            example_query=r.get("example_query"),
+                            example_api_call=r.get("example_api_call"),
+                            metadata=r.get("metadata", {}),
+                        )
+                        for r in cached
+                    ]
+
+            span.set_attribute("rag.cache_hit", False)
+
+            # Get query embedding
+            query_embedding_list = await self._embedder.embed(query)
+            query_embedding = "[" + ",".join(str(x) for x in query_embedding_list) + "]"
+
+            # Build domain filter
+            domain_filter = f"AND domain = '{domain}'" if domain else ""
+
+            async with self._pool.acquire() as conn:
+                # Step 1: Search child chunks (chunk_level = 1)
+                child_sql = f"""
+                    SELECT
+                        id,
+                        content,
+                        document_type,
+                        domain,
+                        field_code,
+                        example_query,
+                        example_api_call,
+                        metadata,
+                        (
+                            {self._vector_weight} * (1 - (embedding <=> $1::vector))
+                            + {self._keyword_weight} * COALESCE(
+                                ts_rank(search_vector, plainto_tsquery('english', $2)),
+                                0
+                            )
+                        ) as combined_score
+                    FROM rag_documents
+                    WHERE
+                        embedding IS NOT NULL
+                        AND (metadata->>'chunk_level')::int = 1
+                        {domain_filter}
+                    ORDER BY combined_score DESC
+                    LIMIT $3
+                """
+
+                child_rows = await conn.fetch(
+                    child_sql,
+                    query_embedding,
+                    query,
+                    child_limit,
+                )
+
+                span.set_attribute("rag.child_count", len(child_rows))
+
+                if not child_rows:
+                    span.set_attribute("rag.result_count", 0)
+                    return []
+
+                # Step 2: Group children by parent and calculate parent scores
+                parent_scores: dict[str, float] = {}
+                parent_child_count: dict[str, int] = {}
+
+                for row in child_rows:
+                    metadata = self._parse_metadata(row.get("metadata"))
+                    parent_id = metadata.get("parent_chunk_id")
+
+                    if parent_id and row["combined_score"] >= threshold:
+                        child_score = float(row["combined_score"])
+                        if parent_id not in parent_scores:
+                            parent_scores[parent_id] = 0.0
+                            parent_child_count[parent_id] = 0
+                        parent_scores[parent_id] += child_score
+                        parent_child_count[parent_id] += 1
+
+                if not parent_scores:
+                    # Fallback: return children if no parents found
+                    logger.debug("No parent chunks found, returning child results")
+                    results = [
+                        RetrievalResult(
+                            id=str(row["id"]),
+                            content=row["content"],
+                            document_type=DocumentType(row["document_type"]),
+                            score=float(row["combined_score"]),
+                            domain=row.get("domain"),
+                            field_code=row.get("field_code"),
+                            example_query=row.get("example_query"),
+                            example_api_call=row.get("example_api_call"),
+                            metadata=self._parse_metadata(row.get("metadata")),
+                        )
+                        for row in child_rows[:limit]
+                        if float(row["combined_score"]) >= threshold
+                    ]
+                    span.set_attribute("rag.result_count", len(results))
+                    span.set_attribute("rag.fallback_to_children", True)
+                    return results
+
+                # Normalize scores by child count
+                for pid in parent_scores:
+                    parent_scores[pid] = parent_scores[pid] / max(parent_child_count[pid], 1)
+
+                # Sort parents by score and get top N
+                sorted_parents = sorted(parent_scores.items(), key=lambda x: x[1], reverse=True)
+                top_parent_ids = [p[0] for p in sorted_parents[:limit]]
+
+                span.set_attribute("rag.unique_parents", len(parent_scores))
+
+                # Step 3: Fetch parent chunk details
+                parent_sql = """
+                    SELECT
+                        id,
+                        content,
+                        document_type,
+                        domain,
+                        field_code,
+                        example_query,
+                        example_api_call,
+                        metadata
+                    FROM rag_documents
+                    WHERE (metadata->>'chunk_id')::text = ANY($1)
+                """
+
+                parent_rows = await conn.fetch(parent_sql, top_parent_ids)
+
+                # Build result list maintaining score order
+                parent_map = {}
+                for row in parent_rows:
+                    metadata = self._parse_metadata(row.get("metadata"))
+                    chunk_id = metadata.get("chunk_id")
+                    if chunk_id:
+                        parent_map[chunk_id] = row
+
+                results = []
+                for parent_id, score in sorted_parents[:limit]:
+                    row = parent_map.get(parent_id)
+                    if row:
+                        metadata = self._parse_metadata(row.get("metadata"))
+                        metadata["matching_children"] = parent_child_count.get(parent_id, 0)
+                        metadata["retrieval_type"] = "small_to_big"
+
+                        results.append(
+                            RetrievalResult(
+                                id=str(row["id"]),
+                                content=row["content"],
+                                document_type=DocumentType(row["document_type"]),
+                                score=score,
+                                domain=row.get("domain"),
+                                field_code=row.get("field_code"),
+                                example_query=row.get("example_query"),
+                                example_api_call=row.get("example_api_call"),
+                                metadata=metadata,
+                            )
+                        )
+
+            # Cache results
+            if use_cache and self._redis_cache and results:
+                cache_data = [
+                    {
+                        "id": r.id,
+                        "content": r.content,
+                        "document_type": r.document_type.value,
+                        "score": r.score,
+                        "domain": r.domain,
+                        "field_code": r.field_code,
+                        "example_query": r.example_query,
+                        "example_api_call": r.example_api_call,
+                        "metadata": r.metadata,
+                    }
+                    for r in results
+                ]
+                await self._redis_cache.set(cache_key, cache_data, ttl=self._cache_ttl)
+
+            span.set_attribute("rag.result_count", len(results))
+            logger.debug(
+                f"Small-to-big retrieval found {len(results)} parents from {len(child_rows)} children"
+            )
+            return results
+
 
 # Re-export embedders for backwards compatibility
 # Prefer using src.rag.retriever.embedders directly

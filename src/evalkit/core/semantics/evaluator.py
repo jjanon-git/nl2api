@@ -292,8 +292,15 @@ class SemanticsEvaluator:
 
             start_time = time.perf_counter()
 
+            # Get expected NL response from generic or NL2API-specific field
+            expected_nl = (
+                test_case.expected.get("nl_response")
+                or test_case.expected.get("response")
+                or test_case.expected_nl_response
+            )
+
             # Check if we have expected NL response
-            if test_case.expected_nl_response is None:
+            if expected_nl is None:
                 duration_ms = int((time.perf_counter() - start_time) * 1000)
                 span.set_attribute("result.skipped", True)
                 return StageResult(
@@ -305,12 +312,20 @@ class SemanticsEvaluator:
                     duration_ms=duration_ms,
                 )
 
+            # Get query from generic or NL2API-specific field
+            query = (
+                test_case.input.get("nl_query")
+                or test_case.input.get("query")
+                or test_case.nl_query
+                or ""
+            )
+
             try:
                 # Perform semantic comparison
                 comparison_result = await self._compare_semantic(
-                    expected=test_case.expected_nl_response,
+                    expected=expected_nl,
                     actual=actual_nl,
-                    query=test_case.nl_query,
+                    query=query,
                 )
 
                 # Calculate weighted score
@@ -345,7 +360,7 @@ class SemanticsEvaluator:
                         "meaning_match": comparison_result.meaning_match,
                         "completeness": comparison_result.completeness,
                         "accuracy": comparison_result.accuracy,
-                        "expected_nl": test_case.expected_nl_response,
+                        "expected_nl": expected_nl,
                         "actual_nl": actual_nl,
                     },
                     duration_ms=duration_ms,

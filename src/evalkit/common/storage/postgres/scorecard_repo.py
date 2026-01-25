@@ -22,6 +22,7 @@ from CONTRACTS import (
     ToolCall,
 )
 from src.evalkit.common.telemetry import get_tracer
+from src.evalkit.exceptions import StorageQueryError, StorageWriteError
 
 tracer = get_tracer(__name__)
 
@@ -54,12 +55,16 @@ class PostgresScorecardRepository:
                 span.set_attribute("db.result", "invalid_id")
                 return None
 
-            row = await self.pool.fetchrow(
-                "SELECT * FROM scorecards WHERE id = $1",
-                sc_uuid,
-            )
-            span.set_attribute("db.found", row is not None)
-            return self._row_to_scorecard(row) if row else None
+            try:
+                row = await self.pool.fetchrow(
+                    "SELECT * FROM scorecards WHERE id = $1",
+                    sc_uuid,
+                )
+                span.set_attribute("db.found", row is not None)
+                return self._row_to_scorecard(row) if row else None
+            except asyncpg.PostgresError as e:
+                span.set_attribute("db.error", str(e))
+                raise StorageQueryError("get_scorecard", str(e)) from e
 
     async def get_by_test_case(
         self,
@@ -131,21 +136,25 @@ class PostgresScorecardRepository:
             )
             stage_weights_json = json.dumps(scorecard.stage_weights or {})
 
-            # Serialize tool calls
-            tool_calls_json = None
-            if scorecard.generated_tool_calls:
-                tool_calls_json = json.dumps(
-                    [
-                        {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
-                        for tc in scorecard.generated_tool_calls
-                    ]
-                )
+            # Serialize tool calls with error handling
+            try:
+                tool_calls_json = None
+                if scorecard.generated_tool_calls:
+                    tool_calls_json = json.dumps(
+                        [
+                            {"tool_name": tc.tool_name, "arguments": dict(tc.arguments)}
+                            for tc in scorecard.generated_tool_calls
+                        ]
+                    )
 
-            # Serialize generated_output
-            generated_output_json = json.dumps(scorecard.generated_output or {})
+                # Serialize generated_output
+                generated_output_json = json.dumps(scorecard.generated_output or {})
+            except (TypeError, ValueError) as e:
+                raise StorageWriteError("scorecard", f"Failed to serialize: {e}") from e
 
-            await self.pool.execute(
-                """
+            try:
+                await self.pool.execute(
+                    """
                 INSERT INTO scorecards (
                     id, test_case_id, batch_id, run_id,
                     pack_name, stage_results, stage_weights,
@@ -190,35 +199,38 @@ class PostgresScorecardRepository:
                     output_tokens = EXCLUDED.output_tokens,
                     estimated_cost_usd = EXCLUDED.estimated_cost_usd
                 """,
-                sc_uuid,
-                tc_uuid,
-                scorecard.batch_id,
-                None,  # run_id placeholder
-                scorecard.pack_name,
-                stage_results_json,
-                stage_weights_json,
-                syntax_json,
-                logic_json,
-                execution_json,
-                semantics_json,
-                tool_calls_json,
-                scorecard.generated_nl_response,
-                generated_output_json,
-                scorecard.overall_passed,
-                scorecard.overall_score,
-                scorecard.worker_id,
-                scorecard.attempt_number,
-                scorecard.message_id,
-                scorecard.total_latency_ms,
-                scorecard.timestamp,
-                scorecard.completed_at,
-                scorecard.client_type,
-                scorecard.client_version,
-                scorecard.eval_mode,
-                scorecard.input_tokens,
-                scorecard.output_tokens,
-                scorecard.estimated_cost_usd,
-            )
+                    sc_uuid,
+                    tc_uuid,
+                    scorecard.batch_id,
+                    None,  # run_id placeholder
+                    scorecard.pack_name,
+                    stage_results_json,
+                    stage_weights_json,
+                    syntax_json,
+                    logic_json,
+                    execution_json,
+                    semantics_json,
+                    tool_calls_json,
+                    scorecard.generated_nl_response,
+                    generated_output_json,
+                    scorecard.overall_passed,
+                    scorecard.overall_score,
+                    scorecard.worker_id,
+                    scorecard.attempt_number,
+                    scorecard.message_id,
+                    scorecard.total_latency_ms,
+                    scorecard.timestamp,
+                    scorecard.completed_at,
+                    scorecard.client_type,
+                    scorecard.client_version,
+                    scorecard.eval_mode,
+                    scorecard.input_tokens,
+                    scorecard.output_tokens,
+                    scorecard.estimated_cost_usd,
+                )
+            except asyncpg.PostgresError as e:
+                span.set_attribute("db.error", str(e))
+                raise StorageWriteError("scorecard", str(e)) from e
 
     async def get_latest(self, test_case_id: str) -> Scorecard | None:
         """Get the most recent scorecard for a test case."""

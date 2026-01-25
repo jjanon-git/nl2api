@@ -83,9 +83,12 @@ class InMemoryQueue:
         self._lock = asyncio.Lock()
         self._closed = False
 
-    def _get_stream(self, batch_id: str) -> StreamState:
-        """Get or create stream state for a batch."""
-        return self._streams[batch_id]
+    async def _get_stream(self, batch_id: str) -> StreamState:
+        """Get or create stream state for a batch (thread-safe)."""
+        async with self._lock:
+            if batch_id not in self._streams:
+                self._streams[batch_id] = StreamState()
+            return self._streams[batch_id]
 
     # =========================================================================
     # Enqueue Operations
@@ -97,7 +100,7 @@ class InMemoryQueue:
             raise QueueError("Queue is closed")
 
         message_id = _generate_id()
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
 
         message = QueueMessage(
             message_id=message_id,
@@ -145,7 +148,7 @@ class InMemoryQueue:
         if self._closed:
             raise QueueError("Queue is closed")
 
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
         stream.consumers.add(consumer_id)
         poll_interval = min(block_ms / 1000, 0.1)  # Max 100ms between polls
 
@@ -176,7 +179,7 @@ class InMemoryQueue:
 
     async def ack(self, message: QueueMessage) -> None:
         """Acknowledge successful processing of a message."""
-        stream = self._get_stream(self._batch_from_stream(message.stream_name))
+        stream = await self._get_stream(self._batch_from_stream(message.stream_name))
 
         async with self._lock:
             if message.message_id in stream.processing:
@@ -194,7 +197,7 @@ class InMemoryQueue:
     ) -> None:
         """Negatively acknowledge a message (processing failed)."""
         batch_id = self._batch_from_stream(message.stream_name)
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
 
         async with self._lock:
             # Remove from processing
@@ -236,17 +239,17 @@ class InMemoryQueue:
 
     async def get_pending_count(self, batch_id: str) -> int:
         """Get count of pending (unprocessed) messages."""
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
         return stream.pending.qsize()
 
     async def get_processing_count(self, batch_id: str) -> int:
         """Get count of messages currently being processed."""
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
         return len(stream.processing)
 
     async def get_dlq_count(self, batch_id: str) -> int:
         """Get count of messages in the dead letter queue."""
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
         return len(stream.dlq)
 
     # =========================================================================
@@ -259,7 +262,7 @@ class InMemoryQueue:
         min_idle_ms: int = 60000,
     ) -> list[QueueMessage]:
         """Get messages that have been pending for too long (stalled)."""
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
         now = _now_utc()
         stalled = []
 
@@ -285,7 +288,7 @@ class InMemoryQueue:
     ) -> QueueMessage:
         """Claim a stalled message for a different consumer."""
         batch_id = self._batch_from_stream(message.stream_name)
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
 
         async with self._lock:
             if message.message_id not in stream.processing:
@@ -311,7 +314,7 @@ class InMemoryQueue:
         limit: int = 100,
     ) -> list[QueueMessage]:
         """Get messages from the dead letter queue."""
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
         return stream.dlq[:limit]
 
     async def retry_from_dlq(
@@ -320,7 +323,7 @@ class InMemoryQueue:
     ) -> str:
         """Move a message from DLQ back to the main queue."""
         batch_id = self._batch_from_stream(message.stream_name)
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
 
         async with self._lock:
             # Remove from DLQ
@@ -347,7 +350,7 @@ class InMemoryQueue:
     ) -> None:
         """Permanently delete a message from the DLQ."""
         batch_id = self._batch_from_stream(message.stream_name)
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
 
         async with self._lock:
             stream.dlq = [m for m in stream.dlq if m.message_id != message.message_id]
@@ -359,8 +362,8 @@ class InMemoryQueue:
 
     async def ensure_stream(self, batch_id: str) -> None:
         """Ensure the stream exists for a batch (no-op for in-memory)."""
-        # Stream is created lazily via defaultdict
-        _ = self._get_stream(batch_id)
+        # Stream is created lazily
+        _ = await self._get_stream(batch_id)
 
     async def delete_stream(self, batch_id: str) -> None:
         """Delete a stream and its DLQ."""
@@ -390,7 +393,7 @@ class InMemoryQueue:
 
     async def get_all_messages(self, batch_id: str) -> dict:
         """Get all messages for a batch (testing only)."""
-        stream = self._get_stream(batch_id)
+        stream = await self._get_stream(batch_id)
         return {
             "pending": stream.pending.qsize(),
             "processing": list(stream.processing.values()),
