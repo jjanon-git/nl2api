@@ -1,8 +1,8 @@
-# RAG Ingestion Improvements Design Document
+# RAG Improvements Design Document
 
 **Author:** Mostly Claude, with some minor assistance from Sid
-**Date:** 2026-01-23
-**Status:** Draft - Pending Review
+**Date:** 2026-01-23 (updated 2026-01-25)
+**Status:** Active - P0 Complete, P1 In Progress
 
 ---
 
