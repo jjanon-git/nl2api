@@ -132,6 +132,7 @@ class BatchRunner:
         complexity_max: int | None = None,
         limit: int | None = None,
         response_simulator: Callable[[TestCase], Any] | None = None,
+        resume_batch_id: str | None = None,
     ) -> BatchJob | None:
         """
         Run batch evaluation on filtered test cases.
@@ -143,10 +144,13 @@ class BatchRunner:
             limit: Maximum number of test cases to run
             response_simulator: Async function to generate responses
                               (defaults to simulate_correct_response)
+            resume_batch_id: ID of batch to resume (not yet implemented)
 
         Returns:
             Completed BatchJob with results summary, or None if no test cases found
         """
+        # TODO: Implement resume logic using resume_batch_id
+        _ = resume_batch_id  # Suppress unused warning
         start_time = time.perf_counter()
         simulator = response_simulator or simulate_correct_response
 
