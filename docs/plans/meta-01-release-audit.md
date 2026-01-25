@@ -14,22 +14,23 @@
 | Aspect | Grade | Status |
 |--------|-------|--------|
 | **Single-process batch evaluation** | B+ | Production-ready |
+| **Generic abstraction** | B+ | Core models support any pack via `input`/`expected` fields |
 | **Distributed multi-worker mode** | D | Critical gaps, not production-ready |
 | **Enterprise features** | F | Missing auth, audit, tenant isolation |
-| **Generic abstraction** | D | Core models still coupled to NL2API |
 
-**Overall: B- (3.0/5)** - Use single-process mode only. Distributed mode has critical bugs.
+**Overall: B (3.2/5)** - Single-process is production-ready. Distributed mode has critical bugs.
 
 ### What Works
 - Single-process `BatchRunner` with checkpoint/resume
+- Generic `TestCase.input`/`expected` and `Scorecard.stage_results` fields (NL2API fields are deprecated legacy)
 - Proper concurrency handling (asyncio.Lock)
 - Repository provider pattern (no singletons)
 - OTEL telemetry integration
 - PostgreSQL and in-memory backends
+- RAG and NL2API packs both working
 
 ### What's Broken
 - Distributed workers: no heartbeat, no exactly-once delivery, no leader election
-- Core `TestCase` and `Scorecard` models have NL2API-specific fields baked in
 - No authentication, authorization, or audit logging
 
 ---
@@ -38,36 +39,7 @@
 
 ### HIGH PRIORITY - Architectural Issues
 
-#### 1. NL2API Coupling in Core Models
-**Severity: HIGH** - Blocks non-NL2API evaluation packs
-
-**TestCase has NL2API-specific fields** (`src/evalkit/contracts/core.py:414-433`):
-```python
-# These fields are in the BASE TestCase, not a subclass:
-nl_query: str
-expected_tool_calls: tuple[ToolCall, ...]
-expected_response: dict | None
-expected_nl_response: str | None
-```
-
-**Scorecard has hardcoded NL2API stages** (`src/evalkit/contracts/evaluation.py:195-210`):
-```python
-# Base Scorecard has NL2API-specific stage results:
-syntax_result: StageResult | None
-logic_result: StageResult | None
-execution_result: StageResult | None
-semantics_result: StageResult | None
-```
-
-**Remediation:**
-- [ ] Create base `TestCase` with only generic fields (`input`, `expected`, `tags`)
-- [ ] Create `NL2APITestCase` subclass with `nl_query`, `expected_tool_calls`
-- [ ] Same for `Scorecard` → `NL2APIScorecard`
-- [ ] Migrate database schema to use generic JSON columns
-
----
-
-#### 2. Distributed System Incomplete
+#### 1. Distributed System Incomplete
 **Severity: CRITICAL** - Not production-ready for multi-worker deployment
 
 | Component | Issue | Location |
@@ -87,7 +59,7 @@ semantics_result: StageResult | None
 
 ---
 
-#### 3. Enterprise Features Missing
+#### 2. Enterprise Features Missing
 **Severity: HIGH** - Blocks enterprise adoption
 
 | Feature | Status | Issue |
@@ -143,13 +115,12 @@ semantics_result: StageResult | None
 | Add exception hierarchy | ✅ Done (2026-01-24) |
 | Replace global singletons | ✅ Done (2026-01-24) |
 | Add checkpoint/resume | ✅ Done (2026-01-25) |
+| Generic TestCase/Scorecard fields | ✅ Done (previously) |
 
-### Phase 2: Distributed Reliability (4-5 weeks) - IN PROGRESS
+### Phase 2: Distributed Reliability (~4 weeks) - NOT STARTED
 
 | Task | Effort | Priority | Status |
 |------|--------|----------|--------|
-| Decouple TestCase from NL2API | 2 weeks | P0 | Pending |
-| Decouple Scorecard from NL2API | 1 week | P0 | Pending |
 | Implement exactly-once delivery | 2 weeks | P0 | Pending |
 | Implement worker heartbeat | 1 week | P0 | Pending |
 | Add coordinator leader election | 1 week | P1 | Pending |
@@ -162,17 +133,20 @@ semantics_result: StageResult | None
 | Add authentication layer | 2 weeks | P1 | Pending |
 | Implement audit logging | 1 week | P2 | Pending |
 
-**Remaining Effort: ~8-10 weeks**
+**Remaining Effort: ~8 weeks** (Phase 2: 4 weeks + Phase 3: 4 weeks)
 
 ---
 
 ## Recommendation
 
 Single-process batch evaluation is now **production-ready** with:
+- Generic `TestCase`/`Scorecard` models (supports any pack)
 - Checkpoint/resume for interrupted runs
 - Proper concurrency handling with locks
 - Clean exception hierarchy
 - Repository provider pattern (no singletons)
+
+Both NL2API and RAG packs are working. New packs can be added using the generic `input`/`expected` and `stage_results` fields.
 
 **Do not** deploy distributed mode (multi-worker) until Phase 2 is complete.
 
@@ -215,6 +189,19 @@ Single-process batch evaluation is now **production-ready** with:
 - Added `checkpoint_interval` config (default: 10)
 - Implemented resume logic in BatchRunner with `--resume <batch_id>` CLI option
 - 13 unit tests + 3 integration tests
+
+---
+
+### Finding: NL2API Coupling in Core Models ✅ ADDRESSED (previously)
+
+**Original Issue:** Core `TestCase` and `Scorecard` models had NL2API-specific fields that would block other packs.
+
+**Resolution:** Models now have generic fields with NL2API fields as deprecated legacy:
+- `TestCase.input: dict` and `TestCase.expected: dict` for any pack
+- `Scorecard.stage_results: dict[str, StageResult]` for any stages
+- `Scorecard.generated_output: dict` for any output format
+- NL2API fields (`nl_query`, `expected_tool_calls`, `syntax_result`, etc.) marked deprecated, optional
+- RAG pack works using generic fields
 
 ---
 
