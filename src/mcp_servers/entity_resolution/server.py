@@ -139,6 +139,7 @@ class EntityResolutionMCPServer:
                 redis_cache=self._redis_cache,
                 redis_cache_ttl_seconds=self._config.redis_cache_ttl_seconds,
                 db_pool=self._db_pool,
+                _internal=True,
             )
             logger.info("Entity resolver initialized")
 
@@ -147,6 +148,7 @@ class EntityResolutionMCPServer:
             self._resource_handlers = ResourceHandlers(
                 resolver=self._resolver,
                 db_pool=self._db_pool,
+                _internal=True,
                 redis_cache=self._redis_cache,
             )
 

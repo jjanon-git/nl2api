@@ -199,10 +199,10 @@ async def create_worker_dependencies(args: argparse.Namespace) -> tuple[Any, ...
 
         try:
             db_pool = await get_pool()
-            resolver = ExternalEntityResolver(db_pool=db_pool)
+            resolver = ExternalEntityResolver(db_pool=db_pool, _internal=True)
             logger.info("Using EntityResolver with database")
         except RuntimeError:
-            resolver = ExternalEntityResolver()
+            resolver = ExternalEntityResolver(_internal=True)
             logger.info("Using EntityResolver without database (static mappings)")
 
         deps.entity_resolver = resolver
@@ -319,9 +319,9 @@ async def create_worker_dependencies(args: argparse.Namespace) -> tuple[Any, ...
 
         try:
             db_pool = await get_pool()
-            resolver = ExternalEntityResolver(db_pool=db_pool)
+            resolver = ExternalEntityResolver(db_pool=db_pool, _internal=True)
         except RuntimeError:
-            resolver = ExternalEntityResolver()
+            resolver = ExternalEntityResolver(_internal=True)
 
         deps.entity_resolver = resolver
 

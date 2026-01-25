@@ -30,6 +30,10 @@ class RAGUIConfig(BaseSettings):
     anthropic_api_key: str = ""
     openai_api_key: str = ""
 
+    # Entity resolution
+    entity_resolution_endpoint: str | None = None
+    entity_resolution_timeout: float = 5.0
+
     model_config = SettingsConfigDict(
         env_prefix="RAG_UI_",
         env_file=".env",

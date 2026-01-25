@@ -400,7 +400,7 @@ async def main():
 
     # Create agent and resolver
     agent = EstimatesAgent(llm=llm)
-    resolver = ExternalEntityResolver()
+    resolver = ExternalEntityResolver(_internal=True)
 
     # Load test cases
     test_cases = load_estimates_test_cases(limit=args.limit)

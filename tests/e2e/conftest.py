@@ -80,7 +80,7 @@ def entity_resolver():
     """Create real entity resolver with static mappings."""
     from src.nl2api.resolution.resolver import ExternalEntityResolver
 
-    return ExternalEntityResolver()
+    return ExternalEntityResolver(_internal=True)
 
 
 @pytest.fixture(scope="session")

@@ -18,6 +18,7 @@ import asyncpg
 from src.nl2api.rag.embedders import LocalEmbedder, OpenAIEmbedder
 from src.nl2api.rag.protocols import DocumentType, RetrievalResult
 from src.nl2api.rag.retriever import HybridRAGRetriever
+from src.nl2api.resolution import HttpEntityResolver
 from src.nl2api.resolution.resolver import ExternalEntityResolver
 from src.rag_ui.config import RAGUIConfig
 
@@ -87,7 +88,7 @@ class RAGQueryHandler:
         self._retriever: HybridRAGRetriever | None = None
         self._embedder: LocalEmbedder | OpenAIEmbedder | None = None
         self._client: anthropic.AsyncAnthropic | None = None
-        self._entity_resolver: ExternalEntityResolver | None = None
+        self._entity_resolver: HttpEntityResolver | ExternalEntityResolver | None = None
         self._known_tickers: set[str] = set()
 
     async def initialize(self) -> None:
@@ -122,11 +123,20 @@ class RAGQueryHandler:
         )
         self._retriever.set_embedder(self._embedder)
 
-        # Initialize entity resolver (uses DB for lookups, OpenFIGI for fallback)
-        self._entity_resolver = ExternalEntityResolver(
-            db_pool=self._pool,
-            use_cache=True,
-        )
+        # Initialize entity resolver
+        if self._config.entity_resolution_endpoint:
+            logger.info(f"Using HTTP entity resolver: {self._config.entity_resolution_endpoint}")
+            self._entity_resolver = HttpEntityResolver(
+                base_url=self._config.entity_resolution_endpoint,
+                timeout_seconds=self._config.entity_resolution_timeout,
+            )
+        else:
+            logger.info("Using local entity resolver")
+            self._entity_resolver = ExternalEntityResolver(
+                db_pool=self._pool,
+                use_cache=True,
+                _internal=True,
+            )
 
         # Initialize Anthropic client
         if not self._config.anthropic_api_key:

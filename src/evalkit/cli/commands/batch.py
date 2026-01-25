@@ -373,13 +373,13 @@ async def _batch_run_async(
             # Get database pool for entity lookups (2.9M entities, 3.7M aliases)
             try:
                 db_pool = await get_pool()
-                resolver = ExternalEntityResolver(db_pool=db_pool)
+                resolver = ExternalEntityResolver(db_pool=db_pool, _internal=True)
                 console.print(
                     "[green]Using EntityResolver with database (2.9M entities).[/green]\n"
                 )
             except RuntimeError:
                 # Pool not initialized (e.g., using memory backend)
-                resolver = ExternalEntityResolver()
+                resolver = ExternalEntityResolver(_internal=True)
                 console.print(
                     "[yellow]Using EntityResolver without database (static mappings only).[/yellow]\n"
                 )
@@ -507,10 +507,10 @@ async def _batch_run_async(
             # Create entity resolver for live resolution
             try:
                 db_pool = await get_pool()
-                resolver = ExternalEntityResolver(db_pool=db_pool)
+                resolver = ExternalEntityResolver(db_pool=db_pool, _internal=True)
                 console.print("[dim]Entity resolver: database (2.9M entities)[/dim]")
             except RuntimeError:
-                resolver = ExternalEntityResolver()
+                resolver = ExternalEntityResolver(_internal=True)
                 console.print("[dim]Entity resolver: static mappings only[/dim]")
 
             response_generator = create_tool_only_generator(agent, entity_resolver=resolver)

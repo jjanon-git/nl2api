@@ -290,10 +290,10 @@ async def _matrix_run_async(
 
             try:
                 db_pool = await get_pool()
-                resolver = ExternalEntityResolver(db_pool=db_pool)
+                resolver = ExternalEntityResolver(db_pool=db_pool, _internal=True)
                 console.print("[green]Evaluating resolver with database (2.9M entities)[/green]\n")
             except RuntimeError:
-                resolver = ExternalEntityResolver()
+                resolver = ExternalEntityResolver(_internal=True)
                 console.print("[yellow]Evaluating resolver (static mappings only)[/yellow]\n")
 
             response_generator = create_entity_resolver_generator(resolver)

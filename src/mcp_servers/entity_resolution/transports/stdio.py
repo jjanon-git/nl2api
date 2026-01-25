@@ -93,6 +93,7 @@ async def server_lifespan(server: Server) -> AsyncIterator[dict]:
         use_cache=True,
         timeout_seconds=5.0,
         db_pool=db_pool,
+        _internal=True,
     )
     logger.info("Entity resolver initialized")
 
