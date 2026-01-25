@@ -150,10 +150,26 @@ class BatchRunner:
         Returns:
             Completed BatchJob with results summary, or None if no test cases found
         """
-        # TODO: Implement resume logic using resume_batch_id
-        _ = resume_batch_id  # Suppress unused warning
         start_time = time.perf_counter()
         simulator = response_simulator or simulate_correct_response
+
+        # Handle resume logic
+        evaluated_ids: set[str] = set()
+        batch_job: BatchJob | None = None
+        resumed_passed = 0
+        resumed_failed = 0
+
+        if resume_batch_id:
+            batch_job, evaluated_ids = await self._load_resume_state(resume_batch_id)
+            if batch_job is None:
+                return None
+            if batch_job.status == TaskStatus.COMPLETED:
+                if self.config.show_progress:
+                    console.print(f"[yellow]Batch {resume_batch_id} already completed[/yellow]")
+                return batch_job
+            # Preserve counts from previous run
+            resumed_passed = batch_job.completed_count
+            resumed_failed = batch_job.failed_count
 
         # Fetch test cases
         test_cases = await self.test_case_repo.list(
@@ -164,25 +180,42 @@ class BatchRunner:
             offset=0,
         )
 
+        # Filter out already-evaluated tests when resuming
+        original_count = len(test_cases)
+        if evaluated_ids:
+            test_cases = [tc for tc in test_cases if tc.id not in evaluated_ids]
+            if self.config.show_progress:
+                console.print(
+                    f"[cyan]Resuming: {original_count - len(test_cases)} already evaluated, "
+                    f"{len(test_cases)} remaining[/cyan]"
+                )
+
         if not test_cases:
             if self.config.show_progress:
-                console.print("[yellow]No test cases found matching filters[/yellow]")
+                if evaluated_ids:
+                    console.print("[green]All test cases already evaluated[/green]")
+                else:
+                    console.print("[yellow]No test cases found matching filters[/yellow]")
+            # Return existing batch if resuming and all done
+            if batch_job:
+                return batch_job
             # Return None to indicate no tests were run
             # BatchJob model requires total_tests >= 1, so we can't create an empty one
             return None
 
-        # Create batch job with run tracking
-        batch_job = BatchJob(
-            total_tests=len(test_cases),
-            status=TaskStatus.IN_PROGRESS,
-            started_at=datetime.now(UTC),
-            tags=tuple(tags) if tags else (),
-            run_label=self.config.run_label,
-            run_description=self.config.run_description,
-            git_commit=self.config.git_commit,
-            git_branch=self.config.git_branch,
-        )
-        await self.batch_repo.create(batch_job)
+        # Create batch job with run tracking (only if not resuming)
+        if batch_job is None:
+            batch_job = BatchJob(
+                total_tests=len(test_cases),
+                status=TaskStatus.IN_PROGRESS,
+                started_at=datetime.now(UTC),
+                tags=tuple(tags) if tags else (),
+                run_label=self.config.run_label,
+                run_description=self.config.run_description,
+                git_commit=self.config.git_commit,
+                git_branch=self.config.git_branch,
+            )
+            await self.batch_repo.create(batch_job)
 
         if self.config.show_progress:
             console.print("\n[bold]Running batch evaluation...[/bold]")
@@ -208,8 +241,9 @@ class BatchRunner:
         # Track results with lock for thread-safe counter updates
         # asyncio.gather runs tasks concurrently, so counter increments need synchronization
         counter_lock = asyncio.Lock()
-        passed_count = 0
-        failed_count = 0
+        passed_count = resumed_passed  # Start from resumed counts
+        failed_count = resumed_failed
+        checkpoint_counter = 0  # For periodic checkpoint saves
         failed_tests: list[tuple[str, str, float]] = []  # (id, query, score)
         scorecards: list[Scorecard] = []
 
@@ -233,7 +267,7 @@ class BatchRunner:
 
                 # Create evaluation tasks
                 async def evaluate_with_progress(tc: TestCase) -> Scorecard:
-                    nonlocal passed_count, failed_count
+                    nonlocal passed_count, failed_count, checkpoint_counter
                     scorecard = await self._evaluate_one(tc, batch_job.batch_id, simulator)
                     # Use lock to ensure atomic counter updates under concurrency
                     async with counter_lock:
@@ -260,6 +294,16 @@ class BatchRunner:
                             advance=1,
                             description=f"[cyan]Evaluating... [green]{passed_count} passed[/green] [red]{failed_count} failed[/red]",
                         )
+                        # Periodic checkpoint save
+                        checkpoint_counter += 1
+                        if (
+                            self.config.checkpoint_interval > 0
+                            and checkpoint_counter >= self.config.checkpoint_interval
+                        ):
+                            await self._save_checkpoint(
+                                batch_job.batch_id, passed_count, failed_count
+                            )
+                            checkpoint_counter = 0
                     return scorecard
 
                 # Run all evaluations concurrently with exception handling
@@ -296,7 +340,7 @@ class BatchRunner:
         else:
             # Run without progress bar
             async def evaluate_silent(tc: TestCase) -> Scorecard:
-                nonlocal passed_count, failed_count
+                nonlocal passed_count, failed_count, checkpoint_counter
                 scorecard = await self._evaluate_one(tc, batch_job.batch_id, simulator)
                 # Use lock to ensure atomic counter updates under concurrency
                 async with counter_lock:
@@ -316,6 +360,14 @@ class BatchRunner:
                                 scorecard.overall_score,
                             )
                         )
+                    # Periodic checkpoint save
+                    checkpoint_counter += 1
+                    if (
+                        self.config.checkpoint_interval > 0
+                        and checkpoint_counter >= self.config.checkpoint_interval
+                    ):
+                        await self._save_checkpoint(batch_job.batch_id, passed_count, failed_count)
+                        checkpoint_counter = 0
                 return scorecard
 
             # Run all evaluations concurrently with exception handling
@@ -346,10 +398,13 @@ class BatchRunner:
         # Calculate duration
         duration_seconds = time.perf_counter() - start_time
 
+        # Use original total when resuming, otherwise current count
+        final_total = batch_job.total_tests if resume_batch_id else len(test_cases)
+
         # Update batch job (preserve run tracking fields)
         completed_batch = BatchJob(
             batch_id=batch_job.batch_id,
-            total_tests=len(test_cases),
+            total_tests=final_total,
             completed_count=passed_count,
             failed_count=failed_count,
             status=TaskStatus.COMPLETED,
@@ -570,3 +625,35 @@ class BatchRunner:
             f"Use '[cyan]eval batch results {batch_job.batch_id}[/cyan]' for detailed results"
         )
         console.print()
+
+    async def _load_resume_state(self, batch_id: str) -> tuple[BatchJob | None, set[str]]:
+        """
+        Load batch job and get already-evaluated test case IDs for resume.
+
+        Args:
+            batch_id: The batch ID to resume
+
+        Returns:
+            Tuple of (batch_job, evaluated_ids). batch_job is None if not found.
+        """
+        batch_job = await self.batch_repo.get(batch_id)
+        if batch_job is None:
+            if self.config.show_progress:
+                console.print(f"[red]Batch not found: {batch_id}[/red]")
+            return None, set()
+
+        evaluated_ids = await self.scorecard_repo.get_evaluated_test_case_ids(batch_id)
+        return batch_job, evaluated_ids
+
+    async def _save_checkpoint(self, batch_id: str, passed: int, failed: int) -> None:
+        """
+        Persist current progress to database.
+
+        Called periodically during evaluation to enable resume on interruption.
+
+        Args:
+            batch_id: The batch ID
+            passed: Current count of passed evaluations
+            failed: Current count of failed evaluations
+        """
+        await self.batch_repo.update_progress(batch_id, passed, failed)

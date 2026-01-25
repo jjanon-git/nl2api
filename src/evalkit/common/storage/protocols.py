@@ -174,6 +174,20 @@ class ScorecardRepository(Protocol):
         """
         ...
 
+    async def get_evaluated_test_case_ids(self, batch_id: str) -> set[str]:
+        """
+        Get test_case_ids already evaluated in this batch.
+
+        Used for resume functionality to skip already-completed test cases.
+
+        Args:
+            batch_id: The batch ID to query
+
+        Returns:
+            Set of test_case_id strings that have scorecards in this batch
+        """
+        ...
+
 
 @runtime_checkable
 class BatchJobRepository(Protocol):
@@ -206,5 +220,24 @@ class BatchJobRepository(Protocol):
 
         Returns:
             List of batch jobs ordered by creation time descending
+        """
+        ...
+
+    async def update_progress(
+        self,
+        batch_id: str,
+        completed: int,
+        failed: int,
+    ) -> None:
+        """
+        Update checkpoint progress for a batch job.
+
+        Called periodically during batch evaluation to persist progress,
+        enabling resume from interruption.
+
+        Args:
+            batch_id: The batch job ID
+            completed: Current count of passed evaluations
+            failed: Current count of failed evaluations
         """
         ...

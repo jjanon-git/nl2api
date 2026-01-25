@@ -36,6 +36,11 @@ class BatchRunnerConfig(BaseModel):
         default=False,
         description="Show detailed output for each test",
     )
+    checkpoint_interval: int = Field(
+        default=10,
+        ge=0,
+        description="Save progress every N evaluations (0 to disable checkpointing)",
+    )
 
     # Client tracking (multi-client evaluation)
     client_type: str = Field(

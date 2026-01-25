@@ -292,6 +292,35 @@ class PostgresScorecardRepository:
             "avg_score": float(row["avg_score"]),
         }
 
+    async def get_evaluated_test_case_ids(self, batch_id: str) -> set[str]:
+        """
+        Get test_case_ids already evaluated in this batch.
+
+        Uses the idx_scorecards_batch_test index for efficient lookup.
+
+        Args:
+            batch_id: The batch ID to query
+
+        Returns:
+            Set of test_case_id strings that have scorecards in this batch
+        """
+        with tracer.start_as_current_span("db.scorecard.get_evaluated_test_case_ids") as span:
+            span.set_attribute("db.operation", "get_evaluated_test_case_ids")
+            span.set_attribute("db.batch_id", batch_id)
+
+            rows = await self.pool.fetch(
+                """
+                SELECT DISTINCT test_case_id
+                FROM scorecards
+                WHERE batch_id = $1
+                """,
+                batch_id,
+            )
+
+            result = {str(row["test_case_id"]) for row in rows}
+            span.set_attribute("db.result_count", len(result))
+            return result
+
     async def save_batch(self, scorecards: list[Scorecard]) -> int:
         """
         Save multiple scorecards in a single transaction.

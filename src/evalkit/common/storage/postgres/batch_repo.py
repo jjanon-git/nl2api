@@ -132,6 +132,42 @@ class PostgresBatchJobRepository:
             span.set_attribute("result_count", len(rows))
             return [self._row_to_batch_job(row) for row in rows]
 
+    async def update_progress(
+        self,
+        batch_id: str,
+        completed: int,
+        failed: int,
+    ) -> None:
+        """
+        Update checkpoint progress for a batch job.
+
+        Persists current progress counts and checkpoint timestamp.
+
+        Args:
+            batch_id: The batch job ID
+            completed: Current count of passed evaluations
+            failed: Current count of failed evaluations
+        """
+        with tracer.start_as_current_span("db.batch_job.update_progress") as span:
+            span.set_attribute("batch_id", batch_id)
+            span.set_attribute("completed", completed)
+            span.set_attribute("failed", failed)
+
+            batch_uuid = uuid.UUID(batch_id)
+
+            await self.pool.execute(
+                """
+                UPDATE batch_jobs
+                SET completed_count = $2,
+                    failed_count = $3,
+                    last_checkpoint_at = NOW()
+                WHERE id = $1
+                """,
+                batch_uuid,
+                completed,
+                failed,
+            )
+
     def _row_to_batch_job(self, row: asyncpg.Record) -> BatchJob:
         """Convert database row to BatchJob model."""
         # Handle timestamps

@@ -204,6 +204,10 @@ class InMemoryScorecardRepository:
             "avg_score": avg_score,
         }
 
+    async def get_evaluated_test_case_ids(self, batch_id: str) -> set[str]:
+        """Get test_case_ids already evaluated in this batch."""
+        return {sc.test_case_id for sc in self._store.values() if sc.batch_id == batch_id}
+
     def clear(self) -> None:
         """Clear all scorecards (useful for test setup/teardown)."""
         self._store.clear()
@@ -237,6 +241,23 @@ class InMemoryBatchJobRepository:
         # Sort by created_at descending
         results.sort(key=lambda bj: bj.created_at, reverse=True)
         return results[:limit]
+
+    async def update_progress(
+        self,
+        batch_id: str,
+        completed: int,
+        failed: int,
+    ) -> None:
+        """Update checkpoint progress for a batch job."""
+        if batch_id in self._store:
+            batch = self._store[batch_id]
+            # Update the batch with new counts
+            self._store[batch_id] = batch.model_copy(
+                update={
+                    "completed_count": completed,
+                    "failed_count": failed,
+                }
+            )
 
     def clear(self) -> None:
         """Clear all batch jobs (useful for test setup/teardown)."""
