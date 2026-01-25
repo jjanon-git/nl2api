@@ -2,6 +2,7 @@
 Redis Cache Implementation
 
 Provides distributed caching with Redis, with fallback to in-memory cache.
+Uses circuit breaker to prevent cascading failures when Redis is unavailable.
 """
 
 from __future__ import annotations
@@ -16,6 +17,7 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from typing import Any, TypeVar
 
+from src.evalkit.common.resilience import CircuitBreaker, CircuitOpenError
 from src.evalkit.common.telemetry import get_tracer
 
 logger = logging.getLogger(__name__)
@@ -136,6 +138,12 @@ class RedisCache:
         )
         self._stats = CacheStats()
         self._use_redis = True
+        # Circuit breaker to prevent cascading failures when Redis is down
+        self._circuit_breaker = CircuitBreaker(
+            failure_threshold=3,  # Open after 3 failures
+            recovery_timeout=30.0,  # Try again after 30 seconds
+            name="redis-cache",
+        )
 
     @property
     def stats(self) -> CacheStats:
@@ -209,10 +217,12 @@ class RedisCache:
             full_key = self._make_key(key)
             span.set_attribute("cache.key", key[:50])  # Truncate for span
 
-            # Try Redis first
+            # Try Redis first (with circuit breaker protection)
             if self._use_redis and self._connected:
                 try:
-                    value = await self._redis.get(full_key)
+                    value = await self._circuit_breaker.call(
+                        self._redis.get, full_key
+                    )
                     if value is not None:
                         self._stats.hits += 1
                         span.set_attribute("cache.hit", True)
@@ -222,6 +232,10 @@ class RedisCache:
                     span.set_attribute("cache.hit", False)
                     span.set_attribute("cache.source", "redis")
                     return None
+                except CircuitOpenError:
+                    span.set_attribute("cache.circuit_open", True)
+                    logger.debug("Redis circuit open, using memory cache")
+                    # Fall through to memory cache
                 except Exception as e:
                     self._stats.errors += 1
                     span.set_attribute("cache.error", str(e))
@@ -262,14 +276,20 @@ class RedisCache:
             span.set_attribute("cache.key", key[:50])  # Truncate for span
             span.set_attribute("cache.ttl", ttl)
 
-            # Try Redis first
+            # Try Redis first (with circuit breaker protection)
             if self._use_redis and self._connected:
                 try:
                     serialized = json.dumps(value)
-                    await self._redis.setex(full_key, ttl, serialized)
+                    await self._circuit_breaker.call(
+                        self._redis.setex, full_key, ttl, serialized
+                    )
                     self._stats.sets += 1
                     span.set_attribute("cache.source", "redis")
                     return True
+                except CircuitOpenError:
+                    span.set_attribute("cache.circuit_open", True)
+                    logger.debug("Redis circuit open, using memory cache")
+                    # Fall through to memory cache
                 except Exception as e:
                     self._stats.errors += 1
                     span.set_attribute("cache.error", str(e))
@@ -289,7 +309,12 @@ class RedisCache:
         deleted = False
         if self._use_redis and self._connected:
             try:
-                deleted = await self._redis.delete(full_key) > 0
+                result = await self._circuit_breaker.call(
+                    self._redis.delete, full_key
+                )
+                deleted = result > 0
+            except CircuitOpenError:
+                logger.debug("Redis circuit open, skipping Redis delete")
             except Exception as e:
                 logger.warning(f"Redis delete error: {e}")
 
@@ -326,6 +351,11 @@ class RedisCache:
 
         return value
 
+    @property
+    def circuit_breaker_stats(self):
+        """Get circuit breaker statistics."""
+        return self._circuit_breaker.stats
+
     async def clear_prefix(self, prefix: str) -> int:
         """
         Clear all keys with given prefix.
@@ -341,15 +371,23 @@ class RedisCache:
 
         if self._use_redis and self._connected:
             try:
-                cursor = "0"
-                while cursor != 0:
-                    cursor, keys = await self._redis.scan(
-                        cursor=cursor,
-                        match=f"{full_prefix}*",
-                        count=100,
-                    )
-                    if keys:
-                        deleted += await self._redis.delete(*keys)
+
+                async def _scan_and_delete():
+                    nonlocal deleted
+                    cursor = "0"
+                    while cursor != 0:
+                        cursor, keys = await self._redis.scan(
+                            cursor=cursor,
+                            match=f"{full_prefix}*",
+                            count=100,
+                        )
+                        if keys:
+                            deleted += await self._redis.delete(*keys)
+                    return deleted
+
+                await self._circuit_breaker.call(_scan_and_delete)
+            except CircuitOpenError:
+                logger.debug("Redis circuit open, skipping clear_prefix")
             except Exception as e:
                 logger.warning(f"Redis clear_prefix error: {e}")
 

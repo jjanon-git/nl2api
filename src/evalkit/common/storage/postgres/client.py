@@ -7,10 +7,13 @@ configuration options.
 
 from __future__ import annotations
 
+import logging
 from contextlib import asynccontextmanager
 from typing import TYPE_CHECKING, Any
 
 import asyncpg
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from src.evalkit.common.storage.config import StorageConfig
@@ -140,7 +143,8 @@ async def check_pool_health() -> dict[str, Any]:
     try:
         async with pool.acquire() as conn:
             await conn.fetchval("SELECT 1")
-    except Exception:
+    except Exception as e:
+        logger.warning(f"Database health check failed: {e}")
         healthy = False
 
     return {

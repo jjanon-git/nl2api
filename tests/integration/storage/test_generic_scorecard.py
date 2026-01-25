@@ -14,7 +14,7 @@ from CONTRACTS import (
     StageResult,
     ToolCall,
 )
-from src.evalkit.common.storage import create_repositories
+from src.evalkit.common.storage import close_repositories, create_repositories
 from src.evalkit.common.storage.config import StorageConfig
 
 
@@ -191,3 +191,6 @@ class TestGenericScorecardStorage:
         # =================================================================
         for sc in [scorecard_1, scorecard_2, scorecard_3] + batch_scorecards:
             await scorecard_repo.delete(sc.scorecard_id)
+
+        # Close repositories (also resets the connection pool singleton)
+        await close_repositories()

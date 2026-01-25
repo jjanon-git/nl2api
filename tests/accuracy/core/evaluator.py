@@ -135,6 +135,20 @@ class AccuracyReport:
             "tier": self.tier,
         }
 
+    def summary(self) -> str:
+        """Return a human-readable summary of the report."""
+        lines = [
+            f"Accuracy: {self.accuracy:.1%} ({self.correct_count}/{self.total_count})",
+            f"Failed: {self.failed_count}, Errors: {self.error_count}",
+        ]
+        if self.low_confidence_count > 0:
+            lines.append(
+                f"Low confidence (would clarify): {self.low_confidence_count} ({self.low_confidence_rate:.1%})"
+            )
+        if self.duration_seconds > 0:
+            lines.append(f"Duration: {self.duration_seconds:.1f}s")
+        return "\n".join(lines)
+
 
 @dataclass
 class RoutingTestCase:

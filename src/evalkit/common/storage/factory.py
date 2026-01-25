@@ -197,6 +197,12 @@ class RepositoryProvider:
             await self._pool.close()
             self._pool = None
 
+            # Also reset the module-level pool singleton in client.py
+            # This ensures subsequent create_pool() calls create a fresh pool
+            if self._config.backend == "postgres":
+                from src.evalkit.common.storage.postgres import close_pool
+                await close_pool()
+
         self._test_case_repo = None
         self._scorecard_repo = None
         self._batch_repo = None

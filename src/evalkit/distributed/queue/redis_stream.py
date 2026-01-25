@@ -6,6 +6,7 @@ Production-ready implementation of TaskQueue using Redis Streams with:
 - XPENDING/XCLAIM for stalled task recovery
 - Dead letter queue for permanent failures
 - Atomic operations with Lua scripts where needed
+- Circuit breaker to prevent cascading failures
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ import redis.asyncio as redis
 from redis.asyncio import Redis
 from redis.exceptions import ResponseError
 
+from src.evalkit.common.resilience import CircuitBreaker, CircuitOpenError
 from src.evalkit.contracts.core import _now_utc
 from src.evalkit.contracts.worker import WorkerTask
 from src.evalkit.distributed.config import QueueConfig
@@ -91,6 +93,12 @@ class RedisStreamQueue:
         self._client = client
         self._config = config
         self._closed = False
+        # Circuit breaker prevents cascading failures when Redis is unhealthy
+        self._circuit_breaker = CircuitBreaker(
+            failure_threshold=5,  # Open after 5 failures
+            recovery_timeout=30.0,  # Try again after 30 seconds
+            name="redis-queue",
+        )
 
     @classmethod
     async def create(cls, config: QueueConfig) -> RedisStreamQueue:
@@ -119,6 +127,11 @@ class RedisStreamQueue:
         except Exception as e:
             raise QueueConnectionError("redis", str(e)) from e
 
+    @property
+    def circuit_breaker_stats(self):
+        """Get circuit breaker statistics."""
+        return self._circuit_breaker.stats
+
     def _stream_name(self, batch_id: str) -> str:
         """Get stream name for a batch."""
         return self._config.stream_name(batch_id)
@@ -138,18 +151,22 @@ class RedisStreamQueue:
 
         try:
             stream = self._stream_name(batch_id)
-            message_id = await self._client.xadd(
-                stream,
-                {
-                    "task_id": task.task_id,
-                    "test_case_id": task.test_case_id,
-                    "batch_id": batch_id,
-                    "payload": task.model_dump_json(),
-                    "attempt": "1",
-                    "enqueued_at": _now_utc().isoformat(),
-                },
-                maxlen=self._config.stream_max_len,
-            )
+
+            async def _xadd():
+                return await self._client.xadd(
+                    stream,
+                    {
+                        "task_id": task.task_id,
+                        "test_case_id": task.test_case_id,
+                        "batch_id": batch_id,
+                        "payload": task.model_dump_json(),
+                        "attempt": "1",
+                        "enqueued_at": _now_utc().isoformat(),
+                    },
+                    maxlen=self._config.stream_max_len,
+                )
+
+            message_id = await self._circuit_breaker.call(_xadd)
             logger.debug(f"Enqueued task {task.task_id} as message {message_id}")
 
             # Record metric
@@ -157,6 +174,8 @@ class RedisStreamQueue:
                 _enqueue_counter.add(1, {"batch_id": batch_id})
 
             return message_id
+        except CircuitOpenError:
+            raise QueueEnqueueError(batch_id, "Circuit breaker is open - Redis unavailable")
         except Exception as e:
             raise QueueEnqueueError(batch_id, str(e)) from e
 
@@ -387,7 +406,8 @@ class RedisStreamQueue:
             stream = self._stream_name(batch_id)
             length = await self._client.xlen(stream)
             return length
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Failed to get pending count for {batch_id}: {e}")
             return 0
 
     async def get_processing_count(self, batch_id: str) -> int:
@@ -415,7 +435,8 @@ class RedisStreamQueue:
         try:
             dlq = self._dlq_name(batch_id)
             return await self._client.xlen(dlq)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Failed to get DLQ count for {batch_id}: {e}")
             return 0
 
     # =========================================================================

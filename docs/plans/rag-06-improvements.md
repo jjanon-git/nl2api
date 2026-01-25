@@ -1324,6 +1324,38 @@ results = await retriever.retrieve_with_parents(
 | Faithfulness | 61% | 75% | 14% | Improve retrieval (better context = better grounding) |
 | Context Relevance | 75% | 85% | 10% | Better query-document matching |
 
+### 6.8 Small-to-Big Retrieval A/B Test (2026-01-25)
+
+**Date:** 2026-01-25
+**Test Scope:** 5 companies (MSI, VZ, BXP, MAR, ADBE) with 26 test cases
+
+**Configuration:**
+- Parent chunks: 4000 chars (existing index)
+- Child chunks: 512 chars, 64-char overlap
+- Total child chunks created: 14,690
+- Storage impact: ~200 MB (embeddings + data)
+
+**A/B Comparison Results:**
+
+| Metric | Baseline (Parents Only) | Small-to-Big | Improvement |
+|--------|-------------------------|--------------|-------------|
+| Recall@5 | 23.1% | **42.3%** | **+19.2% (1.8x)** |
+| Wins | 0 | 5 | +5 |
+| Losses | 5 | 0 | -5 |
+| Ties | 21 | 21 | - |
+
+**Key Finding:** Small-to-big retrieval **never performed worse** than baseline, and improved recall on 19% of queries.
+
+**How It Works:**
+1. Search small child chunks (512 chars) - better precision matching
+2. Aggregate scores by parent
+3. Return parent chunks (4000 chars) - full context for LLM
+
+**Next Steps:**
+- [x] Integrate small-to-big into RAG response generator (see Section 6.9)
+- [ ] Run full end-to-end evaluation (not just retrieval)
+- [x] Full re-index in progress (see Section 6.9)
+
 #### Files Modified in This Improvement Cycle
 
 | File | Change |
@@ -1338,6 +1370,58 @@ results = await retriever.retrieve_with_parents(
 | `src/rag/ingestion/sec_filings/models.py` | Parent-child chunk fields |
 | `src/rag/ingestion/sec_filings/chunker.py` | Hierarchical chunking |
 | `src/rag/retriever/retriever.py` | `retrieve_with_parents()` |
+
+### 6.9 Small-to-Big Full Integration (2026-01-25)
+
+**Date:** 2026-01-25
+**Status:** In Progress (reindex running)
+
+#### Integration Completed
+
+1. **Fixed `retrieve_with_parents()` method** in `src/rag/retriever/retriever.py`
+   - Now correctly uses `chunk_level` and `parent_id` columns (not metadata)
+   - Searches children, aggregates by parent, returns parent chunks
+
+2. **Added configuration** in `src/rag/ui/config.py`
+   ```python
+   use_small_to_big: bool = False  # Enable via RAG_UI_USE_SMALL_TO_BIG=true
+   small_to_big_child_limit: int = 30  # Number of children to search
+   ```
+
+3. **Integrated into query handler** in `src/rag/ui/query_handler.py`
+   - Auto-uses small-to-big when enabled and no ticker detected
+   - Falls back to standard retrieval for ticker-specific queries
+   - Reports `retrieval_type` in result metadata
+
+#### Full Reindex Progress
+
+Reindexing all 246 test companies (139,868 parent chunks) with child chunks:
+- Child chunk size: 512 chars, 64-char overlap
+- Estimated: ~1.2 million children, ~7.2 GB
+- ETA: ~3.8 hours at current rate
+
+**To enable after reindex completes:**
+```bash
+export RAG_UI_USE_SMALL_TO_BIG=true
+```
+
+#### Files Modified
+
+| File | Change |
+|------|--------|
+| `src/rag/retriever/retriever.py` | Fixed `retrieve_with_parents()` to use columns |
+| `src/rag/ui/config.py` | Added `use_small_to_big` config |
+| `src/rag/ui/query_handler.py` | Integrated small-to-big retrieval |
+| `scripts/reindex_small_to_big.py` | New reindex script with checkpoint support |
+
+#### Next Steps
+- [x] Fix `retrieve_with_parents()` column handling
+- [x] Add configuration for small-to-big
+- [x] Integrate into query handler
+- [x] Start full reindex
+- [ ] Complete reindex (~3.8 hours)
+- [ ] Run end-to-end RAG evaluation with small-to-big
+- [ ] Compare pass rates before/after
 
 ---
 

@@ -5,10 +5,8 @@ from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
-import pytest
 
 from src.nl2api.resolution.http_client import HttpEntityResolver
-from src.nl2api.resolution.protocols import ResolvedEntity
 
 
 class TestHttpEntityResolver:

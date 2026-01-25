@@ -563,9 +563,11 @@ class HybridRAGRetriever:
 
             async with self._pool.acquire() as conn:
                 # Step 1: Search child chunks (chunk_level = 1)
+                # Note: chunk_level and parent_id are columns, not metadata fields
                 child_sql = f"""
                     SELECT
                         id,
+                        parent_id,
                         content,
                         document_type,
                         domain,
@@ -583,7 +585,8 @@ class HybridRAGRetriever:
                     FROM rag_documents
                     WHERE
                         embedding IS NOT NULL
-                        AND (metadata->>'chunk_level')::int = 1
+                        AND chunk_level = 1
+                        AND parent_id IS NOT NULL
                         {domain_filter}
                     ORDER BY combined_score DESC
                     LIMIT $3
@@ -607,8 +610,8 @@ class HybridRAGRetriever:
                 parent_child_count: dict[str, int] = {}
 
                 for row in child_rows:
-                    metadata = self._parse_metadata(row.get("metadata"))
-                    parent_id = metadata.get("parent_chunk_id")
+                    # parent_id is a column (UUID), not metadata
+                    parent_id = str(row["parent_id"]) if row["parent_id"] else None
 
                     if parent_id and row["combined_score"] >= threshold:
                         child_score = float(row["combined_score"])
@@ -650,7 +653,7 @@ class HybridRAGRetriever:
 
                 span.set_attribute("rag.unique_parents", len(parent_scores))
 
-                # Step 3: Fetch parent chunk details
+                # Step 3: Fetch parent chunk details by their UUID
                 parent_sql = """
                     SELECT
                         id,
@@ -662,18 +665,13 @@ class HybridRAGRetriever:
                         example_api_call,
                         metadata
                     FROM rag_documents
-                    WHERE (metadata->>'chunk_id')::text = ANY($1)
+                    WHERE id = ANY($1::uuid[])
                 """
 
                 parent_rows = await conn.fetch(parent_sql, top_parent_ids)
 
                 # Build result list maintaining score order
-                parent_map = {}
-                for row in parent_rows:
-                    metadata = self._parse_metadata(row.get("metadata"))
-                    chunk_id = metadata.get("chunk_id")
-                    if chunk_id:
-                        parent_map[chunk_id] = row
+                parent_map = {str(row["id"]): row for row in parent_rows}
 
                 results = []
                 for parent_id, score in sorted_parents[:limit]:

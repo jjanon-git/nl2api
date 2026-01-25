@@ -26,8 +26,12 @@ from CONTRACTS import (
     ErrorCode,
     EvaluationStage,
     LLMJudgeConfig,
+    LLMMessage,
+    LLMProviderProtocol,
+    MessageRole,
     StageResult,
     TestCase,
+    create_default_llm_provider,
 )
 from src.evalkit.common.telemetry import get_meter, get_tracer
 from src.evalkit.core.semantics.prompts import (
@@ -91,30 +95,28 @@ class SemanticsEvaluator:
     def __init__(
         self,
         config: LLMJudgeConfig | None = None,
-        llm: Any | None = None,  # ClaudeProvider or compatible
+        llm: LLMProviderProtocol | None = None,
     ):
         """
         Initialize the semantics evaluator.
 
         Args:
             config: LLM judge configuration
-            llm: Optional LLM provider (created if not provided)
+            llm: Optional LLM provider (created via factory if not provided)
         """
         self.config = config or LLMJudgeConfig()
         self._llm = llm
         self._llm_initialized = llm is not None
 
-    async def _get_llm(self) -> Any:
+    async def _get_llm(self) -> LLMProviderProtocol:
         """Lazily initialize the LLM provider."""
         if not self._llm_initialized:
-            from src.nl2api.config import NL2APIConfig
-            from src.nl2api.llm.claude import ClaudeProvider
-
-            cfg = NL2APIConfig()
-            self._llm = ClaudeProvider(
-                api_key=cfg.get_llm_api_key(),
-                model=self.config.model,
-            )
+            self._llm = create_default_llm_provider()
+            if self._llm is None:
+                raise RuntimeError(
+                    "No LLM provider available. Either pass an LLM to the evaluator "
+                    "or ensure nl2api is installed and configured with an API key."
+                )
             self._llm_initialized = True
         return self._llm
 
@@ -413,9 +415,7 @@ class SemanticsEvaluator:
         """
         llm = await self._get_llm()
 
-        from src.nl2api.llm.protocols import LLMMessage, MessageRole
-
-        # Build messages
+        # Build messages using local LLMMessage type
         messages = [
             LLMMessage(role=MessageRole.SYSTEM, content=COMPARISON_SYSTEM_PROMPT),
             LLMMessage(

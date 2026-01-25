@@ -352,10 +352,23 @@ class RAGQueryHandler:
             logger.info("Detected temporal intent - filtering to latest fiscal year")
 
         # Step 3: Retrieve relevant chunks
+        # Use small-to-big retrieval if enabled and we're not filtering by ticker
+        # (ticker filtering has its own optimized path)
+        use_small_to_big = self._config.use_small_to_big and not ticker
+
         if ticker:
             logger.info(f"Detected company ticker: {ticker}")
             chunks = await self._retrieve_for_company(
                 question, ticker, top_k, latest_only=wants_latest
+            )
+        elif use_small_to_big:
+            logger.info("Using small-to-big retrieval (search children, return parents)")
+            chunks = await self._retriever.retrieve_with_parents(
+                query=question,
+                limit=top_k,
+                child_limit=self._config.small_to_big_child_limit,
+                threshold=self._config.retrieval_threshold,
+                use_cache=True,
             )
         else:
             chunks = await self._retriever.retrieve(
@@ -381,6 +394,7 @@ class RAGQueryHandler:
                 "model": self._config.llm_model,
                 "ticker_detected": ticker,
                 "temporal_filter_applied": wants_latest,
+                "retrieval_type": "small_to_big" if use_small_to_big else "standard",
             },
         )
 

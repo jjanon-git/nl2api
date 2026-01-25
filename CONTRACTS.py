@@ -31,6 +31,8 @@ from src.evalkit.contracts import (
     # Management
     Client,
     ClientType,
+    # LLM protocols and types
+    EntityResolver,
     ErrorCode,
     # Evaluation Pack Protocol (general-purpose framework)
     EvalContext,
@@ -46,7 +48,12 @@ from src.evalkit.contracts import (
     # Storage
     IdempotencyRecord,
     LLMJudgeConfig,
+    LLMMessage,
     LLMProvider,
+    LLMProviderProtocol,
+    LLMResponse,
+    MessageRole,
+    ResolvedEntity,
     RunStatus,
     Scorecard,
     Stage,
@@ -72,6 +79,7 @@ from src.evalkit.contracts import (
     WorkerTask,
     _generate_id,
     _now_utc,
+    create_default_llm_provider,
 )
 
 __all__ = [
@@ -123,4 +131,12 @@ __all__ = [
     # Storage
     "TableStorageEntity",
     "IdempotencyRecord",
+    # LLM
+    "EntityResolver",
+    "ResolvedEntity",
+    "MessageRole",
+    "LLMMessage",
+    "LLMResponse",
+    "LLMProviderProtocol",
+    "create_default_llm_provider",
 ]

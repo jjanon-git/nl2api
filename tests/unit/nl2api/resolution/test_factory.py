@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from src.nl2api.config import NL2APIConfig
 from src.nl2api.resolution import (
     HttpEntityResolver,

@@ -419,24 +419,20 @@ class TestCase(BaseModel):
         default=None,
         description="Natural language input query. DEPRECATED for new packs - use input['nl_query'] instead.",
         examples=["Find all products under $50 with free shipping"],
-        deprecated=True,
     )
     expected_tool_calls: tuple[ToolCall, ...] = Field(
         default_factory=tuple,
         description="Expected tool calls. DEPRECATED for new packs - use expected['tool_calls'] instead.",
-        deprecated=True,
     )
     expected_response: dict[str, Any] | None = Field(
         default=None,
         description="Expected structured API response. DEPRECATED for new packs - use expected['response'] instead.",
         examples=[{"AAPL.O": {"P": 246.02, "MV": 3850000000000}}],
-        deprecated=True,
     )
     expected_nl_response: str | None = Field(
         default=None,
         description="Expected natural language summary. DEPRECATED for new packs - use expected['nl_response'] instead.",
         examples=["Apple's stock price is $246.02 with a market cap of $3.85 trillion."],
-        deprecated=True,
     )
 
     # Metadata

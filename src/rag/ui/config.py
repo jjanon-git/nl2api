@@ -21,6 +21,10 @@ class RAGUIConfig(BaseSettings):
     keyword_weight: float = 0.3
     retrieval_threshold: float = 0.1  # Lower threshold needed for SEC filing retrieval
 
+    # Small-to-big retrieval settings
+    use_small_to_big: bool = False  # Enable small-to-big (child search, parent return)
+    small_to_big_child_limit: int = 30  # Number of child chunks to search
+
     # LLM settings
     llm_model: str = "claude-3-5-haiku-latest"
     max_context_chunks: int = 8

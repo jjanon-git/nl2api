@@ -50,6 +50,17 @@ from src.evalkit.contracts.evaluation import (
     StageResult,
 )
 
+# LLM protocols and types
+from src.evalkit.contracts.llm import (
+    EntityResolver,
+    LLMMessage,
+    LLMProviderProtocol,
+    LLMResponse,
+    MessageRole,
+    ResolvedEntity,
+    create_default_llm_provider,
+)
+
 # Storage models
 from src.evalkit.contracts.storage import (
     IdempotencyRecord,
@@ -122,4 +133,13 @@ __all__ = [
     # Storage
     "TableStorageEntity",
     "IdempotencyRecord",
+    # LLM
+    "MessageRole",
+    "LLMMessage",
+    "LLMResponse",
+    "LLMProviderProtocol",
+    "create_default_llm_provider",
+    # Entity Resolution
+    "ResolvedEntity",
+    "EntityResolver",
 ]

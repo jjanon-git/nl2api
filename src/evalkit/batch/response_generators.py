@@ -13,10 +13,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import random
 
-from CONTRACTS import SystemResponse, TestCase
-from src.nl2api.resolution.protocols import EntityResolver
+from CONTRACTS import EntityResolver, SystemResponse, TestCase
+
+logger = logging.getLogger(__name__)
 
 
 async def simulate_correct_response(test_case: TestCase) -> SystemResponse:
@@ -142,7 +144,13 @@ def create_entity_resolver_generator(resolver: EntityResolver):
 
         except Exception as e:
             latency_ms = int((time.perf_counter() - start_time) * 1000)
-            # Return empty response on error
+            # Log error for observability, then return error response
+            test_case_id = getattr(test_case, "id", "unknown")
+            logger.warning(
+                f"Entity resolver failed for test case {test_case_id}: {e}",
+                exc_info=True,
+                extra={"test_case_id": test_case_id},
+            )
             return SystemResponse(
                 raw_output=json.dumps([]),
                 nl_response=None,
@@ -212,6 +220,12 @@ def create_routing_generator(router):
 
         except Exception as e:
             latency_ms = int((time.perf_counter() - start_time) * 1000)
+            test_case_id = getattr(test_case, "id", "unknown")
+            logger.warning(
+                f"Routing generator failed for test case {test_case_id}: {e}",
+                exc_info=True,
+                extra={"test_case_id": test_case_id},
+            )
             return SystemResponse(
                 raw_output=json.dumps([]),
                 nl_response=None,
@@ -281,6 +295,12 @@ def create_nl2api_generator(orchestrator):
 
         except Exception as e:
             latency_ms = int((time.perf_counter() - start_time) * 1000)
+            test_case_id = getattr(test_case, "id", "unknown")
+            logger.warning(
+                f"Orchestrator generator failed for test case {test_case_id}: {e}",
+                exc_info=True,
+                extra={"test_case_id": test_case_id},
+            )
             return SystemResponse(
                 raw_output=json.dumps([]),
                 nl_response=None,
@@ -384,6 +404,12 @@ def create_tool_only_generator(
 
         except Exception as e:
             latency_ms = int((time.perf_counter() - start_time) * 1000)
+            test_case_id = getattr(test_case, "id", "unknown")
+            logger.warning(
+                f"Tool-only generator failed for test case {test_case_id}: {e}",
+                exc_info=True,
+                extra={"test_case_id": test_case_id},
+            )
             return SystemResponse(
                 raw_output=json.dumps([]),
                 nl_response=None,
@@ -480,6 +506,12 @@ def create_rag_retrieval_generator(retriever, embedder=None):
 
         except Exception as e:
             latency_ms = int((time.perf_counter() - start_time) * 1000)
+            test_case_id = getattr(test_case, "id", "unknown")
+            logger.warning(
+                f"RAG retrieval generator failed for test case {test_case_id}: {e}",
+                exc_info=True,
+                extra={"test_case_id": test_case_id},
+            )
             return SystemResponse(
                 raw_output=json.dumps({"error": str(e)}),
                 nl_response=None,
@@ -638,6 +670,12 @@ Provide a clear, factual answer with citations. Use [Source N] to cite specific 
 
         except Exception as e:
             latency_ms = int((time.perf_counter() - start_time) * 1000)
+            test_case_id = getattr(test_case, "id", "unknown")
+            logger.warning(
+                f"RAG generation failed for test case {test_case_id}: {e}",
+                exc_info=True,
+                extra={"test_case_id": test_case_id},
+            )
             return SystemResponse(
                 raw_output=json.dumps({"error": str(e)}),
                 nl_response=None,
