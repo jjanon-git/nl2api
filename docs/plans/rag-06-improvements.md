@@ -2,7 +2,7 @@
 
 **Author:** Mostly Claude, with some minor assistance from Sid
 **Date:** 2026-01-23 (updated 2026-01-25)
-**Status:** Active - P0 Complete, P1 Partial (Small-to-Big infrastructure done, re-indexing pending)
+**Status:** Active - P0 Complete, P1 Complete (Small-to-Big reindex done, retrieval improved 23% → 44%)
 
 ---
 
@@ -1374,7 +1374,7 @@ results = await retriever.retrieve_with_parents(
 ### 6.9 Small-to-Big Full Integration (2026-01-25)
 
 **Date:** 2026-01-25
-**Status:** In Progress (reindex running)
+**Status:** Complete
 
 #### Integration Completed
 
@@ -1393,14 +1393,36 @@ results = await retriever.retrieve_with_parents(
    - Falls back to standard retrieval for ticker-specific queries
    - Reports `retrieval_type` in result metadata
 
-#### Full Reindex Progress
+#### Full Reindex Results
 
-Reindexing all 246 test companies (139,868 parent chunks) with child chunks:
-- Child chunk size: 512 chars, 64-char overlap
-- Estimated: ~1.2 million children, ~7.2 GB
-- ETA: ~3.8 hours at current rate
+Reindexed all 246 test companies with child chunks:
+- **Parents processed:** 139,868
+- **Children created:** 1,187,800
+- **Duration:** 455.6 minutes (~7.6 hours)
+- **Rate:** 5.1 parents/sec average
+- **Child chunk size:** 512 chars, 64-char overlap
 
-**To enable after reindex completes:**
+#### Evaluation Results (Batch ID: 899474ed)
+
+Full RAG evaluation with retrieval-only mode (`--mode resolver`), 466 test cases:
+
+| Stage | Avg Score | Pass Rate | Notes |
+|-------|-----------|-----------|-------|
+| **retrieval** | **0.338** | **44.4%** | Up from 23.1% baseline (1.9x improvement) |
+| **context_relevance** | **0.578** | **86.3%** | Retrieved context is highly relevant |
+| answer_relevance | 0.136 | 3.6% | Expected low - resolver mode has no answer |
+| faithfulness | 0.018 | 2.1% | Expected low - resolver mode has no answer |
+| citation | 0.000 | 0.0% | Expected - resolver mode has no citations |
+| policy_compliance | 1.000 | 100.0% | No policy violations |
+| rejection_calibration | 1.000 | 100.0% | Correct rejection behavior |
+| source_policy | 1.000 | 100.0% | No source policy violations |
+
+**Key improvements:**
+- Retrieval pass rate: **23.1% → 44.4%** (1.9x improvement)
+- Context relevance: **86.3%** (retrieved content is relevant when found)
+- The low answer_relevance/faithfulness/citation scores are expected since retrieval-only mode doesn't generate answers
+
+**To enable small-to-big for the RAG UI:**
 ```bash
 export RAG_UI_USE_SMALL_TO_BIG=true
 ```
@@ -1414,14 +1436,14 @@ export RAG_UI_USE_SMALL_TO_BIG=true
 | `src/rag/ui/query_handler.py` | Integrated small-to-big retrieval |
 | `scripts/reindex_small_to_big.py` | New reindex script with checkpoint support |
 
-#### Next Steps
+#### Completed Steps
 - [x] Fix `retrieve_with_parents()` column handling
 - [x] Add configuration for small-to-big
 - [x] Integrate into query handler
 - [x] Start full reindex
-- [ ] Complete reindex (~3.8 hours)
-- [ ] Run end-to-end RAG evaluation with small-to-big
-- [ ] Compare pass rates before/after
+- [x] Complete reindex (139,868 parents → 1,187,800 children)
+- [x] Run end-to-end RAG evaluation with small-to-big
+- [x] Compare pass rates: 23.1% → 44.4% retrieval (1.9x improvement)
 
 ---
 
