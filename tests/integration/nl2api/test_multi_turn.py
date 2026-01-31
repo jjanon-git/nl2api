@@ -31,14 +31,14 @@ from src.nl2api.orchestrator import NL2APIOrchestrator
 
 def create_mock_llm() -> LLMProvider:
     """Create a mock LLM provider for testing."""
-    mock_llm = MagicMock(spec=LLMProvider)
-    mock_llm.complete = AsyncMock(
-        return_value=LLMResponse(
-            content="Test response",
-            tool_calls=(),
-            usage={"input_tokens": 100, "output_tokens": 50},
-        )
+    mock_response = LLMResponse(
+        content="Test response",
+        tool_calls=(),
+        usage={"prompt_tokens": 100, "completion_tokens": 50, "total_tokens": 150},
     )
+    mock_llm = MagicMock(spec=LLMProvider)
+    mock_llm.complete = AsyncMock(return_value=mock_response)
+    mock_llm.complete_with_retry = AsyncMock(return_value=mock_response)
     return mock_llm
 
 

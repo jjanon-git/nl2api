@@ -806,6 +806,11 @@ def create_rag_simulated_generator(pass_rate: float = 0.7):
 
         actual_latency = int((time.perf_counter() - start_time) * 1000)
 
+        # Simulate token usage for testing cost tracking
+        # Real evaluations should use create_rag_generation_generator for actual tokens
+        simulated_input_tokens = random.randint(500, 2000)
+        simulated_output_tokens = random.randint(100, 500)
+
         return SystemResponse(
             raw_output=json.dumps(
                 {
@@ -818,8 +823,8 @@ def create_rag_simulated_generator(pass_rate: float = 0.7):
             ),
             nl_response=response,
             latency_ms=actual_latency,
-            # Store extra RAG-specific data that BatchRunner._response_to_output can use
-            # These are accessed via getattr in the runner
+            input_tokens=simulated_input_tokens,
+            output_tokens=simulated_output_tokens,
         )
 
     return generate_rag_response

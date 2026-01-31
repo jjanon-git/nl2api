@@ -1,4 +1,4 @@
-# Grafana Dashboard Provisioning for NL2API
+# Grafana Dashboard Provisioning
 
 apiVersion: 1
 
@@ -12,4 +12,15 @@ providers:
     updateIntervalSeconds: 10
     allowUiUpdates: false
     options:
-      path: /etc/grafana/provisioning/dashboards/json
+      path: /etc/grafana/provisioning/dashboards/json/nl2api
+
+  - name: 'RAG Dashboards'
+    orgId: 1
+    folder: 'RAG'
+    folderUid: 'rag'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    allowUiUpdates: false
+    options:
+      path: /etc/grafana/provisioning/dashboards/json/rag
