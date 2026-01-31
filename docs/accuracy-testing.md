@@ -1,6 +1,7 @@
 # Accuracy Testing Pattern for NL2API
 
-**Status:** In Progress (Phase 1 Complete)
+**Status:** Active
+**Last Updated:** 2026-01-25
 
 ---
 
@@ -73,13 +74,16 @@ tests/
 │       ├── test_screening_accuracy.py
 │       └── test_complex_accuracy.py
 │
-└── fixtures/lseg/generated/       # Shared test data (existing)
-    ├── lookups/        (3,745 cases)
-    ├── temporal/       (2,727 cases)
-    ├── comparisons/    (3,658 cases)
-    ├── screening/        (265 cases)
-    ├── complex/        (2,277 cases)
-    └── errors/           (215 cases)
+└── fixtures/                      # Shared test data
+    ├── lseg/generated/            # NL2API fixtures
+    │   ├── lookups/        (3,745 cases)
+    │   ├── temporal/       (2,727 cases)
+    │   ├── comparisons/    (3,658 cases)
+    │   ├── screening/        (274 cases)
+    │   ├── complex/        (2,288 cases)
+    │   ├── entity_resolution/ (3,109 cases)
+    │   └── routing/          (270 cases)
+    └── rag/                       # RAG fixtures (466 cases)
 ```
 
 ---
@@ -311,9 +315,14 @@ NL2API_TELEMETRY_OTLP_ENDPOINT=http://localhost:4317
 - [x] Updated routing prompt for temporal ambiguity (confidence scoring)
 - [x] `.github/workflows/accuracy.yml` - CI/CD integration
 
-### In Progress 🔄
+### Established Baselines
 
-Coverage gaps to fill:
+| Capability | Accuracy | Test Cases |
+|------------|----------|------------|
+| Entity Resolution | 99.5% | 3,109 |
+| Query Routing (Haiku) | 94.1% | 270 |
+
+### Remaining Coverage Gaps
 
 ```
 tests/accuracy/agents/

@@ -1,20 +1,39 @@
-# NL2API Architecture & Design Contract
+# Evalkit + NL2API Architecture & Design Contract
 
-> **Version:** 1.0.0
-> **Status:** Active - Phase 5 Complete
-> **Last Updated:** 2026-01-20
+> **Version:** 2.0.0
+> **Status:** Active - Evalkit Extraction Complete
+> **Last Updated:** 2026-01-25
 
 ## Executive Summary
 
-NL2API is a Natural Language to API translation system for LSEG financial data. It includes a distributed evaluation framework for testing at scale (~400k test cases). Prioritizes time-to-market while maintaining clean interfaces to avoid unrecoverable technical debt.
+**Evalkit** is a general-purpose ML evaluation framework. **NL2API** is a reference application demonstrating evalkit's capabilities for financial NL-to-API translation. The system includes 19,000+ test fixtures and supports both NL2API (4-stage) and RAG (8-stage) evaluation packs.
 
 ---
 
 ## 1. System Overview
 
-### 1.1 NL2API Translation System
+### 1.1 Evalkit Framework
 
-The core NL2API system translates natural language queries into structured API calls:
+The evaluation framework provides reusable infrastructure for ML system evaluation:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                       Evalkit Framework                          │
+├─────────────────────────────────────────────────────────────────┤
+│  src/evalkit/                                                    │
+│  ├─ contracts/       Data models (TestCase, Scorecard, etc.)    │
+│  ├─ batch/           Batch runner, checkpointing, metrics       │
+│  ├─ core/            Evaluators (AST, temporal, semantics)      │
+│  ├─ common/          Storage, telemetry, cache, resilience      │
+│  ├─ distributed/     Redis queues, worker coordination          │
+│  ├─ packs/           Pack registry (NL2API, RAG)                │
+│  └─ cli/             CLI commands (batch, continuous, matrix)   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 1.2 NL2API Application
+
+The NL2API system translates natural language queries into structured API calls:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -22,7 +41,7 @@ The core NL2API system translates natural language queries into structured API c
 ├─────────────────────────────────────────────────────────────────┤
 │  NL2APIOrchestrator                                              │
 │  ├─ Query classification (route to domain agent)                │
-│  ├─ Entity resolution (Company → RIC via resolver)              │
+│  ├─ Entity resolution (Company → RIC, 2.9M entities)            │
 │  └─ Ambiguity detection → Clarification flow                    │
 ├─────────────────────────────────────────────────────────────────┤
 │  Domain Agents (5 implemented)                                   │
@@ -36,30 +55,28 @@ The core NL2API system translates natural language queries into structured API c
 │  ├─ LLM Abstraction (Claude + OpenAI providers)                 │
 │  ├─ RAG Retriever (hybrid vector + keyword, pgvector)           │
 │  ├─ Conversation Manager (multi-turn, query expansion)          │
-│  └─ Entity Resolver (pattern-based + static mappings)           │
+│  └─ Entity Resolver (database-backed, 99.5% accuracy)           │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### 1.2 Evaluation Platform Objectives
-- **Scale:** Handle ~400k test cases with high concurrency
-- **Reliability:** Fault-tolerant, idempotent workers with automatic retry
-- **Observability:** Full tracing and metrics for debugging at scale
-- **Extensibility:** Clean interfaces for adding new evaluation strategies
+### 1.3 Evaluation Platform Objectives
+- **Scale:** Handle 19,000+ test cases with high concurrency
+- **Reliability:** Fault-tolerant batch processing with checkpointing
+- **Observability:** Full OTEL tracing and Prometheus metrics
+- **Extensibility:** Pack-based architecture for domain-specific evaluation
 
-### 1.3 Technology Stack
+### 1.4 Technology Stack
 | Component | Technology |
 |-----------|------------|
 | Language | Python 3.11+ |
 | Schemas | Pydantic v2 |
-| API Framework | FastAPI |
-| Queue | Azure Service Bus |
-| Workers | Azure Container Apps (ACA) |
-| Results Store | Azure Table Storage |
-| Gold Store | Azure AI Search (Vector) |
-| LLM Judge | Azure OpenAI (GPT-4o) |
-| Observability | OpenTelemetry → Azure Monitor |
+| Database | PostgreSQL 16 + pgvector |
+| Cache/Queue | Redis |
+| Observability | OpenTelemetry → Prometheus → Grafana |
+| Tracing | Jaeger |
 | CLI | Typer |
-| Local Dev | Docker + Azurite |
+| LLM Providers | Claude (Anthropic), OpenAI |
+| Local Dev | Docker Compose |
 
 ---
 
@@ -767,45 +784,54 @@ make run-cli -- submit --batch-file sample_tests.json
 
 ```
 nl2api/
-├── CONTRACTS.py              # Backward-compat wrapper (re-exports from src/contracts/)
+├── CONTRACTS.py              # Backward-compat wrapper (re-exports from src/evalkit/contracts/)
 ├── src/
-│   ├── contracts/            # Pydantic v2 data models (split into focused modules)
-│   │   ├── core.py           # Fundamental types, enums, TestCase, ToolCall
-│   │   ├── evaluation.py     # Scorecard, StageResult, EvaluationConfig
-│   │   ├── worker.py         # BatchJob, WorkerTask, WorkerConfig
-│   │   └── tenant.py         # Client, TestSuite, EvaluationRun
-│   ├── nl2api/               # NL2API Translation System
-│   │   ├── orchestrator.py   # Main entry point
+│   ├── evalkit/              # Evaluation Framework (publishable)
+│   │   ├── contracts/        # Pydantic v2 data models
+│   │   │   ├── core.py       # TestCase, ToolCall, enums
+│   │   │   ├── evaluation.py # Scorecard, StageResult, EvaluationConfig
+│   │   │   ├── worker.py     # BatchJob, WorkerTask
+│   │   │   ├── tenant.py     # Client, TestSuite, EvaluationRun
+│   │   │   └── llm.py        # LLM protocols, EntityResolver
+│   │   ├── batch/            # Batch runner, checkpointing, metrics
+│   │   ├── core/             # Evaluators (AST, temporal, semantics)
+│   │   ├── common/           # Storage, telemetry, cache, resilience
+│   │   ├── distributed/      # Redis queues, worker coordination
+│   │   ├── continuous/       # Scheduled evaluation, alerts
+│   │   ├── packs/            # Pack registry and factory
+│   │   └── cli/              # CLI commands (batch, continuous, matrix)
+│   │
+│   ├── nl2api/               # NL2API Application
+│   │   ├── orchestrator.py   # Query routing + agent dispatch
 │   │   ├── config.py         # Configuration (pydantic-settings)
 │   │   ├── llm/              # LLM providers (Claude, OpenAI)
 │   │   ├── agents/           # Domain agents (5 implemented)
-│   │   ├── rag/              # RAG retrieval (hybrid vector + keyword, pgvector)
-│   │   ├── resolution/       # Entity resolution
+│   │   ├── resolution/       # Entity resolution (2.9M entities)
 │   │   ├── clarification/    # Ambiguity detection
 │   │   ├── conversation/     # Multi-turn support
-│   │   └── evaluation/       # Eval adapter
-│   ├── common/
-│   │   ├── storage/          # Storage layer (postgres, memory protocols)
-│   │   ├── telemetry/        # OTEL metrics + tracing
-│   │   ├── cache/            # Redis caching
-│   │   └── resilience/       # Circuit breaker, retry
-│   ├── evaluation/           # Evaluation Pipeline
-│   │   ├── core/             # Evaluators (Syntax, Logic, Execution, Semantics)
-│   │   ├── batch/            # Batch runner with concurrency control
-│   │   └── cli/              # CLI commands (run, batch)
+│   │   └── evaluation/       # NL2API evaluation pack (4 stages)
+│   │
+│   ├── rag/                  # RAG Application
+│   │   ├── retriever/        # Hybrid vector + keyword search
+│   │   ├── ingestion/        # SEC EDGAR filing ingestion
+│   │   └── evaluation/       # RAG evaluation pack (8 stages)
+│   │
 │   └── mcp_servers/          # MCP server implementations
+│
 ├── tests/
-│   ├── unit/                 # Unit tests (mocked dependencies)
+│   ├── unit/                 # 2,875 unit tests
 │   │   ├── nl2api/           # NL2API unit tests
-│   │   └── common/           # Resilience + cache tests
-│   ├── integration/          # Integration tests (real DB, multi-component)
-│   │   ├── storage/          # Repository integration tests
-│   │   └── nl2api/           # Orchestrator + agent integration tests
-│   ├── accuracy/             # Accuracy tests (real LLM calls)
+│   │   ├── evalkit/          # Framework tests
+│   │   └── rag/              # RAG tests
+│   ├── integration/          # Database + multi-component tests
+│   ├── accuracy/             # Real LLM accuracy tests
 │   │   ├── core/             # Evaluator, config, thresholds
-│   │   ├── agents/           # Per-agent accuracy tests
-│   │   └── domains/          # Per-domain accuracy tests
-│   └── fixtures/lseg/generated/  # ~19k test fixtures
+│   │   ├── routing/          # Query routing accuracy
+│   │   └── agents/           # Per-agent accuracy
+│   └── fixtures/             # 19,000+ test fixtures
+│       ├── lseg/generated/   # NL2API fixtures by category
+│       └── rag/              # RAG evaluation fixtures
+│
 ├── scripts/                  # Utility scripts
 │   ├── generators/           # Test case generators
 │   └── load_fixtures_to_db.py

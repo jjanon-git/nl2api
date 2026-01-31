@@ -38,9 +38,10 @@
 - [eval-03-multi-client-platform](eval-03-multi-client-platform.md) - Multi-client evaluation platform
 - [eval-04-platform-review](eval-04-platform-review.md) - Platform review and audit
 - [eval-05-distributed-workers](eval-05-distributed-workers.md) - Distributed evaluation workers
-- [eval-06-evalkit-extraction](eval-06-evalkit-extraction.md) - Evalkit codebase extraction
+- [eval-06-evalkit-extraction](eval-06-evalkit-extraction.md) - Evalkit codebase extraction ✅
 - [eval-07-standards-audit](eval-07-standards-audit.md) - Codebase standards audit
-- [eval-08-temporal-data](eval-08-temporal-data.md) - Temporal evaluation data
+- [eval-08-temporal-data](eval-08-temporal-data.md) - Temporal evaluation data ✅
+- [eval-09-model-decoupling](eval-09-model-decoupling.md) - Model decoupling from framework
 
 ### Infrastructure
 - [infra-01-observability](infra-01-observability.md) - Observability stack setup
