@@ -5,9 +5,9 @@ Tests whether the LLM router correctly routes queries to domain agents.
 Uses real LLM calls to measure routing accuracy.
 
 Run specific tiers:
-    pytest tests/accuracy/routing/ -m tier1  # Quick check
-    pytest tests/accuracy/routing/ -m tier2  # Standard
-    pytest tests/accuracy/routing/ -m tier3  # Comprehensive
+    pytest tests/accuracy/routing/ -m tier1  # Quick check (~30s)
+    pytest tests/accuracy/routing/ -m tier2  # Standard (~2min)
+    pytest tests/accuracy/routing/ -m tier3  # Comprehensive (hours, batch API)
 """
 
 from __future__ import annotations
@@ -211,56 +211,32 @@ def print_report(report: AccuracyReport, threshold: float):
 class TestRoutingAccuracy:
     """Routing accuracy tests with tier-based execution.
 
-    By default uses Batch API (50% cheaper, higher rate limits).
-    Set use_batch_api=False in config for real-time API with retry.
+    Tier 1/2: Use realtime API for fast feedback (~30s for 50 samples).
+    Tier 3: Use Batch API for comprehensive runs (50% cheaper, but ~8 hours).
     """
 
     @pytest.fixture
-    def evaluator(self):
-        """Create a routing accuracy evaluator (batch API by default)."""
-        config = AccuracyConfig(model="claude-3-haiku-20240307", use_batch_api=True)
+    def realtime_evaluator(self):
+        """Create evaluator with realtime API (fast, for tier1/tier2)."""
+        config = AccuracyConfig(model="claude-3-haiku-20240307", use_batch_api=False)
         return RoutingAccuracyEvaluator(config=config)
 
     @pytest.fixture
-    def realtime_evaluator(self):
-        """Create a routing accuracy evaluator (real-time API)."""
-        config = AccuracyConfig(model="claude-3-haiku-20240307", use_batch_api=False)
+    def batch_evaluator(self):
+        """Create evaluator with Batch API (slow but 50% cheaper, for tier3)."""
+        config = AccuracyConfig(model="claude-3-haiku-20240307", use_batch_api=True)
         return RoutingAccuracyEvaluator(config=config)
 
     @pytest.mark.tier1
     @pytest.mark.asyncio
-    async def test_routing_tier1(self, evaluator):
+    async def test_routing_tier1(self, realtime_evaluator):
         """
-        Tier 1: Quick routing check (50 samples).
+        Tier 1: Quick routing check (50 samples, ~30s with realtime API).
 
         Run with: pytest tests/accuracy/routing/ -m tier1
         """
         test_cases = load_routing_test_cases(limit=50, balanced=True)
         threshold = 0.75  # Lower threshold for quick check
-
-        def progress(current, total, result):
-            if result and current % 10 == 0:
-                print(f"  [{current}/{total}] Latest: {result.expected} -> {result.predicted}")
-
-        report = await evaluator.evaluate_batch(
-            test_cases, progress_callback=progress, tier="tier1"
-        )
-        print_report(report, threshold)
-
-        assert report.accuracy >= threshold, (
-            f"Routing accuracy {report.accuracy:.1%} below {threshold:.0%} threshold. "
-            f"Failed: {report.failed_count}/{report.total_count}"
-        )
-
-    @pytest.mark.asyncio
-    async def test_routing_tier1_realtime(self, realtime_evaluator):
-        """
-        Tier 1 with real-time API (for quick debugging).
-
-        Run with: pytest tests/accuracy/routing/ -k realtime
-        """
-        test_cases = load_routing_test_cases(limit=50, balanced=True)
-        threshold = 0.75
 
         def progress(current, total, result):
             if result and current % 10 == 0:
@@ -278,9 +254,9 @@ class TestRoutingAccuracy:
 
     @pytest.mark.tier2
     @pytest.mark.asyncio
-    async def test_routing_tier2(self, evaluator):
+    async def test_routing_tier2(self, realtime_evaluator):
         """
-        Tier 2: Standard routing evaluation (200 samples).
+        Tier 2: Standard routing evaluation (200 samples, ~2min with realtime API).
 
         Run with: pytest tests/accuracy/routing/ -m tier2
         """
@@ -291,7 +267,7 @@ class TestRoutingAccuracy:
             if result and current % 20 == 0:
                 print(f"  [{current}/{total}]")
 
-        report = await evaluator.evaluate_batch(
+        report = await realtime_evaluator.evaluate_batch(
             test_cases, progress_callback=progress, tier="tier2"
         )
         print_report(report, threshold)
@@ -303,10 +279,11 @@ class TestRoutingAccuracy:
 
     @pytest.mark.tier3
     @pytest.mark.asyncio
-    async def test_routing_tier3(self, evaluator):
+    async def test_routing_tier3(self, batch_evaluator):
         """
         Tier 3: Comprehensive routing evaluation (all samples).
 
+        Uses Batch API (50% cheaper, but takes ~8 hours).
         Run with: pytest tests/accuracy/routing/ -m tier3
         """
         test_cases = load_routing_test_cases(limit=None, balanced=False)
@@ -316,7 +293,7 @@ class TestRoutingAccuracy:
             if current % 100 == 0:
                 print(f"  [{current}/{total}]")
 
-        report = await evaluator.evaluate_batch(
+        report = await batch_evaluator.evaluate_batch(
             test_cases, progress_callback=progress, tier="tier3"
         )
         print_report(report, threshold)
@@ -327,7 +304,7 @@ class TestRoutingAccuracy:
         )
 
     @pytest.mark.asyncio
-    async def test_ambiguous_queries_trigger_clarification(self, evaluator):
+    async def test_ambiguous_queries_trigger_clarification(self, realtime_evaluator):
         """
         Test that ambiguous queries return low confidence.
 
@@ -354,7 +331,7 @@ class TestRoutingAccuracy:
             ),
         ]
 
-        report = await evaluator.evaluate_batch(ambiguous_cases)
+        report = await realtime_evaluator.evaluate_batch(ambiguous_cases)
 
         # These ambiguous queries should have low confidence (would trigger clarification)
         low_confidence_count = sum(1 for r in report.results if r.confidence <= 0.5)
