@@ -14,7 +14,12 @@ Usage:
     scorecard = await evaluator.evaluate(test_case, system_output)
 """
 
-from src.rag.evaluation.pack import RAGPack, RAGPackConfig
+from src.rag.evaluation.pack import (
+    RAGPack,
+    RAGPackConfig,
+    RAGRetrievalPack,
+    RAGRetrievalPackConfig,
+)
 from src.rag.evaluation.stages import (
     AnswerRelevanceStage,
     CitationStage,
@@ -29,6 +34,8 @@ from src.rag.evaluation.stages import (
 __all__ = [
     "RAGPack",
     "RAGPackConfig",
+    "RAGRetrievalPack",
+    "RAGRetrievalPackConfig",
     "RetrievalStage",
     "ContextRelevanceStage",
     "FaithfulnessStage",

@@ -294,6 +294,7 @@ class EvalMetrics:
         client_type: str | None = None,
         client_version: str | None = None,
         eval_mode: str | None = None,
+        source_type: str | None = None,
     ) -> None:
         """
         Record metrics for a single test result.
@@ -305,6 +306,7 @@ class EvalMetrics:
             client_type: Client type for multi-client tracking
             client_version: Client version for multi-client tracking
             eval_mode: Evaluation mode
+            source_type: Data source type (customer, sme, synthetic, hybrid)
         """
         if not self._enabled:
             return
@@ -324,6 +326,8 @@ class EvalMetrics:
                 attrs["client_version"] = client_version
             if eval_mode:
                 attrs["eval_mode"] = eval_mode
+            if source_type:
+                attrs["source_type"] = source_type
 
             # Record test counts
             self._tests_total.add(1, attrs)

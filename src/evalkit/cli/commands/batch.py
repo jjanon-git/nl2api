@@ -228,7 +228,7 @@ def batch_run(
     from datetime import date as date_type
 
     # Validate pack selection
-    valid_packs = ("nl2api", "rag")
+    valid_packs = ("nl2api", "rag", "rag-retrieval")
     if pack not in valid_packs:
         console.print(f"[red]Error:[/red] Invalid pack '{pack}'.")
         console.print(f"Available packs: {', '.join(valid_packs)}")
@@ -572,6 +572,41 @@ async def _batch_run_async(
 
             response_generator = create_rag_simulated_generator(pass_rate=0.7)
             console.print("[yellow]Using simulated RAG responses (pipeline test only).[/yellow]\n")
+
+        # rag-retrieval pack: always uses retrieval-only mode (no LLM generation)
+        if pack == "rag-retrieval" and response_generator is None:
+            import os
+
+            from dotenv import load_dotenv
+
+            load_dotenv()
+
+            from src.evalkit.batch.response_generators import create_rag_retrieval_generator
+            from src.evalkit.common.storage.postgres.client import get_pool
+            from src.rag.retriever.embedders import OpenAIEmbedder
+            from src.rag.retriever.retriever import HybridRAGRetriever
+
+            try:
+                db_pool = await get_pool()
+                api_key = os.getenv("NL2API_OPENAI_API_KEY")
+                if not api_key:
+                    raise RuntimeError("NL2API_OPENAI_API_KEY not set")
+
+                embedder = OpenAIEmbedder(api_key=api_key, model="text-embedding-3-small")
+                retriever = HybridRAGRetriever(
+                    pool=db_pool,
+                    embedding_dimension=1536,
+                    vector_weight=0.7,
+                    keyword_weight=0.3,
+                )
+                retriever.set_embedder(embedder)
+                response_generator = create_rag_retrieval_generator(retriever)
+                console.print(
+                    "[green]Using RAG retrieval-only evaluation (no LLM generation).[/green]\n"
+                )
+            except Exception as e:
+                console.print(f"[red]Failed to initialize RAG retrieval: {e}[/red]")
+                raise typer.Exit(1)
 
         if pack == "rag" and mode in ("resolver", "generation"):
             # For RAG pack with resolver/generation mode, use real retrieval

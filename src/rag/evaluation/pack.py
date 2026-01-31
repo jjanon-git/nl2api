@@ -345,3 +345,131 @@ class RAGPack:
             worker_id=context.worker_id,
             total_latency_ms=total_latency_ms,
         )
+
+
+@dataclass
+class RAGRetrievalPackConfig:
+    """Configuration for RAGRetrievalPack (retrieval-only evaluation)."""
+
+    retrieval_threshold: float = 0.5
+    context_relevance_threshold: float = 0.35
+
+
+class RAGRetrievalPack:
+    """
+    Retrieval-only evaluation pack for RAG systems.
+
+    Evaluates only retrieval quality without requiring LLM-generated answers.
+    Use this for fast iteration on retrieval parameters without generation costs.
+
+    Stages:
+    1. Retrieval: IR metrics (recall@k, precision@k, MRR, NDCG)
+    2. Context Relevance: Is retrieved context relevant to query?
+
+    Usage:
+        pack = RAGRetrievalPack()
+        evaluator = Evaluator(pack=pack)
+
+        # Only needs retrieved docs, no generated answer
+        system_output = {
+            "retrieved_chunks": [{"id": "doc-1", "text": "..."}],
+            "retrieved_doc_ids": ["doc-1", "doc-2"],
+        }
+
+        scorecard = await evaluator.evaluate(test_case, system_output)
+    """
+
+    DEFAULT_WEIGHTS: dict[str, float] = {
+        "retrieval": 0.6,
+        "context_relevance": 0.4,
+    }
+
+    def __init__(self, config: RAGRetrievalPackConfig | None = None, **kwargs):
+        self.config = config or RAGRetrievalPackConfig(**kwargs)
+        self._stages = [
+            RetrievalStage(pass_threshold=self.config.retrieval_threshold),
+            ContextRelevanceStage(pass_threshold=self.config.context_relevance_threshold),
+        ]
+
+    @property
+    def name(self) -> str:
+        return "rag-retrieval"
+
+    def get_stages(self) -> list:
+        return list(self._stages)
+
+    def get_default_weights(self) -> dict[str, float]:
+        return dict(self.DEFAULT_WEIGHTS)
+
+    def validate_test_case(self, test_case: TestCase) -> list[str]:
+        errors = []
+        if not test_case.input.get("query"):
+            errors.append("Missing input['query']")
+        if not test_case.expected.get("relevant_docs"):
+            errors.append("Missing expected['relevant_docs'] for retrieval evaluation")
+        return errors
+
+    def compute_overall_score(
+        self,
+        stage_results: dict[str, StageResult],
+        weights: dict[str, float] | None = None,
+    ) -> float:
+        weights = weights or self.get_default_weights()
+        total_weight = 0.0
+        weighted_sum = 0.0
+
+        for stage_name, result in stage_results.items():
+            if stage_name in weights and result.score is not None:
+                w = weights[stage_name]
+                weighted_sum += result.score * w
+                total_weight += w
+
+        return weighted_sum / total_weight if total_weight > 0 else 0.0
+
+    def compute_overall_passed(self, stage_results: dict[str, StageResult]) -> bool:
+        # Pass if retrieval meets threshold
+        retrieval_result = stage_results.get("retrieval")
+        if retrieval_result and not retrieval_result.passed:
+            return False
+        return True
+
+    async def evaluate(
+        self,
+        test_case: TestCase,
+        system_output: dict[str, Any],
+        context: EvalContext | None = None,
+    ) -> Scorecard:
+        """Run retrieval-only evaluation pipeline."""
+        from src.evalkit.contracts import EvalContext
+
+        context = context or EvalContext()
+        start_time = time.perf_counter()
+
+        stage_results: dict[str, StageResult] = {}
+
+        with tracer.start_as_current_span("rag_retrieval_pack.evaluate") as span:
+            span.set_attribute("test_case.id", test_case.id)
+            span.set_attribute("pack.name", self.name)
+
+            for stage in self._stages:
+                with tracer.start_as_current_span(f"rag_retrieval.{stage.name}"):
+                    result = await stage.evaluate(test_case, system_output, context)
+                    stage_results[stage.name] = result
+
+            total_latency_ms = int((time.perf_counter() - start_time) * 1000)
+            overall_passed = self.compute_overall_passed(stage_results)
+            overall_score = self.compute_overall_score(stage_results)
+
+            span.set_attribute("result.overall_passed", overall_passed)
+            span.set_attribute("result.overall_score", overall_score)
+
+        return Scorecard(
+            test_case_id=test_case.id,
+            batch_id=context.batch_id,
+            pack_name=self.name,
+            stage_results=stage_results,
+            stage_weights=self.get_default_weights(),
+            generated_output=system_output,
+            worker_id=context.worker_id,
+            total_latency_ms=total_latency_ms,
+        )

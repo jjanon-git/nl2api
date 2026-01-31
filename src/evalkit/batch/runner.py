@@ -560,7 +560,12 @@ class BatchRunner:
                 }
             )
 
-            # Record metrics with client dimensions
+            # Extract source_type from test case metadata
+            source_type = None
+            if test_case.metadata.source_metadata:
+                source_type = test_case.metadata.source_metadata.source_type.value
+
+            # Record metrics with client dimensions and source type
             self.metrics.record_test_result(
                 scorecard,
                 batch_id,
@@ -568,6 +573,7 @@ class BatchRunner:
                 client_type=self.config.client_type,
                 client_version=self.config.client_version,
                 eval_mode=self.config.eval_mode,
+                source_type=source_type,
             )
 
             # Save scorecard
