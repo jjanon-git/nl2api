@@ -4,14 +4,34 @@ RAG UI Configuration
 Settings for the RAG question interface.
 """
 
+from typing import Literal
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class RAGUIConfig(BaseSettings):
     """Configuration for RAG UI."""
 
-    # Database
+    # Database (used for PostgreSQL backend and evaluation storage)
     database_url: str = "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+
+    # Backend selection: "postgres" (local pgvector) or "azure" (Azure AI Search)
+    rag_backend: Literal["postgres", "azure"] = "postgres"
+
+    # Azure AI Search settings (when rag_backend="azure")
+    azure_search_endpoint: str | None = None  # e.g., https://your-search.search.windows.net
+    azure_search_api_key: str | None = None
+    azure_search_index: str = "rag-documents"
+    # Field mappings for Azure index schema
+    azure_search_vector_field: str = "embedding"
+    azure_search_content_field: str = "content"
+    azure_search_id_field: str = "id"
+    azure_search_document_type_field: str = "document_type"
+    azure_search_domain_field: str = "domain"
+    azure_search_metadata_field: str = "metadata"
+    # Optional Azure search features
+    azure_search_hybrid: bool = True  # Use hybrid search (vector + full-text)
+    azure_search_semantic_config: str | None = None  # Optional semantic configuration
 
     # Retriever settings
     embedding_model: str = "all-MiniLM-L6-v2"
@@ -21,7 +41,7 @@ class RAGUIConfig(BaseSettings):
     keyword_weight: float = 0.3
     retrieval_threshold: float = 0.1  # Lower threshold needed for SEC filing retrieval
 
-    # Small-to-big retrieval settings
+    # Small-to-big retrieval settings (PostgreSQL backend only)
     use_small_to_big: bool = False  # Enable small-to-big (child search, parent return)
     small_to_big_child_limit: int = 30  # Number of child chunks to search
 

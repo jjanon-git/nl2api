@@ -45,7 +45,7 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 
 # Start infrastructure (PostgreSQL + Redis + OTEL stack)
-podman-compose up -d    # or: docker compose up -d
+docker compose up -d
 
 # Run unit tests (2,875 tests)
 .venv/bin/python -m pytest tests/unit/ -v
@@ -159,7 +159,7 @@ Fixture Categories:
 # Unit tests (fast, mocked dependencies)
 pytest tests/unit/ -v
 
-# Integration tests (requires podman-compose up -d)
+# Integration tests (requires docker compose up -d)
 pytest tests/integration/ -v
 
 # Accuracy tests (real LLM calls, requires API key)
@@ -172,7 +172,7 @@ pytest tests/accuracy/ -m tier3 -v   # Comprehensive (all)
 
 ## Observability
 
-The observability stack runs via `podman-compose up -d` (or `docker compose up -d`):
+The observability stack runs via `docker compose up -d`:
 
 | Service | Port | Purpose |
 |---------|------|---------|

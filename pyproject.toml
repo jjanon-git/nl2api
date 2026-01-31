@@ -79,6 +79,11 @@ rag-ui = [
     # Local embeddings
     "sentence-transformers>=2.2.0",
 ]
+azure-search = [
+    # Azure AI Search SDK
+    "azure-search-documents>=11.4.0",
+    "azure-core>=1.30.0",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
@@ -107,6 +112,9 @@ dev = [
     # RAG UI
     "streamlit>=1.29.0",
     "anthropic>=0.39.0",
+    # Azure AI Search
+    "azure-search-documents>=11.4.0",
+    "azure-core>=1.30.0",
 ]
 
 [project.scripts]

@@ -31,6 +31,9 @@ from src.evalkit.contracts import (
     # Management
     Client,
     ClientType,
+    # Source classification enums (new)
+    DataSourceMetadata,
+    DataSourceType,
     # LLM protocols and types
     EntityResolver,
     ErrorCode,
@@ -54,6 +57,8 @@ from src.evalkit.contracts import (
     LLMResponse,
     MessageRole,
     ResolvedEntity,
+    # Review status enum (new)
+    ReviewStatus,
     RunStatus,
     Scorecard,
     Stage,
@@ -94,6 +99,8 @@ __all__ = [
     "ErrorCode",
     "CircuitState",
     "TestCaseStatus",
+    "DataSourceType",
+    "ReviewStatus",
     "ClientType",
     "EvalMode",
     "TemporalStability",
@@ -104,6 +111,7 @@ __all__ = [
     "ToolRegistry",
     # Core Models
     "ToolCall",
+    "DataSourceMetadata",
     "TestCaseMetadata",
     "TemporalContext",
     "TestCase",

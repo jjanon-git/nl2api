@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    from CONTRACTS import BatchJob, Scorecard, TestCase
+    from CONTRACTS import BatchJob, DataSourceType, ReviewStatus, Scorecard, TestCase
 
 
 @runtime_checkable
@@ -44,6 +44,8 @@ class TestCaseRepository(Protocol):
         tags: list[str] | None = None,
         complexity_min: int | None = None,
         complexity_max: int | None = None,
+        source_type: DataSourceType | None = None,
+        review_status: ReviewStatus | None = None,
         limit: int = 100,
         offset: int = 0,
     ) -> list[TestCase]:
@@ -54,6 +56,8 @@ class TestCaseRepository(Protocol):
             tags: Filter by any matching tag (OR logic)
             complexity_min: Minimum complexity level (1-5)
             complexity_max: Maximum complexity level (1-5)
+            source_type: Filter by data source type (customer, sme, synthetic, hybrid)
+            review_status: Filter by review status (pending, approved, rejected, needs_revision)
             limit: Maximum results to return
             offset: Number of results to skip (for pagination)
         """
@@ -93,6 +97,8 @@ class TestCaseRepository(Protocol):
         tags: list[str] | None = None,
         complexity_min: int | None = None,
         complexity_max: int | None = None,
+        source_type: DataSourceType | None = None,
+        review_status: ReviewStatus | None = None,
     ) -> int:
         """Count test cases matching the given filters."""
         ...

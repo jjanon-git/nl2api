@@ -154,6 +154,24 @@ class TestCaseStatus(str, Enum):
     ARCHIVED = "archived"  # No longer relevant, excluded from runs
 
 
+class DataSourceType(str, Enum):
+    """Classification of test case data sources."""
+
+    CUSTOMER = "customer"  # Real production questions
+    SME = "sme"  # Subject matter expert curated
+    SYNTHETIC = "synthetic"  # Generated (LLM or programmatic)
+    HYBRID = "hybrid"  # Mixed origin (e.g., customer Q + SME answer)
+
+
+class ReviewStatus(str, Enum):
+    """Review status for customer/synthetic questions."""
+
+    PENDING = "pending"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    NEEDS_REVISION = "needs_revision"
+
+
 class ClientType(str, Enum):
     """Type of client being evaluated."""
 
@@ -297,6 +315,101 @@ class ToolCall(BaseModel):
         )
 
 
+class DataSourceMetadata(BaseModel):
+    """
+    Provenance and quality metadata for test case source.
+
+    Tracks where test cases come from (customer, SME, synthetic) and
+    associated quality signals for each source type.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    # Source classification
+    source_type: DataSourceType = Field(
+        ...,
+        description="Classification of data source",
+    )
+
+    # Provenance chain
+    origin_system: str | None = Field(
+        default=None,
+        description="Source system (e.g., 'production_logs', 'jira', 'confluence')",
+    )
+    origin_id: str | None = Field(
+        default=None,
+        description="External reference ID in origin system",
+    )
+    collection_date: datetime | None = Field(
+        default=None,
+        description="When the test case was collected/created",
+    )
+
+    # Quality signals
+    review_status: ReviewStatus = Field(
+        default=ReviewStatus.PENDING,
+        description="Review status for customer/synthetic questions",
+    )
+    reviewed_by: str | None = Field(
+        default=None,
+        description="Reviewer identifier",
+    )
+    reviewed_at: datetime | None = Field(
+        default=None,
+        description="When the review was completed",
+    )
+    quality_score: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Automated quality score (0.0-1.0)",
+    )
+
+    # Customer-specific fields
+    anonymized: bool = Field(
+        default=False,
+        description="Whether PII has been removed",
+    )
+    customer_segment: str | None = Field(
+        default=None,
+        description="Customer segment (e.g., 'enterprise', 'retail')",
+    )
+
+    # SME-specific fields
+    domain_expert: str | None = Field(
+        default=None,
+        description="SME identifier who created/reviewed",
+    )
+    confidence_level: str | None = Field(
+        default=None,
+        description="SME confidence level ('high', 'medium', 'low')",
+    )
+
+    # Synthetic-specific fields
+    generator_name: str | None = Field(
+        default=None,
+        description="Generator class/script name",
+    )
+    generator_version: str | None = Field(
+        default=None,
+        description="Generator version for reproducibility",
+    )
+    seed: int | None = Field(
+        default=None,
+        description="Random seed if applicable",
+    )
+    base_template: str | None = Field(
+        default=None,
+        description="Template used for generation",
+    )
+
+    # Migration tracking
+    migrated_from: str | None = Field(
+        default=None,
+        description="Original source field value before migration",
+    )
+
+
 class TestCaseMetadata(BaseModel):
     """Metadata for a test case."""
 
@@ -324,6 +437,11 @@ class TestCaseMetadata(BaseModel):
     author: str | None = Field(default=None, description="Creator of the test case")
     source: str | None = Field(
         default=None, description="Origin of test case (e.g., 'manual', 'generated')"
+    )
+    # Structured source metadata (new)
+    source_metadata: DataSourceMetadata | None = Field(
+        default=None,
+        description="Structured provenance and quality metadata",
     )
 
 
@@ -681,6 +799,8 @@ __all__ = [
     "ErrorCode",
     "CircuitState",
     "TestCaseStatus",
+    "DataSourceType",
+    "ReviewStatus",
     "ClientType",
     "EvalMode",
     "TemporalStability",
@@ -689,6 +809,7 @@ __all__ = [
     "ToolRegistry",
     # Core Models
     "ToolCall",
+    "DataSourceMetadata",
     "TestCaseMetadata",
     "TemporalContext",
     "TestCase",

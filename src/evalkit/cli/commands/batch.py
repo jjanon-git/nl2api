@@ -28,7 +28,7 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from CONTRACTS import TaskStatus
+from CONTRACTS import DataSourceType, ReviewStatus, TaskStatus
 from src.evalkit.cli.commands.api_batch import api_app
 
 logger = logging.getLogger(__name__)
@@ -77,6 +77,20 @@ def batch_run(
     complexity_max: Annotated[
         int | None,
         typer.Option("--max-complexity", help="Maximum complexity level (1-5)"),
+    ] = None,
+    source_type: Annotated[
+        str | None,
+        typer.Option(
+            "--source-type",
+            help="Filter by data source type (customer, sme, synthetic, hybrid)",
+        ),
+    ] = None,
+    review_status: Annotated[
+        str | None,
+        typer.Option(
+            "--review-status",
+            help="Filter by review status (pending, approved, rejected, needs_revision)",
+        ),
     ] = None,
     limit: Annotated[
         int | None,
@@ -236,6 +250,26 @@ def batch_run(
         console.print("Use 'behavioral', 'structural', or 'data'.")
         raise typer.Exit(1)
 
+    # Validate and parse source_type
+    parsed_source_type: DataSourceType | None = None
+    if source_type:
+        try:
+            parsed_source_type = DataSourceType(source_type)
+        except ValueError:
+            console.print(f"[red]Error:[/red] Invalid source type '{source_type}'.")
+            console.print("Use one of: customer, sme, synthetic, hybrid")
+            raise typer.Exit(1)
+
+    # Validate and parse review_status
+    parsed_review_status: ReviewStatus | None = None
+    if review_status:
+        try:
+            parsed_review_status = ReviewStatus(review_status)
+        except ValueError:
+            console.print(f"[red]Error:[/red] Invalid review status '{review_status}'.")
+            console.print("Use one of: pending, approved, rejected, needs_revision")
+            raise typer.Exit(1)
+
     # Parse eval_date if provided
     parsed_eval_date: date_type | None = None
     if eval_date:
@@ -254,6 +288,8 @@ def batch_run(
             tags=tags,
             complexity_min=complexity_min,
             complexity_max=complexity_max,
+            source_type=parsed_source_type,
+            review_status=parsed_review_status,
             limit=limit,
             concurrency=concurrency,
             mode=mode,
@@ -282,6 +318,8 @@ async def _batch_run_async(
     tags: list[str] | None,
     complexity_min: int | None,
     complexity_max: int | None,
+    source_type: DataSourceType | None,
+    review_status: ReviewStatus | None,
     limit: int | None,
     concurrency: int,
     mode: str,
@@ -620,6 +658,8 @@ async def _batch_run_async(
                 tags=tags,
                 complexity_min=complexity_min,
                 complexity_max=complexity_max,
+                source_type=source_type,
+                review_status=review_status,
                 limit=limit,
                 mode=mode,
                 num_workers=num_workers,
@@ -676,6 +716,8 @@ async def _batch_run_async(
             tags=tags,
             complexity_min=complexity_min,
             complexity_max=complexity_max,
+            source_type=source_type,
+            review_status=review_status,
             limit=limit,
             response_simulator=response_generator,
             resume_batch_id=resume_batch_id,
@@ -713,6 +755,8 @@ async def _run_distributed_batch(
     tags: list[str] | None,
     complexity_min: int | None,
     complexity_max: int | None,
+    source_type: DataSourceType | None,
+    review_status: ReviewStatus | None,
     limit: int | None,
     mode: str,
     num_workers: int,
@@ -746,6 +790,8 @@ async def _run_distributed_batch(
         tags=tags,
         complexity_min=complexity_min,
         complexity_max=complexity_max,
+        source_type=source_type,
+        review_status=review_status,
         limit=limit or 10000,
     )
 

@@ -31,7 +31,9 @@ from rich.table import Table
 
 from CONTRACTS import (
     BatchJob,
+    DataSourceType,
     EvalContext,
+    ReviewStatus,
     Scorecard,
     SystemResponse,
     TaskStatus,
@@ -131,6 +133,8 @@ class BatchRunner:
         tags: list[str] | None = None,
         complexity_min: int | None = None,
         complexity_max: int | None = None,
+        source_type: DataSourceType | None = None,
+        review_status: ReviewStatus | None = None,
         limit: int | None = None,
         response_simulator: Callable[[TestCase], Any] | None = None,
         resume_batch_id: str | None = None,
@@ -142,6 +146,8 @@ class BatchRunner:
             tags: Filter test cases by tags (OR logic)
             complexity_min: Minimum complexity level (1-5)
             complexity_max: Maximum complexity level (1-5)
+            source_type: Filter by data source type (customer, sme, synthetic, hybrid)
+            review_status: Filter by review status (pending, approved, rejected, needs_revision)
             limit: Maximum number of test cases to run
             response_simulator: Async function to generate responses
                               (defaults to simulate_correct_response)
@@ -176,6 +182,8 @@ class BatchRunner:
             tags=tags,
             complexity_min=complexity_min,
             complexity_max=complexity_max,
+            source_type=source_type,
+            review_status=review_status,
             limit=limit or 10000,  # Large default
             offset=0,
         )
