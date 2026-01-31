@@ -12,14 +12,25 @@ A **general-purpose ML evaluation framework** with a reference implementation fo
 - **Full observability** - OpenTelemetry tracing, Prometheus metrics, Grafana dashboards
 - **Distributed execution** - Redis-backed task queues and worker coordination
 
-## What is NL2API?
+## Reference Applications
 
-**NL2API** is a reference application that translates natural language queries into structured API calls for LSEG financial data services. It demonstrates evalkit's capabilities with:
+### NL2API
+
+Translates natural language queries into structured API calls for LSEG financial data services:
 
 - **Entity resolution** at 99.5% accuracy (2.9M entities)
 - **Query routing** at 94.1% accuracy (Claude Haiku)
 - **5 domain agents** for Datastream, Estimates, Fundamentals, Officers, and Screening
-- **19,000+ test fixtures** for comprehensive evaluation
+- **16,000+ test fixtures** for comprehensive evaluation
+
+### RAG (Retrieval-Augmented Generation)
+
+Financial document Q&A system with SEC EDGAR filings:
+
+- **Hybrid retrieval** with vector + keyword search (pgvector)
+- **Small-to-big** hierarchical chunk retrieval
+- **8-stage evaluation** including faithfulness, citation accuracy, rejection calibration
+- **466+ test fixtures** for SEC filing evaluation
 
 ---
 
@@ -34,7 +45,7 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 
 # Start infrastructure (PostgreSQL + Redis + OTEL stack)
-docker compose up -d
+podman-compose up -d    # or: docker compose up -d
 
 # Run unit tests (2,875 tests)
 .venv/bin/python -m pytest tests/unit/ -v
@@ -148,7 +159,7 @@ Fixture Categories:
 # Unit tests (fast, mocked dependencies)
 pytest tests/unit/ -v
 
-# Integration tests (requires docker compose)
+# Integration tests (requires podman-compose up -d)
 pytest tests/integration/ -v
 
 # Accuracy tests (real LLM calls, requires API key)
@@ -161,7 +172,7 @@ pytest tests/accuracy/ -m tier3 -v   # Comprehensive (all)
 
 ## Observability
 
-The observability stack runs via `docker compose up -d`:
+The observability stack runs via `podman-compose up -d` (or `docker compose up -d`):
 
 | Service | Port | Purpose |
 |---------|------|---------|
