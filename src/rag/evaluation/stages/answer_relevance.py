@@ -10,6 +10,7 @@ Checks:
 - Does the answer address the question?
 - Is it complete?
 - Is it on-topic?
+- Does it contain expected keywords (if provided)?
 """
 
 from __future__ import annotations
@@ -96,10 +97,16 @@ class AnswerRelevanceStage:
                 duration_ms=duration_ms,
             )
 
+        # Check answer keywords if provided
+        answer_keywords = test_case.expected.get("answer_keywords", [])
+        keyword_result = self._check_answer_keywords(response, answer_keywords)
+
         # Get LLM judge from context
         llm_judge = self._get_llm_judge(context)
         if llm_judge is None:
-            return await self._heuristic_evaluate(query, response, start_time)
+            return await self._heuristic_evaluate(
+                query, response, answer_keywords, keyword_result, start_time
+            )
 
         try:
             result = await llm_judge.evaluate_relevance(
@@ -108,17 +115,27 @@ class AnswerRelevanceStage:
                 context_type="answer",
             )
 
+            # Combine LLM score with keyword score (if keywords provided)
+            if answer_keywords:
+                # Weight: 70% LLM judge, 30% keyword match
+                combined_score = result.score * 0.7 + keyword_result["score"] * 0.3
+            else:
+                combined_score = result.score
+
             # Override LLM judge's passed with our threshold
-            passed = result.score >= self.pass_threshold
+            passed = combined_score >= self.pass_threshold
             duration_ms = int((time.perf_counter() - start_time) * 1000)
 
             return StageResult(
                 stage_name=self.name,
                 passed=passed,
-                score=result.score,
-                reason=result.reasoning,
+                score=combined_score,
+                reason=self._build_reason(result.reasoning, keyword_result),
                 metrics={
                     "relevance_score": result.score,
+                    "keyword_score": keyword_result["score"],
+                    "keywords_found": keyword_result["found"],
+                    "keywords_missing": keyword_result["missing"],
                     "is_rejection": is_rejection,
                 },
                 artifacts={
@@ -179,10 +196,46 @@ class AnswerRelevanceStage:
             return None
         return context.llm_judge or context.config.get("llm_judge")
 
+    def _check_answer_keywords(self, response: str, keywords: list[str]) -> dict[str, Any]:
+        """Check if expected keywords appear in the response."""
+        if not keywords:
+            return {"score": 1.0, "found": [], "missing": [], "total": 0}
+
+        response_lower = response.lower()
+        found = []
+        missing = []
+
+        for keyword in keywords:
+            if keyword.lower() in response_lower:
+                found.append(keyword)
+            else:
+                missing.append(keyword)
+
+        score = len(found) / len(keywords) if keywords else 1.0
+        return {
+            "score": score,
+            "found": found,
+            "missing": missing,
+            "total": len(keywords),
+        }
+
+    def _build_reason(self, llm_reason: str, keyword_result: dict) -> str:
+        """Build combined reason from LLM and keyword results."""
+        if not keyword_result["total"]:
+            return llm_reason
+
+        keyword_info = f"Keywords: {len(keyword_result['found'])}/{keyword_result['total']} found"
+        if keyword_result["missing"]:
+            keyword_info += f" (missing: {', '.join(keyword_result['missing'][:3])})"
+
+        return f"{llm_reason}. {keyword_info}"
+
     async def _heuristic_evaluate(
         self,
         query: str,
         response: str,
+        answer_keywords: list[str],
+        keyword_result: dict[str, Any],
         start_time: float,
     ) -> StageResult:
         """
@@ -195,17 +248,23 @@ class AnswerRelevanceStage:
             score = 0.3
             reason = "Response too short"
         else:
-            # Keyword overlap
+            # Query keyword overlap
             query_words = set(query.lower().split())
             response_words = set(response.lower().split())
             overlap = len(query_words & response_words)
-            keyword_score = min(1.0, overlap / len(query_words)) if query_words else 0.5
+            query_overlap_score = min(1.0, overlap / len(query_words)) if query_words else 0.5
 
             # Response length bonus (up to 0.2)
             length_bonus = min(0.2, len(response) / 500)
 
-            score = min(1.0, keyword_score * 0.8 + length_bonus)
-            reason = f"Heuristic evaluation: keyword overlap={keyword_score:.2f}"
+            # Combine scores
+            if answer_keywords:
+                # 50% answer keywords, 30% query overlap, 20% length
+                score = keyword_result["score"] * 0.5 + query_overlap_score * 0.3 + length_bonus
+                reason = f"Heuristic: keywords={keyword_result['score']:.2f}, query_overlap={query_overlap_score:.2f}"
+            else:
+                score = min(1.0, query_overlap_score * 0.8 + length_bonus)
+                reason = f"Heuristic: query_overlap={query_overlap_score:.2f}"
 
         passed = score >= self.pass_threshold
         duration_ms = int((time.perf_counter() - start_time) * 1000)
@@ -218,6 +277,9 @@ class AnswerRelevanceStage:
             metrics={
                 "evaluation_method": "heuristic",
                 "response_length": len(response),
+                "keyword_score": keyword_result["score"],
+                "keywords_found": keyword_result["found"],
+                "keywords_missing": keyword_result["missing"],
             },
             duration_ms=duration_ms,
         )
