@@ -285,10 +285,12 @@ class TestRetrieve:
 
         await retriever.retrieve("test", domain="estimates")
 
-        # Verify domain filter is in the SQL
+        # Verify parameterized domain filter is in the SQL
         call_args = conn.fetch.call_args
         sql = call_args[0][0]
-        assert "domain = 'estimates'" in sql
+        assert "domain = $8" in sql
+        # Verify domain is passed as parameter (last argument)
+        assert call_args[0][-1] == "estimates"
 
     @pytest.mark.asyncio
     async def test_retrieve_with_document_types(self, mock_pool, mock_embedder):
@@ -303,10 +305,13 @@ class TestRetrieve:
             "test", document_types=[DocumentType.FIELD_CODE, DocumentType.QUERY_EXAMPLE]
         )
 
-        # Verify type filter is in the SQL
+        # Verify parameterized type filter is in the SQL
         call_args = conn.fetch.call_args
         sql = call_args[0][0]
-        assert "document_type IN" in sql
+        assert "document_type = ANY($7)" in sql
+        # Verify types are passed as list parameter
+        type_values = call_args[0][7]
+        assert type_values == ["field_code", "query_example"]
 
 
 # =============================================================================
@@ -504,10 +509,12 @@ class TestSpecializedRetrieveMethods:
 
         await retriever.retrieve_field_codes("price ratio", domain="fundamentals")
 
-        # Should filter by field_code type
+        # Should filter by field_code type via parameterized query
         call_args = conn.fetch.call_args
         sql = call_args[0][0]
-        assert "'field_code'" in sql
+        assert "document_type = ANY($7)" in sql
+        # Verify field_code is passed as parameter
+        assert call_args[0][7] == ["field_code"]
 
     @pytest.mark.asyncio
     async def test_retrieve_field_codes_keyword_fallback(self, mock_pool):
@@ -536,10 +543,12 @@ class TestSpecializedRetrieveMethods:
 
         await retriever.retrieve_examples("what is the price of Apple")
 
-        # Should filter by query_example type
+        # Should filter by query_example type via parameterized query
         call_args = conn.fetch.call_args
         sql = call_args[0][0]
-        assert "'query_example'" in sql
+        assert "document_type = ANY($7)" in sql
+        # Verify query_example is passed as parameter
+        assert call_args[0][7] == ["query_example"]
 
     @pytest.mark.asyncio
     async def test_retrieve_by_keyword(self, mock_pool, sample_db_rows):

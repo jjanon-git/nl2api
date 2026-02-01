@@ -186,17 +186,13 @@ class HybridRAGRetriever:
         # Convert to string format for pgvector: "[1.0, 2.0, 3.0]"
         query_embedding = "[" + ",".join(str(x) for x in query_embedding_list) + "]"
 
-        # Build the hybrid search query
-        type_filter = ""
+        # Build the hybrid search query with parameterized filters
+        # Convert document_types to array of strings for SQL parameter
+        type_values: list[str] | None = None
         if document_types:
-            types = ", ".join(f"'{dt.value}'" for dt in document_types)
-            type_filter = f"AND document_type IN ({types})"
+            type_values = [dt.value for dt in document_types]
 
-        domain_filter = ""
-        if domain:
-            domain_filter = f"AND domain = '{domain}'"
-
-        sql = f"""
+        sql = """
         WITH vector_search AS (
             SELECT
                 id,
@@ -210,8 +206,8 @@ class HybridRAGRetriever:
                 1 - (embedding <=> $1::vector) as vector_score
             FROM rag_documents
             WHERE embedding IS NOT NULL
-            {type_filter}
-            {domain_filter}
+            AND ($7::text[] IS NULL OR document_type = ANY($7))
+            AND ($8 IS NULL OR domain = $8)
             ORDER BY embedding <=> $1::vector
             LIMIT $2 * 2
         ),
@@ -228,8 +224,8 @@ class HybridRAGRetriever:
                 ts_rank(search_vector, plainto_tsquery('english', $3)) as keyword_score
             FROM rag_documents
             WHERE search_vector @@ plainto_tsquery('english', $3)
-            {type_filter}
-            {domain_filter}
+            AND ($7::text[] IS NULL OR document_type = ANY($7))
+            AND ($8 IS NULL OR domain = $8)
             ORDER BY keyword_score DESC
             LIMIT $2 * 2
         )
@@ -267,6 +263,8 @@ class HybridRAGRetriever:
                 self._vector_weight,
                 self._keyword_weight,
                 threshold,
+                type_values,  # $7: document type filter (array or NULL)
+                domain,  # $8: domain filter (string or NULL)
                 timeout=60.0,
             )
 
@@ -390,16 +388,12 @@ class HybridRAGRetriever:
             if document_types:
                 span.set_attribute("rag.document_types", [dt.value for dt in document_types])
 
-            type_filter = ""
+            # Convert document_types to array of strings for SQL parameter
+            type_values: list[str] | None = None
             if document_types:
-                types = ", ".join(f"'{dt.value}'" for dt in document_types)
-                type_filter = f"AND document_type IN ({types})"
+                type_values = [dt.value for dt in document_types]
 
-            domain_filter = ""
-            if domain:
-                domain_filter = f"AND domain = '{domain}'"
-
-            sql = f"""
+            sql = """
             SELECT
                 id,
                 content,
@@ -412,14 +406,14 @@ class HybridRAGRetriever:
                 ts_rank(search_vector, plainto_tsquery('english', $1)) as score
             FROM rag_documents
             WHERE search_vector @@ plainto_tsquery('english', $1)
-            {type_filter}
-            {domain_filter}
+            AND ($3::text[] IS NULL OR document_type = ANY($3))
+            AND ($4 IS NULL OR domain = $4)
             ORDER BY score DESC
             LIMIT $2
             """
 
             async with self._pool.acquire() as conn:
-                rows = await conn.fetch(sql, query, limit)
+                rows = await conn.fetch(sql, query, limit, type_values, domain)
 
             results = []
             for row in rows:
@@ -561,9 +555,6 @@ class HybridRAGRetriever:
             query_embedding_list = await self._embedder.embed(query)
             query_embedding = "[" + ",".join(str(x) for x in query_embedding_list) + "]"
 
-            # Build domain filter
-            domain_filter = f"AND domain = '{domain}'" if domain else ""
-
             async with self._pool.acquire() as conn:
                 # Step 1: Search child chunks (chunk_level = 1)
                 # Note: chunk_level and parent_id are columns, not metadata fields
@@ -590,7 +581,7 @@ class HybridRAGRetriever:
                         embedding IS NOT NULL
                         AND chunk_level = 1
                         AND parent_id IS NOT NULL
-                        {domain_filter}
+                        AND ($4 IS NULL OR domain = $4)
                     ORDER BY combined_score DESC
                     LIMIT $3
                 """
@@ -600,6 +591,7 @@ class HybridRAGRetriever:
                     query_embedding,
                     query,
                     child_limit,
+                    domain,
                 )
 
                 span.set_attribute("rag.child_count", len(child_rows))

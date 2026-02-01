@@ -222,7 +222,7 @@ def create_app(config: EntityServiceConfig | None = None) -> Any:
 
         except Exception as e:
             logger.exception(f"Error resolving entity: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail="An internal error occurred")
 
     @app.post("/api/resolve/batch")
     async def resolve_batch_endpoint(body: BatchResolveRequest) -> JSONResponse:
@@ -239,7 +239,7 @@ def create_app(config: EntityServiceConfig | None = None) -> Any:
             )
         except Exception as e:
             logger.exception(f"Error resolving entities: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail="An internal error occurred")
 
     @app.post("/api/extract")
     async def extract_and_resolve_endpoint(body: ExtractRequest) -> JSONResponse:
@@ -257,7 +257,7 @@ def create_app(config: EntityServiceConfig | None = None) -> Any:
             )
         except Exception as e:
             logger.exception(f"Error extracting entities: {e}")
-            raise HTTPException(status_code=500, detail=str(e))
+            raise HTTPException(status_code=500, detail="An internal error occurred")
 
     @app.get("/api/stats")
     async def get_stats() -> JSONResponse:

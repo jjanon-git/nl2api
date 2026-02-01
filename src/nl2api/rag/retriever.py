@@ -186,17 +186,12 @@ class HybridRAGRetriever:
         # Convert to string format for pgvector: "[1.0, 2.0, 3.0]"
         query_embedding = "[" + ",".join(str(x) for x in query_embedding_list) + "]"
 
-        # Build the hybrid search query
-        type_filter = ""
+        # Build type values for parameterized query
+        type_values: list[str] | None = None
         if document_types:
-            types = ", ".join(f"'{dt.value}'" for dt in document_types)
-            type_filter = f"AND document_type IN ({types})"
+            type_values = [dt.value for dt in document_types]
 
-        domain_filter = ""
-        if domain:
-            domain_filter = f"AND domain = '{domain}'"
-
-        sql = f"""
+        sql = """
         WITH vector_search AS (
             SELECT
                 id,
@@ -210,8 +205,8 @@ class HybridRAGRetriever:
                 1 - (embedding <=> $1::vector) as vector_score
             FROM rag_documents
             WHERE embedding IS NOT NULL
-            {type_filter}
-            {domain_filter}
+                AND ($7::text[] IS NULL OR document_type = ANY($7))
+                AND ($8 IS NULL OR domain = $8)
             ORDER BY embedding <=> $1::vector
             LIMIT $2 * 2
         ),
@@ -228,8 +223,8 @@ class HybridRAGRetriever:
                 ts_rank(search_vector, plainto_tsquery('english', $3)) as keyword_score
             FROM rag_documents
             WHERE search_vector @@ plainto_tsquery('english', $3)
-            {type_filter}
-            {domain_filter}
+                AND ($7::text[] IS NULL OR document_type = ANY($7))
+                AND ($8 IS NULL OR domain = $8)
             ORDER BY keyword_score DESC
             LIMIT $2 * 2
         )
@@ -265,6 +260,8 @@ class HybridRAGRetriever:
                 self._vector_weight,
                 self._keyword_weight,
                 threshold,
+                type_values,
+                domain,
             )
 
         results = []
@@ -387,16 +384,12 @@ class HybridRAGRetriever:
             if document_types:
                 span.set_attribute("rag.document_types", [dt.value for dt in document_types])
 
-            type_filter = ""
+            # Build type values for parameterized query
+            type_values: list[str] | None = None
             if document_types:
-                types = ", ".join(f"'{dt.value}'" for dt in document_types)
-                type_filter = f"AND document_type IN ({types})"
+                type_values = [dt.value for dt in document_types]
 
-            domain_filter = ""
-            if domain:
-                domain_filter = f"AND domain = '{domain}'"
-
-            sql = f"""
+            sql = """
             SELECT
                 id,
                 content,
@@ -409,14 +402,14 @@ class HybridRAGRetriever:
                 ts_rank(search_vector, plainto_tsquery('english', $1)) as score
             FROM rag_documents
             WHERE search_vector @@ plainto_tsquery('english', $1)
-            {type_filter}
-            {domain_filter}
+                AND ($3::text[] IS NULL OR document_type = ANY($3))
+                AND ($4 IS NULL OR domain = $4)
             ORDER BY score DESC
             LIMIT $2
             """
 
             async with self._pool.acquire() as conn:
-                rows = await conn.fetch(sql, query, limit)
+                rows = await conn.fetch(sql, query, limit, type_values, domain)
 
             results = []
             for row in rows:
