@@ -9,7 +9,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import date, datetime
-from typing import Any, ClassVar, Protocol
+from typing import Any, ClassVar, Literal, Protocol
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field
 
@@ -439,9 +439,14 @@ class LLMJudgeConfig(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
+    provider: Literal["anthropic", "openai"] = Field(
+        default="anthropic",
+        description="LLM provider (anthropic or openai)",
+    )
     model: str = Field(
         default="claude-3-5-haiku-20241022",
-        description="Model for semantic evaluation (Claude 3.5 Haiku by default)",
+        description="Model for semantic evaluation. Anthropic: claude-3-5-haiku-20241022, "
+        "claude-3-5-sonnet-20241022. OpenAI: gpt-4o-mini, gpt-5-mini, gpt-5-nano, gpt-4o, gpt-5.",
     )
     temperature: float = Field(
         default=0.0,

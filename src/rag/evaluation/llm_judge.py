@@ -13,6 +13,7 @@ Features:
 
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from dataclasses import dataclass, field
@@ -61,10 +62,28 @@ class LLMJudge:
         Args:
             config: Judge configuration (model, temperature, thresholds)
             llm_client: LLM client instance. If None, will be created on first use.
+
+        Environment variables (override defaults when config is None):
+            EVAL_LLM_PROVIDER: "anthropic" or "openai"
+            EVAL_LLM_MODEL: Model name (e.g., "gpt-5-nano", "claude-3-5-haiku-20241022")
         """
-        self.config = config or LLMJudgeConfig()
+        self.config = config or self._config_from_env()
         self._llm_client = llm_client
         self._client_initialized = False
+
+    @staticmethod
+    def _config_from_env() -> LLMJudgeConfig:
+        """Create config from environment variables."""
+        import os
+
+        provider = os.getenv("EVAL_LLM_PROVIDER", "anthropic")
+        model = os.getenv("EVAL_LLM_MODEL")
+
+        # Default model based on provider
+        if model is None:
+            model = "gpt-5-nano" if provider == "openai" else "claude-3-5-haiku-20241022"
+
+        return LLMJudgeConfig(provider=provider, model=model)  # type: ignore[arg-type]
 
     @property
     def llm_client(self) -> Any:
@@ -78,11 +97,18 @@ class LLMJudge:
         """Create LLM client based on config."""
         import os
 
-        # Import here to avoid circular dependencies
+        provider = self.config.provider
+
+        if provider == "openai":
+            return self._create_openai_client(os)
+        else:
+            return self._create_anthropic_client(os)
+
+    def _create_anthropic_client(self, os: Any) -> Any:
+        """Create Anthropic client."""
         try:
             from anthropic import AsyncAnthropic
 
-            # Get API key from environment (try multiple sources)
             api_key = (
                 os.getenv("ANTHROPIC_API_KEY")
                 or os.getenv("NL2API_ANTHROPIC_API_KEY")
@@ -99,6 +125,25 @@ class LLMJudge:
         except ImportError:
             raise RuntimeError(
                 "anthropic package required for LLM judge. Install with: pip install anthropic"
+            )
+
+    def _create_openai_client(self, os: Any) -> Any:
+        """Create OpenAI client."""
+        try:
+            from openai import AsyncOpenAI
+
+            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("NL2API_OPENAI_API_KEY")
+
+            if not api_key:
+                raise RuntimeError(
+                    "OpenAI API key required for LLM judge. "
+                    "Set OPENAI_API_KEY or NL2API_OPENAI_API_KEY"
+                )
+
+            return AsyncOpenAI(api_key=api_key)
+        except ImportError:
+            raise RuntimeError(
+                "openai package required for LLM judge. Install with: pip install openai"
             )
 
     async def evaluate_relevance(
@@ -221,15 +266,10 @@ Response:"""
                 metrics={"num_claims": 0, "supported_claims": 0},
             )
 
-        # Verify each claim
-        supported_count = 0
-        verification_results = []
-
-        for claim in claims:
-            result = await self.verify_claim(claim, context)
-            verification_results.append(result)
-            if result.supported:
-                supported_count += 1
+        # Verify all claims in parallel for performance
+        tasks = [self.verify_claim(claim, context) for claim in claims]
+        verification_results = await asyncio.gather(*tasks)
+        supported_count = sum(1 for r in verification_results if r.supported)
 
         # Compute score
         score = supported_count / len(claims)
@@ -266,15 +306,11 @@ Response:"""
         if client is None:
             raise RuntimeError("LLM client not initialized")
 
-        # Handle Anthropic client
         try:
-            message = await client.messages.create(
-                model=self.config.model,
-                max_tokens=self.config.max_tokens,
-                temperature=self.config.temperature,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            return message.content[0].text
+            if self.config.provider == "openai":
+                return await self._call_openai(client, prompt)
+            else:
+                return await self._call_anthropic(client, prompt)
         except Exception as e:
             # Return error as response for graceful degradation
             return json.dumps(
@@ -284,6 +320,26 @@ Response:"""
                     "error": True,
                 }
             )
+
+    async def _call_anthropic(self, client: Any, prompt: str) -> str:
+        """Call Anthropic API."""
+        message = await client.messages.create(
+            model=self.config.model,
+            max_tokens=self.config.max_tokens,
+            temperature=self.config.temperature,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return message.content[0].text
+
+    async def _call_openai(self, client: Any, prompt: str) -> str:
+        """Call OpenAI API."""
+        response = await client.chat.completions.create(
+            model=self.config.model,
+            max_tokens=self.config.max_tokens,
+            temperature=self.config.temperature,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.choices[0].message.content
 
     def _build_relevance_prompt(
         self,

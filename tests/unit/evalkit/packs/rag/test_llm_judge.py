@@ -18,9 +18,22 @@ from src.evaluation.packs.rag.llm_judge import (
 
 @pytest.fixture
 def config():
-    """Create a LLMJudgeConfig."""
+    """Create a LLMJudgeConfig for Anthropic."""
     return LLMJudgeConfig(
+        provider="anthropic",
         model="claude-3-5-haiku-20241022",
+        temperature=0.0,
+        max_tokens=512,
+        pass_threshold=0.7,
+    )
+
+
+@pytest.fixture
+def openai_config():
+    """Create a LLMJudgeConfig for OpenAI."""
+    return LLMJudgeConfig(
+        provider="openai",
+        model="gpt-5-mini",
         temperature=0.0,
         max_tokens=512,
         pass_threshold=0.7,
@@ -33,6 +46,16 @@ def mock_anthropic_client():
     client = MagicMock()
     client.messages = MagicMock()
     client.messages.create = AsyncMock()
+    return client
+
+
+@pytest.fixture
+def mock_openai_client():
+    """Create a mock OpenAI client."""
+    client = MagicMock()
+    client.chat = MagicMock()
+    client.chat.completions = MagicMock()
+    client.chat.completions.create = AsyncMock()
     return client
 
 
@@ -418,3 +441,91 @@ class TestLLMJudgeWithMockedClient:
         )
 
         assert result.score == 0.5  # Default degraded score
+
+
+class TestLLMJudgeOpenAI:
+    """Tests for OpenAI provider support."""
+
+    def test_config_with_openai_provider(self, openai_config):
+        """Config accepts openai provider."""
+        assert openai_config.provider == "openai"
+        assert openai_config.model == "gpt-5-mini"
+
+    def test_init_with_openai_config(self, openai_config):
+        """Initialize judge with OpenAI config."""
+        judge = LLMJudge(config=openai_config)
+
+        assert judge.config.provider == "openai"
+
+    @pytest.mark.asyncio
+    async def test_evaluate_relevance_openai(self, openai_config, mock_openai_client):
+        """Evaluate relevance with OpenAI client."""
+        mock_openai_client.chat.completions.create.return_value = MagicMock(
+            choices=[
+                MagicMock(message=MagicMock(content='{"score": 0.85, "reasoning": "Relevant"}'))
+            ]
+        )
+
+        judge = LLMJudge(config=openai_config, llm_client=mock_openai_client)
+
+        result = await judge.evaluate_relevance(
+            query="What is Python?",
+            text="Python is a programming language.",
+            context_type="context",
+        )
+
+        assert result.score == 0.85
+        assert result.passed is True
+        mock_openai_client.chat.completions.create.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_extract_claims_openai(self, openai_config, mock_openai_client):
+        """Extract claims with OpenAI client."""
+        mock_openai_client.chat.completions.create.return_value = MagicMock(
+            choices=[MagicMock(message=MagicMock(content='["Claim A", "Claim B"]'))]
+        )
+
+        judge = LLMJudge(config=openai_config, llm_client=mock_openai_client)
+
+        claims = await judge.extract_claims("Claim A. Claim B.")
+
+        assert len(claims) == 2
+        assert "Claim A" in claims
+
+    @pytest.mark.asyncio
+    async def test_verify_claim_openai(self, openai_config, mock_openai_client):
+        """Verify claim with OpenAI client."""
+        mock_openai_client.chat.completions.create.return_value = MagicMock(
+            choices=[
+                MagicMock(
+                    message=MagicMock(
+                        content='{"supported": true, "evidence": "Found", "confidence": 0.9}'
+                    )
+                )
+            ]
+        )
+
+        judge = LLMJudge(config=openai_config, llm_client=mock_openai_client)
+
+        result = await judge.verify_claim(
+            claim="Python is popular",
+            context="Python is one of the most popular programming languages.",
+        )
+
+        assert result.supported is True
+        assert result.confidence == 0.9
+
+    @pytest.mark.asyncio
+    async def test_openai_error_handling(self, openai_config, mock_openai_client):
+        """Handle OpenAI errors gracefully."""
+        mock_openai_client.chat.completions.create.side_effect = Exception("OpenAI API Error")
+
+        judge = LLMJudge(config=openai_config, llm_client=mock_openai_client)
+
+        result = await judge.evaluate_relevance(
+            query="test",
+            text="test",
+            context_type="context",
+        )
+
+        assert result.score == 0.5  # Graceful degradation

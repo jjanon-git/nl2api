@@ -294,9 +294,8 @@ NL2API_ANTHROPIC_API_KEY=sk-ant-...   # For Claude
 # OR
 NL2API_OPENAI_API_KEY=sk-...          # For OpenAI
 
-# Optional
-NL2API_TELEMETRY_ENABLED=true         # Emit to OTEL
-NL2API_TELEMETRY_OTLP_ENDPOINT=http://localhost:4317
+# Telemetry is enabled automatically when OTEL packages are installed
+OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 ```
 
 ---
@@ -398,6 +397,64 @@ Real LLM calls have cost. Current approach:
 Store accuracy results over time to detect degradation:
 - Results saved to `routing_eval_*.json` (gitignored)
 - Future: Push to OTEL for Grafana dashboards
+
+---
+
+## RAG Evaluation LLM Provider Support
+
+RAG evaluation uses LLM-as-judge for 4 of 8 stages (context relevance, faithfulness, answer relevance, citation). You can switch between Anthropic and OpenAI providers.
+
+### Configuration
+
+```bash
+# Anthropic (default)
+export EVAL_LLM_PROVIDER=anthropic
+export EVAL_LLM_MODEL=claude-3-5-haiku-20241022
+
+# OpenAI (cost-optimized)
+export EVAL_LLM_PROVIDER=openai
+export EVAL_LLM_MODEL=gpt-5-nano
+```
+
+### Available Models
+
+| Provider | Model | Input $/M | Output $/M | Best For |
+|----------|-------|-----------|------------|----------|
+| Anthropic | claude-3-5-haiku-20241022 | $0.80 | $4.00 | Default, balanced |
+| Anthropic | claude-3-5-sonnet-20241022 | $3.00 | $15.00 | Quality-focused |
+| OpenAI | gpt-5-nano | $0.05 | $0.40 | Cost-optimized, high-volume |
+| OpenAI | gpt-5-mini | $0.25 | $2.00 | Balanced |
+| OpenAI | gpt-5 | $1.25 | $10.00 | Quality-focused |
+| OpenAI | gpt-5.2 | $1.75 | $14.00 | Maximum capability |
+
+### Provider Comparison (2026-01-31)
+
+Comparison test on 20 RAG test cases:
+
+| Metric | Claude 3.5 Haiku | GPT-5-nano |
+|--------|------------------|------------|
+| Avg Score | 0.44 | 0.46 |
+| Pass Rate | 0% | 0% |
+| Duration | 417.9s | 4.5s |
+| Est. Cost | ~$0.10 | ~$0.006 |
+
+**Key findings:**
+- **GPT-5-nano is ~93x faster** (4.5s vs 418s for 20 cases)
+- **GPT-5-nano is ~17x cheaper** ($0.006 vs $0.10)
+- **Quality is comparable** (0.46 vs 0.44 avg score)
+
+**Recommendation:** Use `gpt-5-nano` for cost-sensitive batch evaluations. Use Haiku or Sonnet for quality-critical assessments.
+
+### Running Evaluations
+
+```bash
+# Anthropic (default)
+python -m src.evalkit.cli batch run --pack rag --tag rag --label baseline
+
+# OpenAI
+EVAL_LLM_PROVIDER=openai EVAL_LLM_MODEL=gpt-5-nano \
+python -m src.evalkit.cli batch run --pack rag --tag rag --label openai-test
+```
 
 ---
 
