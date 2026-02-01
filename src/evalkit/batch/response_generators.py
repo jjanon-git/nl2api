@@ -637,17 +637,27 @@ Provide a clear, factual answer with citations. Use [Source N] to cite specific 
             user_prompt = RAG_USER_PROMPT.format(query=query, context=context)
 
             if llm_provider == "openai":
+                # Use higher token limit for gpt-5-nano which uses reasoning tokens
+                # The model needs ~100-500 reasoning tokens + response tokens
+                # 4096 provides headroom for complex responses
                 response = llm_client.chat.completions.create(
                     model=llm_model,
-                    max_completion_tokens=1024,
+                    max_completion_tokens=4096,
                     messages=[
                         {"role": "system", "content": RAG_SYSTEM_PROMPT},
                         {"role": "user", "content": user_prompt},
                     ],
                 )
-                generated_answer = response.choices[0].message.content
+                generated_answer = response.choices[0].message.content or ""
                 input_tokens = response.usage.prompt_tokens
                 output_tokens = response.usage.completion_tokens
+
+                # Warn if response is empty despite using tokens
+                if not generated_answer and output_tokens > 0:
+                    logger.warning(
+                        f"Empty response from OpenAI despite {output_tokens} completion tokens "
+                        f"(finish_reason={response.choices[0].finish_reason})"
+                    )
             else:
                 response = llm_client.messages.create(
                     model=llm_model,

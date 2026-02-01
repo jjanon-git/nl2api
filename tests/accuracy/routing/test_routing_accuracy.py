@@ -208,11 +208,14 @@ def print_report(report: AccuracyReport, threshold: float):
     print("=" * 60)
 
 
+@pytest.mark.usefixtures("api_key")
 class TestRoutingAccuracy:
     """Routing accuracy tests with tier-based execution.
 
     Tier 1/2: Use realtime API for fast feedback (~30s for 50 samples).
     Tier 3: Use Batch API for comprehensive runs (50% cheaper, but ~8 hours).
+
+    Note: Tests are skipped if ANTHROPIC_API_KEY is not set.
     """
 
     @pytest.fixture
