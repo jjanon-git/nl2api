@@ -209,7 +209,13 @@ class TestQueryResult:
 
 
 class TestTemporalDetection:
-    """Tests for temporal intent detection."""
+    """Tests for temporal intent detection.
+
+    Returns tuple (wants_latest, target_year):
+    - wants_latest=True, target_year=None: filter to most recent fiscal year
+    - wants_latest=False, target_year=2024: filter to specific year
+    - wants_latest=False, target_year=None: no temporal filtering
+    """
 
     @pytest.fixture
     def handler(self, mock_pool, config):
@@ -219,21 +225,40 @@ class TestTemporalDetection:
     @pytest.mark.parametrize(
         "query,expected",
         [
-            ("What is Apple's latest revenue?", True),
-            ("What was the most recent earnings?", True),
-            ("Tell me about Amazon's last 10-K filing", True),
-            ("What are the current risk factors?", True),
-            ("Show me 2024 financial results", True),
-            ("What was revenue in FY2024?", True),
-            ("What were the risk factors in 2020?", False),
-            ("Tell me about the company", False),
-            ("What is the PE ratio?", False),
+            # "latest/most recent" keywords → (True, None)
+            ("What is Apple's latest revenue?", (True, None)),
+            ("What was the most recent earnings?", (True, None)),
+            ("What are the current risk factors?", (True, None)),
+            # Explicit year mentions with word boundary → (False, year)
+            ("Show me 2024 financial results", (False, 2024)),
+            ("What were the risk factors in 2020?", (False, 2020)),
+            ("Revenue for fiscal year 2023", (False, 2023)),
+            # "FY2024" doesn't match because no word boundary between FY and 2024
+            ("What was revenue in FY2024?", (False, None)),
+            # No temporal filtering → (False, None)
+            ("Tell me about the company", (False, None)),
+            ("What is the PE ratio?", (False, None)),
+            # "last 10-K" without "year" doesn't trigger last_year pattern
+            ("Tell me about Amazon's last 10-K filing", (False, None)),
         ],
     )
     def test_detect_temporal_intent(self, handler, query, expected):
         """Temporal detection should identify queries asking for recent data."""
         result = handler._detect_temporal_intent(query)
         assert result == expected, f"Query: '{query}' expected {expected}, got {result}"
+
+    def test_detect_last_year_returns_previous_year(self, handler):
+        """'last year' phrase should return (False, previous_calendar_year)."""
+        from datetime import datetime
+
+        query = "What was Apple's revenue last year?"
+        wants_latest, target_year = handler._detect_temporal_intent(query)
+        expected_year = datetime.now().year - 1
+
+        assert wants_latest is False
+        assert target_year == expected_year, (
+            f"'last year' should return {expected_year}, got {target_year}"
+        )
 
 
 class TestTickerExtraction:
