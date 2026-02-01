@@ -381,6 +381,15 @@ class TestRAGRetrieverProtocol:
         assert isinstance(retriever, RAGRetriever)
 
 
+@pytest.fixture(scope="module")
+def local_embedder():
+    """Module-scoped embedder to avoid reloading model for each test."""
+    pytest.importorskip("sentence_transformers")
+    from src.rag.retriever.embedders import LocalEmbedder
+
+    return LocalEmbedder()
+
+
 class TestLocalEmbedder:
     """Test suite for LocalEmbedder."""
 
@@ -391,14 +400,12 @@ class TestLocalEmbedder:
         # LocalEmbedder should be a subclass of Embedder
         assert issubclass(LocalEmbedder, Embedder)
 
-    def test_create_embedder_local(self) -> None:
+    def test_create_embedder_local(self, local_embedder) -> None:
         """Test create_embedder factory with local provider."""
-        pytest.importorskip("sentence_transformers")
-        from src.rag.retriever.embedders import LocalEmbedder, create_embedder
+        from src.rag.retriever.embedders import LocalEmbedder
 
-        embedder = create_embedder("local")
-        assert isinstance(embedder, LocalEmbedder)
-        assert embedder.dimension == 384  # all-MiniLM-L6-v2 default
+        assert isinstance(local_embedder, LocalEmbedder)
+        assert local_embedder.dimension == 384  # all-MiniLM-L6-v2 default
 
     def test_create_embedder_invalid_provider(self) -> None:
         """Test create_embedder raises for unknown provider."""
@@ -415,26 +422,18 @@ class TestLocalEmbedder:
             create_embedder("openai")
 
     @pytest.mark.asyncio
-    async def test_local_embedder_embed(self) -> None:
+    async def test_local_embedder_embed(self, local_embedder) -> None:
         """Test LocalEmbedder can generate embeddings."""
-        pytest.importorskip("sentence_transformers")
-        from src.rag.retriever.embedders import LocalEmbedder
-
-        embedder = LocalEmbedder()
-        embedding = await embedder.embed("Apple stock price")
+        embedding = await local_embedder.embed("Apple stock price")
 
         assert isinstance(embedding, list)
         assert len(embedding) == 384
         assert all(isinstance(x, float) for x in embedding)
 
     @pytest.mark.asyncio
-    async def test_local_embedder_embed_batch(self) -> None:
+    async def test_local_embedder_embed_batch(self, local_embedder) -> None:
         """Test LocalEmbedder can generate batch embeddings."""
-        pytest.importorskip("sentence_transformers")
-        from src.rag.retriever.embedders import LocalEmbedder
-
-        embedder = LocalEmbedder()
-        embeddings = await embedder.embed_batch(["Apple", "Microsoft", "Google"])
+        embeddings = await local_embedder.embed_batch(["Apple", "Microsoft", "Google"])
 
         assert isinstance(embeddings, list)
         assert len(embeddings) == 3
