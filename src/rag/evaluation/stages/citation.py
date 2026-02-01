@@ -12,12 +12,15 @@ Metrics:
 
 from __future__ import annotations
 
+import logging
 import re
 import time
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Any
 
 from src.evalkit.contracts import StageResult, TestCase
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from src.evalkit.contracts import EvalContext
@@ -272,7 +275,13 @@ class CitationStage:
                 if result.supported:
                     accurate_count += 1
                 total_checked += 1
-            except Exception:
+            except (TimeoutError, ConnectionError) as e:
+                # Network errors - skip this citation but continue checking others
+                logger.debug(f"Skipping citation verification due to network error: {e}")
+                continue
+            except Exception as e:
+                # Log unexpected errors but don't fail the entire evaluation
+                logger.warning(f"Unexpected error verifying citation: {e}")
                 continue
 
         return accurate_count / total_checked if total_checked > 0 else 1.0

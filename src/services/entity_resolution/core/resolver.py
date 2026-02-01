@@ -15,12 +15,13 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
-from ..resilience import (
+from src.evalkit.common.resilience import (
     CircuitBreaker,
     CircuitOpenError,
     RetryConfig,
     retry_with_backoff,
 )
+
 from .extractor import EntityExtractor
 from .models import ResolvedEntity
 from .openfigi import resolve_via_openfigi

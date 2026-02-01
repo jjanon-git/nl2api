@@ -86,7 +86,7 @@
 |-------|-------|-------|----------|
 | ~~**src/evaluation → src/evalkit duplication**~~ | ~~CRITICAL~~ | ~~~2000~~ | ✅ FIXED (2026-01-31) - Removed 10,700 lines |
 | ~~**src/rag_ui → src/rag/ui duplication**~~ | ~~CRITICAL~~ | ~~~300~~ | ✅ FIXED (2026-02-01) - Deleted src/rag_ui/, updated scripts |
-| **Duplicate circuit breaker** | HIGH | ~400 | `evalkit/common/resilience/` vs `services/entity_resolution/resilience.py` |
+| ~~**Duplicate circuit breaker**~~ | ~~HIGH~~ | ~~400~~ | ✅ FIXED (2026-02-01) - Deleted services/resilience.py, using evalkit |
 | **Exception hierarchy (28 classes)** | HIGH | ~394 | `evalkit/exceptions.py` - none caught specifically |
 | **Duplicate RAG protocols** | MEDIUM | ~154 | `rag/retriever/protocols.py` = `nl2api/rag/protocols.py` |
 | **Unused config options (~10)** | MEDIUM | ~100 | `routing_tier3_model`, `cohere_api_key`, `mcp_mode=hybrid`, etc. |
@@ -109,7 +109,7 @@
 |-------|----------|----------|--------|
 | **Error message information disclosure** | HIGH | `services/entity_resolution/transports/http/app.py` + `mcp_servers/entity_resolution/transports/sse.py` | ✅ FIXED (2026-01-31) |
 | **Rate limiting fails open** | MEDIUM | `mcp_servers/entity_resolution/middleware.py:156-158` | Allows all requests if Redis down |
-| **Broad exception handling** | MEDIUM | `services/entity_resolution/resilience.py:112` + 4 others | `except Exception:` swallows errors |
+| ~~**Broad exception handling**~~ | ~~MEDIUM~~ | `rag/evaluation/stages/citation.py` | ✅ FIXED (2026-02-01) - Now catches specific exceptions with logging |
 | **Unsanitized error strings in metrics** | MEDIUM | `evalkit/core/semantics/evaluator.py:259,270` + 8 others | Exception strings in telemetry |
 | **Hardcoded test credentials** | MEDIUM | `mcp_servers/entity_resolution/__main__.py:66` + 2 | `postgresql://nl2api:nl2api@...` |
 | **Missing rate limit on /stats** | LOW | `services/entity_resolution/transports/http/app.py:262` | Endpoint not rate-limited |
@@ -125,7 +125,7 @@
 1. ✅ Replace `detail=str(e)` with generic error messages in HTTP endpoints (DONE 2026-01-31)
 2. ✅ Parameterize RAG SQL queries to enable query plan caching (DONE 2026-01-31)
 3. ✅ Document rate limiter fail-open behavior (DONE 2026-02-01) - Added security note in middleware.py
-4. Replace broad `except Exception:` with specific exceptions
+4. ✅ Replace broad `except Exception:` with specific exceptions (DONE 2026-02-01) - Fixed citation.py
 
 ---
 
