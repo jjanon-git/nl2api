@@ -1,7 +1,7 @@
 # RAG Improvements Design Document
 
 **Author:** Mostly Claude, with some minor assistance from Sid
-**Date:** 2026-01-23 (updated 2026-01-25)
+**Date:** 2026-01-23 (updated 2026-02-01)
 **Status:** Active - P0 Complete, P1 Complete (Small-to-Big reindex done, retrieval improved 23% → 44%)
 
 ---
@@ -24,7 +24,7 @@ The current RAG ingestion pipeline is functional but employs relatively naive te
 
 ### 1.1 Chunking Strategy
 
-**Location:** `src/nl2api/ingestion/sec_filings/chunker.py`
+**Location:** `src/rag/ingestion/sec_filings/chunker.py`
 
 **Current Approach:**
 ```python
@@ -49,7 +49,7 @@ min_chunk_size: 200 characters
 
 ### 1.2 Embedding Generation
 
-**Location:** `src/nl2api/rag/embedders.py`
+**Location:** `src/rag/retriever/embedders.py`
 
 **Current Options:**
 | Embedder | Model | Dimensions | Notes |
@@ -68,7 +68,7 @@ min_chunk_size: 200 characters
 
 ### 1.3 Retrieval Pipeline
 
-**Location:** `src/nl2api/rag/retriever.py`
+**Location:** `src/rag/retriever/retriever.py`
 
 **Current Approach:**
 - Hybrid search (70% vector + 30% keyword)
@@ -792,7 +792,7 @@ async def run_embedding_comparison(
 **FinancialEmbedder Class:**
 
 ```python
-# src/nl2api/rag/embedders.py
+# src/rag/retriever/embedders.py
 
 class FinancialEmbedder:
     """Local financial domain embeddings using sentence-transformers."""
@@ -1371,6 +1371,93 @@ results = await retriever.retrieve_with_parents(
 | `src/rag/ingestion/sec_filings/chunker.py` | Hierarchical chunking |
 | `src/rag/retriever/retriever.py` | `retrieve_with_parents()` |
 
+### 6.10 Entity Filtering for Retrieval (2026-02-01)
+
+**Date:** 2026-02-01
+**Status:** Implemented
+
+#### Problem Statement
+
+When querying "What were Apple's total revenues in fiscal year 2024?", the retriever returned Microsoft and Google documents instead of Apple documents. Root cause analysis:
+
+| Component | Behavior | Weight |
+|-----------|----------|--------|
+| Vector search | Matches "revenue fiscal year 2024" semantically - all companies' financial filings match | 70% |
+| Keyword search | Matches "Apple" in content | 30% |
+| Entity filter | **Not implemented** - no way to constrain to specific company | N/A |
+
+The hybrid scoring (70% vector + 30% keyword) meant that non-Apple docs with high vector similarity to financial concepts could outrank Apple docs.
+
+#### Solution
+
+Added `ticker` parameter to `retrieve()` and `retrieve_with_parents()` methods that filters on `metadata->>'ticker'`.
+
+**Files Modified:**
+| File | Change |
+|------|--------|
+| `src/rag/retriever/retriever.py` | Added `ticker` param to `retrieve()`, `_retrieve_impl()`, `retrieve_with_parents()` |
+
+**SQL Filter Added:**
+```sql
+AND ($9::text IS NULL OR metadata->>'ticker' = $9)
+```
+
+**API Change:**
+```python
+# Before (no entity filtering)
+results = await retriever.retrieve(
+    query="What were Apple's total revenues?",
+    domain="sec_filings",
+)
+
+# After (with entity filtering)
+results = await retriever.retrieve(
+    query="What were Apple's total revenues?",
+    domain="sec_filings",
+    ticker="AAPL",  # NEW: constrains to Apple docs only
+)
+```
+
+#### Usage in RAG Pipeline
+
+The entity filter should be used when:
+1. The query mentions a specific company by name
+2. Entity resolution has identified the ticker
+3. You want to avoid cross-company contamination in results
+
+#### Evaluation Results (2026-02-01)
+
+**Test: OpenAI text-embedding-3-small with 5 entity-specific queries (10 results each)**
+
+| Query | Without Filter | With Filter | Improvement |
+|-------|---------------|-------------|-------------|
+| Apple revenue | 100% (all AAPL) | 100% | +0% |
+| Microsoft cloud | 100% (all MSFT) | 100% | +0% |
+| Google AI risks | 70% (3 wrong: SYNA, V) | 100% | **+30%** |
+| Amazon FCF | 20% (8 wrong: DOW, NET, LYFT, ZS, NVT) | 100% | **+80%** |
+| Tesla production | 100% (all TSLA) | 100% | +0% |
+
+**Summary:**
+
+| Metric | Without Entity Filter | With Entity Filter | Improvement |
+|--------|----------------------|-------------------|-------------|
+| Overall Precision | 78.0% (39/50) | 100.0% (50/50) | **+22%** |
+| Relative Lift | - | - | **+28.2%** |
+
+**Key Observations:**
+1. Entity filtering eliminates cross-company contamination completely
+2. Biggest impact on generic financial queries ("free cash flow", "risk factors")
+3. Company-specific terms (Apple revenue, Tesla production) already work well
+4. Without filter, wrong companies retrieved: DOW, NET, LYFT, ZS, NVT, SYNA, V
+
+#### Telemetry
+
+The retriever now logs `rag.ticker` attribute in traces:
+- `"all"` when no ticker filter applied
+- `"AAPL"`, `"MSFT"`, etc. when filtering by ticker
+
+---
+
 ### 6.9 Small-to-Big Full Integration (2026-01-25)
 
 **Date:** 2026-01-25
@@ -1498,12 +1585,17 @@ export RAG_UI_USE_SMALL_TO_BIG=true
 
 | Component | File |
 |-----------|------|
-| Document Chunker | `src/nl2api/ingestion/sec_filings/chunker.py` |
-| Embedders | `src/nl2api/rag/embedders.py` |
-| Hybrid Retriever | `src/nl2api/rag/retriever.py` |
-| RAG Indexer | `src/nl2api/rag/indexer.py` |
-| Query Handler | `src/rag_ui/query_handler.py` |
+| Document Chunker | `src/rag/ingestion/sec_filings/chunker.py` |
+| Embedders | `src/rag/retriever/embedders.py` |
+| Hybrid Retriever | `src/rag/retriever/retriever.py` |
+| Reranker | `src/rag/retriever/reranker.py` |
+| RAG Indexer | `src/rag/retriever/indexer.py` |
+| Query Handler | `src/rag/ui/query_handler.py` |
+| LLM Judge | `src/rag/evaluation/llm_judge.py` |
+| RAG Eval Pack | `src/rag/evaluation/pack.py` |
+| Shared LLM Clients | `src/evalkit/common/llm/clients.py` |
 | DB Schema | `migrations/002_rag_documents.sql` |
+| Parent-Child Schema | `migrations/015_parent_child_chunks.sql` |
 
 ## Appendix B: Glossary
 

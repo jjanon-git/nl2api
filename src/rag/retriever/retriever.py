@@ -91,6 +91,7 @@ class HybridRAGRetriever:
         domain: str | None,
         document_types: list[DocumentType] | None,
         limit: int,
+        ticker: str | None = None,
     ) -> str:
         """Generate cache key for a query."""
         key_parts = [
@@ -98,6 +99,7 @@ class HybridRAGRetriever:
             domain or "all",
             ",".join(sorted(dt.value for dt in document_types)) if document_types else "all",
             str(limit),
+            ticker or "all",
         ]
         return f"rag:{':'.join(key_parts)}"
 
@@ -109,6 +111,7 @@ class HybridRAGRetriever:
         limit: int = 10,
         threshold: float = 0.5,
         use_cache: bool = True,
+        ticker: str | None = None,
     ) -> list[RetrievalResult]:
         """
         Retrieve relevant documents using hybrid search.
@@ -122,6 +125,7 @@ class HybridRAGRetriever:
             limit: Maximum results
             threshold: Minimum relevance score
             use_cache: Whether to use Redis cache (if configured)
+            ticker: Optional ticker filter (e.g., "AAPL") for entity-specific retrieval
 
         Returns:
             List of RetrievalResult ordered by relevance
@@ -132,11 +136,12 @@ class HybridRAGRetriever:
             span.set_attribute("rag.limit", limit)
             span.set_attribute("rag.threshold", threshold)
             span.set_attribute("rag.use_cache", use_cache)
+            span.set_attribute("rag.ticker", ticker or "all")
             if document_types:
                 span.set_attribute("rag.document_types", [dt.value for dt in document_types])
 
             return await self._retrieve_impl(
-                query, domain, document_types, limit, threshold, use_cache, span
+                query, domain, document_types, limit, threshold, use_cache, span, ticker
             )
 
     async def _retrieve_impl(
@@ -148,6 +153,7 @@ class HybridRAGRetriever:
         threshold: float,
         use_cache: bool,
         span: Any,
+        ticker: str | None = None,
     ) -> list[RetrievalResult]:
         """Internal implementation of retrieve with span for tracing."""
         if self._embedder is None:
@@ -157,7 +163,7 @@ class HybridRAGRetriever:
         first_stage_limit = self._first_stage_limit if self._reranker else limit
 
         # Check Redis cache first
-        cache_key = self._make_cache_key(query, domain, document_types, limit)
+        cache_key = self._make_cache_key(query, domain, document_types, limit, ticker)
         if use_cache and self._redis_cache:
             cached = await self._redis_cache.get(cache_key)
             if cached:
@@ -208,6 +214,7 @@ class HybridRAGRetriever:
             WHERE embedding IS NOT NULL
             AND ($7::text[] IS NULL OR document_type = ANY($7))
             AND ($8::text IS NULL OR domain = $8)
+            AND ($9::text IS NULL OR metadata->>'ticker' = $9)
             ORDER BY embedding <=> $1::vector
             LIMIT $2 * 2
         ),
@@ -226,6 +233,7 @@ class HybridRAGRetriever:
             WHERE search_vector @@ plainto_tsquery('english', $3)
             AND ($7::text[] IS NULL OR document_type = ANY($7))
             AND ($8::text IS NULL OR domain = $8)
+            AND ($9::text IS NULL OR metadata->>'ticker' = $9)
             ORDER BY keyword_score DESC
             LIMIT $2 * 2
         )
@@ -265,6 +273,7 @@ class HybridRAGRetriever:
                 threshold,
                 type_values,  # $7: document type filter (array or NULL)
                 domain,  # $8: domain filter (string or NULL)
+                ticker,  # $9: ticker/entity filter (string or NULL)
                 timeout=60.0,
             )
 
@@ -495,6 +504,7 @@ class HybridRAGRetriever:
         threshold: float = 0.0,
         domain: str | None = None,
         use_cache: bool = True,
+        ticker: str | None = None,
     ) -> list[RetrievalResult]:
         """
         Small-to-big retrieval: search children, return parents.
@@ -512,6 +522,7 @@ class HybridRAGRetriever:
             threshold: Minimum relevance score
             domain: Optional domain filter
             use_cache: Whether to use caching
+            ticker: Optional ticker filter (e.g., "AAPL") for entity-specific retrieval
 
         Returns:
             List of parent RetrievalResult objects with full context
@@ -522,12 +533,15 @@ class HybridRAGRetriever:
             span.set_attribute("rag.limit", limit)
             span.set_attribute("rag.child_limit", child_limit)
             span.set_attribute("rag.retrieval_type", "small_to_big")
+            span.set_attribute("rag.ticker", ticker or "all")
 
             if not self._embedder:
                 raise RuntimeError("Embedder not set. Call set_embedder() first.")
 
             # Generate cache key for this specific retrieval type
-            cache_key = f"rag_parents:{hashlib.md5(f'{query}{domain}{limit}'.encode()).hexdigest()}"
+            cache_key = (
+                f"rag_parents:{hashlib.md5(f'{query}{domain}{limit}{ticker}'.encode()).hexdigest()}"
+            )
 
             # Check cache
             if use_cache and self._redis_cache:
@@ -582,6 +596,7 @@ class HybridRAGRetriever:
                         AND chunk_level = 1
                         AND parent_id IS NOT NULL
                         AND ($4 IS NULL OR domain = $4)
+                        AND ($5::text IS NULL OR metadata->>'ticker' = $5)
                     ORDER BY combined_score DESC
                     LIMIT $3
                 """
@@ -592,6 +607,7 @@ class HybridRAGRetriever:
                     query,
                     child_limit,
                     domain,
+                    ticker,
                 )
 
                 span.set_attribute("rag.child_count", len(child_rows))
