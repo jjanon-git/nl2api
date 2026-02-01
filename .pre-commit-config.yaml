@@ -24,15 +24,6 @@ repos:
       - id: check-merge-conflict
       - id: detect-private-key
 
-  # Local hooks - run unit tests
-  - repo: local
-    hooks:
-      - id: pytest-unit
-        name: Run Unit Tests
-        entry: .venv/bin/python -m pytest tests/unit/ -v --tb=short -x -q
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
-        # Skip in CI (CI runs its own tests)
-        verbose: true
+  # NOTE: Unit tests are run by CI, not pre-commit
+  # Running 2954+ tests on every commit is too slow for pre-commit hooks
+  # To run tests manually: pytest tests/unit/ -v --tb=short -x

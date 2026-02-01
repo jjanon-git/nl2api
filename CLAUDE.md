@@ -75,12 +75,47 @@ A capability without evaluation is untested code. See **BACKLOG.md → Capabilit
 
 ### After ANY code modification:
 ```bash
-# 1. Run unit tests (REQUIRED before committing)
-.venv/bin/python -m pytest tests/unit/ -v --tb=short -x
+# Run tests for changed modules only (fast feedback)
+./scripts/test-changed.sh
 
-# 2. If tests fail: FIX THE ISSUES before proceeding
-# 3. Only commit after all tests pass
+# Or run all unit tests (required before committing)
+pytest tests/unit/ -v --tb=short -x
 ```
+
+### Selective Test Running (Recommended)
+
+With 2900+ unit tests, run targeted tests during development for fast feedback:
+
+```bash
+# Run tests for files you changed (compares to main branch)
+./scripts/test-changed.sh
+
+# Run tests for a specific module
+pytest tests/unit/nl2api/ -v -x      # NL2API changes
+pytest tests/unit/evalkit/ -v -x     # Evalkit changes
+pytest tests/unit/rag/ -v -x         # RAG changes
+
+# Run a single test file
+pytest tests/unit/nl2api/test_orchestrator.py -v
+
+# Run tests matching a pattern
+pytest tests/unit/ -k "routing" -v   # All routing tests
+pytest tests/unit/ -k "entity" -v    # All entity tests
+```
+
+**Module-to-test mapping:**
+
+| If you changed... | Run these tests |
+|-------------------|-----------------|
+| `src/nl2api/` | `pytest tests/unit/nl2api/ -x` |
+| `src/evalkit/` | `pytest tests/unit/evalkit/ -x` |
+| `src/rag/` | `pytest tests/unit/rag/ -x` |
+| `src/common/` | `pytest tests/unit/common/ -x` |
+| `src/mcp_servers/` | `pytest tests/unit/mcp_servers/ -x` |
+| `src/evaluation/` | `pytest tests/unit/evaluation/ -x` |
+| Multiple modules | `./scripts/test-changed.sh` or full suite |
+
+**Before committing:** Always run the full unit test suite to catch cross-module regressions.
 
 ### When to run accuracy tests:
 - **tier1**: Quick sanity check (~50 samples, ~2 min) - Run when modifying routing/agents
