@@ -364,10 +364,12 @@ class FilingParser:
         """
         Check if a match position appears to be a table of contents entry.
 
-        TOC entries typically have:
-        - A page number shortly after the section name
-        - Multiple "Item X" references in close succession
-        - Limited content before the next "Item" reference
+        TOC entries have a distinctive pattern: section name followed by a
+        page number, then immediately another section reference:
+        "Item 2. Management's Discussion 22 Item 3. Quantitative"
+
+        This is different from actual section content where there's
+        substantive text between section headers.
 
         Args:
             text: The full text (lowercase)
@@ -376,21 +378,16 @@ class FilingParser:
         Returns:
             True if this appears to be a TOC entry, False otherwise
         """
-        # Look at the next 200 characters after the match
-        lookahead = text[pos : pos + 200]
+        # Look at the next 150 characters after the match
+        lookahead = text[pos : pos + 150]
 
-        # TOC pattern: section name followed by page number pattern
-        # e.g., "item 2. management's discussion... 22 item 3"
-        # The key indicator is a bare number followed by another "item"
-        toc_pattern = r"^[^0-9]*\d{1,3}\s+item\s*\d"
+        # TOC pattern: page number followed by another "item"
+        # e.g., "item 2. management's discussion 22 item 3"
+        # The key indicator is a bare number (page number) followed by "item X"
+        # This pattern is very specific to TOC formatting
+        # Must have the number followed by whitespace and item (not just any number)
+        toc_pattern = r"\d{1,3}\s+item\s*\d"
         if re.search(toc_pattern, lookahead):
-            return True
-
-        # Another TOC indicator: very short distance to next item reference
-        # In actual content, items are separated by substantial text
-        next_item = re.search(r"item\s*\d", lookahead[20:])  # Skip the current item
-        if next_item and next_item.start() < 100:
-            # Next item reference is within ~100 chars - likely TOC
             return True
 
         return False

@@ -127,6 +127,10 @@ class TestFilingParser:
         )
         assert parser._is_toc_entry(section_text, 0) is False
 
-        # Another TOC pattern: items very close together
-        short_toc = "item 2. mda overview item 3. risk"
-        assert parser._is_toc_entry(short_toc, 0) is True
+        # Actual content even if items are close (no page number pattern)
+        close_items = "item 2. mda overview item 3. risk"
+        assert parser._is_toc_entry(close_items, 0) is False
+
+        # Another TOC pattern with page numbers
+        toc_with_number = "item 1a. risk factors 15 item 2. properties"
+        assert parser._is_toc_entry(toc_with_number, 0) is True
