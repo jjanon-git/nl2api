@@ -207,7 +207,7 @@ class HybridRAGRetriever:
             FROM rag_documents
             WHERE embedding IS NOT NULL
             AND ($7::text[] IS NULL OR document_type = ANY($7))
-            AND ($8 IS NULL OR domain = $8)
+            AND ($8::text IS NULL OR domain = $8)
             ORDER BY embedding <=> $1::vector
             LIMIT $2 * 2
         ),
@@ -225,7 +225,7 @@ class HybridRAGRetriever:
             FROM rag_documents
             WHERE search_vector @@ plainto_tsquery('english', $3)
             AND ($7::text[] IS NULL OR document_type = ANY($7))
-            AND ($8 IS NULL OR domain = $8)
+            AND ($8::text IS NULL OR domain = $8)
             ORDER BY keyword_score DESC
             LIMIT $2 * 2
         )
