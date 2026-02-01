@@ -80,7 +80,7 @@
 
 ---
 
-### Over-Engineering Issues (7 Remaining, ~1,100 lines removable)
+### Over-Engineering Issues (6 Remaining, ~950 lines removable)
 
 | Issue | Scope | Lines | Location |
 |-------|-------|-------|----------|
@@ -88,7 +88,7 @@
 | ~~**src/rag_ui → src/rag/ui duplication**~~ | ~~CRITICAL~~ | ~~~300~~ | ✅ FIXED (2026-02-01) - Deleted src/rag_ui/, updated scripts |
 | ~~**Duplicate circuit breaker**~~ | ~~HIGH~~ | ~~400~~ | ✅ FIXED (2026-02-01) - Deleted services/resilience.py, using evalkit |
 | ~~**Exception hierarchy (28 classes)**~~ | ~~HIGH~~ | ~~394~~ | ✅ FIXED (2026-02-01) - Reduced to 15 classes, removed 12 unused |
-| **Duplicate RAG protocols** | MEDIUM | ~154 | `rag/retriever/protocols.py` = `nl2api/rag/protocols.py` |
+| ~~**Duplicate RAG protocols**~~ | ~~MEDIUM~~ | ~~154~~ | ✅ FIXED (2026-02-01) - Re-export from canonical src/rag/retriever/protocols.py |
 | **Unused config options (~10)** | MEDIUM | ~100 | `routing_tier3_model`, `cohere_api_key`, `mcp_mode=hybrid`, etc. |
 | **NoOp telemetry classes** | LOW | ~45 | Custom when OTEL SDK provides no-ops |
 | **Overly complex factory** | LOW | ~50 | `rag/retriever/factory.py` - 105 lines for 2 class choices |
