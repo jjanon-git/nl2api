@@ -7,11 +7,18 @@ Tests the safeguards that ensure evaluations are run properly:
 3. RAG pack requires --tag rag
 """
 
+from unittest.mock import patch
+
 from typer.testing import CliRunner
 
 from src.evalkit.cli.main import app
 
 runner = CliRunner()
+
+
+def _mock_get_repository_provider(*args, **kwargs):
+    """Mock that raises immediately to fail fast after validation passes."""
+    raise ConnectionError("Mocked DB connection failure")
 
 
 class TestBatchCLIValidation:
@@ -73,10 +80,11 @@ class TestBatchCLIValidation:
         assert "Simulated mode is disabled" in result.stdout
         assert "100% pass rates" in result.stdout
 
+    @patch("src.evalkit.common.storage.create_repositories", _mock_get_repository_provider)
     def test_multiple_tags_allowed(self):
         """Test that multiple tags can be provided."""
         # With multiple tags including required one, validation should pass
-        # (will fail later due to DB connection, but validation passes)
+        # (will fail later due to mocked DB connection, but validation passes)
         result = runner.invoke(
             app,
             [
@@ -95,8 +103,9 @@ class TestBatchCLIValidation:
 
         # Should NOT fail on tag validation
         assert "--tag is required" not in result.stdout
-        # May fail later for other reasons (DB connection, etc.) but that's OK
+        # Will fail later for mocked DB connection, but that's OK for this test
 
+    @patch("src.evalkit.common.storage.create_repositories", _mock_get_repository_provider)
     def test_rag_with_additional_tags_allowed(self):
         """Test that rag pack allows additional tags as long as 'rag' is included."""
         result = runner.invoke(

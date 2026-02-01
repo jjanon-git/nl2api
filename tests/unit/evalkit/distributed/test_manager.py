@@ -18,7 +18,7 @@ class TestLocalWorkerManagerInit:
 
     def test_init_default_values(self):
         """Test manager initializes with default values."""
-        manager = LocalWorkerManager()
+        manager = LocalWorkerManager(_register_atexit=False)
 
         assert manager.worker_count == 4
         assert manager.redis_url == "redis://localhost:6379"
@@ -35,6 +35,7 @@ class TestLocalWorkerManagerInit:
             eval_mode="orchestrator",
             max_retries=5,
             verbose=True,
+            _register_atexit=False,
         )
 
         assert manager.worker_count == 8
@@ -53,6 +54,7 @@ class TestBuildWorkerCommand:
             worker_count=2,
             redis_url="redis://localhost:6379",
             eval_mode="resolver",
+            _register_atexit=False,
         )
 
         cmd = manager._build_worker_command("worker-0", "batch-001")
@@ -72,7 +74,7 @@ class TestBuildWorkerCommand:
 
     def test_build_command_with_verbose(self):
         """Test command building with verbose flag."""
-        manager = LocalWorkerManager(verbose=True)
+        manager = LocalWorkerManager(verbose=True, _register_atexit=False)
 
         cmd = manager._build_worker_command("worker-0", "batch-001")
 
@@ -90,7 +92,7 @@ class TestStartWorkers:
         mock_process.poll.return_value = None
         mock_popen.return_value = mock_process
 
-        manager = LocalWorkerManager(worker_count=3)
+        manager = LocalWorkerManager(worker_count=3, _register_atexit=False)
         manager.start("batch-001")
 
         assert mock_popen.call_count == 3
@@ -108,7 +110,7 @@ class TestStartWorkers:
         mock_process.poll.side_effect = lambda: poll_values.pop(0) if poll_values else 0
         mock_popen.return_value = mock_process
 
-        manager = LocalWorkerManager(worker_count=2)
+        manager = LocalWorkerManager(worker_count=2, _register_atexit=False)
 
         # First start
         manager.start("batch-001")
@@ -137,7 +139,7 @@ class TestStartWorkers:
 
         mock_popen.side_effect = popen_side_effect
 
-        manager = LocalWorkerManager(worker_count=3)
+        manager = LocalWorkerManager(worker_count=3, _register_atexit=False)
 
         with pytest.raises(RuntimeError, match="Failed to start workers"):
             manager.start("batch-001")
@@ -148,7 +150,7 @@ class TestStopWorkers:
 
     def test_stop_with_no_workers(self):
         """Test stop with no workers does nothing."""
-        manager = LocalWorkerManager()
+        manager = LocalWorkerManager(_register_atexit=False)
 
         # Should not raise
         manager.stop()
@@ -181,7 +183,7 @@ class TestStopWorkers:
 
         mock_popen.side_effect = processes
 
-        manager = LocalWorkerManager(worker_count=2)
+        manager = LocalWorkerManager(worker_count=2, _register_atexit=False)
         manager.start("batch-001")
 
         manager.stop(timeout=1)
@@ -202,7 +204,7 @@ class TestStopWorkers:
         mock_process.wait = MagicMock(side_effect=subprocess.TimeoutExpired("cmd", 1))
         mock_popen.return_value = mock_process
 
-        manager = LocalWorkerManager(worker_count=1)
+        manager = LocalWorkerManager(worker_count=1, _register_atexit=False)
         manager.start("batch-001")
 
         manager.stop(timeout=0.1)  # Very short timeout
@@ -216,7 +218,7 @@ class TestIsHealthy:
 
     def test_is_healthy_no_workers(self):
         """Test is_healthy returns False with no workers."""
-        manager = LocalWorkerManager()
+        manager = LocalWorkerManager(_register_atexit=False)
 
         assert manager.is_healthy() is False
 
@@ -228,7 +230,7 @@ class TestIsHealthy:
         mock_process.poll.return_value = None  # Running
         mock_popen.return_value = mock_process
 
-        manager = LocalWorkerManager(worker_count=2)
+        manager = LocalWorkerManager(worker_count=2, _register_atexit=False)
         manager.start("batch-001")
 
         assert manager.is_healthy() is True
@@ -246,7 +248,7 @@ class TestIsHealthy:
 
         mock_popen.side_effect = processes
 
-        manager = LocalWorkerManager(worker_count=2)
+        manager = LocalWorkerManager(worker_count=2, _register_atexit=False)
         manager.start("batch-001")
 
         assert manager.is_healthy() is False
@@ -257,7 +259,7 @@ class TestGetRunningCount:
 
     def test_get_running_count_no_workers(self):
         """Test get_running_count returns 0 with no workers."""
-        manager = LocalWorkerManager()
+        manager = LocalWorkerManager(_register_atexit=False)
 
         assert manager.get_running_count() == 0
 
@@ -269,7 +271,7 @@ class TestGetRunningCount:
         mock_process.poll.return_value = None
         mock_popen.return_value = mock_process
 
-        manager = LocalWorkerManager(worker_count=3)
+        manager = LocalWorkerManager(worker_count=3, _register_atexit=False)
         manager.start("batch-001")
 
         assert manager.get_running_count() == 3
@@ -287,7 +289,7 @@ class TestGetRunningCount:
 
         mock_popen.side_effect = processes
 
-        manager = LocalWorkerManager(worker_count=3)
+        manager = LocalWorkerManager(worker_count=3, _register_atexit=False)
         manager.start("batch-001")
 
         assert manager.get_running_count() == 2
@@ -308,7 +310,7 @@ class TestGetWorkerPids:
 
         mock_popen.side_effect = processes
 
-        manager = LocalWorkerManager(worker_count=3)
+        manager = LocalWorkerManager(worker_count=3, _register_atexit=False)
         manager.start("batch-001")
 
         pids = manager.get_worker_pids()
@@ -333,7 +335,7 @@ class TestWaitForExit:
 
         mock_popen.side_effect = processes
 
-        manager = LocalWorkerManager(worker_count=2)
+        manager = LocalWorkerManager(worker_count=2, _register_atexit=False)
         manager.start("batch-001")
 
         results = manager.wait_for_exit(timeout=1)
@@ -349,7 +351,7 @@ class TestWaitForExit:
         mock_process.poll.return_value = None  # Never exits
         mock_popen.return_value = mock_process
 
-        manager = LocalWorkerManager(worker_count=1)
+        manager = LocalWorkerManager(worker_count=1, _register_atexit=False)
         manager.start("batch-001")
 
         results = manager.wait_for_exit(timeout=0.1)

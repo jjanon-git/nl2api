@@ -47,6 +47,8 @@ class LocalWorkerManager:
         eval_mode: str = "resolver",
         max_retries: int = 3,
         verbose: bool = False,
+        *,
+        _register_atexit: bool = True,
     ):
         """
         Initialize the worker manager.
@@ -57,6 +59,7 @@ class LocalWorkerManager:
             eval_mode: Evaluation mode for workers (resolver, orchestrator, etc.)
             max_retries: Maximum retry attempts per task
             verbose: Enable verbose worker logging
+            _register_atexit: Register atexit cleanup handler (disable for tests)
         """
         self.worker_count = worker_count
         self.redis_url = redis_url
@@ -66,8 +69,9 @@ class LocalWorkerManager:
         self._workers: list[WorkerProcess] = []
         self._batch_id: str | None = None
 
-        # Register cleanup handler
-        atexit.register(self._cleanup_on_exit)
+        # Register cleanup handler (can be disabled for unit tests)
+        if _register_atexit:
+            atexit.register(self._cleanup_on_exit)
 
     def start(self, batch_id: str) -> None:
         """
