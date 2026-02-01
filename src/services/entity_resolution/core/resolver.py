@@ -10,11 +10,16 @@ Resolves entity names to financial identifiers using:
 from __future__ import annotations
 
 import logging
-import re
 from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
+from src.evalkit.common.entity_resolution import (
+    ResolvedEntity,
+    normalize_entity,
+    resolve_via_database,
+    resolve_via_openfigi,
+)
 from src.evalkit.common.resilience import (
     CircuitBreaker,
     CircuitOpenError,
@@ -23,8 +28,6 @@ from src.evalkit.common.resilience import (
 )
 
 from .extractor import EntityExtractor
-from .models import ResolvedEntity
-from .openfigi import resolve_via_openfigi
 
 if TYPE_CHECKING:
     import asyncpg
@@ -132,7 +135,7 @@ class EntityResolver:
             ResolvedEntity if found
         """
         # Normalize entity name
-        normalized = self._normalize(entity)
+        normalized = normalize_entity(entity)
 
         # Skip common words
         if normalized in self._extractor._ignore_words:
@@ -149,14 +152,14 @@ class EntityResolver:
                 self._cache[normalized] = cached
                 return cached
 
-        # Database lookup
+        # Database lookup (using shared module)
         if self._db_pool:
-            db_result = await self._resolve_via_database(entity, normalized)
+            db_result = await resolve_via_database(self._db_pool, entity, normalized)
             if db_result:
                 await self._cache_result(normalized, db_result)
                 return db_result
 
-        # External API (OpenFIGI)
+        # External API (OpenFIGI via shared module)
         api_result = await self._resolve_via_api(entity)
         if api_result:
             await self._cache_result(normalized, api_result)
@@ -173,18 +176,6 @@ class EntityResolver:
             if result:
                 results.append(result)
         return results
-
-    def _normalize(self, entity: str) -> str:
-        """Normalize entity name for cache lookup."""
-        normalized = entity.lower().strip()
-        # Strip common company suffixes
-        normalized = re.sub(
-            r"\s*(&\s*(co\.?|company))?\s*(inc\.?|corp\.?|ltd\.?|llc|plc)?\.?$",
-            "",
-            normalized,
-            flags=re.I,
-        )
-        return normalized.strip()
 
     async def _check_redis_cache(self, normalized: str) -> ResolvedEntity | None:
         """Check Redis L2 cache."""
@@ -213,134 +204,17 @@ class EntityResolver:
             except Exception as e:
                 logger.warning(f"Redis cache set error: {e}")
 
-    async def _resolve_via_database(
-        self,
-        entity: str,
-        normalized: str,
-    ) -> ResolvedEntity | None:
-        """Resolve entity using database entity_aliases table."""
-        if not self._db_pool:
-            return None
-
-        try:
-            async with self._db_pool.acquire() as conn:
-                # Try exact match first
-                row = await conn.fetchrow(
-                    """
-                    SELECT e.primary_name, e.ticker, e.ric, e.entity_type, a.alias_type
-                    FROM entity_aliases a
-                    JOIN entities e ON a.entity_id = e.id
-                    WHERE a.alias ILIKE $1 AND e.ric IS NOT NULL
-                    LIMIT 1
-                    """,
-                    normalized,
-                )
-
-                if not row:
-                    # Try with original entity (preserves case for tickers)
-                    row = await conn.fetchrow(
-                        """
-                        SELECT e.primary_name, e.ticker, e.ric, e.entity_type, a.alias_type
-                        FROM entity_aliases a
-                        JOIN entities e ON a.entity_id = e.id
-                        WHERE a.alias ILIKE $1 AND e.ric IS NOT NULL
-                        LIMIT 1
-                        """,
-                        entity,
-                    )
-
-                if not row:
-                    # Try direct primary_name lookup
-                    row = await conn.fetchrow(
-                        """
-                        SELECT primary_name, ticker, ric, entity_type,
-                               'primary_name' as alias_type
-                        FROM entities
-                        WHERE primary_name ILIKE $1 AND ric IS NOT NULL
-                        LIMIT 1
-                        """,
-                        entity,
-                    )
-
-                if not row:
-                    # Try ticker lookup
-                    row = await conn.fetchrow(
-                        """
-                        SELECT primary_name, ticker, ric, entity_type,
-                               'ticker_direct' as alias_type
-                        FROM entities
-                        WHERE ticker ILIKE $1 AND ric IS NOT NULL
-                        LIMIT 1
-                        """,
-                        entity,
-                    )
-
-                if not row and len(entity) >= 4:
-                    # Fuzzy match using pg_trgm
-                    row = await conn.fetchrow(
-                        """
-                        SELECT primary_name, ticker, ric, entity_type,
-                               'fuzzy' as alias_type,
-                               similarity(primary_name, $1) as sim_score
-                        FROM entities
-                        WHERE ric IS NOT NULL AND similarity(primary_name, $1) > 0.3
-                        ORDER BY similarity(primary_name, $1) DESC
-                        LIMIT 1
-                        """,
-                        entity,
-                    )
-
-                if row:
-                    alias_type = row["alias_type"]
-                    if alias_type in ("ticker", "ticker_direct"):
-                        entity_type = "ticker"
-                        confidence = 0.99
-                    elif alias_type == "legal_name":
-                        entity_type = "company"
-                        confidence = 0.98
-                    elif alias_type == "fuzzy":
-                        entity_type = row["entity_type"] or "company"
-                        confidence = row.get("sim_score", 0.7)
-                    else:
-                        entity_type = row["entity_type"] or "company"
-                        confidence = 0.95
-
-                    return ResolvedEntity(
-                        original=entity,
-                        identifier=row["ric"],
-                        entity_type=entity_type,
-                        confidence=confidence,
-                        metadata={
-                            "ticker": row["ticker"] or "",
-                            "company_name": row["primary_name"] or "",
-                        },
-                    )
-
-        except Exception as e:
-            logger.warning(f"Database lookup failed for '{entity}': {e}")
-
-        return None
-
     async def _resolve_via_api(self, entity: str) -> ResolvedEntity | None:
         """Resolve entity using OpenFIGI API with resilience patterns."""
+        # Try OpenFIGI first (via shared module)
         try:
-            figi_result = await resolve_via_openfigi(
+            result = await resolve_via_openfigi(
                 query=entity,
                 api_key=self._api_key,
                 timeout=self._timeout_seconds,
             )
-
-            if figi_result and figi_result.get("found"):
-                return ResolvedEntity(
-                    original=entity,
-                    identifier=figi_result["identifier"],
-                    entity_type=figi_result.get("type", "company"),
-                    confidence=figi_result.get("confidence", 0.8),
-                    metadata={
-                        "ticker": figi_result.get("ticker") or "",
-                        "company_name": figi_result.get("company_name") or "",
-                    },
-                )
+            if result:
+                return result
         except Exception as e:
             logger.debug(f"OpenFIGI resolution failed: {e}")
 

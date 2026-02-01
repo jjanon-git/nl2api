@@ -2,26 +2,17 @@
 Entity Resolution Protocols
 
 Defines the interface for entity resolution (company names to RICs, etc.).
+ResolvedEntity is imported from the canonical shared location.
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from typing import Protocol, runtime_checkable
 
+from src.evalkit.common.entity_resolution import ResolvedEntity
 
-@dataclass(frozen=True)
-class ResolvedEntity:
-    """
-    A resolved entity with its identifier and metadata.
-    """
-
-    original: str  # Original text (e.g., "Apple")
-    identifier: str  # Resolved identifier (e.g., "AAPL.O")
-    entity_type: str  # Type of entity (e.g., "company", "index")
-    confidence: float = 1.0
-    alternatives: tuple[str, ...] = ()  # Alternative identifiers if ambiguous
-    metadata: dict[str, str] = field(default_factory=dict)
+# Re-export ResolvedEntity for backwards compatibility
+__all__ = ["ResolvedEntity", "EntityResolver"]
 
 
 @runtime_checkable

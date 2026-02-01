@@ -17,6 +17,12 @@ from typing import TYPE_CHECKING, Any
 
 import aiohttp
 
+from src.evalkit.common.entity_resolution import (
+    ResolvedEntity,
+    normalize_entity,
+    resolve_via_database,
+    resolve_via_openfigi,
+)
 from src.evalkit.common.resilience import (
     CircuitBreaker,
     CircuitOpenError,
@@ -24,8 +30,6 @@ from src.evalkit.common.resilience import (
     retry_with_backoff,
 )
 from src.evalkit.common.telemetry import get_tracer
-from src.nl2api.resolution.openfigi import resolve_via_openfigi
-from src.nl2api.resolution.protocols import ResolvedEntity
 
 if TYPE_CHECKING:
     import asyncpg
@@ -226,8 +230,8 @@ class ExternalEntityResolver:
         Uses multi-level caching:
         1. L1: In-memory cache (fastest)
         2. L2: Redis cache (distributed, if configured)
-        3. Static mappings
-        4. External API
+        3. Database lookup
+        4. External API (OpenFIGI)
 
         Args:
             entity: Entity name (e.g., "Apple Inc.")
@@ -247,16 +251,8 @@ class ExternalEntityResolver:
         span: Any,
     ) -> ResolvedEntity | None:
         """Internal implementation of resolve_single."""
-        # Normalize entity name
-        normalized = entity.lower().strip()
-        # Strip common company suffixes: Inc, Corp, Ltd, LLC, PLC, & Co, & Company, etc.
-        normalized = re.sub(
-            r"\s*(&\s*(co\.?|company))?\s*(inc\.?|corp\.?|ltd\.?|llc|plc)?\.?$",
-            "",
-            normalized,
-            flags=re.I,
-        )
-        normalized = normalized.strip()
+        # Normalize entity name using shared function
+        normalized = normalize_entity(entity)
 
         # Skip common words
         if normalized in self._ignore_words:
@@ -286,15 +282,15 @@ class ExternalEntityResolver:
                 span.set_attribute("entity.source", "l2_cache")
                 return result
 
-        # Try database lookup (entity_aliases table)
+        # Try database lookup (using shared module)
         if self._db_pool:
-            db_result = await self._resolve_via_database(entity, normalized)
+            db_result = await resolve_via_database(self._db_pool, entity, normalized)
             if db_result:
                 await self._cache_result(normalized, db_result)
                 span.set_attribute("entity.source", "database")
                 return db_result
 
-        # Try external API (OpenFIGI) - always attempt as fallback
+        # Try external API (OpenFIGI via shared module, then configured API)
         result = await self._resolve_via_api(entity)
         if result:
             await self._cache_result(normalized, result)
@@ -326,142 +322,6 @@ class ExternalEntityResolver:
                 "metadata": dict(result.metadata) if result.metadata else {},
             }
             await self._redis_cache.set(cache_key, cache_data, ttl=self._redis_ttl)
-
-    async def _resolve_via_database(
-        self,
-        entity: str,
-        normalized: str,
-    ) -> ResolvedEntity | None:
-        """
-        Resolve entity using the database entity_aliases table.
-
-        Queries the entity_aliases table which contains ~3.7M aliases
-        mapping company names, tickers, and variations to RICs.
-
-        Args:
-            entity: Original entity string
-            normalized: Normalized (lowercase, suffix-stripped) entity
-
-        Returns:
-            ResolvedEntity if found in database
-        """
-        if not self._db_pool:
-            return None
-
-        try:
-            async with self._db_pool.acquire() as conn:
-                # Try exact match first (case-insensitive)
-                row = await conn.fetchrow(
-                    """
-                    SELECT e.primary_name, e.ticker, e.ric, e.entity_type,
-                           a.alias_type
-                    FROM entity_aliases a
-                    JOIN entities e ON a.entity_id = e.id
-                    WHERE a.alias ILIKE $1
-                    AND e.ric IS NOT NULL
-                    LIMIT 1
-                    """,
-                    normalized,
-                )
-
-                if not row:
-                    # Try with original entity (preserves case for tickers)
-                    row = await conn.fetchrow(
-                        """
-                        SELECT e.primary_name, e.ticker, e.ric, e.entity_type,
-                               a.alias_type
-                        FROM entity_aliases a
-                        JOIN entities e ON a.entity_id = e.id
-                        WHERE a.alias ILIKE $1
-                        AND e.ric IS NOT NULL
-                        LIMIT 1
-                        """,
-                        entity,
-                    )
-
-                if not row:
-                    # Fallback: query entities.primary_name directly
-                    # (for entities without aliases)
-                    row = await conn.fetchrow(
-                        """
-                        SELECT primary_name, ticker, ric, entity_type,
-                               'primary_name' as alias_type
-                        FROM entities
-                        WHERE primary_name ILIKE $1
-                        AND ric IS NOT NULL
-                        LIMIT 1
-                        """,
-                        entity,
-                    )
-
-                if not row:
-                    # Try ticker lookup (handles short queries like HP, IBM, 3M)
-                    row = await conn.fetchrow(
-                        """
-                        SELECT primary_name, ticker, ric, entity_type,
-                               'ticker_direct' as alias_type
-                        FROM entities
-                        WHERE ticker ILIKE $1
-                        AND ric IS NOT NULL
-                        LIMIT 1
-                        """,
-                        entity,
-                    )
-
-                if not row and len(entity) >= 4:
-                    # Fuzzy match using pg_trgm trigram similarity
-                    # Only for queries >= 4 chars to avoid false positives
-                    row = await conn.fetchrow(
-                        """
-                        SELECT primary_name, ticker, ric, entity_type,
-                               'fuzzy' as alias_type,
-                               similarity(primary_name, $1) as sim_score
-                        FROM entities
-                        WHERE ric IS NOT NULL
-                        AND similarity(primary_name, $1) > 0.3
-                        ORDER BY similarity(primary_name, $1) DESC
-                        LIMIT 1
-                        """,
-                        entity,
-                    )
-                    if row:
-                        logger.debug(
-                            f"Fuzzy match: '{entity}' -> '{row['primary_name']}' "
-                            f"(score={row['sim_score']:.2f})"
-                        )
-
-                if row:
-                    # Determine entity type and confidence based on alias type
-                    alias_type = row["alias_type"]
-                    if alias_type in ("ticker", "ticker_direct"):
-                        entity_type = "ticker"
-                        confidence = 0.99
-                    elif alias_type == "legal_name":
-                        entity_type = "company"
-                        confidence = 0.98
-                    elif alias_type == "fuzzy":
-                        entity_type = row["entity_type"] or "company"
-                        # Use similarity score as confidence for fuzzy matches
-                        confidence = row.get("sim_score", 0.7)
-                    else:
-                        entity_type = row["entity_type"] or "company"
-                        confidence = 0.95
-
-                    return ResolvedEntity(
-                        original=entity,
-                        identifier=row["ric"],
-                        entity_type=entity_type,
-                        confidence=confidence,
-                        metadata={
-                            "ticker": row["ticker"],
-                            "company_name": row["primary_name"],
-                        },
-                    )
-
-        except Exception as e:
-            logger.warning(f"Database lookup failed for '{entity}': {e}")
-
-        return None
 
     async def resolve_batch(
         self,
@@ -498,7 +358,6 @@ class ExternalEntityResolver:
         entities = []
 
         # Pattern 1: Capitalized words that might be company names
-        # Matches: "Apple", "Microsoft Corporation", "JP Morgan"
         cap_pattern = r"\b([A-Z][a-z]+(?:\s+(?:&\s+)?[A-Z][a-z]+)*(?:\s+(?:Inc\.?|Corp\.?|Ltd\.?|LLC|PLC))?)\b"
         matches = re.findall(cap_pattern, query)
         entities.extend(matches)
@@ -506,39 +365,33 @@ class ExternalEntityResolver:
         # Pattern 2: Ticker-like patterns (all caps 1-5 letters)
         ticker_pattern = r"\b([A-Z]{1,5})\b"
         ticker_matches = re.findall(ticker_pattern, query)
-        # Only add if they look like real tickers (not common words)
         common_words = {"I", "A", "THE", "FOR", "AND", "OR", "EPS", "PE", "ROE", "ROA"}
         for ticker in ticker_matches:
             if ticker not in common_words:
                 entities.append(ticker)
 
-        # Pattern 3: Possessive forms (case-insensitive) - strong signal of entity
-        # Matches: "apple's", "Google's", "microsoft's"
+        # Pattern 3: Possessive forms - strong signal of entity
         possessive_pattern = r"\b([a-zA-Z][a-zA-Z]+)(?:'s|'s)\b"
         possessive_matches = re.findall(possessive_pattern, query, re.IGNORECASE)
         for match in possessive_matches:
-            # Title-case the match for consistency
             entities.append(match.title())
 
-        # Pattern 4: Words before financial terms (case-insensitive)
-        # Matches: "apple revenue", "tesla earnings", "amazon 10-k"
+        # Pattern 4: Words before financial terms
         financial_context_pattern = r"\b([a-zA-Z][a-zA-Z]+)\s+(?:revenue|earnings|income|profit|10-[kq]|filing|stock|shares|price)\b"
         context_matches = re.findall(financial_context_pattern, query, re.IGNORECASE)
         for match in context_matches:
             if match.lower() not in self._ignore_words:
                 entities.append(match.title())
 
-        # Deduplicate while preserving order and filter common words/noise
+        # Deduplicate while preserving order
         seen = set()
         unique_entities = []
         for entity in entities:
             normalized = entity.lower().strip()
 
-            # Skip noise (single chars, common words)
             if len(normalized) < 2 or normalized in self._ignore_words:
                 continue
 
-            # Basic normalization for check
             check_name = re.sub(
                 r"\s+(inc\.?|corp\.?|ltd\.?|llc|plc)$", "", normalized, flags=re.I
             ).strip()
@@ -557,8 +410,8 @@ class ExternalEntityResolver:
         """
         Resolve entity using external API with resilience patterns.
 
-        Uses OpenFIGI as a primary source, then falls back to configured API.
-        Uses circuit breaker and retry for external calls.
+        Uses OpenFIGI as a primary source (via shared module),
+        then falls back to configured API.
 
         Args:
             entity: Entity name to resolve
@@ -566,28 +419,15 @@ class ExternalEntityResolver:
         Returns:
             ResolvedEntity if found
         """
-        # 1. Try OpenFIGI first (free, no API key required for low volume)
+        # 1. Try OpenFIGI first (via shared module)
         try:
-            # We don't apply circuit breaker here yet, but we could
-            figi_result = await resolve_via_openfigi(
+            result = await resolve_via_openfigi(
                 query=entity,
-                api_key=self._api_key
-                if not self._api_endpoint
-                else None,  # Use key if it might be OpenFIGI key
+                api_key=self._api_key if not self._api_endpoint else None,
                 timeout=self._timeout_seconds,
             )
-
-            if figi_result and figi_result.get("found"):
-                return ResolvedEntity(
-                    original=entity,
-                    identifier=figi_result["identifier"],
-                    entity_type=figi_result.get("type", "company"),
-                    confidence=figi_result.get("confidence", 0.8),
-                    metadata={
-                        "ticker": figi_result.get("ticker"),
-                        "company_name": figi_result.get("company_name"),
-                    },
-                )
+            if result:
+                return result
         except Exception as e:
             logger.debug(f"OpenFIGI resolution failed: {e}")
 
@@ -620,12 +460,10 @@ class ExternalEntityResolver:
                                 metadata=data.get("metadata", {}),
                             )
                     elif response.status >= 500:
-                        # Server error - should trigger retry/circuit
                         raise ConnectionError(f"Server error: {response.status}")
             return None
 
         try:
-            # Apply circuit breaker and retry
             return await self._circuit_breaker.call(
                 retry_with_backoff,
                 _make_request,

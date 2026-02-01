@@ -34,9 +34,11 @@ async def test_resolve_via_openfigi_success():
         result = await resolve_via_openfigi("AAPL")
 
         assert result is not None
-        assert result["found"] is True
-        assert result["identifier"] == "AAPL.O"
-        assert result["source"] == "openfigi"
+        # Returns ResolvedEntity now (not dict)
+        assert result.identifier == "AAPL.O"
+        assert result.metadata.get("source") == "openfigi"
+        assert result.metadata.get("ticker") == "AAPL"
+        assert result.metadata.get("company_name") == "APPLE INC"
 
 
 @pytest.mark.asyncio
