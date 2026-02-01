@@ -289,8 +289,10 @@ class TestRetrieve:
         call_args = conn.fetch.call_args
         sql = call_args[0][0]
         assert "domain = $8" in sql
-        # Verify domain is passed as parameter (last argument)
-        assert call_args[0][-1] == "estimates"
+        # Verify domain is passed as parameter (second to last, before ticker)
+        # Parameters: embedding, limit, query, vec_weight, kw_weight, threshold, types, domain, ticker
+        assert call_args[0][8] == "estimates"  # $8 is domain (0-indexed: position 8)
+        assert call_args[0][9] is None  # $9 is ticker (should be None when not specified)
 
     @pytest.mark.asyncio
     async def test_retrieve_with_document_types(self, mock_pool, mock_embedder):
@@ -312,6 +314,39 @@ class TestRetrieve:
         # Verify types are passed as list parameter
         type_values = call_args[0][7]
         assert type_values == ["field_code", "query_example"]
+
+    @pytest.mark.asyncio
+    async def test_retrieve_with_ticker_filter(self, mock_pool, mock_embedder):
+        """retrieve() passes ticker filter to query for entity-specific retrieval."""
+        pool, conn = mock_pool
+        conn.fetch = AsyncMock(return_value=[])
+
+        retriever = HybridRAGRetriever(pool=pool, embedding_dimension=384)
+        retriever.set_embedder(mock_embedder)
+
+        await retriever.retrieve("What is Apple revenue?", ticker="AAPL")
+
+        # Verify parameterized ticker filter is in the SQL
+        call_args = conn.fetch.call_args
+        sql = call_args[0][0]
+        assert "metadata->>'ticker' = $9" in sql
+        # Verify ticker is passed as the last parameter
+        assert call_args[0][9] == "AAPL"
+
+    @pytest.mark.asyncio
+    async def test_retrieve_without_ticker_filter(self, mock_pool, mock_embedder):
+        """retrieve() passes None for ticker when not specified."""
+        pool, conn = mock_pool
+        conn.fetch = AsyncMock(return_value=[])
+
+        retriever = HybridRAGRetriever(pool=pool, embedding_dimension=384)
+        retriever.set_embedder(mock_embedder)
+
+        await retriever.retrieve("What is EBITDA?")
+
+        # Verify ticker parameter is None (no filtering)
+        call_args = conn.fetch.call_args
+        assert call_args[0][9] is None
 
 
 # =============================================================================

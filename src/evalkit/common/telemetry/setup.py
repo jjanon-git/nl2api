@@ -199,6 +199,12 @@ def shutdown_telemetry() -> None:
         logger.warning(f"Error during telemetry shutdown: {e}")
 
 
+def _is_telemetry_disabled_by_env() -> bool:
+    """Check if telemetry is disabled via environment variable."""
+    telemetry_enabled = os.getenv("EVALKIT_TELEMETRY_ENABLED", "true").lower()
+    return telemetry_enabled in ("false", "0", "no", "off")
+
+
 def get_tracer(name: str = "nl2api") -> Any:
     """
     Get a tracer for creating spans.
@@ -207,9 +213,9 @@ def get_tracer(name: str = "nl2api") -> Any:
         name: Tracer name (typically module or component name)
 
     Returns:
-        OpenTelemetry Tracer or NoOpTracer if OTEL not available
+        OpenTelemetry Tracer or NoOpTracer if OTEL not available or disabled
     """
-    if not _otel_available:
+    if not _otel_available or _is_telemetry_disabled_by_env():
         return _NoOpTracer()
 
     return trace.get_tracer(name)
@@ -223,9 +229,9 @@ def get_meter(name: str = "nl2api") -> Any:
         name: Meter name (typically module or component name)
 
     Returns:
-        OpenTelemetry Meter or NoOpMeter if OTEL not available
+        OpenTelemetry Meter or NoOpMeter if OTEL not available or disabled
     """
-    if not _otel_available:
+    if not _otel_available or _is_telemetry_disabled_by_env():
         return _NoOpMeter()
 
     return metrics.get_meter(name)
