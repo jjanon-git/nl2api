@@ -175,13 +175,10 @@ class OpenAIEmbedder(Embedder):
             max_concurrent: Maximum concurrent requests
             requests_per_minute: Rate limit (for logging/monitoring)
         """
-        try:
-            import openai
-        except ImportError:
-            raise ImportError("openai package required. Install with: pip install openai")
+        from src.evalkit.common.llm import create_openai_client
 
         self._model = model
-        self._client = openai.AsyncOpenAI(api_key=api_key)
+        self._client = create_openai_client(async_client=True, api_key=api_key)
         self._max_concurrent = max_concurrent
         self._requests_per_minute = requests_per_minute
 

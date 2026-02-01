@@ -94,57 +94,13 @@ class LLMJudge:
         return self._llm_client
 
     def _create_llm_client(self) -> Any:
-        """Create LLM client based on config."""
-        import os
+        """Create LLM client based on config using shared factory."""
+        from src.evalkit.common.llm import create_anthropic_client, create_openai_client
 
-        provider = self.config.provider
-
-        if provider == "openai":
-            return self._create_openai_client(os)
+        if self.config.provider == "openai":
+            return create_openai_client(async_client=True)
         else:
-            return self._create_anthropic_client(os)
-
-    def _create_anthropic_client(self, os: Any) -> Any:
-        """Create Anthropic client."""
-        try:
-            from anthropic import AsyncAnthropic
-
-            api_key = (
-                os.getenv("ANTHROPIC_API_KEY")
-                or os.getenv("NL2API_ANTHROPIC_API_KEY")
-                or os.getenv("RAG_UI_ANTHROPIC_API_KEY")
-            )
-
-            if not api_key:
-                raise RuntimeError(
-                    "Anthropic API key required for LLM judge. "
-                    "Set ANTHROPIC_API_KEY, NL2API_ANTHROPIC_API_KEY, or RAG_UI_ANTHROPIC_API_KEY"
-                )
-
-            return AsyncAnthropic(api_key=api_key)
-        except ImportError:
-            raise RuntimeError(
-                "anthropic package required for LLM judge. Install with: pip install anthropic"
-            )
-
-    def _create_openai_client(self, os: Any) -> Any:
-        """Create OpenAI client."""
-        try:
-            from openai import AsyncOpenAI
-
-            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("NL2API_OPENAI_API_KEY")
-
-            if not api_key:
-                raise RuntimeError(
-                    "OpenAI API key required for LLM judge. "
-                    "Set OPENAI_API_KEY or NL2API_OPENAI_API_KEY"
-                )
-
-            return AsyncOpenAI(api_key=api_key)
-        except ImportError:
-            raise RuntimeError(
-                "openai package required for LLM judge. Install with: pip install openai"
-            )
+            return create_anthropic_client(async_client=True)
 
     async def evaluate_relevance(
         self,
@@ -322,22 +278,28 @@ Response:"""
             )
 
     async def _call_anthropic(self, client: Any, prompt: str) -> str:
-        """Call Anthropic API."""
-        message = await client.messages.create(
+        """Call Anthropic API using shared helper."""
+        from src.evalkit.common.llm import anthropic_message_create
+
+        message = await anthropic_message_create(
+            client,
             model=self.config.model,
+            messages=[{"role": "user", "content": prompt}],
             max_tokens=self.config.max_tokens,
             temperature=self.config.temperature,
-            messages=[{"role": "user", "content": prompt}],
         )
         return message.content[0].text
 
     async def _call_openai(self, client: Any, prompt: str) -> str:
-        """Call OpenAI API."""
-        response = await client.chat.completions.create(
+        """Call OpenAI API using shared helper."""
+        from src.evalkit.common.llm import openai_chat_completion
+
+        response = await openai_chat_completion(
+            client,
             model=self.config.model,
+            messages=[{"role": "user", "content": prompt}],
             max_tokens=self.config.max_tokens,
             temperature=self.config.temperature,
-            messages=[{"role": "user", "content": prompt}],
         )
         return response.choices[0].message.content
 

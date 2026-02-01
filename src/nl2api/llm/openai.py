@@ -126,26 +126,16 @@ class OpenAIProvider:
             azure_endpoint: Azure OpenAI endpoint URL
             api_version: Azure OpenAI API version
         """
-        try:
-            import openai
-        except ImportError:
-            raise ImportError("openai package required. Install with: pip install openai")
+        from src.evalkit.common.llm import create_openai_client
 
         self._model = model
-
-        if azure_endpoint:
-            # Azure OpenAI
-            self._client = openai.AsyncAzureOpenAI(
-                api_key=api_key,
-                azure_endpoint=azure_endpoint,
-                api_version=api_version or "2024-02-15-preview",
-            )
-        else:
-            # Standard OpenAI
-            self._client = openai.AsyncOpenAI(
-                api_key=api_key,
-                base_url=base_url,
-            )
+        self._client = create_openai_client(
+            async_client=True,
+            api_key=api_key,
+            base_url=base_url,
+            azure_endpoint=azure_endpoint,
+            api_version=api_version,
+        )
 
     @property
     def model_name(self) -> str:
@@ -225,10 +215,11 @@ class OpenAIProvider:
                     )
 
             # Build request kwargs
+            # gpt-5-nano and newer models require max_completion_tokens instead of max_tokens
             kwargs: dict[str, Any] = {
                 "model": self._model,
                 "messages": openai_messages,
-                "max_tokens": max_tokens,
+                "max_completion_tokens": max_tokens,
                 "temperature": temperature,
             }
 

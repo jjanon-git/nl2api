@@ -108,13 +108,11 @@ class ClaudeProvider:
             model: Model name (e.g., claude-sonnet-4-20250514)
             base_url: Optional custom base URL
         """
-        try:
-            import anthropic
-        except ImportError:
-            raise ImportError("anthropic package required. Install with: pip install anthropic")
+        from src.evalkit.common.llm import create_anthropic_client
 
         self._model = model
-        self._client = anthropic.AsyncAnthropic(
+        self._client = create_anthropic_client(
+            async_client=True,
             api_key=api_key,
             base_url=base_url,
         )

@@ -658,30 +658,19 @@ async def _batch_run_async(
                     )
 
                     # Use configured LLM provider (defaults to OpenAI gpt-5-nano)
+                    from src.evalkit.common.llm import (
+                        create_anthropic_client,
+                        create_openai_client,
+                    )
+
                     llm_provider = os.getenv("EVAL_LLM_PROVIDER", "openai")
                     llm_model = os.getenv("EVAL_LLM_MODEL")
 
                     if llm_provider == "openai":
-                        from openai import OpenAI
-
-                        openai_key = os.getenv("NL2API_OPENAI_API_KEY") or os.getenv(
-                            "OPENAI_API_KEY"
-                        )
-                        if not openai_key:
-                            raise RuntimeError(
-                                "NL2API_OPENAI_API_KEY or OPENAI_API_KEY not set for generation mode"
-                            )
-                        llm_client = OpenAI(api_key=openai_key)
+                        llm_client = create_openai_client(async_client=False)
                         llm_model = llm_model or "gpt-5-nano"
                     else:
-                        from anthropic import Anthropic
-
-                        anthropic_key = os.getenv("NL2API_ANTHROPIC_API_KEY")
-                        if not anthropic_key:
-                            raise RuntimeError(
-                                "NL2API_ANTHROPIC_API_KEY not set for generation mode"
-                            )
-                        llm_client = Anthropic(api_key=anthropic_key)
+                        llm_client = create_anthropic_client(async_client=False)
                         llm_model = llm_model or "claude-3-5-haiku-20241022"
 
                     response_generator = create_rag_generation_generator(

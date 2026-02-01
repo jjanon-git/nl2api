@@ -76,9 +76,9 @@ def _get_anthropic_client():
     os.environ["ANTHROPIC_API_KEY"] = api_key
 
     try:
-        import anthropic
+        from src.evalkit.common.llm import create_anthropic_client
 
-        return anthropic.Anthropic()
+        return create_anthropic_client(async_client=False, api_key=api_key)
     except ImportError:
         console.print("[red]Error:[/red] anthropic package not installed")
         console.print("  Run: pip install anthropic")

@@ -10,11 +10,15 @@ Orchestrates RAG queries against SEC filings:
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import anthropic
 import asyncpg
 
+from src.evalkit.common.llm import create_anthropic_client
+
+if TYPE_CHECKING:
+    pass
 from src.nl2api.resolution import HttpEntityResolver
 from src.nl2api.resolution.resolver import ExternalEntityResolver
 from src.rag.retriever.embedders import LocalEmbedder, OpenAIEmbedder
@@ -139,10 +143,11 @@ class RAGQueryHandler:
                 use_cache=True,
             )
 
-        # Initialize Anthropic client
-        if not self._config.anthropic_api_key:
-            raise ValueError("Anthropic API key required (set RAG_UI_ANTHROPIC_API_KEY)")
-        self._client = anthropic.AsyncAnthropic(api_key=self._config.anthropic_api_key)
+        # Initialize Anthropic client using shared factory
+        self._client = create_anthropic_client(
+            async_client=True,
+            api_key=self._config.anthropic_api_key,
+        )
 
         logger.info(
             f"RAGQueryHandler initialized: embedder={self._config.embedding_provider}, "

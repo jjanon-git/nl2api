@@ -416,6 +416,7 @@ class RAGPack:
             stage_results=stage_results,
             stage_weights=self.get_default_weights(),
             generated_output=system_output,
+            generated_nl_response=system_output.get("response"),
             worker_id=context.worker_id,
             total_latency_ms=total_latency_ms,
         )
@@ -544,6 +545,7 @@ class RAGRetrievalPack:
             stage_results=stage_results,
             stage_weights=self.get_default_weights(),
             generated_output=system_output,
+            generated_nl_response=system_output.get("response"),
             worker_id=context.worker_id,
             total_latency_ms=total_latency_ms,
         )
