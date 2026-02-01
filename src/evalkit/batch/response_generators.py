@@ -607,13 +607,17 @@ Provide a clear, factual answer with citations. Use [Source N] to cite specific 
             company_name = test_case.input.get("company_name")
             retrieval_query = f"{company_name}: {query}" if company_name else query
 
-            # Step 1: Retrieve documents
+            # Extract ticker for entity filtering (from test case metadata or input)
+            ticker = test_case.input.get("company") or test_case.input.get("ticker")
+
+            # Step 1: Retrieve documents (with optional entity filtering)
             results = await retriever.retrieve(
                 query=retrieval_query,
                 document_types=None,
                 limit=5,  # Top 5 for generation context
                 threshold=0.0,
                 use_cache=False,
+                ticker=ticker,  # Entity filtering when ticker available
             )
 
             # Extract retrieved doc IDs and build context

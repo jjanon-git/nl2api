@@ -9,6 +9,10 @@ Usage:
     python scripts/load-rag-fixtures.py
     python scripts/load-rag-fixtures.py --limit 50
     python scripts/load-rag-fixtures.py --clear  # Clear existing RAG test cases first
+    python scripts/load-rag-fixtures.py --validate  # Validate chunk IDs exist in DB
+
+IMPORTANT: Only use verified fixture files (suffix: _verified.json).
+Unverified fixtures may contain chunk IDs that don't exist in the database.
 """
 
 import argparse
@@ -29,7 +33,7 @@ from dotenv import load_dotenv  # noqa: E402
 load_dotenv()
 
 # Default fixture path
-RAG_FIXTURE_PATH = Path("tests/fixtures/rag/sec_evaluation_set.json")
+RAG_FIXTURE_PATH = Path("tests/fixtures/rag/sec_evaluation_set_verified.json")
 
 
 def convert_to_rag_format(test_case: dict) -> dict:
@@ -249,6 +253,72 @@ async def load_rag_fixtures(
     return loaded
 
 
+async def validate_chunk_ids(pool: asyncpg.Pool, fixture_path: Path) -> dict:
+    """
+    Validate that chunk IDs in fixtures exist in the rag_documents table.
+
+    Returns:
+        Dict with validation results: total, valid, invalid, missing_ids
+    """
+    with open(fixture_path) as f:
+        data = json.load(f)
+
+    test_cases = data.get("test_cases", [])
+
+    # Collect all chunk IDs
+    all_chunk_ids = set()
+    for tc in test_cases:
+        chunk_ids = tc.get("relevant_chunk_ids", [])
+        all_chunk_ids.update(chunk_ids)
+
+    print(f"Total unique chunk IDs in fixtures: {len(all_chunk_ids)}")
+
+    # Check which exist in database
+    async with pool.acquire() as conn:
+        existing = await conn.fetch(
+            """
+            SELECT id::text FROM rag_documents
+            WHERE id = ANY($1::uuid[])
+            """,
+            list(all_chunk_ids),
+        )
+        existing_ids = {str(row["id"]) for row in existing}
+
+    missing_ids = all_chunk_ids - existing_ids
+    valid_count = len(existing_ids)
+    invalid_count = len(missing_ids)
+
+    print(f"Chunks found in DB: {valid_count}")
+    print(f"Chunks NOT in DB: {invalid_count}")
+
+    if missing_ids:
+        print("\nFirst 10 missing chunk IDs:")
+        for chunk_id in list(missing_ids)[:10]:
+            print(f"  - {chunk_id}")
+
+    # Check test case coverage
+    cases_with_valid_chunks = 0
+    cases_with_no_valid_chunks = 0
+    for tc in test_cases:
+        chunk_ids = set(tc.get("relevant_chunk_ids", []))
+        if chunk_ids & existing_ids:
+            cases_with_valid_chunks += 1
+        else:
+            cases_with_no_valid_chunks += 1
+
+    print(f"\nTest cases with at least one valid chunk: {cases_with_valid_chunks}")
+    print(f"Test cases with NO valid chunks: {cases_with_no_valid_chunks}")
+
+    return {
+        "total_chunks": len(all_chunk_ids),
+        "valid_chunks": valid_count,
+        "invalid_chunks": invalid_count,
+        "missing_ids": list(missing_ids)[:50],
+        "cases_with_valid_chunks": cases_with_valid_chunks,
+        "cases_with_no_valid_chunks": cases_with_no_valid_chunks,
+    }
+
+
 async def main(args: argparse.Namespace) -> None:
     """Main entry point."""
     postgres_url = os.getenv(
@@ -260,6 +330,24 @@ async def main(args: argparse.Namespace) -> None:
 
     try:
         fixture_path = Path(args.fixture)
+
+        # Warn if using unverified fixture
+        if "_verified" not in fixture_path.name:
+            print("⚠️  WARNING: Loading unverified fixture file!")
+            print("   Only use *_verified.json files for evaluation.")
+            print("   Run with --validate to check chunk ID validity.\n")
+
+        # Validate mode - check chunk IDs exist
+        if args.validate:
+            print("Validating chunk IDs in fixtures...\n")
+            results = await validate_chunk_ids(pool, fixture_path)
+            if results["invalid_chunks"] > 0:
+                print(f"\n❌ Validation FAILED: {results['invalid_chunks']} chunks not in database")
+                sys.exit(1)
+            else:
+                print("\n✅ Validation PASSED: All chunks exist in database")
+            return
+
         await load_rag_fixtures(
             pool,
             fixture_path,
@@ -311,6 +399,11 @@ if __name__ == "__main__":
         "--clear",
         action="store_true",
         help="Clear existing RAG test cases before loading",
+    )
+    parser.add_argument(
+        "--validate",
+        action="store_true",
+        help="Validate chunk IDs exist in database (don't load)",
     )
 
     args = parser.parse_args()

@@ -1,13 +1,13 @@
 # Multi-Source Gold Evaluation Data Plan
 
-**STATUS: IMPLEMENTATION IN PROGRESS**
+**STATUS: ✅ COMPLETE**
 
 | Phase | Status | Notes |
 |-------|--------|-------|
 | A. Data Model | ✅ Complete | Enums, models, migration, repository |
 | B. CLI & Loading | ✅ Complete | `--source-type` and `--review-status` CLI flags |
 | C. Validators & Observability | ✅ Complete | PII detection, source-aware metrics |
-| D. Documentation | Pending | Update CLAUDE.md, docs |
+| D. Documentation | ✅ Complete | Updated `docs/evaluation-data.md` with source type docs |
 
 ## Overview
 
@@ -1131,10 +1131,10 @@ class TestCLISourceFiltering:
 2. Update Grafana dashboard with source breakdown panels
 3. Test metrics flow
 
-### Phase 7: Documentation (0.5 day)
-1. Update CLAUDE.md with source type guidance
-2. Document fixture format changes
-3. Add examples for each source type
+### Phase 7: Documentation (0.5 day) ✅
+1. ~~Update CLAUDE.md with source type guidance~~ → Added to `docs/evaluation-data.md`
+2. ~~Document fixture format changes~~ → Added fixture format section
+3. ~~Add examples for each source type~~ → Added examples and CLI usage
 
 ---
 
@@ -1221,3 +1221,9 @@ class TestCLISourceFiltering:
 2. **Source-Type Filtering**: Filter batch runs by customer/sme/synthetic/hybrid
 3. **Review Status**: Track pending/approved/rejected/needs_revision
 4. **Metrics Segmentation**: source_type dimension in OTEL metrics for Grafana
+5. **Documentation**: Complete guide in `docs/evaluation-data.md` covering:
+   - Source types and review status definitions
+   - Fixture format with `_meta.source` block
+   - CLI filtering examples (`--source-type`, `--review-status`)
+   - PII detection behavior and adversarial test cases
+   - Validation rules by source type
