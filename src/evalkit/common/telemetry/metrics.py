@@ -326,8 +326,8 @@ class EvalMetrics:
                 attrs["client_version"] = client_version
             if eval_mode:
                 attrs["eval_mode"] = eval_mode
-            if source_type:
-                attrs["source_type"] = source_type
+            # Always set source_type to avoid "Value" in Grafana groupings
+            attrs["source_type"] = source_type or "unknown"
 
             # Record test counts
             self._tests_total.add(1, attrs)
