@@ -76,7 +76,7 @@ A capability without evaluation is untested code. See **BACKLOG.md → Capabilit
 ### After ANY code modification:
 ```bash
 # Run tests for changed modules only (fast feedback)
-./scripts/test-changed.sh
+./scripts/ci-test-changed.sh
 
 # Or run all unit tests (required before committing)
 pytest tests/unit/ -v --tb=short -x
@@ -88,7 +88,7 @@ With 2900+ unit tests, run targeted tests during development for fast feedback:
 
 ```bash
 # Run tests for files you changed (compares to main branch)
-./scripts/test-changed.sh
+./scripts/ci-test-changed.sh
 
 # Run tests for a specific module
 pytest tests/unit/nl2api/ -v -x      # NL2API changes
@@ -113,7 +113,7 @@ pytest tests/unit/ -k "entity" -v    # All entity tests
 | `src/common/` | `pytest tests/unit/common/ -x` |
 | `src/mcp_servers/` | `pytest tests/unit/mcp_servers/ -x` |
 | `src/evaluation/` | `pytest tests/unit/evaluation/ -x` |
-| Multiple modules | `./scripts/test-changed.sh` or full suite |
+| Multiple modules | `./scripts/ci-test-changed.sh` or full suite |
 
 **Before committing:** Always run the full unit test suite to catch cross-module regressions.
 
@@ -379,7 +379,7 @@ ruff check .
 .venv/bin/python -m src.evaluation.cli.main run tests/fixtures/search_products.json
 
 # Load fixtures to database (REQUIRED before batch evaluation)
-.venv/bin/python scripts/load_fixtures_to_db.py --all
+.venv/bin/python scripts/load-nl2api-fixtures.py --all
 
 # Run batch evaluation
 .venv/bin/python -m src.evaluation.cli.main batch run --pack nl2api --limit 10
@@ -446,7 +446,7 @@ When adding a new fixture generator, follow this checklist:
 1. [ ] Generator created in `scripts/generators/` (extend `BaseGenerator` or create standalone)
 2. [ ] Output includes `_meta` block with `TestCaseSetConfig` fields
 3. [ ] Generator registered in `scripts/generators/__init__.py`
-4. [ ] Generator added to `scripts/generate_test_cases.py`
+4. [ ] Generator added to `scripts/gen-test-cases.py`
 5. [ ] Category added to `FixtureLoader.CATEGORIES` in `tests/unit/nl2api/fixture_loader.py`
 6. [ ] Coverage thresholds added to `CoverageRegistry.REQUIRED_COVERAGE` in `test_fixture_coverage.py`
 7. [ ] Test file created in `tests/unit/nl2api/test_{category}_fixtures.py`
@@ -653,7 +653,7 @@ batch run --pack rag --tag rag --label <label>                   # RAG retrieval
 **RAG Evaluation Prerequisites:**
 ```bash
 # 1. Load RAG fixtures to database (one-time setup)
-python scripts/load_rag_fixtures.py
+python scripts/load-rag-fixtures.py
 
 # 2. Run RAG evaluation with proper tracking
 python -m src.evaluation.cli.main batch run --pack rag --tag rag --label my-experiment
@@ -792,13 +792,13 @@ Different capabilities have different field requirements. Each fixture file decl
 
 ```bash
 # Regenerate all fixtures (~19k test cases)
-python scripts/generate_test_cases.py --all
+python scripts/gen-test-cases.py --all
 
 # Regenerate specific category
-python scripts/generate_test_cases.py --category lookups
+python scripts/gen-test-cases.py --category lookups
 
 # Validate generated output against src/contracts/ schemas
-python scripts/generate_test_cases.py --validate
+python scripts/gen-test-cases.py --validate
 
 # Generate NL responses (uses Claude 3.5 Haiku, ~$5 cost)
 python scripts/generate_nl_responses.py --all
@@ -809,7 +809,7 @@ python scripts/generate_nl_responses.py --all
 1. **Add to source data** in `data/field_codes/` or `data/tickers/`
 2. **Regenerate fixtures** using the generator scripts
 3. **Commit generated fixtures** to git (don't generate in CI)
-4. **Run validation**: `python scripts/generate_test_cases.py --validate`
+4. **Run validation**: `python scripts/gen-test-cases.py --validate`
 5. **Run tests**: `pytest tests/unit/nl2api/test_fixture_coverage.py -v`
 
 ### Synthetic Data Caveats
@@ -1148,7 +1148,7 @@ async def handle_request(self, query: str):
 |-------|----------|
 | FastAPI returns 422 for valid JSON | Don't use `from __future__ import annotations` in FastAPI files |
 | Grafana shows no data | Check metric names have `nl2api_` prefix and `_total` suffix for counters |
-| Batch eval fails silently | Run `python scripts/load_fixtures_to_db.py --all` first |
+| Batch eval fails silently | Run `python scripts/load-nl2api-fixtures.py --all` first |
 | Orchestrator fails with "API key not set" | Pass router explicitly to avoid hidden NL2APIConfig dependency |
 
 ---
@@ -1211,7 +1211,7 @@ Application (OTLP) → OTEL Collector (4317) → Prometheus Exporter (8889) → 
 - If dashboards show "No data", verify datasource UID matches between dashboard and config
 
 **Prerequisite for batch evaluation metrics:**
-1. Load fixtures: `python scripts/load_fixtures_to_db.py --all`
+1. Load fixtures: `python scripts/load-nl2api-fixtures.py --all`
 2. Run batch: `python -m src.evaluation.cli.main batch run --pack nl2api --limit 10`
 3. View in Grafana: http://localhost:3000 → "NL2API Evaluation & Accuracy" dashboard
 

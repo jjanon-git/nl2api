@@ -7,7 +7,7 @@ directory in alphanumeric order. Tracks applied migrations in a
 migration_history table.
 
 Usage:
-    .venv/bin/python scripts/run_migrations.py
+    .venv/bin/python scripts/db-migrate.py
 """
 
 import asyncio

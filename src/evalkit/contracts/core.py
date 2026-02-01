@@ -731,7 +731,7 @@ class TestCaseSetConfig(BaseModel):
     generator: str | None = Field(
         default=None,
         description="Script/tool that generated this set",
-        examples=["scripts/generate_test_cases.py"],
+        examples=["scripts/gen-test-cases.py"],
     )
 
 

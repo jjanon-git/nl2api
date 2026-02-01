@@ -51,7 +51,7 @@ docker compose up -d
 .venv/bin/python -m pytest tests/unit/ -v
 
 # Run batch evaluation (requires fixtures in DB)
-.venv/bin/python scripts/load_fixtures_to_db.py --all
+.venv/bin/python scripts/load-nl2api-fixtures.py --all
 .venv/bin/python -m src.evalkit.cli.main batch run --pack nl2api --tag entity_resolution --limit 100
 
 # View results in Grafana

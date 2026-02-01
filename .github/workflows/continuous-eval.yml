@@ -119,8 +119,8 @@ jobs:
           POSTGRES_DB: nl2api_eval
         run: |
           # Run migrations if script exists
-          if [ -f scripts/run_migrations.py ]; then
-            python scripts/run_migrations.py
+          if [ -f scripts/db-migrate.py ]; then
+            python scripts/db-migrate.py
           fi
 
       - name: Run Accuracy Evaluation

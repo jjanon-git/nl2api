@@ -6,9 +6,9 @@ Loads RAG test cases from the evaluation JSON file into PostgreSQL
 for use with the batch evaluation system (--pack rag).
 
 Usage:
-    python scripts/load_rag_fixtures.py
-    python scripts/load_rag_fixtures.py --limit 50
-    python scripts/load_rag_fixtures.py --clear  # Clear existing RAG test cases first
+    python scripts/load-rag-fixtures.py
+    python scripts/load-rag-fixtures.py --limit 50
+    python scripts/load-rag-fixtures.py --clear  # Clear existing RAG test cases first
 """
 
 import argparse

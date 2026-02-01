@@ -13,10 +13,10 @@ What are Tesla's main risk factors?
 EOF
 
 # 2. Enrich with metadata (uses Claude, ~$0.001/question)
-python scripts/enrich_rag_questions.py my_questions.txt -o tests/fixtures/rag/my_eval.json
+python scripts/gen-enrich-rag-questions.py my_questions.txt -o tests/fixtures/rag/my_eval.json
 
 # 3. Load to database
-python scripts/load_rag_fixtures.py --fixture tests/fixtures/rag/my_eval.json --clear
+python scripts/load-rag-fixtures.py --fixture tests/fixtures/rag/my_eval.json --clear
 
 # 4. Run evaluation
 python -m src.evalkit.cli.main batch run --pack rag --tag rag --mode generation --label my-test
@@ -127,6 +127,6 @@ python -m src.evalkit.cli.main batch run \
 
 | File | Purpose |
 |------|---------|
-| `scripts/enrich_rag_questions.py` | Convert raw questions → evaluation fixtures |
-| `scripts/load_rag_fixtures.py` | Load fixtures to database |
+| `scripts/gen-enrich-rag-questions.py` | Convert raw questions → evaluation fixtures |
+| `scripts/load-rag-fixtures.py` | Load fixtures to database |
 | `src/rag/evaluation/pack.py` | Evaluation logic and stage configuration |

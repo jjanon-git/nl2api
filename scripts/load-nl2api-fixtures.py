@@ -6,8 +6,8 @@ Loads test cases from generated JSON fixtures into the PostgreSQL database
 for use with the batch evaluation system.
 
 Usage:
-    python scripts/load_fixtures_to_db.py --category entity_resolution
-    python scripts/load_fixtures_to_db.py --all
+    python scripts/load-nl2api-fixtures.py --category entity_resolution
+    python scripts/load-nl2api-fixtures.py --all
 """
 
 import argparse

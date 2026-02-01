@@ -6,7 +6,7 @@ This standalone script does NOT integrate with the observability stack (Promethe
 and results are not tracked over time. Use the batch evaluation framework:
 
     # Load fixtures first (one-time)
-    python scripts/load_rag_fixtures.py
+    python scripts/load-rag-fixtures.py
 
     # Run RAG evaluation with proper tracking
     python -m src.evaluation.cli.main batch run --pack rag --tag rag --label your-label

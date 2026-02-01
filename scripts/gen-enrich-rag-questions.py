@@ -173,7 +173,7 @@ def main():
     for tc in enriched:
         cat = tc["category"]
         categories[cat] = categories.get(cat, 0) + 1
-    logger.info(f"\nCategory distribution:")
+    logger.info("\nCategory distribution:")
     for cat, count in sorted(categories.items()):
         logger.info(f"  {cat}: {count}")
 

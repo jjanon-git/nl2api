@@ -155,7 +155,7 @@ The current resolver has known weaknesses. Expected baseline accuracy:
 ```bash
 # Generate entity resolution fixtures (requires database)
 export DATABASE_URL="postgresql://nl2api:nl2api@localhost:5432/nl2api"
-python scripts/generate_test_cases.py --category entity_resolution
+python scripts/gen-test-cases.py --category entity_resolution
 
 # Or use the generator directly
 python -m scripts.generators.entity_resolution_generator \
@@ -224,7 +224,7 @@ When adding a new fixture generator, ensure:
 1. [ ] Generator extends `BaseGenerator` in `scripts/generators/`
 2. [ ] Output includes `_meta` block with `TestCaseSetConfig` fields
 3. [ ] Generator registered in `scripts/generators/__init__.py`
-4. [ ] Generator added to `scripts/generate_test_cases.py`
+4. [ ] Generator added to `scripts/gen-test-cases.py`
 5. [ ] Category added to `FixtureLoader.CATEGORIES` in `tests/unit/nl2api/fixture_loader.py`
 6. [ ] Coverage thresholds added to `CoverageRegistry.REQUIRED_COVERAGE`
 7. [ ] Test file created in `tests/unit/nl2api/test_{category}_fixtures.py`
@@ -323,6 +323,6 @@ All evaluation data is synthetic. When using or documenting:
 |------|---------|
 | `tests/fixtures/lseg/generated/` | Generated test fixtures |
 | `scripts/generators/` | Test case generators |
-| `scripts/generate_test_cases.py` | Main generation orchestrator |
+| `scripts/gen-test-cases.py` | Main generation orchestrator |
 | `tests/unit/nl2api/fixture_loader.py` | Fixture loading utility |
 | `tests/unit/nl2api/test_fixture_coverage.py` | Coverage tracking |

@@ -1,10 +1,10 @@
 #!/bin/bash
 # Run tests for changed files only
-# Usage: ./scripts/test-changed.sh [base_branch]
+# Usage: ./scripts/ci-test-changed.sh [base_branch]
 #
 # Examples:
-#   ./scripts/test-changed.sh          # Compare to main
-#   ./scripts/test-changed.sh develop  # Compare to develop
+#   ./scripts/ci-test-changed.sh          # Compare to main
+#   ./scripts/ci-test-changed.sh develop  # Compare to develop
 
 set -e
 
