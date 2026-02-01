@@ -56,6 +56,12 @@ class BatchRunnerConfig(BaseModel):
         description="Evaluation mode (orchestrator, tool_only, routing, resolver)",
     )
 
+    # Stage execution mode
+    parallel_stages: bool = Field(
+        default=False,
+        description="Run stages in parallel (use True for OpenAI, False for Anthropic)",
+    )
+
     # Semantics stage configuration
     semantics_enabled: bool = Field(
         default=False,

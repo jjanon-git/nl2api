@@ -87,9 +87,7 @@ class TestEntityResolutionE2E:
         assert result["status"] == "ready"
         assert result["checks"]["database"]["connected"] is True
 
-    async def test_resolve_single_known_company(
-        self, resolver: HttpEntityResolver
-    ) -> None:
+    async def test_resolve_single_known_company(self, resolver: HttpEntityResolver) -> None:
         """Should resolve well-known company names."""
         result = await resolver.resolve_single("Apple")
 
@@ -98,9 +96,7 @@ class TestEntityResolutionE2E:
         assert result.entity_type == "company"
         assert result.confidence > 0.8
 
-    async def test_resolve_single_unknown_company(
-        self, resolver: HttpEntityResolver
-    ) -> None:
+    async def test_resolve_single_unknown_company(self, resolver: HttpEntityResolver) -> None:
         """Should return None for unknown entities."""
         result = await resolver.resolve_single("XyzNonExistentCompany12345")
 
@@ -108,13 +104,9 @@ class TestEntityResolutionE2E:
         if result is not None:
             assert result.confidence < 0.5
 
-    async def test_resolve_extracts_multiple_entities(
-        self, resolver: HttpEntityResolver
-    ) -> None:
+    async def test_resolve_extracts_multiple_entities(self, resolver: HttpEntityResolver) -> None:
         """Should extract and resolve multiple entities from a query."""
-        result = await resolver.resolve(
-            "Compare Apple's revenue to Microsoft's earnings"
-        )
+        result = await resolver.resolve("Compare Apple's revenue to Microsoft's earnings")
 
         assert "Apple" in result or "apple" in str(result).lower()
         # At least one entity should be resolved
@@ -128,9 +120,7 @@ class TestEntityResolutionE2E:
         assert len(results) >= 1
         identifiers = {r.identifier for r in results}
         # At least one of the major companies should resolve
-        assert any(
-            ric in identifiers for ric in ["AAPL.O", "MSFT.O", "GOOGL.O", "GOOG.O"]
-        )
+        assert any(ric in identifiers for ric in ["AAPL.O", "MSFT.O", "GOOGL.O", "GOOG.O"])
 
     async def test_circuit_breaker_stats(self, resolver: HttpEntityResolver) -> None:
         """Should track circuit breaker statistics."""

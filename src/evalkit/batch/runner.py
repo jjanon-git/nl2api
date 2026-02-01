@@ -119,8 +119,10 @@ class BatchRunner:
             pack_kwargs = {
                 "semantics_enabled": self.config.semantics_enabled,
             }
-        # RAG pack uses its own config structure via RAGPackConfig
-        # Additional pack configs can be added here as needed
+        elif self.config.pack_name == "rag":
+            pack_kwargs = {
+                "parallel_stages": self.config.parallel_stages,
+            }
 
         # Get the evaluation pack
         self.pack = get_pack(self.config.pack_name, **pack_kwargs)

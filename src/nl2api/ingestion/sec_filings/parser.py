@@ -242,7 +242,9 @@ class FilingParser:
             soup = BeautifulSoup(html, "lxml")
 
             # Remove script, style, and XBRL elements
-            for element in soup(["script", "style", "ix:nonfraction", "ix:nonnumeric", "ix:header"]):
+            for element in soup(
+                ["script", "style", "ix:nonfraction", "ix:nonnumeric", "ix:header"]
+            ):
                 element.decompose()
 
             # Get text

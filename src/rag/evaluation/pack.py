@@ -26,6 +26,7 @@ Usage:
 
 from __future__ import annotations
 
+import asyncio
 import time
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
@@ -76,6 +77,11 @@ class RAGPackConfig:
 
     # Weight overrides (None = use default)
     custom_weights: dict[str, float] | None = None
+
+    # Stage execution mode: parallel (faster) vs sequential (rate-limit friendly)
+    # Default False for Anthropic compatibility; set True for OpenAI which has
+    # token-based limits rather than concurrent connection limits
+    parallel_stages: bool = False
 
 
 class RAGPack:
@@ -313,19 +319,41 @@ class RAGPack:
         with tracer.start_as_current_span("rag_pack.evaluate") as span:
             span.set_attribute("test_case.id", test_case.id)
             span.set_attribute("pack.name", self.name)
+            span.set_attribute("parallel_stages", self.config.parallel_stages)
 
-            for stage in self._stages:
-                with tracer.start_as_current_span(f"rag_pack.{stage.name}") as stage_span:
-                    result = await stage.evaluate(test_case, system_output, context)
-                    stage_results[stage.name] = result
+            if self.config.parallel_stages:
+                # Parallel execution - better for OpenAI (token-based limits)
+                async def run_stage(stage: Any) -> tuple[str, StageResult]:
+                    with tracer.start_as_current_span(f"rag_pack.{stage.name}") as stage_span:
+                        result = await stage.evaluate(test_case, system_output, context)
+                        stage_span.set_attribute("result.passed", result.passed)
+                        stage_span.set_attribute("result.score", result.score)
+                        return stage.name, result
 
-                    stage_span.set_attribute("result.passed", result.passed)
-                    stage_span.set_attribute("result.score", result.score)
+                results = await asyncio.gather(*[run_stage(stage) for stage in self._stages])
+                stage_results = dict(results)
 
-                # Check for gate failure
-                if stage.is_gate and not result.passed:
-                    span.set_attribute("gate_failed", stage.name)
-                    break
+                # Check GATE results after parallel execution
+                for stage in self._stages:
+                    if stage.is_gate:
+                        result = stage_results.get(stage.name)
+                        if result and not result.passed:
+                            span.set_attribute("gate_failed", stage.name)
+                            break
+            else:
+                # Sequential execution - better for Anthropic (connection-based limits)
+                for stage in self._stages:
+                    with tracer.start_as_current_span(f"rag_pack.{stage.name}") as stage_span:
+                        result = await stage.evaluate(test_case, system_output, context)
+                        stage_results[stage.name] = result
+
+                        stage_span.set_attribute("result.passed", result.passed)
+                        stage_span.set_attribute("result.score", result.score)
+
+                    # Check for gate failure (fail-fast in sequential mode)
+                    if stage.is_gate and not result.passed:
+                        span.set_attribute("gate_failed", stage.name)
+                        break
 
             total_latency_ms = int((time.perf_counter() - start_time) * 1000)
             overall_passed = self.compute_overall_passed(stage_results)

@@ -522,7 +522,13 @@ def create_rag_retrieval_generator(retriever, embedder=None):
     return generate_rag_retrieval_response
 
 
-def create_rag_generation_generator(retriever, llm_client, embedder=None):
+def create_rag_generation_generator(
+    retriever,
+    llm_client,
+    embedder=None,
+    llm_provider: str = "anthropic",
+    llm_model: str | None = None,
+):
     """
     Create a response generator that does full RAG: retrieval + LLM generation.
 
@@ -540,12 +546,17 @@ def create_rag_generation_generator(retriever, llm_client, embedder=None):
 
     Args:
         retriever: HybridRAGRetriever instance
-        llm_client: Anthropic client for generation
+        llm_client: Anthropic or OpenAI client for generation
         embedder: Optional embedder to set on retriever
+        llm_provider: "anthropic" or "openai"
+        llm_model: Model name (defaults based on provider)
 
     Returns:
         Async function that generates SystemResponse from TestCase
     """
+    # Set default model based on provider
+    if llm_model is None:
+        llm_model = "gpt-5-nano" if llm_provider == "openai" else "claude-3-5-haiku-20241022"
 
     RAG_SYSTEM_PROMPT = """You are a helpful financial analyst assistant that answers questions based on SEC filings.
 
@@ -625,16 +636,28 @@ Provide a clear, factual answer with citations. Use [Source N] to cite specific 
             # Step 2: Generate answer using LLM
             user_prompt = RAG_USER_PROMPT.format(query=query, context=context)
 
-            response = llm_client.messages.create(
-                model="claude-3-5-haiku-20241022",
-                max_tokens=1024,
-                system=RAG_SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": user_prompt}],
-            )
-
-            generated_answer = response.content[0].text
-            input_tokens = response.usage.input_tokens
-            output_tokens = response.usage.output_tokens
+            if llm_provider == "openai":
+                response = llm_client.chat.completions.create(
+                    model=llm_model,
+                    max_completion_tokens=1024,
+                    messages=[
+                        {"role": "system", "content": RAG_SYSTEM_PROMPT},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                )
+                generated_answer = response.choices[0].message.content
+                input_tokens = response.usage.prompt_tokens
+                output_tokens = response.usage.completion_tokens
+            else:
+                response = llm_client.messages.create(
+                    model=llm_model,
+                    max_tokens=1024,
+                    system=RAG_SYSTEM_PROMPT,
+                    messages=[{"role": "user", "content": user_prompt}],
+                )
+                generated_answer = response.content[0].text
+                input_tokens = response.usage.input_tokens
+                output_tokens = response.usage.output_tokens
 
             latency_ms = int((time.perf_counter() - start_time) * 1000)
 

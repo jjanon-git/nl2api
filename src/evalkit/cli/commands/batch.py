@@ -176,6 +176,13 @@ def batch_run(
             help="Resume an interrupted batch by ID (skips already-evaluated test cases)",
         ),
     ] = None,
+    parallel_stages: Annotated[
+        bool,
+        typer.Option(
+            "--parallel-stages/--sequential-stages",
+            help="Run stages in parallel (OpenAI) or sequential (Anthropic)",
+        ),
+    ] = False,
 ) -> None:
     """
     Run batch evaluation on test cases from database.
@@ -307,6 +314,7 @@ def batch_run(
             num_workers=workers,
             redis_url=redis_url,
             resume_batch_id=resume,
+            parallel_stages=parallel_stages,
         )
     )
 
@@ -337,6 +345,7 @@ async def _batch_run_async(
     num_workers: int = 4,
     redis_url: str = "redis://localhost:6379",
     resume_batch_id: str | None = None,
+    parallel_stages: bool = False,
 ) -> None:
     """Async implementation of batch run command."""
     from src.evalkit.batch import BatchRunner, BatchRunnerConfig
@@ -644,20 +653,42 @@ async def _batch_run_async(
 
                 if mode == "generation":
                     # Full RAG: retrieval + LLM generation
-                    from anthropic import Anthropic
-
                     from src.evalkit.batch.response_generators import (
                         create_rag_generation_generator,
                     )
 
-                    anthropic_key = os.getenv("NL2API_ANTHROPIC_API_KEY")
-                    if not anthropic_key:
-                        raise RuntimeError("NL2API_ANTHROPIC_API_KEY not set for generation mode")
+                    # Use configured LLM provider (defaults to OpenAI gpt-5-nano)
+                    llm_provider = os.getenv("EVAL_LLM_PROVIDER", "openai")
+                    llm_model = os.getenv("EVAL_LLM_MODEL")
 
-                    llm_client = Anthropic(api_key=anthropic_key)
-                    response_generator = create_rag_generation_generator(retriever, llm_client)
+                    if llm_provider == "openai":
+                        from openai import OpenAI
+
+                        openai_key = os.getenv("NL2API_OPENAI_API_KEY") or os.getenv(
+                            "OPENAI_API_KEY"
+                        )
+                        if not openai_key:
+                            raise RuntimeError(
+                                "NL2API_OPENAI_API_KEY or OPENAI_API_KEY not set for generation mode"
+                            )
+                        llm_client = OpenAI(api_key=openai_key)
+                        llm_model = llm_model or "gpt-5-nano"
+                    else:
+                        from anthropic import Anthropic
+
+                        anthropic_key = os.getenv("NL2API_ANTHROPIC_API_KEY")
+                        if not anthropic_key:
+                            raise RuntimeError(
+                                "NL2API_ANTHROPIC_API_KEY not set for generation mode"
+                            )
+                        llm_client = Anthropic(api_key=anthropic_key)
+                        llm_model = llm_model or "claude-3-5-haiku-20241022"
+
+                    response_generator = create_rag_generation_generator(
+                        retriever, llm_client, llm_provider=llm_provider, llm_model=llm_model
+                    )
                     console.print(
-                        "[green]Using full RAG pipeline (retrieval + generation).[/green]\n"
+                        f"[green]Using full RAG pipeline (retrieval + generation via {llm_provider}/{llm_model}).[/green]\n"
                     )
                 else:
                     # Retrieval only
@@ -711,6 +742,7 @@ async def _batch_run_async(
             client_type=client,
             client_version=client_version,
             eval_mode=eval_mode_map.get(mode, "orchestrator"),
+            parallel_stages=parallel_stages,
             semantics_enabled=semantics_enabled,
             semantics_model=semantics_model,
             semantics_pass_threshold=semantics_threshold,

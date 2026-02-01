@@ -213,9 +213,7 @@ async def retry_with_backoff(
             if cfg.jitter:
                 delay = delay * (0.5 + random.random())
 
-            logger.debug(
-                f"Retry {attempt + 1}/{cfg.max_attempts} after {delay:.2f}s: {e}"
-            )
+            logger.debug(f"Retry {attempt + 1}/{cfg.max_attempts} after {delay:.2f}s: {e}")
             await asyncio.sleep(delay)
 
     if last_exception:

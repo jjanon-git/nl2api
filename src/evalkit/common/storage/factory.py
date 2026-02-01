@@ -201,6 +201,7 @@ class RepositoryProvider:
             # This ensures subsequent create_pool() calls create a fresh pool
             if self._config.backend == "postgres":
                 from src.evalkit.common.storage.postgres import close_pool
+
                 await close_pool()
 
         self._test_case_repo = None

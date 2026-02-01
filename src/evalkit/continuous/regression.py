@@ -212,9 +212,7 @@ class RegressionDetector:
                 return None
 
             previous_batch_id = previous_batch_row["batch_id"]
-            logger.info(
-                f"Found previous batch {previous_batch_id} for client_type={client_type}"
-            )
+            logger.info(f"Found previous batch {previous_batch_id} for client_type={client_type}")
 
             # Get metrics for the previous batch
             return await self._get_batch_metrics(previous_batch_id)

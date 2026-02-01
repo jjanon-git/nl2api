@@ -220,9 +220,7 @@ class RedisCache:
             # Try Redis first (with circuit breaker protection)
             if self._use_redis and self._connected:
                 try:
-                    value = await self._circuit_breaker.call(
-                        self._redis.get, full_key
-                    )
+                    value = await self._circuit_breaker.call(self._redis.get, full_key)
                     if value is not None:
                         self._stats.hits += 1
                         span.set_attribute("cache.hit", True)
@@ -280,9 +278,7 @@ class RedisCache:
             if self._use_redis and self._connected:
                 try:
                     serialized = json.dumps(value)
-                    await self._circuit_breaker.call(
-                        self._redis.setex, full_key, ttl, serialized
-                    )
+                    await self._circuit_breaker.call(self._redis.setex, full_key, ttl, serialized)
                     self._stats.sets += 1
                     span.set_attribute("cache.source", "redis")
                     return True
@@ -309,9 +305,7 @@ class RedisCache:
         deleted = False
         if self._use_redis and self._connected:
             try:
-                result = await self._circuit_breaker.call(
-                    self._redis.delete, full_key
-                )
+                result = await self._circuit_breaker.call(self._redis.delete, full_key)
                 deleted = result > 0
             except CircuitOpenError:
                 logger.debug("Redis circuit open, skipping Redis delete")

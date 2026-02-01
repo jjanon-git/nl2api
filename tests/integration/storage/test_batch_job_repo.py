@@ -321,18 +321,14 @@ class TestBatchJobRepository:
         assert retrieved.progress_pct == 0.0
 
         # 25% progress
-        updated_25 = calc_batch.model_copy(
-            update={"completed_count": 20, "failed_count": 5}
-        )
+        updated_25 = calc_batch.model_copy(update={"completed_count": 20, "failed_count": 5})
         await batch_job_repo.update(updated_25)
 
         retrieved = await batch_job_repo.get(calc_batch_id)
         assert retrieved.progress_pct == 25.0
 
         # 100% progress
-        updated_100 = calc_batch.model_copy(
-            update={"completed_count": 90, "failed_count": 10}
-        )
+        updated_100 = calc_batch.model_copy(update={"completed_count": 90, "failed_count": 10})
         await batch_job_repo.update(updated_100)
 
         retrieved = await batch_job_repo.get(calc_batch_id)

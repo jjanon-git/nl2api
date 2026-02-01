@@ -65,9 +65,7 @@ class TestTestCaseRepository:
         test_case_1 = TestCase(
             id=test_case_id_1,
             nl_query="What is Apple's stock price?",
-            expected_tool_calls=(
-                ToolCall(tool_name="get_data", arguments={"ticker": "AAPL"}),
-            ),
+            expected_tool_calls=(ToolCall(tool_name="get_data", arguments={"ticker": "AAPL"}),),
             expected_nl_response="Apple's stock price is $150.",
             metadata=metadata_1,
         )
@@ -208,11 +206,13 @@ class TestTestCaseRepository:
         # Test 10: List with filters
         # =================================================================
         filter_tcs = []
-        for i, (complexity, tags) in enumerate([
-            (1, ("simple", "list-test-unique")),
-            (3, ("medium", "list-test-unique")),
-            (5, ("complex", "list-test-unique")),
-        ]):
+        for i, (complexity, tags) in enumerate(
+            [
+                (1, ("simple", "list-test-unique")),
+                (3, ("medium", "list-test-unique")),
+                (5, ("complex", "list-test-unique")),
+            ]
+        ):
             tc = TestCase(
                 id=str(uuid.uuid4()),
                 nl_query=f"List test query {i}",

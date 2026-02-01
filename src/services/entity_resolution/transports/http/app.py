@@ -87,9 +87,7 @@ def create_app(config: EntityServiceConfig | None = None) -> Any:
         from fastapi import FastAPI, HTTPException
         from fastapi.responses import JSONResponse
     except ImportError as e:
-        raise ImportError(
-            "FastAPI is required. Install with: pip install fastapi uvicorn"
-        ) from e
+        raise ImportError("FastAPI is required. Install with: pip install fastapi uvicorn") from e
 
     global _resolver, _db_pool, _redis_client, _config
     _config = config or EntityServiceConfig()
@@ -288,9 +286,7 @@ async def run_http_server(config: EntityServiceConfig | None = None) -> None:
     try:
         import uvicorn
     except ImportError as e:
-        raise ImportError(
-            "Uvicorn is required. Install with: pip install uvicorn"
-        ) from e
+        raise ImportError("Uvicorn is required. Install with: pip install uvicorn") from e
 
     _config = config or EntityServiceConfig()
     app = create_app(_config)

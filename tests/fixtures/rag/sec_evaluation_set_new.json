@@ -1,0 +1,546 @@
+{
+  "_meta": {
+    "name": "sec_filing_rag_evaluation",
+    "capability": "rag_retrieval",
+    "methodology": "Retrieval-verified: questions generated from chunks, then verified with actual retrieval. Ground truth is what retrieval actually returns.",
+    "generated_at": "2026-01-31T14:50:42.561407",
+    "total_cases": 20,
+    "source_chunk_retrievable": 10,
+    "categories": {
+      "simple_factual": 10,
+      "complex_analytical": 5,
+      "temporal_comparative": 5
+    },
+    "schema_version": "2.1"
+  },
+  "test_cases": [
+    {
+      "id": "simple_001",
+      "query": "What initiative is the company implementing to improve fuel efficiency?",
+      "category": "simple_factual",
+      "company": "LUV",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "51caa897-bb4b-444b-a8b5-c5c71293b0aa",
+        "6a4475fe-5d6c-4744-aada-545da6f2a349",
+        "c045fa7a-8ff2-4ac2-8e6d-7422d8467b46"
+      ],
+      "answer_keywords": [
+        "Real Time Descent Winds",
+        "automatic uplinking",
+        "wind data",
+        "minimize thrust inputs"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "SOUTHWEST AIRLINES CO",
+        "filing_date": "2025-02-07T00:00:00",
+        "form_type": null,
+        "chunk_preview": "nt flight bags and paper manuals with lighter Electronic Flight Bag tablets; and &#8226; implementation of Real Time Descent Winds (automatic uplinking of up-to-date wind data to the aircraft, allowin...",
+        "source_chunk_retrievable": false,
+        "retrieval_score": 0.7731703313386094
+      }
+    },
+    {
+      "id": "simple_002",
+      "query": "How much contractual interest expense and amortization of issuance costs were recognized related to Exchangeable Notes in 2023?",
+      "category": "simple_factual",
+      "company": "VTR",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "59a5beeb-83d8-4bc8-956a-c42185d9b212"
+      ],
+      "answer_keywords": [
+        "$17.8",
+        "$3.6",
+        "million",
+        "interest",
+        "issuance costs"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Ventas, Inc.",
+        "filing_date": "2024-02-15T00:00:00",
+        "form_type": null,
+        "chunk_preview": "llion aggregate principal amount of the Exchangeable Notes outstanding. During the year ended December 31, 2023, we recognized approximately $ 17.8 &#160;million of contractual interest expense and am...",
+        "source_chunk_retrievable": true,
+        "retrieval_score": 0.5564741512960929
+      }
+    },
+    {
+      "id": "simple_003",
+      "query": "Who is the current Chairman and Chief Executive Officer as of February 15, 2024?",
+      "category": "simple_factual",
+      "company": "PPG",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "158c5bdc-8afc-4615-bce5-f10710e9e683",
+        "fdda4bb3-c916-4078-a322-e7c246d9ff25",
+        "c49ee374-cb05-43af-b5d1-e6c6cc384439"
+      ],
+      "answer_keywords": [
+        "Timothy",
+        "Knavish",
+        "58"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "PPG INDUSTRIES INC",
+        "filing_date": "2024-02-15T00:00:00",
+        "form_type": null,
+        "chunk_preview": "ive Officers Set forth below is information related to the Company&#8217;s executive officers as of February&#160;15, 2024.&#160; Name Age Title Timothy M. Knavish (a) 58 Chairman and Chief Executive ...",
+        "source_chunk_retrievable": false,
+        "retrieval_score": 0.4962915215231663
+      }
+    },
+    {
+      "id": "simple_004",
+      "query": "Which year's Long-Term Incentive Plan was referenced in the 2023 filing?",
+      "category": "simple_factual",
+      "company": "VZ",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "d37622fa-9be1-495e-9211-2d9b404543e0"
+      ],
+      "answer_keywords": [
+        "2017",
+        "Long-Term Incentive Plan"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "VERIZON COMMUNICATIONS INC",
+        "filing_date": "2024-02-09T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: VERIZON COMMUNICATIONS INC (VZ)\nFiling: 10-K, Fiscal Year 2023\nSection: Business Description\n10a( vi ) Form of 2023 Restricted Stock Unit Agreement pursuant to the 2017 Verizon Communications...",
+        "source_chunk_retrievable": true,
+        "retrieval_score": 0.5202476275114791
+      }
+    },
+    {
+      "id": "simple_005",
+      "query": "Who is the Global Chief Marketing Officer as of February 2024?",
+      "category": "simple_factual",
+      "company": "KO",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "d20e889c-f09a-418b-bdd3-8f9ac89442c6",
+        "21a97a73-39d4-4262-9040-28bc9d4248ef",
+        "928f30db-7a68-44e0-8836-fa8eb633f970"
+      ],
+      "answer_keywords": [
+        "Manuel Arroyo",
+        "56",
+        "Executive Vice President"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "COCA COLA CO",
+        "filing_date": "2024-02-20T00:00:00",
+        "form_type": null,
+        "chunk_preview": "terest accrued through the time of payment. Some or all of this amount, plus accrued interest, would be refunded if the Company were to prevail on appeal. ITEM 4.&#160;&#160;MINE SAFETY DISCLOSURES No...",
+        "source_chunk_retrievable": false,
+        "retrieval_score": 0.8153609745742327
+      }
+    },
+    {
+      "id": "simple_006",
+      "query": "When could generic drug companies potentially launch their version of this drug?",
+      "category": "simple_factual",
+      "company": "PFE",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "0ce1c83e-1dd9-40fe-a8ee-e29d25d9e962",
+        "758ec4c4-6131-4744-97d3-4d6f9f0d5d0d",
+        "0122b880-62cc-4b51-89e2-68dcc42d3ac9"
+      ],
+      "answer_keywords": [
+        "November 21, 2026",
+        "April 1, 2028",
+        "generic launch",
+        "patent invalidation"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "PFIZER INC",
+        "filing_date": "2024-02-22T00:00:00",
+        "form_type": null,
+        "chunk_preview": "t predict the outcome of any potential future litigation, there are certain potential alternatives that might occur which could potentially permit generic launch prior to April 1, 2028: (i) if the for...",
+        "source_chunk_retrievable": false,
+        "retrieval_score": 0.7438098568576328
+      }
+    },
+    {
+      "id": "simple_007",
+      "query": "What ownership percentage limit does the Board of Directors enforce to protect the company's REIT status?",
+      "category": "simple_factual",
+      "company": "DLR",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "db14f9c3-26bb-41d4-8c8f-4b0d4669d48d"
+      ],
+      "answer_keywords": [
+        "9.8%",
+        "ownership",
+        "REIT"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "DIGITAL REALTY TRUST, INC.",
+        "filing_date": "2024-02-23T00:00:00",
+        "form_type": null,
+        "chunk_preview": "&#8217;s Board of Directors may not grant an exemption from the ownership limit to any proposed transferee whose direct or indirect ownership of more than 9.8% of the outstanding shares of Digital Rea...",
+        "source_chunk_retrievable": true,
+        "retrieval_score": 0.5745692938052807
+      }
+    },
+    {
+      "id": "simple_008",
+      "query": "What was the total long-term indebtedness as of December 31, 2023?",
+      "category": "simple_factual",
+      "company": "VICI",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "936bdf7b-653c-4de6-a8b0-c3ebc2d032da",
+        "d3e49a89-fcc6-4d7f-ad44-9aec9678f071",
+        "644041fb-77f7-490c-a022-84b7f165a372"
+      ],
+      "answer_keywords": [
+        "$17.1",
+        "billion",
+        "long-term",
+        "indebtedness"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "VICI PROPERTIES INC.",
+        "filing_date": "2024-02-22T00:00:00",
+        "form_type": null,
+        "chunk_preview": "of December 31, 2023, we had approximately $17.1 billion in long-term indebtedness, and we also had $2.3 billion of available capacity to borrow under the Revolving Credit Facility (with the option to...",
+        "source_chunk_retrievable": false,
+        "retrieval_score": 0.47470125778619743
+      }
+    },
+    {
+      "id": "simple_009",
+      "query": "What are the sections included in this document?",
+      "category": "simple_factual",
+      "company": "GMED",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "7f6b0951-a891-42cc-9139-192864c5e94f",
+        "b407fd9d-fb51-48e9-a16d-b6389a5a4ce7",
+        "dbea2211-eaa1-4a1b-a23c-eea9abba263a"
+      ],
+      "answer_keywords": [
+        "Business",
+        "Risk Factors",
+        "Unresolved Staff Comments",
+        "Cybersecurity",
+        "Properties",
+        "Legal Proceedings",
+        "Mine Safety Disclosures"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "GLOBUS MEDICAL INC",
+        "filing_date": "2025-02-20T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: GLOBUS MEDICAL INC (GMED)\nFiling: 10-K, Fiscal Year 2024\nSection: Business Description\nBusiness 5 Item&#160;1A. Risk Factors 20 Item&#160;1B. Unresolved Staff Comments 46 Item 1C. Cybersecuri...",
+        "source_chunk_retrievable": false,
+        "retrieval_score": 0.44639378147051423
+      }
+    },
+    {
+      "id": "simple_010",
+      "query": "In what year did the company first power its Santa Clara headquarters with 100% renewable energy?",
+      "category": "simple_factual",
+      "company": "PANW",
+      "expected_section": "business",
+      "relevant_chunk_ids": [
+        "be5702a5-ec78-49ef-9e03-280448a41e69",
+        "58bfd2d8-d9ce-4704-a283-1f58dc64b943",
+        "dcfed663-66b9-44d5-9d1f-2603a26f3314"
+      ],
+      "answer_keywords": [
+        "2024",
+        "fiscal",
+        "Santa Clara",
+        "headquarters",
+        "renewable energy"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "Palo Alto Networks Inc",
+        "filing_date": "2024-09-06T00:00:00",
+        "form_type": null,
+        "chunk_preview": " renewable electricity to run our managed sites by 2030, and working collaboratively across our value chain. Fiscal 2024 is the first full year that we powered our Santa Clara, California headquarters...",
+        "source_chunk_retrievable": false,
+        "retrieval_score": 0.7147273531718712
+      }
+    },
+    {
+      "id": "complex_001",
+      "query": "How does the five-year cumulative total return performance suggest the company's strategic positioning compared to its industry benchmarks?",
+      "category": "complex_analytical",
+      "company": "OLN",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "c3767a27-67bf-4b3e-9724-4fe86dd98e5f"
+      ],
+      "answer_keywords": [
+        "outperformance",
+        "stock return",
+        "market indices",
+        "recovery"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "OLIN Corp",
+        "filing_date": "2024-02-22T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: OLIN Corp (OLN)\nFiling: 10-K, Fiscal Year 2023\nSection: Management's Discussion and Analysis\nas Part of Publicly Announced Plans or Programs Maximum Dollar Value of Shares (or Units) that May...",
+        "source_chunk_retrievable": true,
+        "retrieval_score": 0.47767623859815095
+      }
+    },
+    {
+      "id": "complex_002",
+      "query": "How does the company's approach to income tax accounting potentially impact its financial reporting and strategic decision-making?",
+      "category": "complex_analytical",
+      "company": "PAYC",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "63d7812a-52de-4a56-8817-cadec65cfdd2",
+        "a5347455-e13e-48be-8414-2f87deab2ea5",
+        "ba1d1e95-c731-41f6-98f8-a78777dce836"
+      ],
+      "answer_keywords": [
+        "asset and liability method",
+        "deferred tax assets",
+        "valuation allowance",
+        "tax consequences"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Paycom Software, Inc.",
+        "filing_date": "2025-02-20T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: Paycom Software, Inc. (PAYC)\nFiling: 10-K, Fiscal Year 2024\nSection: Management's Discussion and Analysis\nprofessional fees and other corporate expenses. Depreciation and amortization expense...",
+        "source_chunk_retrievable": false,
+        "retrieval_score": 0.5063557680633215
+      }
+    },
+    {
+      "id": "complex_003",
+      "query": "What are the key features of the recently issued 5.300% senior notes due in 2054, and what flexibility does the company have in terms of early redemption?",
+      "category": "complex_analytical",
+      "company": "ADI",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "58cb38b2-855f-4cc7-a7c1-1f47fd3a56d4"
+      ],
+      "answer_keywords": [
+        "$550.0 million",
+        "semi-annual interest",
+        "redemption options",
+        "treasury rate plus 15 basis points"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "ANALOG DEVICES INC",
+        "filing_date": "2024-11-26T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: ANALOG DEVICES INC (ADI)\nFiling: 10-K, Fiscal Year 2024\nSection: Management's Discussion and Analysis\nunpaid interest thereon to the redemption date. The 2034 Notes are unsecured and rank equ...",
+        "source_chunk_retrievable": true,
+        "retrieval_score": 0.5210812687873988
+      }
+    },
+    {
+      "id": "complex_004",
+      "query": "How do the income tax provisions across different geographic regions impact the company's overall tax strategy and financial performance?",
+      "category": "complex_analytical",
+      "company": "NOVT",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "fd85c195-8914-4bea-99aa-9bfb3e821d21",
+        "d313e8e4-4de0-47f2-ac64-ae2c23a8af21",
+        "2d6309cb-1d79-4705-8cee-9a34caf47252"
+      ],
+      "answer_keywords": [
+        "current tax",
+        "deferred tax",
+        "geographic breakdown",
+        "tax provision"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "NOVANTA INC",
+        "filing_date": "2024-02-28T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: NOVANTA INC (NOVT)\nFiling: 10-K, Fiscal Year 2023\nSection: Management's Discussion and Analysis\n&#160; Cash &#160; &#160; 229 &#160; &#160; &#160; 229 &#160; &#160; &#160; &#8212; &#160; &#16...",
+        "source_chunk_retrievable": false,
+        "retrieval_score": 0.491456302236586
+      }
+    },
+    {
+      "id": "complex_005",
+      "query": "Who are the key leadership and board members signing this annual report, and what roles do they hold?",
+      "category": "complex_analytical",
+      "company": "NCNO",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "cbd7a91f-872c-4b31-93e2-b87526affb47"
+      ],
+      "answer_keywords": [
+        "Sean Desmond",
+        "CEO",
+        "Gregory Orenstein",
+        "CFO",
+        "Pierre Naude",
+        "Executive Chairman"
+      ],
+      "difficulty": "easy",
+      "metadata": {
+        "company_name": "nCino, Inc.",
+        "filing_date": "2025-04-01T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: nCino, Inc. (NCNO)\nFiling: 10-K, Fiscal Year 2025\nSection: Management's Discussion and Analysis\nduly caused this report to be signed on its behalf by the undersigned thereunto duly authorized...",
+        "source_chunk_retrievable": true,
+        "retrieval_score": 0.5293934583663977
+      }
+    },
+    {
+      "id": "temporal_001",
+      "query": "How did net income per diluted share trend over the past three years?",
+      "category": "temporal_comparative",
+      "company": "ITW",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "d7967347-16ad-4184-b8fc-8441f77a893f"
+      ],
+      "answer_keywords": [
+        "9.74",
+        "9.77",
+        "8.51",
+        "diluted",
+        "net income per share"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "ILLINOIS TOOL WORKS INC",
+        "filing_date": "2024-02-09T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: ILLINOIS TOOL WORKS INC (ITW)\nFiling: 10-K, Fiscal Year 2023\nSection: Management's Discussion and Analysis\nopen tax years for the Company's major jurisdictions: Jurisdiction Open&#160;Tax&#16...",
+        "source_chunk_retrievable": true,
+        "retrieval_score": 0.49616429255434713
+      }
+    },
+    {
+      "id": "temporal_002",
+      "query": "How might increasing competitor consolidation potentially impact operational strategies in the next fiscal period?",
+      "category": "temporal_comparative",
+      "company": "LITE",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "37638804-0469-4e54-b3bd-f573195b6ead"
+      ],
+      "answer_keywords": [
+        "competition",
+        "consolidation",
+        "market share",
+        "resources",
+        "vertical integration"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Lumentum Holdings Inc.",
+        "filing_date": "2025-08-19T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: Lumentum Holdings Inc. (LITE)\nFiling: 10-K, Fiscal Year 2025\nSection: Management's Discussion and Analysis\nfuture competitors, particularly, in light of increasing consolidation. Our competit...",
+        "source_chunk_retrievable": true,
+        "retrieval_score": 0.5478366701505671
+      }
+    },
+    {
+      "id": "temporal_003",
+      "query": "How did diluted weighted average Class A ordinary shares change over the reporting periods?",
+      "category": "temporal_comparative",
+      "company": "ACN",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "c1688186-2ddc-4368-a007-c248b7f494d2"
+      ],
+      "answer_keywords": [
+        "diluted",
+        "weighted average",
+        "shares",
+        "638,591,616",
+        "642,839,181",
+        "635,940,044"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Accenture plc",
+        "filing_date": "2024-10-10T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: Accenture plc (ACN)\nFiling: 10-K, Fiscal Year 2024\nSection: Management's Discussion and Analysis\n630,608,186 &#160; 632,762,710 &#160; Class&#160;A ordinary shares issuable upon redemption/ex...",
+        "source_chunk_retrievable": true,
+        "retrieval_score": 0.5316143495419385
+      }
+    },
+    {
+      "id": "temporal_004",
+      "query": "Over the past three years, were there any impairments in investments in unconsolidated joint ventures?",
+      "category": "temporal_comparative",
+      "company": "UDR",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "284186c5-edbb-40fe-bdf6-aef21efcc115",
+        "2b2a566e-4aca-4b9d-b68a-2dc6d5ee83cd",
+        "6ae53078-b24a-4cf5-b939-49ff413dc719"
+      ],
+      "answer_keywords": [
+        "no",
+        "impairments",
+        "years",
+        "2022",
+        "2023",
+        "2024"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "UDR, Inc.",
+        "filing_date": "2025-02-18T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: UDR, Inc. (UDR)\nFiling: 10-K, Fiscal Year 2024\nSection: Management's Discussion and Analysis\nof Operations. The Company may, in the future, make additional capital contributions to certain of...",
+        "source_chunk_retrievable": false,
+        "retrieval_score": 0.3959785703439842
+      }
+    },
+    {
+      "id": "temporal_005",
+      "query": "How did the cost of sales percentage change in Q1 2024 compared to Q1 2023, and what were the primary drivers of this change?",
+      "category": "temporal_comparative",
+      "company": "AXTA",
+      "expected_section": "mda",
+      "relevant_chunk_ids": [
+        "5de810e4-7c8f-448c-84ab-937d8854b0ea"
+      ],
+      "answer_keywords": [
+        "decreased",
+        "deflationary benefits",
+        "higher average selling prices",
+        "product mix"
+      ],
+      "difficulty": "medium",
+      "metadata": {
+        "company_name": "Axalta Coating Systems Ltd.",
+        "filing_date": "2024-05-01T00:00:00",
+        "form_type": null,
+        "chunk_preview": "Company: Axalta Coating Systems Ltd. (AXTA)\nFiling: 10-Q, Q1 2024\nSection: Management's Discussion and Analysis\nMarch 31, 2024 compared to the three months ended March 31, 2023 Cost of sales decreased...",
+        "source_chunk_retrievable": true,
+        "retrieval_score": 0.5210685325305788
+      }
+    }
+  ]
+}

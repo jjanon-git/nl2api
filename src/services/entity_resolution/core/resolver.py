@@ -208,9 +208,7 @@ class EntityResolver:
         if self._redis_client:
             try:
                 cache_key = f"entity:{normalized}"
-                await self._redis_client.set(
-                    cache_key, result.to_dict(), ex=self._redis_ttl
-                )
+                await self._redis_client.set(cache_key, result.to_dict(), ex=self._redis_ttl)
             except Exception as e:
                 logger.warning(f"Redis cache set error: {e}")
 
