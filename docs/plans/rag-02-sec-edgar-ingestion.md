@@ -1,8 +1,8 @@
 # Plan: SEC EDGAR Filing Ingestion for RAG Evaluation
 
-**Status:** Ready for Full Ingestion
+**Status:** Phase 1 Complete (10-K only), Phase 2 Pending (10-Q + Transcripts)
 **Created:** 2026-01-22
-**Last Updated:** 2026-01-23 (fixed URL: use www.sec.gov for archives, not data.sec.gov)
+**Last Updated:** 2026-02-01 (documented 10-Q gap and earnings transcript requirements)
 **Estimated Storage:** ~16 GB (12.5 GB downloads + 3.6 GB database)
 
 ---
@@ -21,7 +21,19 @@
 | 8 | S&P 500 data file | ✅ Complete |
 | 9 | Unit tests | ✅ Complete (55 tests) |
 | 10 | Small-scale test (3 companies) | ✅ Complete (838 chunks indexed) |
-| 11 | Full overnight ingestion | 🔲 Not Started |
+| 11 | Full 10-K ingestion | ✅ Complete (1.4M chunks, 400+ companies) |
+| 12 | **10-Q quarterly filings** | 🔲 Not Started (Phase 2) |
+| 13 | **Earnings call transcripts** | 🔲 Not Started (Phase 2) |
+
+### Current Index State (2026-02-01)
+
+| Filing Type | Companies | Chunks | Date Range |
+|-------------|-----------|--------|------------|
+| 10-K (annual) | 400+ | 1,445,154 | FY2023-FY2024 |
+| 10-Q (quarterly) | 0 | 0 | - |
+| Earnings transcripts | 0 | 0 | - |
+
+**Gap identified:** User queries for "last earnings call" or "recent quarterly results" return annual report data because 10-Q and transcript data is missing.
 
 ---
 
@@ -364,15 +376,164 @@ from src.nl2api.rag.retriever import HybridRAGRetriever
 
 ---
 
-## Phase 2: Financial Modeling Prep (Future)
+## Phase 2: 10-Q Quarterly Filings
 
-After SEC filings are working, add earnings transcripts:
+**Priority:** HIGH - Required for temporal relevance on quarterly queries
+
+### Why 10-Q Matters
+
+| User Query | Current Behavior | Expected Behavior |
+|------------|------------------|-------------------|
+| "Amazon's last quarter results" | Returns FY2024 10-K guidance | Should return Q3 2025 10-Q data |
+| "Recent revenue growth" | Annual data only | Quarterly trends |
+| "Q2 earnings highlights" | No data / wrong data | Specific quarter data |
+
+### Implementation
+
+The existing pipeline already supports 10-Q - it's just not being ingested:
+
+```bash
+# Current (10-K only)
+python scripts/ingest_sec_filings.py --filing-types 10-K
+
+# Add 10-Q support
+python scripts/ingest_sec_filings.py --filing-types 10-K,10-Q
+```
+
+### Resource Estimates (10-Q Addition)
+
+| Metric | Estimate |
+|--------|----------|
+| Filings per company/year | 4 (quarterly) |
+| Total new filings | ~4,000 (500 companies × 2 years × 4 quarters) |
+| Download size | ~4 GB (10-Q avg ~1 MB, smaller than 10-K) |
+| New chunks | ~200,000 |
+| Additional storage | ~1.5 GB |
+| Download time | ~7 hours (rate limited) |
+
+### Parser Changes Needed
+
+The `FilingParser` needs 10-Q section patterns (different from 10-K):
+
+```python
+SECTION_PATTERNS_10Q = {
+    "financial_statements": r"item\s*1[.\s:]+financial\s*statements",
+    "mda": r"item\s*2[.\s:]+management",  # Same as 10-K Item 7
+    "quantitative_disclosures": r"item\s*3[.\s:]+quantitative",
+    "controls": r"item\s*4[.\s:]+controls",
+}
+```
+
+---
+
+## Phase 3: Earnings Call Transcripts
+
+**Priority:** MEDIUM - Valuable for conversational queries but requires external data source
+
+### Why Transcripts Matter
+
+| User Query | 10-K/10-Q Response | Transcript Response |
+|------------|-------------------|---------------------|
+| "What did the CEO say about AI?" | Legal boilerplate | Direct quotes, tone, emphasis |
+| "Management outlook on margins" | Risk factors section | Forward-looking commentary |
+| "Analyst concerns" | Not available | Q&A section with analyst questions |
+
+### Data Sources
+
+| Source | Cost | Coverage | Quality |
+|--------|------|----------|---------|
+| **Financial Modeling Prep** | Free tier: 250 calls/day | Good (S&P 500) | Structured JSON |
+| **Seeking Alpha** | Scraping TOS issues | Excellent | Raw text |
+| **FactSet** | Enterprise pricing | Comprehensive | Professional |
+| **Bloomberg** | Terminal required | Best | Professional |
+| **Earnings Call APIs** | ~$50-200/mo | Varies | Structured |
+
+### Recommended: Financial Modeling Prep
 
 ```python
 class FMPClient:
-    """Financial Modeling Prep API client (250 free calls/day)."""
+    """Financial Modeling Prep API client."""
 
-    async def get_earnings_transcript(self, ticker: str, year: int, quarter: int) -> str
+    BASE_URL = "https://financialmodelingprep.com/api/v3"
+
+    async def get_earnings_transcript(
+        self,
+        ticker: str,
+        year: int,
+        quarter: int
+    ) -> EarningsTranscript:
+        """
+        Fetch earnings call transcript.
+
+        Free tier: 250 calls/day
+        Returns: Full transcript with speaker labels
+        """
+        ...
+
+    async def list_available_transcripts(
+        self,
+        ticker: str
+    ) -> list[TranscriptMetadata]:
+        """List all available transcripts for a ticker."""
+        ...
 ```
 
-This is out of scope for the current implementation.
+### Transcript Chunking Strategy
+
+Earnings calls have different structure than SEC filings:
+
+```
+1. Opening remarks (CEO/CFO prepared statements)
+2. Financial highlights
+3. Business segment updates
+4. Guidance
+5. Q&A session (analyst questions + management answers)
+```
+
+**Recommended approach:**
+- Chunk by speaker turn (preserve who said what)
+- Keep Q&A pairs together (question + answer as one chunk)
+- Tag chunks with speaker role (CEO, CFO, Analyst)
+- Include timestamp metadata for ordering
+
+### Resource Estimates (Transcripts)
+
+| Metric | Estimate |
+|--------|----------|
+| Transcripts per company/year | 4 (quarterly) |
+| Total transcripts | ~4,000 |
+| Avg transcript length | ~15,000 words |
+| Chunks per transcript | ~30 |
+| Total new chunks | ~120,000 |
+| API calls needed | ~8,000 (list + fetch) |
+| Time to ingest | ~32 days at 250/day free tier |
+
+**Note:** Free tier would take ~1 month. Paid tier ($29/mo for 750/day) reduces to ~11 days.
+
+### Schema Addition
+
+```sql
+-- Add to rag_documents metadata for transcripts
+{
+    "document_type": "earnings_transcript",
+    "ticker": "AMZN",
+    "company_name": "Amazon.com Inc.",
+    "fiscal_year": 2025,
+    "fiscal_quarter": 3,
+    "call_date": "2025-10-26",
+    "speaker": "Andy Jassy",
+    "speaker_role": "CEO",
+    "section": "prepared_remarks",  -- or "qa"
+    "chunk_index": 5
+}
+```
+
+---
+
+## Phase 2/3 Prerequisites
+
+Before starting Phase 2 or 3:
+
+1. **Disk space:** Current index is ~3.6 GB. Adding 10-Q + transcripts adds ~3 GB.
+2. **API keys:** FMP requires free account registration
+3. **Rate limit planning:** SEC (10 req/sec) + FMP (250/day free) need coordination

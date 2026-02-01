@@ -51,9 +51,9 @@ SECTION_PATTERNS_10K: dict[FilingSection, list[str]] = {
         r"item\s*6\b[^0-9]",
     ],
     FilingSection.MDA: [
-        r"item\s*7\.?\s*[-–—]?\s*management['']?s?\s*discussion",
+        r"item\s*7\.?\s*[-–—]?\s*management['''\u2019]?s?\s*discussion",
         r"item\s*7\b[^0-9a-z]",
-        r"management['']?s?\s*discussion\s*and\s*analysis",
+        r"management['''\u2019]?s?\s*discussion\s*and\s*analysis",
     ],
     FilingSection.QUANTITATIVE_QUALITATIVE: [
         r"item\s*7a\.?\s*[-–—]?\s*quantitative",
@@ -84,8 +84,8 @@ SECTION_PATTERNS_10Q: dict[FilingSection, list[str]] = {
         r"part\s*i[^v].*item\s*1\b",
     ],
     FilingSection.MDA: [
-        r"item\s*2\.?\s*[-–—]?\s*management['']?s?\s*discussion",
-        r"management['']?s?\s*discussion\s*and\s*analysis",
+        r"item\s*2\.?\s*[-–—]?\s*management['''\u2019]?s?\s*discussion",
+        r"management['''\u2019]?s?\s*discussion\s*and\s*analysis",
     ],
     FilingSection.QUANTITATIVE_QUALITATIVE: [
         r"item\s*3\.?\s*[-–—]?\s*quantitative",
@@ -241,11 +241,16 @@ class FilingParser:
 
             soup = BeautifulSoup(html, "lxml")
 
-            # Remove script, style, and XBRL elements
-            for element in soup(
-                ["script", "style", "ix:nonfraction", "ix:nonnumeric", "ix:header"]
-            ):
+            # Remove script, style, and hidden XBRL header (metadata we don't need)
+            for element in soup(["script", "style", "ix:header"]):
                 element.decompose()
+
+            # IMPORTANT: Unwrap (not decompose!) ix:nonnumeric and ix:nonfraction tags
+            # These tags CONTAIN the actual text content in iXBRL filings
+            # decompose() removes content, unwrap() keeps text and removes only the tag
+            for tag_name in ["ix:nonnumeric", "ix:nonfraction", "ix:continuation"]:
+                for element in soup.find_all(tag_name):
+                    element.unwrap()
 
             # Get text
             text = soup.get_text(separator=" ", strip=True)
@@ -253,6 +258,11 @@ class FilingParser:
         except ImportError:
             # Fallback to regex-based cleaning
             text = self._regex_clean_html(html)
+
+        # Decode any remaining HTML entities (&#160;, &#8220;, etc.)
+        import html as html_module
+
+        text = html_module.unescape(text)
 
         # Normalize whitespace
         text = re.sub(r"\s+", " ", text)
@@ -308,6 +318,9 @@ class FilingParser:
         """
         Find starting positions of sections in the text.
 
+        Handles table of contents by finding all matches and selecting
+        the one that appears to be the actual section start (not a TOC entry).
+
         Args:
             text: Cleaned text content
             patterns: Section patterns to search for
@@ -323,15 +336,64 @@ class FilingParser:
             if section not in patterns:
                 continue
 
+            best_pos = None
             for pattern in patterns[section]:
-                match = re.search(pattern, text_lower)
-                if match:
-                    # Store the earliest match for this section
-                    if section not in positions or match.start() < positions[section]:
-                        positions[section] = match.start()
-                    break
+                # Find ALL matches, not just the first one
+                for match in re.finditer(pattern, text_lower):
+                    pos = match.start()
+
+                    # Skip if this looks like a table of contents entry
+                    # TOC entries are typically followed by page numbers within 100 chars
+                    if self._is_toc_entry(text_lower, pos):
+                        continue
+
+                    # Use this match if it's the first valid one we found
+                    if best_pos is None:
+                        best_pos = pos
+                        break  # Found a valid match for this pattern
+
+                if best_pos is not None:
+                    break  # Found a valid match, don't try other patterns
+
+            if best_pos is not None:
+                positions[section] = best_pos
 
         return positions
+
+    def _is_toc_entry(self, text: str, pos: int) -> bool:
+        """
+        Check if a match position appears to be a table of contents entry.
+
+        TOC entries typically have:
+        - A page number shortly after the section name
+        - Multiple "Item X" references in close succession
+        - Limited content before the next "Item" reference
+
+        Args:
+            text: The full text (lowercase)
+            pos: Position of the match
+
+        Returns:
+            True if this appears to be a TOC entry, False otherwise
+        """
+        # Look at the next 200 characters after the match
+        lookahead = text[pos : pos + 200]
+
+        # TOC pattern: section name followed by page number pattern
+        # e.g., "item 2. management's discussion... 22 item 3"
+        # The key indicator is a bare number followed by another "item"
+        toc_pattern = r"^[^0-9]*\d{1,3}\s+item\s*\d"
+        if re.search(toc_pattern, lookahead):
+            return True
+
+        # Another TOC indicator: very short distance to next item reference
+        # In actual content, items are separated by substantial text
+        next_item = re.search(r"item\s*\d", lookahead[20:])  # Skip the current item
+        if next_item and next_item.start() < 100:
+            # Next item reference is within ~100 chars - likely TOC
+            return True
+
+        return False
 
     def _clean_section_text(self, text: str) -> str:
         """

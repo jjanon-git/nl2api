@@ -34,6 +34,11 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+
+load_dotenv(PROJECT_ROOT / ".env")
+
 import asyncpg
 
 from src.nl2api.ingestion.errors import DownloadError, IngestionAbortError
@@ -44,8 +49,9 @@ from src.rag.ingestion.sec_filings.client import (
 )
 from src.rag.ingestion.sec_filings.config import SECFilingConfig
 from src.rag.ingestion.sec_filings.indexer import FilingMetadataRepo, FilingRAGIndexer
-from src.rag.ingestion.sec_filings.models import Filing, FilingCheckpoint
+from src.rag.ingestion.sec_filings.models import Filing, FilingCheckpoint, FilingType
 from src.rag.ingestion.sec_filings.parser import FilingParser
+from src.rag.retriever.embedders import create_embedder
 
 # Configure logging
 logging.basicConfig(
@@ -212,6 +218,7 @@ async def process_company(
     indexer: FilingRAGIndexer,
     metadata_repo: FilingMetadataRepo | None,
     config: SECFilingConfig,
+    last_n_quarters: int | None = None,
 ) -> tuple[int, int, int]:
     """
     Process all filings for a company.
@@ -250,6 +257,19 @@ async def process_company(
         logger.info(f"No filings found for {name}")
         return (0, 0, 0)
 
+    # Filter 10-Q filings to last N quarters if specified
+    if last_n_quarters is not None:
+        # Separate 10-K and 10-Q filings
+        ten_k_filings = [f for f in filings if f.filing_type == FilingType.FORM_10K]
+        ten_q_filings = [f for f in filings if f.filing_type == FilingType.FORM_10Q]
+
+        # Sort 10-Q by date descending and take last N
+        ten_q_filings.sort(key=lambda f: f.filing_date, reverse=True)
+        ten_q_filings = ten_q_filings[:last_n_quarters]
+
+        filings = ten_k_filings + ten_q_filings
+        logger.info(f"Filtered to {len(ten_q_filings)} most recent 10-Q filings")
+
     logger.info(f"Found {len(filings)} filings for {name}")
 
     filings_downloaded = 0
@@ -283,6 +303,7 @@ async def run_ingestion(
     companies: list[dict],
     resume_checkpoint: FilingCheckpoint | None = None,
     dry_run: bool = False,
+    last_n_quarters: int | None = None,
 ) -> FilingCheckpoint:
     """
     Run the full ingestion pipeline.
@@ -349,7 +370,25 @@ async def run_ingestion(
         # Initialize components
         parser = FilingParser(extract_all_sections=False)  # Only key sections
         chunker = DocumentChunker.from_config(config)
-        indexer = FilingRAGIndexer(pool, batch_size=config.batch_size)
+
+        # Create embedder based on config (must match existing index dimensions)
+        if config.embedder_type == "openai":
+            # Check multiple possible env var names
+            openai_api_key = (
+                os.environ.get("OPENAI_API_KEY")
+                or os.environ.get("NL2API_OPENAI_API_KEY")
+                or os.environ.get("RAG_UI_OPENAI_API_KEY")
+            )
+            if not openai_api_key:
+                raise RuntimeError(
+                    "OpenAI API key required. Set OPENAI_API_KEY or NL2API_OPENAI_API_KEY"
+                )
+            embedder = create_embedder("openai", api_key=openai_api_key)
+        else:
+            embedder = create_embedder(config.embedder_type)
+        logger.info(f"Using {config.embedder_type} embedder ({embedder.dimension} dimensions)")
+
+        indexer = FilingRAGIndexer(pool, embedder=embedder, batch_size=config.embedding_batch_size)
         metadata_repo = FilingMetadataRepo(pool)
 
         async with SECEdgarClient(config) as client:
@@ -365,6 +404,7 @@ async def run_ingestion(
                         indexer=indexer,
                         metadata_repo=metadata_repo,
                         config=config,
+                        last_n_quarters=last_n_quarters,
                     )
 
                     checkpoint.update_filing_progress(
@@ -460,6 +500,30 @@ Examples:
         help="Number of years of filings to download (default: 2)",
     )
     parser.add_argument(
+        "--filing-types",
+        type=str,
+        default="10-K,10-Q",
+        help="Comma-separated filing types to download (default: 10-K,10-Q)",
+    )
+    parser.add_argument(
+        "--last-n-quarters",
+        type=int,
+        help="Limit 10-Q filings to last N quarters per company (e.g., 4 for one year)",
+    )
+    parser.add_argument(
+        "--embedder",
+        type=str,
+        default="openai",
+        choices=["local", "openai"],
+        help="Embedder type: 'local' (384 dims) or 'openai' (1536 dims, default)",
+    )
+    parser.add_argument(
+        "--embedding-batch-size",
+        type=int,
+        default=32,
+        help="Batch size for embedding API calls (default: 32, reduce if hitting rate limits)",
+    )
+    parser.add_argument(
         "--resume",
         action="store_true",
         help="Resume from checkpoint if available",
@@ -493,8 +557,17 @@ async def main() -> int:
         logging.getLogger().setLevel(logging.DEBUG)
 
     # Load configuration
-    config = SECFilingConfig(years_back=args.years)
+    filing_types = [ft.strip() for ft in args.filing_types.split(",")]
+    config = SECFilingConfig(
+        years_back=args.years,
+        filing_types=filing_types,
+        embedder_type=args.embedder,
+        embedding_batch_size=args.embedding_batch_size,
+    )
     config.ensure_data_dir()
+
+    # Store last_n_quarters for filtering later
+    last_n_quarters = args.last_n_quarters
 
     # Load companies
     if args.tickers:
@@ -550,6 +623,7 @@ async def main() -> int:
             companies=companies,
             resume_checkpoint=resume_checkpoint,
             dry_run=args.dry_run,
+            last_n_quarters=last_n_quarters,
         )
         return 0
     except IngestionAbortError as e:

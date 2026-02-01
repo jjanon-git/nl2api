@@ -31,7 +31,7 @@ def main():
     )
     args = parser.parse_args()
 
-    app_path = PROJECT_ROOT / "src" / "rag_ui" / "app.py"
+    app_path = PROJECT_ROOT / "src" / "rag" / "ui" / "app.py"
 
     cmd = [
         sys.executable,
