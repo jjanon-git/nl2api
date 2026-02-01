@@ -180,7 +180,7 @@ class BatchRunner:
             resumed_passed = batch_job.completed_count
             resumed_failed = batch_job.failed_count
 
-        # Fetch test cases
+        # Fetch test cases, excluding already-evaluated ones at the database level
         test_cases = await self.test_case_repo.list(
             tags=tags,
             complexity_min=complexity_min,
@@ -189,17 +189,14 @@ class BatchRunner:
             review_status=review_status,
             limit=limit or 10000,  # Large default
             offset=0,
+            exclude_ids=evaluated_ids if evaluated_ids else None,
         )
 
-        # Filter out already-evaluated tests when resuming
-        original_count = len(test_cases)
-        if evaluated_ids:
-            test_cases = [tc for tc in test_cases if tc.id not in evaluated_ids]
-            if self.config.show_progress:
-                console.print(
-                    f"[cyan]Resuming: {original_count - len(test_cases)} already evaluated, "
-                    f"{len(test_cases)} remaining[/cyan]"
-                )
+        if evaluated_ids and self.config.show_progress:
+            console.print(
+                f"[cyan]Resuming: {len(evaluated_ids)} already evaluated, "
+                f"{len(test_cases)} remaining[/cyan]"
+            )
 
         if not test_cases:
             if self.config.show_progress:

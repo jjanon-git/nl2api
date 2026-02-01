@@ -249,6 +249,7 @@ class PostgresTestCaseRepository:
         review_status: ReviewStatus | None = None,
         limit: int = 100,
         offset: int = 0,
+        exclude_ids: set[str] | None = None,
     ) -> list[TestCase]:
         """List test cases with optional filters."""
         query, params = self._build_filter_query(
@@ -258,6 +259,7 @@ class PostgresTestCaseRepository:
             complexity_max=complexity_max,
             source_type=source_type,
             review_status=review_status,
+            exclude_ids=exclude_ids,
             order_by="ORDER BY created_at DESC",
             limit=limit,
             offset=offset,
@@ -454,6 +456,7 @@ class PostgresTestCaseRepository:
         complexity_max: int | None = None,
         source_type: DataSourceType | None = None,
         review_status: ReviewStatus | None = None,
+        exclude_ids: set[str] | None = None,
         order_by: str | None = None,
         limit: int | None = None,
         offset: int | None = None,
@@ -475,6 +478,7 @@ class PostgresTestCaseRepository:
             "complexity_max": "complexity_level <= ${idx}",
             "source_type": "source_type = ${idx}",
             "review_status": "review_status = ${idx}",
+            "exclude_ids": "id != ALL(${idx}::uuid[])",
         }
 
         conditions = ["status = 'active'"]
@@ -511,6 +515,20 @@ class PostgresTestCaseRepository:
             conditions.append(template.replace("${idx}", f"${param_idx}"))
             params.append(review_status.value)
             param_idx += 1
+
+        if exclude_ids:
+            # Convert string IDs to UUIDs for the query
+            valid_uuids = []
+            for eid in exclude_ids:
+                try:
+                    valid_uuids.append(uuid.UUID(eid))
+                except ValueError:
+                    continue
+            if valid_uuids:
+                template = CONDITION_TEMPLATES["exclude_ids"]
+                conditions.append(template.replace("${idx}", f"${param_idx}"))
+                params.append(valid_uuids)
+                param_idx += 1
 
         # Build query with static structure
         query_parts = [base_query, "WHERE", " AND ".join(conditions)]

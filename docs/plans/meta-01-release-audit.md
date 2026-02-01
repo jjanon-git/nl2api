@@ -61,7 +61,7 @@
 |-------|----------|----------|--------|
 | **SQL string interpolation in RAG** | ~~CRITICAL~~ | `rag/retriever/retriever.py` + `nl2api/rag/retriever.py` | ✅ FIXED (2026-01-31) - Now uses parameterized queries |
 | **Missing scorecard indexes** | HIGH | `scorecard_repo.py` | Slow resume/batch queries |
-| **In-memory test case filtering** | HIGH | `batch/runner.py:197` | Loads 10k records to filter in Python |
+| ~~**In-memory test case filtering**~~ | ~~HIGH~~ | `batch/runner.py:197` | ✅ FIXED (2026-02-01) - Added exclude_ids to list() |
 | **JSON serialization overhead** | MEDIUM | `test_case_repo.py:113-118` | 10-20% batch eval time on JSON encoding |
 | **Vector string conversion** | MEDIUM | `retriever.py:185-187` | 1536 str() calls per embedding |
 | **Metrics aggregation in memory** | MEDIUM | `runner.py:617-624` | Holds all scorecards in RAM |
@@ -75,7 +75,7 @@
 **Recommended Fixes (Priority Order):**
 1. ✅ Parameterize RAG query filters (affects every retrieval) - DONE 2026-01-31
 2. ✅ Add scorecard composite indexes - DONE 2026-02-01 (migration 018)
-3. Add `exclude_ids` parameter to repository list() method
+3. ✅ Add `exclude_ids` parameter to repository list() method - DONE 2026-02-01
 4. Use asyncpg native JSONB handling
 
 ---
@@ -95,7 +95,7 @@
 | **Overly complex factory** | LOW | ~50 | `rag/retriever/factory.py` - 105 lines for 2 class choices |
 | **Entity resolver multiplicity** | MEDIUM | ~400 | 3 implementations, 1 used in practice |
 | **Protocol over-specification** | LOW | ~250 | 36 methods for 3 implementations |
-| **Compatibility shims (src/common, src/contracts)** | MEDIUM | ~100 | Empty directories with re-exports |
+| ~~**Compatibility shims (src/common, src/contracts)**~~ | ~~MEDIUM~~ | ~~100~~ | ✅ DELETED (2026-02-01) - No code was importing them |
 
 **Consolidation Plan:**
 - Phase 1 (1-2 weeks): ✅ Complete src/evaluation and src/rag_ui migrations, delete old paths
@@ -251,29 +251,30 @@
 | Add checkpoint/resume | ✅ Done (2026-01-25) |
 | Generic TestCase/Scorecard fields | ✅ Done (previously) |
 
-### Phase 2: Code Consolidation (~2 weeks) - IN PROGRESS
+### Phase 2: Code Consolidation (~2 weeks) - MOSTLY COMPLETE
 | Task | Effort | Priority | Status |
 |------|--------|----------|--------|
 | Complete src/evaluation migration | 3 days | P0 | ✅ Done (2026-01-31) |
 | Complete src/rag_ui migration | 1 day | P0 | ✅ Done (2026-02-01) |
-| Consolidate circuit breaker | 1 day | P1 | Pending |
-| Consolidate RAG protocols | 0.5 days | P1 | Pending |
+| Consolidate circuit breaker | 1 day | P1 | ✅ Done (2026-02-01) |
+| Consolidate RAG protocols | 0.5 days | P1 | ✅ Done (2026-02-01) |
+| Delete src/common, src/contracts shims | 0.5 days | P1 | ✅ Done (2026-02-01) |
 | Remove unused config options | 1 day | P2 | Pending |
 
-### Phase 3: Performance Optimization (~2 weeks) - NEW
+### Phase 3: Performance Optimization (~2 weeks) - IN PROGRESS
 | Task | Effort | Priority | Status |
 |------|--------|----------|--------|
-| Parameterize RAG query filters | 2 days | P0 | Pending |
-| Add scorecard composite indexes | 1 day | P0 | Pending |
-| Add exclude_ids to repository | 1 day | P1 | Pending |
+| Parameterize RAG query filters | 2 days | P0 | ✅ Done (2026-01-31) |
+| Add scorecard composite indexes | 1 day | P0 | ✅ Done (2026-02-01) |
+| Add exclude_ids to repository | 1 day | P1 | ✅ Done (2026-02-01) |
 | Optimize JSON serialization | 2 days | P2 | Pending |
 
-### Phase 4: Security Hardening (~1 week) - NEW
+### Phase 4: Security Hardening (~1 week) - COMPLETE
 | Task | Effort | Priority | Status |
 |------|--------|----------|--------|
-| Fix error message disclosure | 1 day | P0 | Pending |
-| Document rate limiter fail-open | 0.5 days | P1 | Pending |
-| Replace broad exception handlers | 2 days | P2 | Pending |
+| Fix error message disclosure | 1 day | P0 | ✅ Done (2026-01-31) |
+| Document rate limiter fail-open | 0.5 days | P1 | ✅ Done (2026-02-01) |
+| Replace broad exception handlers | 2 days | P2 | ✅ Done (2026-02-01) |
 
 ### Phase 5: Distributed Reliability (~4 weeks)
 | Task | Effort | Priority | Status |

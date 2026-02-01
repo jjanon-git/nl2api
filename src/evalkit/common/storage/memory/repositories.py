@@ -51,9 +51,14 @@ class InMemoryTestCaseRepository:
         review_status: ReviewStatus | None = None,
         limit: int = 100,
         offset: int = 0,
+        exclude_ids: set[str] | None = None,
     ) -> list[TestCase]:
         """List test cases with optional filters."""
         results = list(self._store.values())
+
+        # Apply exclusion filter first (most efficient)
+        if exclude_ids:
+            results = [tc for tc in results if tc.id not in exclude_ids]
 
         # Apply filters
         if tags:

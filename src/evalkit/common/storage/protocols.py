@@ -48,6 +48,7 @@ class TestCaseRepository(Protocol):
         review_status: ReviewStatus | None = None,
         limit: int = 100,
         offset: int = 0,
+        exclude_ids: set[str] | None = None,
     ) -> list[TestCase]:
         """
         List test cases with optional filters.
@@ -60,6 +61,7 @@ class TestCaseRepository(Protocol):
             review_status: Filter by review status (pending, approved, rejected, needs_revision)
             limit: Maximum results to return
             offset: Number of results to skip (for pagination)
+            exclude_ids: Set of test case IDs to exclude (for resume functionality)
         """
         ...
 
