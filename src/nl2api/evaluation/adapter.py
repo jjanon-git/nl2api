@@ -45,7 +45,7 @@ class NL2APITargetAdapter:
 
     Example usage:
         ```python
-        from src.evaluation.packs import NL2APIPack
+        from src.nl2api.evaluation import NL2APIPack
 
         # Create orchestrator with agents
         orchestrator = NL2APIOrchestrator(llm=llm, agents={"estimates": agent})

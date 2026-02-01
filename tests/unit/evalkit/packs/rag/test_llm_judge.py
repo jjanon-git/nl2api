@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.evalkit.contracts import LLMJudgeConfig
-from src.evaluation.packs.rag.llm_judge import (
+from src.rag.evaluation.llm_judge import (
     ClaimVerificationResult,
     JudgeResult,
     LLMJudge,

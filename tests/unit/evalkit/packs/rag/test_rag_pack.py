@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.evalkit.contracts import EvalContext, Scorecard, TestCase
-from src.evaluation.packs.rag import RAGPack
-from src.evaluation.packs.rag.pack import RAGPackConfig
+from src.rag.evaluation import RAGPack
+from src.rag.evaluation.pack import RAGPackConfig
 
 
 @pytest.fixture
@@ -370,7 +370,7 @@ class TestRAGPackIntegration:
     @pytest.mark.asyncio
     async def test_full_evaluation_with_llm_judge(self):
         """Evaluation with mock LLM judge."""
-        from src.evaluation.packs.rag.llm_judge import JudgeResult
+        from src.rag.evaluation.llm_judge import JudgeResult
 
         mock_judge = MagicMock()
         mock_judge.evaluate_relevance = AsyncMock(

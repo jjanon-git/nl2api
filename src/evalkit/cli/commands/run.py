@@ -33,7 +33,7 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.evaluation.packs import NL2APIPack
+from src.nl2api.evaluation import NL2APIPack
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ This is the primary entry point for the evaluation framework.
 
 Usage:
     from src.evalkit.core import Evaluator
-    from src.evaluation.packs import NL2APIPack
+    from src.nl2api.evaluation import NL2APIPack
 
     # Create evaluator with pack
     pack = NL2APIPack()

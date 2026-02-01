@@ -426,12 +426,13 @@ class TestRegistryIntegrationE2E:
         assert pack is not None
         assert pack.name == "nl2api"
 
-    def test_pack_in_shim_registry(self):
-        """NL2APIPack is in compatibility shim registry."""
-        from src.evaluation.packs import PACKS
+    def test_pack_in_registry(self):
+        """NL2APIPack is in pack registry."""
+        from src.evalkit.packs import get_available_packs
 
-        assert "nl2api" in PACKS
-        pack = PACKS["nl2api"]()
+        packs = get_available_packs()
+        assert "nl2api" in packs
+        pack = packs["nl2api"]()
         assert pack.name == "nl2api"
 
 

@@ -7,7 +7,7 @@ Tests content policy violation detection.
 import pytest
 
 from src.evalkit.contracts import TestCase
-from src.evaluation.packs.rag.stages import PolicyComplianceStage
+from src.rag.evaluation.stages import PolicyComplianceStage
 
 
 @pytest.fixture

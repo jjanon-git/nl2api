@@ -126,7 +126,7 @@ async def create_worker_dependencies(args: argparse.Namespace) -> tuple[Any, ...
     )
     from src.evalkit.common.storage import StorageConfig, close_repositories, create_repositories
     from src.evalkit.contracts.evaluation import EvalContext, EvaluationConfig
-    from src.evaluation.packs import NL2APIPack
+    from src.nl2api.evaluation import NL2APIPack
 
     eval_mode = EvalMode(args.mode)
     deps = WorkerDependencies()

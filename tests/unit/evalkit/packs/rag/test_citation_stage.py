@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.evalkit.contracts import EvalContext, TestCase
-from src.evaluation.packs.rag.llm_judge import ClaimVerificationResult
-from src.evaluation.packs.rag.stages import CitationStage
+from src.rag.evaluation.llm_judge import ClaimVerificationResult
+from src.rag.evaluation.stages import CitationStage
 
 
 @pytest.fixture

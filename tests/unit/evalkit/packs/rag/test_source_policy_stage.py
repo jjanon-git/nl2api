@@ -7,7 +7,7 @@ Tests quote-only vs summarize policy enforcement.
 import pytest
 
 from src.evalkit.contracts import TestCase
-from src.evaluation.packs.rag.stages import SourcePolicyStage
+from src.rag.evaluation.stages import SourcePolicyStage
 
 
 @pytest.fixture

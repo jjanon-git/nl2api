@@ -24,7 +24,7 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.evaluation.packs import NL2APIPack
+from src.nl2api.evaluation import NL2APIPack
 
 
 @pytest.fixture
@@ -290,7 +290,7 @@ class TestBatchRunnerWithSemantics:
         """BatchRunner should create NL2APIPack with semantics enabled."""
         from src.evalkit.batch.config import BatchRunnerConfig
         from src.evalkit.batch.runner import BatchRunner
-        from src.evaluation.packs.nl2api import NL2APIPack
+        from src.nl2api.evaluation import NL2APIPack
 
         # Mock repositories
         test_case_repo = MagicMock()
@@ -320,7 +320,7 @@ class TestBatchRunnerWithSemantics:
         """BatchRunner should create NL2APIPack with semantics disabled."""
         from src.evalkit.batch.config import BatchRunnerConfig
         from src.evalkit.batch.runner import BatchRunner
-        from src.evaluation.packs.nl2api import NL2APIPack
+        from src.nl2api.evaluation import NL2APIPack
 
         # Mock repositories
         test_case_repo = MagicMock()

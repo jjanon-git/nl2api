@@ -18,7 +18,7 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.evaluation.packs import NL2APIPack
+from src.nl2api.evaluation import NL2APIPack
 
 
 def _make_metadata(category: str = "temporal", subcategory: str = "test") -> TestCaseMetadata:

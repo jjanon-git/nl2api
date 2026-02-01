@@ -14,7 +14,7 @@ from CONTRACTS import (
     TestCase,
     ToolCall,
 )
-from src.evaluation.packs.nl2api import (
+from src.nl2api.evaluation.pack import (
     ExecutionStage,
     LogicStage,
     NL2APIPack,

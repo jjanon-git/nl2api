@@ -42,7 +42,7 @@ from CONTRACTS import (
 from src.evalkit.batch.config import BatchRunnerConfig
 from src.evalkit.batch.metrics import get_metrics
 from src.evalkit.batch.pricing import calculate_cost
-from src.evaluation.packs import get_pack
+from src.evalkit.packs import get_pack
 
 if TYPE_CHECKING:
     from src.evalkit.common.storage.protocols import (
@@ -437,6 +437,7 @@ class BatchRunner:
             client_type=self.config.client_type,
             client_version=self.config.client_version,
             eval_mode=self.config.eval_mode,
+            pack_name=self.config.pack_name,
         )
 
         # Display results

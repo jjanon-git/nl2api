@@ -563,7 +563,8 @@ class TestPackRegistry:
 
     def test_get_pack_nl2api(self):
         """Verify get_pack('nl2api') returns NL2APIPack."""
-        from src.evaluation.packs import NL2APIPack, get_pack
+        from src.evalkit.packs import get_pack
+        from src.nl2api.evaluation import NL2APIPack
 
         pack = get_pack("nl2api")
         assert isinstance(pack, NL2APIPack)
@@ -571,7 +572,8 @@ class TestPackRegistry:
 
     def test_get_pack_rag(self):
         """Verify get_pack('rag') returns RAGPack."""
-        from src.evaluation.packs import RAGPack, get_pack
+        from src.evalkit.packs import get_pack
+        from src.rag.evaluation import RAGPack
 
         pack = get_pack("rag")
         assert isinstance(pack, RAGPack)
@@ -579,7 +581,7 @@ class TestPackRegistry:
 
     def test_get_pack_invalid(self):
         """Verify get_pack('invalid') raises ValueError with available packs."""
-        from src.evaluation.packs import get_pack
+        from src.evalkit.packs import get_pack
 
         with pytest.raises(ValueError) as exc_info:
             get_pack("invalid_pack")
@@ -592,7 +594,7 @@ class TestPackRegistry:
 
     def test_get_pack_kwargs_passed(self):
         """Verify kwargs are passed to pack constructor."""
-        from src.evaluation.packs import get_pack
+        from src.evalkit.packs import get_pack
 
         # NL2APIPack accepts semantics_enabled kwarg
         pack = get_pack("nl2api", semantics_enabled=True)

@@ -3,7 +3,7 @@ Evaluation Pipeline Implementations
 
 NOTE: This module previously contained SyntaxEvaluator, LogicEvaluator, and
 WaterfallEvaluator. These have been superseded by the pack-based evaluation
-framework. Use NL2APIPack from src.evaluation.packs instead.
+framework. Use NL2APIPack from src.nl2api.evaluation instead.
 
 The evaluation stages are now implemented directly in the pack:
 - SyntaxStage: Validates JSON structure and schema
@@ -11,7 +11,7 @@ The evaluation stages are now implemented directly in the pack:
 - ExecutionStage: API execution comparison (deferred)
 - SemanticsStage: LLM-as-Judge semantic comparison
 
-See src/evaluation/packs/nl2api.py for the current implementations.
+See src/nl2api/evaluation/pack.py for the current implementations.
 """
 
 # This module is kept for potential future use but the main evaluators

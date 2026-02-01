@@ -7,7 +7,7 @@ Tests IR metrics computation: recall@k, precision@k, MRR, NDCG, hit rate.
 import pytest
 
 from src.evalkit.contracts import TestCase
-from src.evaluation.packs.rag.stages import RetrievalStage
+from src.rag.evaluation.stages import RetrievalStage
 
 
 @pytest.fixture

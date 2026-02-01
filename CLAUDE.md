@@ -112,7 +112,7 @@ pytest tests/unit/ -k "entity" -v    # All entity tests
 | `src/rag/` | `pytest tests/unit/rag/ -x` |
 | `src/common/` | `pytest tests/unit/common/ -x` |
 | `src/mcp_servers/` | `pytest tests/unit/mcp_servers/ -x` |
-| `src/evaluation/` | `pytest tests/unit/evaluation/ -x` |
+| `src/evalkit/` | `pytest tests/unit/evalkit/ -x` |
 | Multiple modules | `./scripts/ci-test-changed.sh` or full suite |
 
 **Before committing:** Always run the full unit test suite to catch cross-module regressions.
@@ -376,16 +376,16 @@ docker compose up -d
 ruff check .
 
 # Run single test case evaluation
-.venv/bin/python -m src.evaluation.cli.main run tests/fixtures/search_products.json
+.venv/bin/python -m src.evalkit.cli.main run tests/fixtures/search_products.json
 
 # Load fixtures to database (REQUIRED before batch evaluation)
 .venv/bin/python scripts/load-nl2api-fixtures.py --all
 
 # Run batch evaluation
-.venv/bin/python -m src.evaluation.cli.main batch run --pack nl2api --limit 10
+.venv/bin/python -m src.evalkit.cli.main batch run --pack nl2api --limit 10
 
 # View batch results
-.venv/bin/python -m src.evaluation.cli.main batch list
+.venv/bin/python -m src.evalkit.cli.main batch list
 
 # View metrics in Grafana (after docker compose up -d)
 # Open http://localhost:3000 (default: admin/admin)
@@ -520,7 +520,7 @@ TestCase → NL2APIPack → Scorecard
               └─ Stage 4: SemanticsStage (LLM-as-Judge)
 ```
 
-See `src/evaluation/packs/nl2api.py` for stage implementations.
+See `src/evalkit/packs/nl2api.py` for stage implementations.
 
 ### When to Modify Evaluation Code
 
@@ -588,7 +588,7 @@ When adding or modifying test fixtures in `tests/fixtures/`:
 
 4. **Use `BatchMetrics` for aggregate metrics**:
    ```python
-   from src.evaluation.batch.metrics import get_metrics
+   from src.evalkit.batch.metrics import get_metrics
 
    metrics = get_metrics()
    metrics.record_test_result(scorecard, batch_id, tags)
@@ -608,7 +608,7 @@ scorecard.notes = "reprocessed"  # Raises error
 
 ### Batch Evaluation Changes
 
-When modifying `src/evaluation/batch/`:
+When modifying `src/evalkit/batch/`:
 
 1. **Checkpoint/resume must be preserved** - Don't break resumable batch runs
 2. **Metrics must be recorded** - Use `BatchMetrics` for all test results
@@ -636,7 +636,7 @@ When modifying `src/evaluation/batch/`:
 **Pack AND Tag selection is REQUIRED:**
 ```bash
 # --pack and --tag are REQUIRED - ensures reproducible, trackable evaluation runs
-.venv/bin/python -m src.evaluation.cli.main batch run --pack nl2api --tag entity_resolution --label my-test
+.venv/bin/python -m src.evalkit.cli.main batch run --pack nl2api --tag entity_resolution --label my-test
 
 # Available packs, tags, and modes
 batch run --pack nl2api --tag entity_resolution --label <label>  # Entity resolution accuracy
@@ -656,7 +656,7 @@ batch run --pack rag --tag rag --label <label>                   # RAG retrieval
 python scripts/load-rag-fixtures.py
 
 # 2. Run RAG evaluation with proper tracking
-python -m src.evaluation.cli.main batch run --pack rag --tag rag --label my-experiment
+python -m src.evalkit.cli.main batch run --pack rag --tag rag --label my-experiment
 
 # 3. View results in Grafana at http://localhost:3000
 ```
@@ -677,7 +677,7 @@ python -m src.evaluation.cli.main batch run --pack rag --tag rag --label my-expe
 
 **When creating a new evaluation pack (e.g., RAG, code-gen, etc.), follow this checklist:**
 
-1. **Create the pack implementation** in `src/evaluation/packs/`:
+1. **Create the pack implementation** in `src/evalkit/packs/`:
    ```python
    from src.contracts.evaluation import EvaluationPack, Stage
 
@@ -695,7 +695,7 @@ python -m src.evaluation.cli.main batch run --pack rag --tag rag --label my-expe
    - First stage should typically be a GATE (stops pipeline on failure)
    - Use descriptive stage names (they appear in metrics)
 
-3. **Add pack-specific unit tests** in `tests/unit/evaluation/test_packs.py`
+3. **Add pack-specific unit tests** in `tests/unit/evalkit/test_packs.py`
 
 4. **Update dashboards for the new pack**:
    - The evaluation dashboard (`config/grafana/provisioning/dashboards/json/evaluation-dashboard.json`) uses `pack_name` label for filtering
@@ -1070,9 +1070,9 @@ Add OTEL spans for:
 | Batch runner | Spans for batch lifecycle + `BatchMetrics` for aggregates |
 | Scorers | Spans with scoring details and `duration_ms` |
 
-Use `src.evaluation.batch.metrics.BatchMetrics` for aggregate metrics:
+Use `src.evalkit.batch.metrics.BatchMetrics` for aggregate metrics:
 ```python
-from src.evaluation.batch.metrics import get_metrics
+from src.evalkit.batch.metrics import get_metrics
 
 metrics = get_metrics()
 metrics.record_test_result(scorecard, batch_id, tags)
@@ -1212,7 +1212,7 @@ Application (OTLP) → OTEL Collector (4317) → Prometheus Exporter (8889) → 
 
 **Prerequisite for batch evaluation metrics:**
 1. Load fixtures: `python scripts/load-nl2api-fixtures.py --all`
-2. Run batch: `python -m src.evaluation.cli.main batch run --pack nl2api --limit 10`
+2. Run batch: `python -m src.evalkit.cli.main batch run --pack nl2api --limit 10`
 3. View in Grafana: http://localhost:3000 → "NL2API Evaluation & Accuracy" dashboard
 
 ## Current Status
@@ -1295,4 +1295,7 @@ src/
 | `docs/accuracy-testing.md` | Accuracy testing pattern documentation |
 | `docs/evaluation-data.md` | Evaluation data and fixture documentation |
 
-**Note:** Old import paths (`src/contracts`, `src/common`, `src/evaluation`) still work via compatibility shims but new code should use `src/evalkit/*`.
+**Note:** The codebase has been migrated to use `src/evalkit/*` for all evaluation framework code. Import packs from their application modules:
+- `from src.nl2api.evaluation import NL2APIPack`
+- `from src.rag.evaluation import RAGPack`
+- `from src.evalkit.packs import get_pack`

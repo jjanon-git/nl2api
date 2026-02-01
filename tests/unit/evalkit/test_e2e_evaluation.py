@@ -22,7 +22,7 @@ from src.evalkit.core import (
     JSONExporter,
     SummaryExporter,
 )
-from src.evaluation.packs import NL2APIPack
+from src.nl2api.evaluation import NL2APIPack
 
 # =============================================================================
 # E2E Test: NL2API Evaluation

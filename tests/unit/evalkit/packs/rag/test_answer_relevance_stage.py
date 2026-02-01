@@ -9,8 +9,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.evalkit.contracts import EvalContext, TestCase
-from src.evaluation.packs.rag.llm_judge import JudgeResult
-from src.evaluation.packs.rag.stages import AnswerRelevanceStage
+from src.rag.evaluation.llm_judge import JudgeResult
+from src.rag.evaluation.stages import AnswerRelevanceStage
 
 
 @pytest.fixture

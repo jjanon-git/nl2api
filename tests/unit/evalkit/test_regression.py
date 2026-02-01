@@ -373,3 +373,103 @@ class TestRegressionResult:
 
         assert result.previous_value is None
         assert result.is_regression is False
+
+
+class TestGetPreviousBatchMetrics:
+    """Tests for _get_previous_batch_metrics implementation."""
+
+    @pytest.fixture
+    def mock_scorecard_repo(self):
+        """Create a mock scorecard repository with pool."""
+        repo = MagicMock()
+        repo.get_batch_summary = AsyncMock()
+        repo.get_by_batch = AsyncMock()
+        repo.pool = MagicMock()
+        repo.pool.fetchrow = AsyncMock()
+        return repo
+
+    @pytest.fixture
+    def detector(self, mock_scorecard_repo):
+        """Create a RegressionDetector instance."""
+        return RegressionDetector(mock_scorecard_repo)
+
+    @pytest.mark.asyncio
+    async def test_no_client_type_returns_none(self, detector, mock_scorecard_repo):
+        """Test that None client_type returns None immediately."""
+        result = await detector._get_previous_batch_metrics("batch-123", client_type=None)
+
+        assert result is None
+        # Should not query the database
+        mock_scorecard_repo.get_by_batch.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_no_current_scorecards_returns_none(self, detector, mock_scorecard_repo):
+        """Test that empty current batch returns None."""
+        mock_scorecard_repo.get_by_batch.return_value = []
+
+        result = await detector._get_previous_batch_metrics("batch-123", client_type="internal")
+
+        assert result is None
+
+    @pytest.mark.asyncio
+    async def test_no_previous_batch_found_returns_none(self, detector, mock_scorecard_repo):
+        """Test when no previous batch exists for the client type."""
+        from datetime import UTC, datetime
+
+        # Mock current batch scorecards
+        mock_scorecard = MagicMock()
+        mock_scorecard.created_at = datetime(2026, 1, 24, 10, 0, 0, tzinfo=UTC)
+        mock_scorecard_repo.get_by_batch.return_value = [mock_scorecard]
+
+        # No previous batch found
+        mock_scorecard_repo.pool.fetchrow.return_value = None
+
+        result = await detector._get_previous_batch_metrics("batch-123", client_type="internal")
+
+        assert result is None
+        mock_scorecard_repo.pool.fetchrow.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_previous_batch_found_returns_metrics(self, detector, mock_scorecard_repo):
+        """Test when a previous batch is found."""
+        from datetime import UTC, datetime
+
+        # Mock current batch scorecards
+        mock_current_scorecard = MagicMock()
+        mock_current_scorecard.created_at = datetime(2026, 1, 24, 10, 0, 0, tzinfo=UTC)
+        mock_scorecard_repo.get_by_batch.return_value = [mock_current_scorecard]
+
+        # Mock previous batch lookup
+        mock_scorecard_repo.pool.fetchrow.return_value = {"batch_id": "prev-batch-456"}
+
+        # Mock previous batch metrics
+        mock_scorecard_repo.get_batch_summary.return_value = {
+            "total": 100,
+            "passed": 85,
+            "failed": 15,
+            "avg_score": 0.82,
+        }
+        # Mock scorecards for latency
+        mock_prev_scorecard = MagicMock()
+        mock_prev_scorecard.total_latency_ms = 120
+        # Need to return different values for different batch_ids
+        mock_scorecard_repo.get_by_batch.side_effect = [
+            [mock_current_scorecard],  # First call for current batch
+            [mock_prev_scorecard] * 100,  # Second call for previous batch latency
+        ]
+
+        result = await detector._get_previous_batch_metrics("batch-123", client_type="internal")
+
+        assert result is not None
+        assert result["pass_rate"] == 0.85
+        assert result["avg_score"] == 0.82
+        assert result["avg_latency_ms"] == 120
+
+    @pytest.mark.asyncio
+    async def test_database_error_returns_none(self, detector, mock_scorecard_repo):
+        """Test that database errors are handled gracefully."""
+        mock_scorecard_repo.get_by_batch.side_effect = Exception("Database connection error")
+
+        result = await detector._get_previous_batch_metrics("batch-123", client_type="internal")
+
+        assert result is None

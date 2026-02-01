@@ -229,11 +229,11 @@ def get_pack(name: str):
 
 ### Tests
 
-**File:** `tests/unit/evaluation/packs/rag/test_retrieval_stage.py`
+**File:** `tests/unit/evalkit/packs/rag/test_retrieval_stage.py`
 
 ```python
 import pytest
-from src.evaluation.packs.rag.stages import RetrievalStage
+from src.rag.evaluation.stages import RetrievalStage
 from src.contracts.core import TestCase
 
 @pytest.fixture
@@ -366,11 +366,11 @@ Enable running RAG evaluation via CLI.
 
 #### 1. Update Batch Runner
 
-**File:** `src/evaluation/batch/runner.py`
+**File:** `src/evalkit/batch/runner.py`
 
 ```python
-from src.evaluation.core.evaluator import Evaluator
-from src.evaluation.packs import get_pack
+from src.evalkit.core.evaluator import Evaluator
+from src.evalkit.packs import get_pack
 
 class BatchRunner:
     def __init__(self, pack_name: str = "nl2api", config: dict | None = None):

@@ -17,7 +17,7 @@ from CONTRACTS import (
     ToolCall,
 )
 from src.evalkit.core.evaluator import Evaluator, EvaluatorConfig
-from src.evaluation.packs.nl2api import NL2APIPack
+from src.nl2api.evaluation import NL2APIPack
 
 # =============================================================================
 # Mock Target System

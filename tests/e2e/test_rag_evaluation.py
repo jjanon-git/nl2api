@@ -469,12 +469,13 @@ class TestRAGRegistryE2E:
         assert pack is not None
         assert pack.name == "rag"
 
-    def test_pack_in_shim_registry(self):
-        """RAGPack is in compatibility shim registry."""
-        from src.evaluation.packs import PACKS
+    def test_pack_in_registry(self):
+        """RAGPack is in pack registry."""
+        from src.evalkit.packs import get_available_packs
 
-        assert "rag" in PACKS
-        pack = PACKS["rag"]()
+        packs = get_available_packs()
+        assert "rag" in packs
+        pack = packs["rag"]()
         assert pack.name == "rag"
 
 
