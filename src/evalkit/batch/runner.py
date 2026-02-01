@@ -122,6 +122,7 @@ class BatchRunner:
         elif self.config.pack_name == "rag":
             pack_kwargs = {
                 "parallel_stages": self.config.parallel_stages,
+                "llm_provider": self.config.llm_provider,
             }
 
         # Get the evaluation pack

@@ -637,26 +637,37 @@ Provide a clear, factual answer with citations. Use [Source N] to cite specific 
             user_prompt = RAG_USER_PROMPT.format(query=query, context=context)
 
             if llm_provider == "openai":
-                # Use higher token limit for gpt-5-nano which uses reasoning tokens
-                # The model needs ~100-500 reasoning tokens + response tokens
-                # 4096 provides headroom for complex responses
-                response = llm_client.chat.completions.create(
-                    model=llm_model,
-                    max_completion_tokens=4096,
-                    messages=[
-                        {"role": "system", "content": RAG_SYSTEM_PROMPT},
-                        {"role": "user", "content": user_prompt},
-                    ],
-                )
-                generated_answer = response.choices[0].message.content or ""
-                input_tokens = response.usage.prompt_tokens
-                output_tokens = response.usage.completion_tokens
+                # gpt-5-nano uses reasoning tokens internally. Start with 4096 tokens,
+                # retry with 8192 if response is empty (model exhausted tokens on reasoning)
+                max_tokens_attempts = [4096, 8192]
+                generated_answer = ""
+                input_tokens = 0
+                output_tokens = 0
 
-                # Warn if response is empty despite using tokens
+                for max_tokens in max_tokens_attempts:
+                    response = llm_client.chat.completions.create(
+                        model=llm_model,
+                        max_completion_tokens=max_tokens,
+                        messages=[
+                            {"role": "system", "content": RAG_SYSTEM_PROMPT},
+                            {"role": "user", "content": user_prompt},
+                        ],
+                    )
+                    generated_answer = response.choices[0].message.content or ""
+                    input_tokens += response.usage.prompt_tokens
+                    output_tokens += response.usage.completion_tokens
+
+                    if generated_answer:
+                        break  # Got a response, no retry needed
+
+                    # Log retry attempt
+                    if max_tokens < max_tokens_attempts[-1]:
+                        logger.info(f"Empty response with {max_tokens} tokens, retrying with more")
+
+                # Final warning if still empty after all retries
                 if not generated_answer and output_tokens > 0:
                     logger.warning(
-                        f"Empty response from OpenAI despite {output_tokens} completion tokens "
-                        f"(finish_reason={response.choices[0].finish_reason})"
+                        f"Empty response from OpenAI despite retries ({output_tokens} total tokens)"
                     )
             else:
                 response = llm_client.messages.create(

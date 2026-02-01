@@ -715,6 +715,11 @@ async def _batch_run_async(
             "generation": "generation",  # Full RAG with LLM generation
         }
 
+        # Determine LLM provider for threshold selection (RAG pack uses provider-specific thresholds)
+        rag_llm_provider: str | None = None
+        if pack == "rag" and mode == "generation":
+            rag_llm_provider = os.getenv("EVAL_LLM_PROVIDER", "openai")
+
         # Handle distributed mode
         if distributed:
             await _run_distributed_batch(
@@ -743,6 +748,7 @@ async def _batch_run_async(
             client_version=client_version,
             eval_mode=eval_mode_map.get(mode, "orchestrator"),
             parallel_stages=parallel_stages,
+            llm_provider=rag_llm_provider,
             semantics_enabled=semantics_enabled,
             semantics_model=semantics_model,
             semantics_pass_threshold=semantics_threshold,

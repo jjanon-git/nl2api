@@ -52,6 +52,41 @@ tracer = get_tracer(__name__)
 
 
 @dataclass
+class ProviderThresholds:
+    """Provider-specific thresholds tuned for different LLM characteristics."""
+
+    retrieval: float = 0.5
+    context_relevance: float = 0.35
+    faithfulness: float = 0.4
+    answer_relevance: float = 0.5
+    citation: float = 0.6
+
+
+# Tuned thresholds per provider (based on evaluation runs)
+PROVIDER_THRESHOLDS: dict[str, ProviderThresholds] = {
+    # OpenAI gpt-5-nano (48 samples, 2026-01-31):
+    # - faithfulness avg=0.17: synthesizes rather than quotes
+    # - answer_relevance avg=0.56: borderline
+    "openai": ProviderThresholds(
+        retrieval=0.5,
+        context_relevance=0.35,
+        faithfulness=0.15,  # Low: model synthesizes info
+        answer_relevance=0.45,
+        citation=0.6,
+    ),
+    # Anthropic claude-3-5-haiku (baseline):
+    # Higher faithfulness expected due to more literal citation style
+    "anthropic": ProviderThresholds(
+        retrieval=0.5,
+        context_relevance=0.35,
+        faithfulness=0.4,
+        answer_relevance=0.5,
+        citation=0.6,
+    ),
+}
+
+
+@dataclass
 class RAGPackConfig:
     """Configuration for RAGPack."""
 
@@ -65,14 +100,16 @@ class RAGPackConfig:
     policy_compliance_enabled: bool = True
     rejection_calibration_enabled: bool = True
 
-    # Stage thresholds (pass thresholds)
-    # Tuned based on real-world RAG evaluation data:
-    # - SEC filings contain boilerplate that dilutes context relevance
-    # - LLM-generated responses synthesize info rather than directly quoting
+    # LLM provider for threshold selection (openai, anthropic)
+    # Set to None to use explicit thresholds below
+    llm_provider: str | None = None
+
+    # Stage thresholds - used when llm_provider is None
+    # Otherwise, thresholds are loaded from PROVIDER_THRESHOLDS
     retrieval_threshold: float = 0.5
-    context_relevance_threshold: float = 0.35  # avg=0.43, threshold=0.35 → ~67% pass
-    faithfulness_threshold: float = 0.4  # avg=0.49, threshold=0.4 → ~47% pass
-    answer_relevance_threshold: float = 0.5  # avg=0.66, threshold=0.5 → ~70% pass
+    context_relevance_threshold: float = 0.35
+    faithfulness_threshold: float = 0.4
+    answer_relevance_threshold: float = 0.5
     citation_threshold: float = 0.6
 
     # Weight overrides (None = use default)
@@ -82,6 +119,18 @@ class RAGPackConfig:
     # Default False for Anthropic compatibility; set True for OpenAI which has
     # token-based limits rather than concurrent connection limits
     parallel_stages: bool = False
+
+    def get_thresholds(self) -> ProviderThresholds:
+        """Get thresholds based on provider or explicit config."""
+        if self.llm_provider and self.llm_provider in PROVIDER_THRESHOLDS:
+            return PROVIDER_THRESHOLDS[self.llm_provider]
+        return ProviderThresholds(
+            retrieval=self.retrieval_threshold,
+            context_relevance=self.context_relevance_threshold,
+            faithfulness=self.faithfulness_threshold,
+            answer_relevance=self.answer_relevance_threshold,
+            citation=self.citation_threshold,
+        )
 
 
 class RAGPack:
@@ -150,27 +199,24 @@ class RAGPack:
     def _build_stages(self) -> list[Any]:
         """Build the list of enabled stages."""
         stages: list[Any] = []
+        thresholds = self.config.get_thresholds()
 
         # RAG Triad stages
         if self.config.retrieval_enabled:
-            stages.append(RetrievalStage(pass_threshold=self.config.retrieval_threshold))
+            stages.append(RetrievalStage(pass_threshold=thresholds.retrieval))
 
         if self.config.context_relevance_enabled:
-            stages.append(
-                ContextRelevanceStage(pass_threshold=self.config.context_relevance_threshold)
-            )
+            stages.append(ContextRelevanceStage(pass_threshold=thresholds.context_relevance))
 
         if self.config.faithfulness_enabled:
-            stages.append(FaithfulnessStage(pass_threshold=self.config.faithfulness_threshold))
+            stages.append(FaithfulnessStage(pass_threshold=thresholds.faithfulness))
 
         if self.config.answer_relevance_enabled:
-            stages.append(
-                AnswerRelevanceStage(pass_threshold=self.config.answer_relevance_threshold)
-            )
+            stages.append(AnswerRelevanceStage(pass_threshold=thresholds.answer_relevance))
 
         # Domain gates
         if self.config.citation_enabled:
-            stages.append(CitationStage(pass_threshold=self.config.citation_threshold))
+            stages.append(CitationStage(pass_threshold=thresholds.citation))
 
         if self.config.source_policy_enabled:
             stages.append(SourcePolicyStage())

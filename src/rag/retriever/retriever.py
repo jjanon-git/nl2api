@@ -257,6 +257,8 @@ class HybridRAGRetriever:
         """
 
         async with self._pool.acquire() as conn:
+            # Use explicit 60s timeout for hybrid search query (default is 60s but
+            # under concurrent load the pool acquire can delay, making total time > 60s)
             rows = await conn.fetch(
                 sql,
                 query_embedding,
@@ -265,6 +267,7 @@ class HybridRAGRetriever:
                 self._vector_weight,
                 self._keyword_weight,
                 threshold,
+                timeout=60.0,
             )
 
         results = []

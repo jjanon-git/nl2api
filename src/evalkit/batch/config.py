@@ -62,6 +62,12 @@ class BatchRunnerConfig(BaseModel):
         description="Run stages in parallel (use True for OpenAI, False for Anthropic)",
     )
 
+    # LLM provider for threshold selection
+    llm_provider: str | None = Field(
+        default=None,
+        description="LLM provider (openai, anthropic) - used for provider-specific thresholds",
+    )
+
     # Semantics stage configuration
     semantics_enabled: bool = Field(
         default=False,
