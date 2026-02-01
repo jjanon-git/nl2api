@@ -10,6 +10,7 @@ Common issues and their solutions for the Evalkit project.
 | Grafana shows no data | Check metric names have `nl2api_` prefix and `_total` suffix for counters |
 | Batch eval fails silently | Run `python scripts/load-nl2api-fixtures.py --all` first |
 | Orchestrator fails with "API key not set" | Pass router explicitly to avoid hidden NL2APIConfig dependency |
+| "Unexpected keyword argument" after refactor | Kill old server process and restart (code changes not picked up) |
 
 ## Grafana Issues
 
@@ -104,6 +105,20 @@ WHERE batch_id = 'YOUR_BATCH_ID';
 1. Use Batch API for high-volume operations
 2. Enable exponential backoff (configured in `tests/accuracy/core/config.py`)
 3. Consider tier1 tests first before running full suite
+
+## Server/Process Issues
+
+### "Unexpected keyword argument" After Code Changes
+
+When refactoring code that adds new parameters to method signatures:
+
+1. **Root cause**: Long-running servers (Streamlit, FastAPI) keep old code in memory
+2. **Check running processes**: `ps aux | grep -E "(streamlit|uvicorn)" | grep -v grep`
+3. **Kill old processes**: `kill <PID>` for each stale process
+4. **Restart with fresh code**: `.venv/bin/python3 -m streamlit run src/rag/ui/app.py`
+5. **Verify new process**: Check the process start time matches expectation
+
+**Prevention**: After significant refactors, always restart long-running servers before testing.
 
 ## Entity Resolution Issues
 

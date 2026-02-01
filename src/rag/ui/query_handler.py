@@ -29,19 +29,20 @@ from src.rag.ui.config import RAGUIConfig
 logger = logging.getLogger(__name__)
 
 # Temporal keywords that indicate user wants the most recent data
+# Note: "last" is NOT included - "last year" means previous year, not latest
 TEMPORAL_KEYWORDS = {
     "latest",
     "recent",
-    "last",
     "most recent",
     "current",
     "newest",
     "this year",
-    "fiscal 2024",
-    "fy2024",
-    "fy 2024",
-    "2024",
 }
+
+# Pattern for "last year" which means previous year, not latest
+import re
+
+LAST_YEAR_PATTERN = re.compile(r"\blast\s+year\b", re.IGNORECASE)
 
 # Recency boost factor per year difference (e.g., 0.05 = 5% boost per year newer)
 RECENCY_BOOST_PER_YEAR = 0.05
@@ -205,128 +206,132 @@ class RAGQueryHandler:
             logger.warning(f"Entity resolution failed: {e}")
             return None
 
-    def _detect_temporal_intent(self, query: str) -> bool:
-        """Detect if query indicates user wants the most recent data."""
-        query_lower = query.lower()
-        return any(keyword in query_lower for keyword in TEMPORAL_KEYWORDS)
+    def _detect_temporal_intent(self, query: str) -> tuple[bool, int | None]:
+        """
+        Detect temporal intent in query.
 
-    async def _retrieve_for_company(
+        Returns:
+            Tuple of (wants_latest, target_year):
+            - wants_latest=True, target_year=None: filter to most recent fiscal year
+            - wants_latest=False, target_year=2024: filter to specific year
+            - wants_latest=False, target_year=None: no temporal filtering
+        """
+        from datetime import datetime
+
+        query_lower = query.lower()
+
+        # Check for "last year" pattern - means previous calendar year
+        if LAST_YEAR_PATTERN.search(query):
+            current_year = datetime.now().year
+            target_year = current_year - 1
+            logger.info(f"Detected 'last year' intent - targeting fiscal year {target_year}")
+            return (False, target_year)
+
+        # Check for explicit year mentions (e.g., "2024", "fiscal 2024")
+        year_match = re.search(r"\b(20\d{2})\b", query)
+        if year_match:
+            target_year = int(year_match.group(1))
+            logger.info(f"Detected explicit year {target_year} in query")
+            return (False, target_year)
+
+        # Check for "latest/most recent" keywords
+        if any(keyword in query_lower for keyword in TEMPORAL_KEYWORDS):
+            return (True, None)
+
+        return (False, None)
+
+    def _apply_recency_boost(
         self,
-        query: str,
-        ticker: str,
-        top_k: int,
+        results: list[RetrievalResult],
         latest_only: bool = False,
+        target_year: int | None = None,
     ) -> list[RetrievalResult]:
         """
-        Retrieve chunks filtered to a specific company.
+        Apply recency boost to retrieval results based on fiscal year.
+
+        Newer documents get higher scores. Can filter to latest year or a specific target year.
 
         Args:
-            query: The search query
-            ticker: Company ticker to filter by
-            top_k: Number of results to return
-            latest_only: If True, filter to most recent fiscal year only
+            results: List of retrieval results
+            latest_only: If True, filter to only the most recent fiscal year
+            target_year: If set, filter to this specific fiscal year
+
+        Returns:
+            Results with adjusted scores, sorted by score descending
         """
-        if self._embedder is None:
-            raise RuntimeError("Embedder not initialized")
+        if not results:
+            return results
 
-        # Generate query embedding
-        embedding = await self._embedder.embed(query)
-        embedding_str = "[" + ",".join(str(x) for x in embedding) + "]"
+        # Find max fiscal year across all results
+        max_fiscal_year = 0
+        for r in results:
+            fy = r.metadata.get("fiscal_year") if r.metadata else None
+            if fy:
+                try:
+                    max_fiscal_year = max(max_fiscal_year, int(fy))
+                except (ValueError, TypeError):
+                    pass
 
-        async with self._pool.acquire() as conn:
-            async with conn.transaction():
-                await conn.execute("SET LOCAL enable_indexscan = off")
+        if not max_fiscal_year:
+            return results  # No fiscal year data, return as-is
 
-                # Get max fiscal year for recency calculations (and filtering if latest_only)
-                max_fiscal_year = await conn.fetchval(
-                    """
-                    SELECT MAX((metadata->>'fiscal_year')::int)
-                    FROM rag_documents
-                    WHERE document_type = 'sec_filing'
-                    AND metadata->>'ticker' = $1
-                    AND metadata->>'fiscal_year' IS NOT NULL
-                    """,
-                    ticker,
-                )
+        # Filter to specific target year if requested
+        if target_year:
+            logger.info(f"Filtering to target fiscal year: {target_year}")
+            results = [
+                r
+                for r in results
+                if r.metadata
+                and r.metadata.get("fiscal_year")
+                and int(r.metadata.get("fiscal_year", 0)) == target_year
+            ]
+            return results
 
-                if latest_only and max_fiscal_year:
-                    # Filter to only the most recent fiscal year
-                    logger.info(f"Filtering to latest fiscal year: {max_fiscal_year}")
-                    rows = await conn.fetch(
-                        """
-                        SELECT
-                            id, content, document_type, domain, field_code,
-                            example_query, example_api_call, metadata,
-                            1 - (embedding <=> $1::vector) as score
-                        FROM rag_documents
-                        WHERE document_type = 'sec_filing'
-                        AND metadata->>'ticker' = $2
-                        AND (metadata->>'fiscal_year')::int = $3
-                        ORDER BY embedding <=> $1::vector
-                        LIMIT $4
-                        """,
-                        embedding_str,
-                        ticker,
-                        max_fiscal_year,
-                        top_k,
-                    )
-                else:
-                    # Return all years, but we'll apply recency boost
-                    rows = await conn.fetch(
-                        """
-                        SELECT
-                            id, content, document_type, domain, field_code,
-                            example_query, example_api_call, metadata,
-                            1 - (embedding <=> $1::vector) as score
-                        FROM rag_documents
-                        WHERE document_type = 'sec_filing'
-                        AND metadata->>'ticker' = $2
-                        ORDER BY embedding <=> $1::vector
-                        LIMIT $3
-                        """,
-                        embedding_str,
-                        ticker,
-                        top_k * 2,  # Fetch more to allow re-ranking
-                    )
+        # Filter to latest year if requested
+        if latest_only:
+            logger.info(f"Filtering to latest fiscal year: {max_fiscal_year}")
+            results = [
+                r
+                for r in results
+                if r.metadata
+                and r.metadata.get("fiscal_year")
+                and int(r.metadata.get("fiscal_year", 0)) == max_fiscal_year
+            ]
+            return results
 
-        results = []
-        for row in rows:
-            metadata = row["metadata"]
-            if isinstance(metadata, str):
-                import json
-
-                metadata = json.loads(metadata)
-
-            base_score = float(row["score"])
-
-            # Apply recency boost if we have fiscal_year data
-            fiscal_year = metadata.get("fiscal_year") if metadata else None
-            if fiscal_year and max_fiscal_year and not latest_only:
-                # Penalize older documents (5% per year older than max)
-                year_diff = max_fiscal_year - int(fiscal_year)
-                recency_factor = 1.0 - (year_diff * RECENCY_BOOST_PER_YEAR)
-                recency_factor = max(0.5, recency_factor)  # Don't penalize more than 50%
-                adjusted_score = base_score * recency_factor
+        # Apply recency boost (penalize older documents)
+        boosted_results = []
+        for r in results:
+            fiscal_year = r.metadata.get("fiscal_year") if r.metadata else None
+            if fiscal_year:
+                try:
+                    year_diff = max_fiscal_year - int(fiscal_year)
+                    recency_factor = 1.0 - (year_diff * RECENCY_BOOST_PER_YEAR)
+                    recency_factor = max(0.5, recency_factor)  # Don't penalize more than 50%
+                    adjusted_score = r.score * recency_factor
+                except (ValueError, TypeError):
+                    adjusted_score = r.score
             else:
-                adjusted_score = base_score
+                adjusted_score = r.score
 
-            results.append(
+            # Create new result with adjusted score
+            boosted_results.append(
                 RetrievalResult(
-                    id=str(row["id"]),
-                    content=row["content"],
-                    document_type=DocumentType(row["document_type"]),
+                    id=r.id,
+                    content=r.content,
+                    document_type=r.document_type,
                     score=adjusted_score,
-                    domain=row["domain"],
-                    field_code=row["field_code"],
-                    example_query=row["example_query"],
-                    example_api_call=row["example_api_call"],
-                    metadata=metadata or {},
+                    domain=r.domain,
+                    field_code=r.field_code,
+                    example_query=r.example_query,
+                    example_api_call=r.example_api_call,
+                    metadata=r.metadata,
                 )
             )
 
-        # Re-sort by adjusted score and limit to top_k
-        results.sort(key=lambda x: x.score, reverse=True)
-        return results[:top_k]
+        # Re-sort by adjusted score
+        boosted_results.sort(key=lambda x: x.score, reverse=True)
+        return boosted_results
 
     async def query(
         self,
@@ -351,38 +356,52 @@ class RAGQueryHandler:
         # Step 1: Check if a specific company is mentioned (uses entity resolver)
         ticker = await self._extract_ticker(question)
 
-        # Step 2: Check for temporal intent (wants latest data)
-        wants_latest = self._detect_temporal_intent(question)
+        # Step 2: Check for temporal intent (wants latest data or specific year)
+        wants_latest, target_year = self._detect_temporal_intent(question)
         if wants_latest:
             logger.info("Detected temporal intent - filtering to latest fiscal year")
+        elif target_year:
+            logger.info(f"Detected temporal intent - filtering to fiscal year {target_year}")
 
         # Step 3: Retrieve relevant chunks
-        # Use small-to-big retrieval if enabled and we're not filtering by ticker
-        # (ticker filtering has its own optimized path)
-        use_small_to_big = self._config.use_small_to_big and not ticker
+        # Use small-to-big retrieval if enabled, otherwise standard retrieval
+        # Both paths support ticker filtering via the retriever
+        use_small_to_big = self._config.use_small_to_big
 
         if ticker:
             logger.info(f"Detected company ticker: {ticker}")
-            chunks = await self._retrieve_for_company(
-                question, ticker, top_k, latest_only=wants_latest
+
+        # Fetch extra results when temporal filtering will be applied
+        needs_temporal_filter = wants_latest or target_year is not None
+        fetch_limit = top_k * 2 if needs_temporal_filter else top_k
+
+        if use_small_to_big:
+            logger.info(
+                "Using small-to-big retrieval" + (f" filtered to {ticker}" if ticker else "")
             )
-        elif use_small_to_big:
-            logger.info("Using small-to-big retrieval (search children, return parents)")
             chunks = await self._retriever.retrieve_with_parents(
                 query=question,
-                limit=top_k,
+                limit=fetch_limit,
                 child_limit=self._config.small_to_big_child_limit,
                 threshold=self._config.retrieval_threshold,
                 use_cache=True,
+                ticker=ticker,  # Entity filtering via retriever
             )
         else:
             chunks = await self._retriever.retrieve(
                 query=question,
                 document_types=[DocumentType.SEC_FILING],
-                limit=top_k,
+                limit=fetch_limit,
                 threshold=self._config.retrieval_threshold,
                 use_cache=True,
+                ticker=ticker,  # Entity filtering via retriever
             )
+
+        # Step 3b: Apply recency boost and temporal filtering
+        chunks = self._apply_recency_boost(
+            chunks, latest_only=wants_latest, target_year=target_year
+        )
+        chunks = chunks[:top_k]  # Trim to requested limit after re-ranking
 
         # Step 4: Build context from chunks
         context = self._build_context(chunks)
@@ -398,8 +417,10 @@ class RAGQueryHandler:
                 "chunks_retrieved": len(chunks),
                 "model": self._config.llm_model,
                 "ticker_detected": ticker,
-                "temporal_filter_applied": wants_latest,
-                "retrieval_type": "small_to_big" if use_small_to_big else "standard",
+                "temporal_filter_applied": wants_latest or target_year is not None,
+                "target_fiscal_year": target_year,
+                "retrieval_type": "small_to_big" if use_small_to_big else "hybrid",
+                "entity_filter_applied": ticker is not None,
             },
         )
 
