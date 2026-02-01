@@ -19,7 +19,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 # Set up telemetry BEFORE imports
-os.environ["NL2API_TELEMETRY_ENABLED"] = "true"
+os.environ["EVALKIT_TELEMETRY_ENABLED"] = "true"
 os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = "http://localhost:4317"
 os.environ["OTEL_SERVICE_NAME"] = "distributed-eval-e2e-test"
 

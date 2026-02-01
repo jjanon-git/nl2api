@@ -29,6 +29,8 @@ After fixing a bug, adding a feature, or debugging an issue, ask yourself:
 | Metrics not appearing | Missing `_total` suffix | Add to `docs/troubleshooting.md` |
 | Batch eval fails silently | No fixtures in DB | Add prerequisite to CLAUDE.md (process) |
 | FastAPI returns 422 for valid JSON | `from __future__ import annotations` breaks introspection | Add comment in affected file (code gotcha) |
+| Batch runs but results empty | Field not set in Scorecard creation | Trace data flow end-to-end before declaring done |
+| Fix applied but batch still broken | Running process started before fix | Kill old process, restart, verify NEW batch_id |
 
 ### Where to Document
 
@@ -52,6 +54,52 @@ Different issues require different artifacts. Choose the right one:
 4. A test that catches the regression
 
 **If you finish a task without updating one of these - you haven't finished.**
+
+---
+
+## CRITICAL: Batch Evaluation Verification
+
+**Never declare a batch evaluation "working" without verifying actual results.**
+
+### Before Declaring Success
+
+1. **Wait for actual results** - At least 5 scorecards must be completed
+2. **Verify data quality** - Check that:
+   - `generated_nl_response` is NOT empty (for generation mode)
+   - Stage results have meaningful scores (not all 0.00)
+   - No "LLM call failed" errors in stage reasons
+3. **Check the right batch** - Verify you're looking at the current batch_id, not old data
+
+### After Code Fixes
+
+When fixing code that affects a running batch:
+
+1. **Kill the old process first** - `pkill -f "batch run"`
+2. **Verify the fix is in the code** - `grep` for the change
+3. **Restart with fresh environment** - Ensure env vars are set
+4. **Verify new process picks up changes** - Check scorecards from the NEW batch_id
+
+### End-to-End Field Tracing
+
+When adding/fixing fields that flow through the pipeline:
+
+1. **Trace the full path**: response generator → runner → pack → Scorecard creation
+2. **Don't stop at the first file** - Follow the data all the way to where it's saved
+3. **Verify in database** - Query the actual stored data, not just code inspection
+
+### Verification Query
+
+```sql
+-- Quick check for batch health
+SELECT
+    COUNT(*) as total,
+    COUNT(CASE WHEN generated_nl_response IS NOT NULL AND generated_nl_response != '' THEN 1 END) as with_response,
+    COUNT(CASE WHEN overall_passed THEN 1 END) as passed
+FROM scorecards
+WHERE batch_id = 'YOUR_BATCH_ID';
+```
+
+**Root cause of past failures:** Shallow verification (checking "is it running?" instead of "are results correct?"), and not following data flow end-to-end through the codebase.
 
 ---
 
@@ -1179,7 +1227,7 @@ These gaps should be addressed as the project matures. If you encounter a situat
 - `NL2API_LLM_PROVIDER`: "anthropic" | "openai"
 - `NL2API_ANTHROPIC_API_KEY`: Claude API key
 - `NL2API_OPENAI_API_KEY`: OpenAI API key
-- `NL2API_TELEMETRY_ENABLED`: "true" to enable OTEL metrics/tracing
+- `EVALKIT_TELEMETRY_ENABLED`: "true" to enable OTEL metrics/tracing
 
 ### Observability Stack
 

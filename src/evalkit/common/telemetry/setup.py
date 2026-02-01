@@ -75,7 +75,8 @@ def init_telemetry(
     """
     Initialize OpenTelemetry instrumentation.
 
-    Call this once at application startup.
+    Call this once at application startup. Can be disabled by setting
+    EVALKIT_TELEMETRY_ENABLED=false environment variable.
 
     Args:
         service_name: Service name for telemetry (overrides config)
@@ -83,13 +84,20 @@ def init_telemetry(
         config: Full telemetry configuration
 
     Returns:
-        True if telemetry was initialized, False if OTEL not available
+        True if telemetry was initialized, False if OTEL not available or disabled
     """
     global _telemetry_initialized, _config, _tracer_provider, _meter_provider
 
     if _telemetry_initialized:
         logger.debug("Telemetry already initialized")
         return _otel_available
+
+    # Check if telemetry is disabled via environment variable
+    telemetry_enabled = os.getenv("EVALKIT_TELEMETRY_ENABLED", "true").lower()
+    if telemetry_enabled in ("false", "0", "no", "off"):
+        logger.info("Telemetry disabled via EVALKIT_TELEMETRY_ENABLED")
+        _telemetry_initialized = True
+        return False
 
     if not _otel_available:
         logger.warning("OpenTelemetry not installed, telemetry disabled")

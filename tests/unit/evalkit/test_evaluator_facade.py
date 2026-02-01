@@ -489,15 +489,20 @@ class TestTraceContextCapture:
 
         mock_span = MagicMock()
         mock_span.get_span_context.return_value = mock_span_context
+        mock_span.__enter__ = MagicMock(return_value=mock_span)
+        mock_span.__exit__ = MagicMock(return_value=None)
 
         system_output = {
             "raw_output": json.dumps([{"tool_name": "get_price", "arguments": {"ticker": "AAPL"}}])
         }
 
-        with patch(
-            "src.evalkit.core.evaluator.otel_trace.get_current_span", return_value=mock_span
-        ):
-            scorecard = await evaluator.evaluate(test_case, system_output)
+        # Mock both the tracer and get_current_span to avoid OTEL SDK interaction
+        with patch("src.evalkit.core.evaluator.tracer") as mock_tracer:
+            mock_tracer.start_as_current_span.return_value = mock_span
+            with patch(
+                "src.evalkit.core.evaluator.otel_trace.get_current_span", return_value=mock_span
+            ):
+                scorecard = await evaluator.evaluate(test_case, system_output)
 
         assert scorecard.trace_id == "abcdef1234567890abcdef1234567890"
         assert scorecard.span_id == "fedcba0987654321"
@@ -507,15 +512,20 @@ class TestTraceContextCapture:
         """Evaluator handles missing trace context gracefully."""
         mock_span = MagicMock()
         mock_span.get_span_context.return_value = None
+        mock_span.__enter__ = MagicMock(return_value=mock_span)
+        mock_span.__exit__ = MagicMock(return_value=None)
 
         system_output = {
             "raw_output": json.dumps([{"tool_name": "get_price", "arguments": {"ticker": "AAPL"}}])
         }
 
-        with patch(
-            "src.evalkit.core.evaluator.otel_trace.get_current_span", return_value=mock_span
-        ):
-            scorecard = await evaluator.evaluate(test_case, system_output)
+        # Mock both the tracer and get_current_span to avoid OTEL SDK interaction
+        with patch("src.evalkit.core.evaluator.tracer") as mock_tracer:
+            mock_tracer.start_as_current_span.return_value = mock_span
+            with patch(
+                "src.evalkit.core.evaluator.otel_trace.get_current_span", return_value=mock_span
+            ):
+                scorecard = await evaluator.evaluate(test_case, system_output)
 
         assert scorecard.trace_id is None
         assert scorecard.span_id is None

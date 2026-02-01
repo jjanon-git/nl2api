@@ -15,7 +15,7 @@ import sys
 import time
 
 # Ensure telemetry is enabled
-os.environ["NL2API_TELEMETRY_ENABLED"] = "true"
+os.environ["EVALKIT_TELEMETRY_ENABLED"] = "true"
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

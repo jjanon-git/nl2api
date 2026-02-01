@@ -251,7 +251,7 @@ NL2API_OPENAI_API_KEY=sk-...
 EVAL_BACKEND=postgres  # postgres | memory
 
 # Telemetry
-NL2API_TELEMETRY_ENABLED=true
+EVALKIT_TELEMETRY_ENABLED=true
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317
 ```
 
