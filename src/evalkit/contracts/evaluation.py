@@ -239,6 +239,16 @@ class Scorecard(BaseModel):
         description="Service Bus message ID for correlation",
     )
 
+    # Observability - Trace Correlation
+    trace_id: str | None = Field(
+        default=None,
+        description="OpenTelemetry trace ID (32 hex chars) for Jaeger lookup",
+    )
+    span_id: str | None = Field(
+        default=None,
+        description="OpenTelemetry span ID (16 hex chars) for root evaluation span",
+    )
+
     # Metrics
     total_latency_ms: int = Field(
         default=0,

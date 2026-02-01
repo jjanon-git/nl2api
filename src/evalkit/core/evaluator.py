@@ -26,6 +26,8 @@ from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any, Protocol, runtime_checkable
 
+from opentelemetry import trace as otel_trace
+
 from CONTRACTS import (
     EvalContext,
     Scorecard,
@@ -35,6 +37,136 @@ from CONTRACTS import (
 from src.evalkit.common.telemetry import get_tracer
 
 tracer = get_tracer(__name__)
+
+
+def _get_trace_context() -> tuple[str | None, str | None]:
+    """
+    Extract trace_id and span_id from the current span context.
+
+    Returns:
+        Tuple of (trace_id, span_id) as hex strings, or (None, None) if no active span.
+    """
+    span = otel_trace.get_current_span()
+    if span is None:
+        return None, None
+
+    ctx = span.get_span_context()
+    if ctx is None or not ctx.is_valid:
+        return None, None
+
+    # Format as hex strings (trace_id is 128-bit/32 chars, span_id is 64-bit/16 chars)
+    trace_id = format(ctx.trace_id, "032x")
+    span_id = format(ctx.span_id, "016x")
+    return trace_id, span_id
+
+
+def _add_debug_attributes_to_span(span: Any, result: Any) -> None:
+    """
+    Add debugging attributes to a span from StageResult.
+
+    Extracts commonly useful artifacts and adds them as span attributes
+    for easier debugging in Jaeger/tracing UIs.
+
+    Args:
+        span: The OTEL span to add attributes to
+        result: StageResult with artifacts to extract
+    """
+    if not result.artifacts:
+        return
+
+    artifacts = result.artifacts
+
+    # NL2API Logic stage: tool call mismatches
+    if "missing_calls" in artifacts and artifacts["missing_calls"]:
+        tools = ", ".join(tc.get("tool_name", "?") for tc in artifacts["missing_calls"][:5])
+        span.set_attribute("debug.missing_tools", tools)
+
+    if "extra_calls" in artifacts and artifacts["extra_calls"]:
+        tools = ", ".join(tc.get("tool_name", "?") for tc in artifacts["extra_calls"][:5])
+        span.set_attribute("debug.extra_tools", tools)
+
+    if "argument_diffs" in artifacts and artifacts["argument_diffs"]:
+        diffs = artifacts["argument_diffs"]
+        if isinstance(diffs, list) and diffs:
+            summary = "; ".join(f"{d.get('tool', '?')}: {d.get('field', '?')}" for d in diffs[:3])
+            span.set_attribute("debug.arg_diffs", summary)
+
+    # RAG Retrieval stage: document mismatches
+    if "expected_docs" in artifacts and artifacts["expected_docs"]:
+        docs = ", ".join(str(d)[:50] for d in artifacts["expected_docs"][:5])
+        span.set_attribute("debug.expected_docs", docs)
+
+    if "retrieved_docs" in artifacts and artifacts["retrieved_docs"]:
+        docs = ", ".join(str(d)[:50] for d in artifacts["retrieved_docs"][:5])
+        span.set_attribute("debug.retrieved_docs", docs)
+
+    # RAG IR metrics
+    for metric in ["recall@5", "precision@5", "mrr", "ndcg@5"]:
+        if metric in artifacts:
+            attr_name = f"metrics.{metric.replace('@', '_at_')}"
+            span.set_attribute(attr_name, artifacts[metric])
+
+
+def _make_json_serializable(obj: Any) -> Any:
+    """
+    Recursively convert an object to JSON-serializable form.
+
+    Handles common non-serializable types:
+    - Pydantic models -> dict
+    - dataclasses -> dict
+    - tuples -> lists
+    - sets -> lists
+    - objects with __dict__ -> dict representation
+
+    Args:
+        obj: Any object to convert
+
+    Returns:
+        JSON-serializable version of the object
+    """
+    import json
+    from dataclasses import asdict, is_dataclass
+
+    # None, bool, int, float, str are already serializable
+    if obj is None or isinstance(obj, (bool, int, float, str)):
+        return obj
+
+    # Lists and tuples
+    if isinstance(obj, (list, tuple)):
+        return [_make_json_serializable(item) for item in obj]
+
+    # Sets
+    if isinstance(obj, set):
+        return [_make_json_serializable(item) for item in obj]
+
+    # Dicts
+    if isinstance(obj, dict):
+        return {str(k): _make_json_serializable(v) for k, v in obj.items()}
+
+    # Pydantic models (v2)
+    if hasattr(obj, "model_dump"):
+        return obj.model_dump()
+
+    # Pydantic models (v1) / objects with dict method
+    if hasattr(obj, "dict") and callable(obj.dict):
+        return obj.dict()
+
+    # Dataclasses
+    if is_dataclass(obj) and not isinstance(obj, type):
+        return asdict(obj)
+
+    # FrozenDict or similar
+    if hasattr(obj, "items"):
+        return {str(k): _make_json_serializable(v) for k, v in obj.items()}
+
+    # Last resort: try to convert to string
+    try:
+        # Test if it's already serializable
+        json.dumps(obj)
+        return obj
+    except (TypeError, ValueError):
+        # Convert to string representation
+        return str(obj)
 
 
 # =============================================================================
@@ -186,6 +318,16 @@ class Evaluator:
             span.set_attribute("pack.name", self.pack_name)
             span.set_attribute("test_case.id", test_case.id)
 
+            # Add the query/question for debugging context
+            # Support both NL2API (nl_query) and RAG (input.query) formats
+            query = test_case.nl_query or (
+                test_case.input.get("query") if test_case.input else None
+            )
+            if query:
+                # Truncate to avoid huge spans
+                query_display = query[:200] if len(query) > 200 else query
+                span.set_attribute("test_case.query", query_display)
+
             # Validate
             if self.config.validate_inputs:
                 errors = self.pack.validate_test_case(test_case)
@@ -203,8 +345,22 @@ class Evaluator:
                     result = await stage.evaluate(test_case, system_output, context)
                     stage_results[stage.name] = result
 
+                    # Core result attributes
                     stage_span.set_attribute("result.passed", result.passed)
                     stage_span.set_attribute("result.score", result.score)
+                    stage_span.set_attribute("result.duration_ms", result.duration_ms)
+
+                    # Human-readable reason (truncate for span size limits)
+                    if result.reason:
+                        reason = result.reason[:500] if len(result.reason) > 500 else result.reason
+                        stage_span.set_attribute("result.reason", reason)
+
+                    # Structured error code
+                    if result.error_code:
+                        stage_span.set_attribute("result.error_code", result.error_code.value)
+
+                    # Debug artifacts (pack-specific details)
+                    _add_debug_attributes_to_span(stage_span, result)
 
                 # Check for gate failure
                 if stage.is_gate and not result.passed:
@@ -219,6 +375,13 @@ class Evaluator:
             span.set_attribute("result.overall_score", overall_score)
             span.set_attribute("result.total_latency_ms", total_latency_ms)
 
+            # Capture trace context for Jaeger correlation
+            trace_id, span_id = _get_trace_context()
+
+            # Make system_output JSON-serializable for storage
+            # (stages may add non-serializable objects like ToolCall, Pydantic models, etc.)
+            serializable_output = _make_json_serializable(system_output)
+
             # Build scorecard
             return Scorecard(
                 test_case_id=test_case.id,
@@ -226,9 +389,11 @@ class Evaluator:
                 pack_name=self.pack_name,
                 stage_results=stage_results,
                 stage_weights=self.pack.get_default_weights(),
-                generated_output=system_output,
+                generated_output=serializable_output,
                 worker_id=context.worker_id,
                 total_latency_ms=total_latency_ms,
+                trace_id=trace_id,
+                span_id=span_id,
             )
 
     async def evaluate_with_target(

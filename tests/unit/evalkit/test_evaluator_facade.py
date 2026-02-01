@@ -7,6 +7,7 @@ Tests the generic Evaluator class with various packs and configurations.
 import json
 from dataclasses import dataclass
 from typing import Any
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -16,7 +17,12 @@ from CONTRACTS import (
     TestCase,
     ToolCall,
 )
-from src.evalkit.core.evaluator import Evaluator, EvaluatorConfig
+from src.evalkit.core.evaluator import (
+    Evaluator,
+    EvaluatorConfig,
+    _get_trace_context,
+    _make_json_serializable,
+)
 from src.nl2api.evaluation import NL2APIPack
 
 # =============================================================================
@@ -408,3 +414,271 @@ class TestEvaluatorBatch:
 
         # max_concurrency is 2, so should never exceed that
         assert max_concurrent <= 2
+
+
+# =============================================================================
+# Trace Context Tests
+# =============================================================================
+
+
+class TestTraceContextCapture:
+    """Tests for trace_id and span_id capture in scorecards."""
+
+    def test_get_trace_context_no_active_span(self):
+        """Returns None when no active span."""
+        trace_id, span_id = _get_trace_context()
+        # Without explicit span, may return None or have a default context
+        # depending on OTEL configuration
+        assert trace_id is None or len(trace_id) == 32
+        assert span_id is None or len(span_id) == 16
+
+    def test_get_trace_context_with_mock_span(self):
+        """Returns trace_id and span_id from active span."""
+        # Create mock span context
+        mock_span_context = MagicMock()
+        mock_span_context.is_valid = True
+        mock_span_context.trace_id = 0x1234567890ABCDEF1234567890ABCDEF
+        mock_span_context.span_id = 0x1234567890ABCDEF
+
+        mock_span = MagicMock()
+        mock_span.get_span_context.return_value = mock_span_context
+
+        with patch(
+            "src.evalkit.core.evaluator.otel_trace.get_current_span", return_value=mock_span
+        ):
+            trace_id, span_id = _get_trace_context()
+
+        assert trace_id == "1234567890abcdef1234567890abcdef"
+        assert span_id == "1234567890abcdef"
+
+    def test_get_trace_context_invalid_span(self):
+        """Returns None when span context is invalid."""
+        mock_span_context = MagicMock()
+        mock_span_context.is_valid = False
+
+        mock_span = MagicMock()
+        mock_span.get_span_context.return_value = mock_span_context
+
+        with patch(
+            "src.evalkit.core.evaluator.otel_trace.get_current_span", return_value=mock_span
+        ):
+            trace_id, span_id = _get_trace_context()
+
+        assert trace_id is None
+        assert span_id is None
+
+    @pytest.fixture
+    def evaluator(self) -> Evaluator:
+        return Evaluator(pack=NL2APIPack())
+
+    @pytest.fixture
+    def test_case(self) -> TestCase:
+        return TestCase(
+            id="trace-test-001",
+            nl_query="Get Apple price",
+            expected_tool_calls=(ToolCall(tool_name="get_price", arguments={"ticker": "AAPL"}),),
+        )
+
+    @pytest.mark.asyncio
+    async def test_evaluate_captures_trace_context(self, evaluator, test_case):
+        """Evaluator captures trace_id and span_id in scorecard."""
+        mock_span_context = MagicMock()
+        mock_span_context.is_valid = True
+        mock_span_context.trace_id = 0xABCDEF1234567890ABCDEF1234567890
+        mock_span_context.span_id = 0xFEDCBA0987654321
+
+        mock_span = MagicMock()
+        mock_span.get_span_context.return_value = mock_span_context
+
+        system_output = {
+            "raw_output": json.dumps([{"tool_name": "get_price", "arguments": {"ticker": "AAPL"}}])
+        }
+
+        with patch(
+            "src.evalkit.core.evaluator.otel_trace.get_current_span", return_value=mock_span
+        ):
+            scorecard = await evaluator.evaluate(test_case, system_output)
+
+        assert scorecard.trace_id == "abcdef1234567890abcdef1234567890"
+        assert scorecard.span_id == "fedcba0987654321"
+
+    @pytest.mark.asyncio
+    async def test_evaluate_handles_no_trace_context(self, evaluator, test_case):
+        """Evaluator handles missing trace context gracefully."""
+        mock_span = MagicMock()
+        mock_span.get_span_context.return_value = None
+
+        system_output = {
+            "raw_output": json.dumps([{"tool_name": "get_price", "arguments": {"ticker": "AAPL"}}])
+        }
+
+        with patch(
+            "src.evalkit.core.evaluator.otel_trace.get_current_span", return_value=mock_span
+        ):
+            scorecard = await evaluator.evaluate(test_case, system_output)
+
+        assert scorecard.trace_id is None
+        assert scorecard.span_id is None
+
+    def test_trace_id_format(self):
+        """Verify trace_id is formatted as 32 hex characters."""
+        mock_span_context = MagicMock()
+        mock_span_context.is_valid = True
+        # Test with a trace_id that needs leading zeros
+        mock_span_context.trace_id = 0x00000000000000001234567890ABCDEF
+        mock_span_context.span_id = 0x0000000012345678
+
+        mock_span = MagicMock()
+        mock_span.get_span_context.return_value = mock_span_context
+
+        with patch(
+            "src.evalkit.core.evaluator.otel_trace.get_current_span", return_value=mock_span
+        ):
+            trace_id, span_id = _get_trace_context()
+
+        # Should be zero-padded to correct length
+        assert len(trace_id) == 32
+        assert len(span_id) == 16
+        assert trace_id == "00000000000000001234567890abcdef"
+        assert span_id == "0000000012345678"
+
+
+# =============================================================================
+# JSON Serialization Tests
+# =============================================================================
+
+
+class TestMakeJsonSerializable:
+    """Tests for _make_json_serializable helper."""
+
+    def test_primitives_unchanged(self):
+        """Primitives pass through unchanged."""
+        assert _make_json_serializable(None) is None
+        assert _make_json_serializable(True) is True
+        assert _make_json_serializable(42) == 42
+        assert _make_json_serializable(3.14) == 3.14
+        assert _make_json_serializable("hello") == "hello"
+
+    def test_list_recursion(self):
+        """Lists are recursively processed."""
+        result = _make_json_serializable([1, "two", [3, 4]])
+        assert result == [1, "two", [3, 4]]
+
+    def test_tuple_to_list(self):
+        """Tuples are converted to lists."""
+        result = _make_json_serializable((1, 2, 3))
+        assert result == [1, 2, 3]
+
+    def test_set_to_list(self):
+        """Sets are converted to lists."""
+        result = _make_json_serializable({1, 2, 3})
+        assert sorted(result) == [1, 2, 3]
+
+    def test_dict_recursion(self):
+        """Dicts are recursively processed."""
+        result = _make_json_serializable({"a": 1, "b": {"c": 2}})
+        assert result == {"a": 1, "b": {"c": 2}}
+
+    def test_toolcall_serialization(self):
+        """ToolCall objects are serialized via model_dump."""
+        tc = ToolCall(tool_name="get_price", arguments={"ticker": "AAPL"})
+        result = _make_json_serializable(tc)
+
+        assert isinstance(result, dict)
+        assert result["tool_name"] == "get_price"
+        assert result["arguments"] == {"ticker": "AAPL"}
+
+    def test_nested_toolcalls(self):
+        """Nested ToolCalls in dicts are serialized."""
+        data = {
+            "raw_output": '{"foo": "bar"}',
+            "parsed_tool_calls": (
+                ToolCall(tool_name="tool1", arguments={"a": 1}),
+                ToolCall(tool_name="tool2", arguments={"b": 2}),
+            ),
+        }
+        result = _make_json_serializable(data)
+
+        assert result["raw_output"] == '{"foo": "bar"}'
+        assert len(result["parsed_tool_calls"]) == 2
+        assert result["parsed_tool_calls"][0]["tool_name"] == "tool1"
+        assert result["parsed_tool_calls"][1]["tool_name"] == "tool2"
+
+        # Verify it's JSON serializable
+        json.dumps(result)  # Should not raise
+
+    def test_dataclass_serialization(self):
+        """Dataclasses are serialized."""
+
+        @dataclass
+        class SimpleData:
+            name: str
+            value: int
+
+        obj = SimpleData(name="test", value=42)
+        result = _make_json_serializable(obj)
+
+        assert result == {"name": "test", "value": 42}
+
+    def test_non_serializable_fallback(self):
+        """Non-serializable objects fall back to string representation."""
+
+        class CustomObj:
+            def __str__(self):
+                return "custom_string"
+
+        result = _make_json_serializable(CustomObj())
+        assert result == "custom_string"
+
+
+class TestEvaluatorOutputSerialization:
+    """Tests that evaluator properly serializes generated_output."""
+
+    @pytest.fixture
+    def evaluator(self) -> Evaluator:
+        return Evaluator(pack=NL2APIPack())
+
+    @pytest.fixture
+    def test_case(self) -> TestCase:
+        return TestCase(
+            id="serial-test-001",
+            nl_query="Get Apple price",
+            expected_tool_calls=(ToolCall(tool_name="get_price", arguments={"ticker": "AAPL"}),),
+        )
+
+    @pytest.mark.asyncio
+    async def test_generated_output_is_serializable(self, evaluator, test_case):
+        """Evaluator ensures generated_output is JSON-serializable."""
+        system_output = {
+            "raw_output": json.dumps([{"tool_name": "get_price", "arguments": {"ticker": "AAPL"}}])
+        }
+
+        scorecard = await evaluator.evaluate(test_case, system_output)
+
+        # generated_output should be serializable
+        serialized = json.dumps(scorecard.generated_output)
+        assert serialized is not None
+
+        # Should contain the raw_output
+        assert "raw_output" in scorecard.generated_output
+
+    @pytest.mark.asyncio
+    async def test_toolcalls_in_output_are_serialized(self, evaluator, test_case):
+        """ToolCall objects in system_output are serialized."""
+        # Simulate what NL2API pack's syntax stage does
+        system_output = {
+            "raw_output": json.dumps([{"tool_name": "get_price", "arguments": {"ticker": "AAPL"}}]),
+            "parsed_tool_calls": (ToolCall(tool_name="get_price", arguments={"ticker": "AAPL"}),),
+        }
+
+        scorecard = await evaluator.evaluate(test_case, system_output)
+
+        # Should be JSON-serializable
+        serialized = json.dumps(scorecard.generated_output)
+        assert serialized is not None
+
+        # parsed_tool_calls should be converted to dicts
+        parsed = scorecard.generated_output.get("parsed_tool_calls")
+        assert parsed is not None
+        assert isinstance(parsed, list)
+        assert parsed[0]["tool_name"] == "get_price"

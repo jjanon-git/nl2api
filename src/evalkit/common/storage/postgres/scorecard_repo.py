@@ -164,7 +164,8 @@ class PostgresScorecardRepository:
                     worker_id, attempt_number, message_id, total_latency_ms,
                     created_at, completed_at,
                     client_type, client_version, eval_mode,
-                    input_tokens, output_tokens, estimated_cost_usd
+                    input_tokens, output_tokens, estimated_cost_usd,
+                    trace_id, span_id
                 ) VALUES (
                     $1, $2, $3, $4,
                     $5, $6::jsonb, $7::jsonb,
@@ -174,7 +175,8 @@ class PostgresScorecardRepository:
                     $17, $18, $19, $20,
                     $21, $22,
                     $23, $24, $25,
-                    $26, $27, $28
+                    $26, $27, $28,
+                    $29, $30
                 )
                 ON CONFLICT (id) DO UPDATE SET
                     pack_name = EXCLUDED.pack_name,
@@ -197,7 +199,9 @@ class PostgresScorecardRepository:
                     eval_mode = EXCLUDED.eval_mode,
                     input_tokens = EXCLUDED.input_tokens,
                     output_tokens = EXCLUDED.output_tokens,
-                    estimated_cost_usd = EXCLUDED.estimated_cost_usd
+                    estimated_cost_usd = EXCLUDED.estimated_cost_usd,
+                    trace_id = EXCLUDED.trace_id,
+                    span_id = EXCLUDED.span_id
                 """,
                     sc_uuid,
                     tc_uuid,
@@ -227,6 +231,8 @@ class PostgresScorecardRepository:
                     scorecard.input_tokens,
                     scorecard.output_tokens,
                     scorecard.estimated_cost_usd,
+                    scorecard.trace_id,
+                    scorecard.span_id,
                 )
             except asyncpg.PostgresError as e:
                 span.set_attribute("db.error", str(e))
@@ -399,6 +405,8 @@ class PostgresScorecardRepository:
                     scorecard.input_tokens,
                     scorecard.output_tokens,
                     scorecard.estimated_cost_usd,
+                    scorecard.trace_id,
+                    scorecard.span_id,
                 )
             )
 
@@ -417,7 +425,8 @@ class PostgresScorecardRepository:
                         worker_id, attempt_number, message_id, total_latency_ms,
                         created_at, completed_at,
                         client_type, client_version, eval_mode,
-                        input_tokens, output_tokens, estimated_cost_usd
+                        input_tokens, output_tokens, estimated_cost_usd,
+                        trace_id, span_id
                     ) VALUES (
                         $1, $2, $3, $4,
                         $5, $6::jsonb, $7::jsonb,
@@ -427,7 +436,8 @@ class PostgresScorecardRepository:
                         $17, $18, $19, $20,
                         $21, $22,
                         $23, $24, $25,
-                        $26, $27, $28
+                        $26, $27, $28,
+                        $29, $30
                     )
                     ON CONFLICT (id) DO UPDATE SET
                         pack_name = EXCLUDED.pack_name,
@@ -450,7 +460,9 @@ class PostgresScorecardRepository:
                         eval_mode = EXCLUDED.eval_mode,
                         input_tokens = EXCLUDED.input_tokens,
                         output_tokens = EXCLUDED.output_tokens,
-                        estimated_cost_usd = EXCLUDED.estimated_cost_usd
+                        estimated_cost_usd = EXCLUDED.estimated_cost_usd,
+                        trace_id = EXCLUDED.trace_id,
+                        span_id = EXCLUDED.span_id
                     """,
                     records,
                 )
@@ -612,6 +624,9 @@ class PostgresScorecardRepository:
             attempt_number=row["attempt_number"],
             message_id=row["message_id"],
             total_latency_ms=row["total_latency_ms"],
+            # Observability - Trace Correlation
+            trace_id=row.get("trace_id"),
+            span_id=row.get("span_id"),
             # Client tracking
             client_type=row.get("client_type"),
             client_version=row.get("client_version"),
