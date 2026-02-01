@@ -20,8 +20,8 @@ class TestGitInfo:
         # Should be frozen
         assert info.commit == "abc"
 
-    @patch("src.common.git_info._get_git_commit")
-    @patch("src.common.git_info._get_git_branch")
+    @patch("src.evalkit.common.git_info._get_git_commit")
+    @patch("src.evalkit.common.git_info._get_git_branch")
     def test_get_git_info_success(self, mock_branch, mock_commit):
         """Test successful git info capture."""
         mock_commit.return_value = "fbe1481"
@@ -32,8 +32,8 @@ class TestGitInfo:
         assert info.commit == "fbe1481"
         assert info.branch == "main"
 
-    @patch("src.common.git_info._get_git_commit")
-    @patch("src.common.git_info._get_git_branch")
+    @patch("src.evalkit.common.git_info._get_git_commit")
+    @patch("src.evalkit.common.git_info._get_git_branch")
     def test_get_git_info_not_in_repo(self, mock_branch, mock_commit):
         """Test git info when not in a repo."""
         mock_commit.return_value = None
