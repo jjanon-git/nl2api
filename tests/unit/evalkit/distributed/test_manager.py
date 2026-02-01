@@ -103,7 +103,9 @@ class TestStartWorkers:
         """Test start stops existing workers before spawning new ones."""
         mock_process = MagicMock()
         mock_process.pid = 12345
-        mock_process.poll.return_value = None  # Running
+        # Return None (running) first, then 0 (exited) after terminate
+        poll_values = [None, 0]
+        mock_process.poll.side_effect = lambda: poll_values.pop(0) if poll_values else 0
         mock_popen.return_value = mock_process
 
         manager = LocalWorkerManager(worker_count=2)
@@ -123,7 +125,8 @@ class TestStartWorkers:
         # First two succeed, third fails
         mock_process = MagicMock()
         mock_process.pid = 12345
-        mock_process.poll.return_value = None
+        # Return 0 (exited) immediately to avoid 30s timeout in stop()
+        mock_process.poll.return_value = 0
         mock_process.terminate = MagicMock()
         mock_process.wait = MagicMock()
 

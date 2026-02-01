@@ -132,7 +132,9 @@ packages = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
-addopts = "-v"
+addopts = "-v --ignore=tests/unit/evaluation"
+# NOTE: tests/unit/evaluation/ is a legacy duplicate of tests/unit/evalkit/
+# Ignoring it prevents running ~600 tests twice
 filterwarnings = [
     # Ignore PytestCollectionWarning for data model classes named Test*
     "ignore:cannot collect test class 'TestCase':pytest.PytestCollectionWarning",
