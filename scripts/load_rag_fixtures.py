@@ -186,6 +186,15 @@ async def load_rag_fixtures(
                 metadata["company"] = company
                 metadata["expected_section"] = tc.get("expected_section", "")
 
+                # Build source_metadata for metrics tracking
+                source_metadata_json = json.dumps(
+                    {
+                        "source_type": "synthetic",
+                        "review_status": "approved",
+                        "generator_name": "rag_eval_generator",
+                    }
+                )
+
                 # Insert into database
                 # Note: expected_tool_calls and api_version are required (NOT NULL)
                 # For RAG tests: empty tool calls, use "rag-v1.0" as api_version
@@ -194,11 +203,11 @@ async def load_rag_fixtures(
                     INSERT INTO test_cases (
                         id, nl_query, expected_tool_calls, input_json, expected_json,
                         expected_response, api_version, complexity_level, tags,
-                        status, source, created_at, updated_at
+                        status, source, source_type, source_metadata, created_at, updated_at
                     ) VALUES (
                         $1, $2, $3::jsonb, $4::jsonb, $5::jsonb,
                         $6::jsonb, $7, $8, $9,
-                        $10, $11, NOW(), NOW()
+                        $10, $11, $12::data_source_type, $13::jsonb, NOW(), NOW()
                     )
                     ON CONFLICT (id) DO UPDATE SET
                         nl_query = EXCLUDED.nl_query,
@@ -209,6 +218,8 @@ async def load_rag_fixtures(
                         api_version = EXCLUDED.api_version,
                         complexity_level = EXCLUDED.complexity_level,
                         tags = EXCLUDED.tags,
+                        source_type = EXCLUDED.source_type,
+                        source_metadata = EXCLUDED.source_metadata,
                         updated_at = NOW()
                     """,
                     test_uuid,
@@ -222,6 +233,8 @@ async def load_rag_fixtures(
                     tags,
                     "active",
                     "generated:rag_eval",
+                    "synthetic",  # source_type for metrics
+                    source_metadata_json,
                 )
                 loaded += 1
 
