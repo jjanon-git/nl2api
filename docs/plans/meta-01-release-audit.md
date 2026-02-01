@@ -74,7 +74,7 @@
 
 **Recommended Fixes (Priority Order):**
 1. ✅ Parameterize RAG query filters (affects every retrieval) - DONE 2026-01-31
-2. Add scorecard composite indexes
+2. ✅ Add scorecard composite indexes - DONE 2026-02-01 (migration 018)
 3. Add `exclude_ids` parameter to repository list() method
 4. Use asyncpg native JSONB handling
 
@@ -85,7 +85,7 @@
 | Issue | Scope | Lines | Location |
 |-------|-------|-------|----------|
 | ~~**src/evaluation → src/evalkit duplication**~~ | ~~CRITICAL~~ | ~~~2000~~ | ✅ FIXED (2026-01-31) - Removed 10,700 lines |
-| **src/rag_ui → src/rag/ui duplication** | CRITICAL | ~300 | Nearly identical Streamlit apps |
+| ~~**src/rag_ui → src/rag/ui duplication**~~ | ~~CRITICAL~~ | ~~~300~~ | ✅ FIXED (2026-02-01) - Deleted src/rag_ui/, updated scripts |
 | **Duplicate circuit breaker** | HIGH | ~400 | `evalkit/common/resilience/` vs `services/entity_resolution/resilience.py` |
 | **Exception hierarchy (28 classes)** | HIGH | ~394 | `evalkit/exceptions.py` - none caught specifically |
 | **Duplicate RAG protocols** | MEDIUM | ~154 | `rag/retriever/protocols.py` = `nl2api/rag/protocols.py` |
@@ -97,7 +97,7 @@
 | **Compatibility shims (src/common, src/contracts)** | MEDIUM | ~100 | Empty directories with re-exports |
 
 **Consolidation Plan:**
-- Phase 1 (1-2 weeks): Complete src/evaluation and src/rag_ui migrations, delete old paths
+- Phase 1 (1-2 weeks): ✅ Complete src/evaluation and src/rag_ui migrations, delete old paths
 - Phase 2 (1 week): Eliminate duplicate circuit breaker, consolidate protocols
 - Phase 3 (2-3 weeks): Reduce exception hierarchy, remove dead config, simplify factories
 
@@ -124,7 +124,7 @@
 **Immediate Actions:**
 1. ✅ Replace `detail=str(e)` with generic error messages in HTTP endpoints (DONE 2026-01-31)
 2. ✅ Parameterize RAG SQL queries to enable query plan caching (DONE 2026-01-31)
-3. Document or fix rate limiter fail-open behavior
+3. ✅ Document rate limiter fail-open behavior (DONE 2026-02-01) - Added security note in middleware.py
 4. Replace broad `except Exception:` with specific exceptions
 
 ---
@@ -149,7 +149,7 @@
 **Untested Files:**
 - `src/services/entity_resolution/transports/sse.py` - No unit tests
 - `src/mcp_servers/entity_resolution/transports/` - Minimal coverage
-- `src/rag_ui/app.py` - Streamlit apps hard to unit test (manual verification required)
+- `src/rag/ui/app.py` - Streamlit apps hard to unit test (manual verification required)
 
 ---
 
@@ -203,8 +203,8 @@
 
 | Migration | Files Affected | Action |
 |-----------|----------------|--------|
-| `src/evaluation/` → `src/evalkit/` | 15 shim files | Delete after updating imports |
-| `src/rag_ui/` → `src/rag/ui/` | 4 duplicate files | Delete old path, update scripts |
+| `src/evaluation/` → `src/evalkit/` | 15 shim files | ✅ DONE (2026-01-31) |
+| `src/rag_ui/` → `src/rag/ui/` | 4 duplicate files | ✅ DONE (2026-02-01) |
 | `src/common/` → `src/evalkit/common/` | Empty shim | Delete |
 | `src/contracts/` → `src/evalkit/contracts/` | Re-export shim | Delete |
 | Duplicate circuit breaker | 2 implementations | Use evalkit version only |
@@ -254,7 +254,7 @@
 | Task | Effort | Priority | Status |
 |------|--------|----------|--------|
 | Complete src/evaluation migration | 3 days | P0 | ✅ Done (2026-01-31) |
-| Complete src/rag_ui migration | 1 day | P0 | Pending |
+| Complete src/rag_ui migration | 1 day | P0 | ✅ Done (2026-02-01) |
 | Consolidate circuit breaker | 1 day | P1 | Pending |
 | Consolidate RAG protocols | 0.5 days | P1 | Pending |
 | Remove unused config options | 1 day | P2 | Pending |

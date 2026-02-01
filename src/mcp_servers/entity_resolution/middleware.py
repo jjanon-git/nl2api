@@ -5,6 +5,26 @@ Provides:
 - Input validation with size limits
 - Rate limiting (in-memory or Redis-backed)
 - Request size limits
+
+SECURITY NOTE: Fail-Open Rate Limiting
+--------------------------------------
+The RedisRateLimiter is designed to FAIL OPEN - if Redis is unavailable or
+throws an error, requests are ALLOWED through without rate limiting.
+
+This is an intentional design choice prioritizing availability over strict
+rate limiting:
+- Pros: Service stays available during Redis outages
+- Cons: Temporary loss of rate limit protection during Redis issues
+
+If your security requirements demand fail-closed behavior (deny requests when
+Redis is down), you should:
+1. Deploy Redis with high availability (Sentinel or Cluster)
+2. Monitor Redis health and rate limit bypass events
+3. Consider modifying is_allowed() to return (False, {}) on exception
+
+Monitor for rate limit bypass events via:
+- Log message: "Redis rate limit error: {e}, allowing request"
+- OTEL metrics: Add counter for rate_limit_bypass_total
 """
 
 import asyncio
@@ -99,6 +119,9 @@ class RedisRateLimiter:
     Redis-backed rate limiter for distributed deployments.
 
     Uses sliding window algorithm with Redis sorted sets.
+
+    IMPORTANT: This limiter FAILS OPEN - if Redis is unavailable, requests
+    are allowed through without rate limiting. See module docstring for details.
     """
 
     def __init__(self, config: RateLimitConfig, redis_client: Any):
