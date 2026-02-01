@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import random
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -13,6 +15,10 @@ from typing import Any
 from CONTRACTS import TestCaseSetConfig
 
 logger = logging.getLogger(__name__)
+
+# Environment variable to limit fixtures for fast unit tests
+# Set FIXTURE_SAMPLE_SIZE=50 to load only 50 fixtures per category
+FIXTURE_SAMPLE_SIZE = int(os.environ.get("FIXTURE_SAMPLE_SIZE", "0"))
 
 
 @dataclass(frozen=True)
@@ -75,10 +81,31 @@ class FixtureLoader:
         """Initialize the fixture loader."""
         self.fixture_dir = fixture_dir or self.FIXTURE_DIR
 
-    def load_category(self, category: str) -> list[GeneratedTestCase]:
-        """Load all test cases from a category."""
+    def load_category(
+        self, category: str, sample_size: int | None = None
+    ) -> list[GeneratedTestCase]:
+        """
+        Load test cases from a category.
+
+        Args:
+            category: The category name to load
+            sample_size: If set, randomly sample this many fixtures.
+                         If None, uses FIXTURE_SAMPLE_SIZE env var (0 = all).
+        """
         result = self.load_category_with_config(category)
-        return result.test_cases if result else []
+        if not result:
+            return []
+
+        test_cases = result.test_cases
+
+        # Apply sampling if requested
+        limit = sample_size if sample_size is not None else FIXTURE_SAMPLE_SIZE
+        if limit > 0 and len(test_cases) > limit:
+            # Use consistent seed for reproducibility
+            rng = random.Random(42)
+            test_cases = rng.sample(test_cases, limit)
+
+        return test_cases
 
     def load_category_with_config(
         self, category: str, validate: bool = False

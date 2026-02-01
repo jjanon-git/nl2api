@@ -3,6 +3,9 @@ Dynamic fixture coverage tests.
 
 These tests automatically expand to cover all fixture categories and subcategories,
 ensuring that as test data grows, test coverage grows with it.
+
+Note: Some tests require full fixtures (FIXTURE_SAMPLE_SIZE=0) and are skipped
+when sampling is enabled for faster unit test runs.
 """
 
 from __future__ import annotations
@@ -11,7 +14,13 @@ import pytest
 
 from src.nl2api.agents.datastream import DatastreamAgent
 from src.nl2api.agents.screening import ScreeningAgent
-from tests.unit.nl2api.fixture_loader import FixtureLoader
+from tests.unit.nl2api.fixture_loader import FIXTURE_SAMPLE_SIZE, FixtureLoader
+
+# Skip marker for tests that need full fixtures
+requires_full_fixtures = pytest.mark.skipif(
+    FIXTURE_SAMPLE_SIZE > 0,
+    reason=f"Requires full fixtures (FIXTURE_SAMPLE_SIZE={FIXTURE_SAMPLE_SIZE})",
+)
 
 
 class MockLLMProvider:
@@ -132,6 +141,7 @@ class TestFixtureDiscovery:
         missing = expected - actual
         assert not missing, f"Missing expected categories: {missing}"
 
+    @requires_full_fixtures
     def test_minimum_fixture_count(self, loader: FixtureLoader):
         """Verify we have a minimum number of fixtures."""
         total = sum(len(loader.load_category(c)) for c in discover_fixture_categories())
@@ -244,6 +254,7 @@ class TestCoverageEnforcement:
     def screening_agent(self) -> ScreeningAgent:
         return ScreeningAgent(llm=MockLLMProvider())
 
+    @requires_full_fixtures
     @pytest.mark.asyncio
     async def test_required_coverage_met(
         self,
@@ -372,6 +383,7 @@ class TestFixtureGrowth:
         "complex": 2200,
     }
 
+    @requires_full_fixtures
     def test_fixture_counts_not_decreased(self, loader: FixtureLoader):
         """Verify fixture counts haven't decreased (data regression)."""
         for category, baseline in self.BASELINE_COUNTS.items():
@@ -421,6 +433,7 @@ class TestTagCoverage:
     def screening_agent(self) -> ScreeningAgent:
         return ScreeningAgent(llm=MockLLMProvider())
 
+    @requires_full_fixtures
     @pytest.mark.asyncio
     async def test_required_tags_covered(
         self,

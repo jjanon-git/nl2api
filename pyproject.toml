@@ -135,6 +135,8 @@ asyncio_mode = "auto"
 addopts = "-v --ignore=tests/unit/evaluation"
 # NOTE: tests/unit/evaluation/ is a legacy duplicate of tests/unit/evalkit/
 # Ignoring it prevents running ~600 tests twice
+# NOTE: Fixture sampling is configured in tests/unit/conftest.py
+# Set FIXTURE_SAMPLE_SIZE=0 to load all fixtures (for CI/accuracy)
 filterwarnings = [
     # Ignore PytestCollectionWarning for data model classes named Test*
     "ignore:cannot collect test class 'TestCase':pytest.PytestCollectionWarning",

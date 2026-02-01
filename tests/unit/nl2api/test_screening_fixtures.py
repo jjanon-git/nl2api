@@ -11,7 +11,14 @@ import pytest
 from src.nl2api.agents.protocols import AgentContext
 from src.nl2api.agents.screening import ScreeningAgent
 from tests.unit.nl2api.fixture_loader import (
+    FIXTURE_SAMPLE_SIZE,
     FixtureLoader,
+)
+
+# Skip tests that require full fixtures
+requires_full_fixtures = pytest.mark.skipif(
+    FIXTURE_SAMPLE_SIZE > 0,
+    reason=f"Requires full fixtures (FIXTURE_SAMPLE_SIZE={FIXTURE_SAMPLE_SIZE})",
 )
 
 
@@ -37,6 +44,7 @@ def agent() -> ScreeningAgent:
 class TestScreeningFixtureLoader:
     """Test screening fixture loading."""
 
+    @requires_full_fixtures
     def test_load_screening_fixtures(self, loader: FixtureLoader):
         """Test loading screening fixtures."""
         cases = loader.load_category("screening")
@@ -553,6 +561,7 @@ class TestIndexConstituentFormat:
                 f"Expected |L suffix for index constituents: {expected_tickers}"
             )
 
+    @requires_full_fixtures
     @pytest.mark.asyncio
     async def test_index_name_to_code_mapping(self, agent: ScreeningAgent, loader: FixtureLoader):
         """Test mapping of index names to constituent codes."""
