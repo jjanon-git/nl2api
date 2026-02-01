@@ -80,11 +80,11 @@
 
 ---
 
-### Over-Engineering Issues (11 Found, ~4,400 lines removable)
+### Over-Engineering Issues (10 Remaining, ~2,400 lines removable)
 
 | Issue | Scope | Lines | Location |
 |-------|-------|-------|----------|
-| **src/evaluation → src/evalkit duplication** | CRITICAL | ~2000 | 15 compatibility shims marked "TODO: Remove" |
+| ~~**src/evaluation → src/evalkit duplication**~~ | ~~CRITICAL~~ | ~~~2000~~ | ✅ FIXED (2026-01-31) - Removed 10,700 lines |
 | **src/rag_ui → src/rag/ui duplication** | CRITICAL | ~300 | Nearly identical Streamlit apps |
 | **Duplicate circuit breaker** | HIGH | ~400 | `evalkit/common/resilience/` vs `services/entity_resolution/resilience.py` |
 | **Exception hierarchy (28 classes)** | HIGH | ~394 | `evalkit/exceptions.py` - none caught specifically |
@@ -250,10 +250,10 @@
 | Add checkpoint/resume | ✅ Done (2026-01-25) |
 | Generic TestCase/Scorecard fields | ✅ Done (previously) |
 
-### Phase 2: Code Consolidation (~2 weeks) - NEW
+### Phase 2: Code Consolidation (~2 weeks) - IN PROGRESS
 | Task | Effort | Priority | Status |
 |------|--------|----------|--------|
-| Complete src/evaluation migration | 3 days | P0 | Pending |
+| Complete src/evaluation migration | 3 days | P0 | ✅ Done (2026-01-31) |
 | Complete src/rag_ui migration | 1 day | P0 | Pending |
 | Consolidate circuit breaker | 1 day | P1 | Pending |
 | Consolidate RAG protocols | 0.5 days | P1 | Pending |
