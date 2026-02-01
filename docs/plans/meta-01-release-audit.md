@@ -80,14 +80,14 @@
 
 ---
 
-### Over-Engineering Issues (10 Remaining, ~2,400 lines removable)
+### Over-Engineering Issues (7 Remaining, ~1,100 lines removable)
 
 | Issue | Scope | Lines | Location |
 |-------|-------|-------|----------|
 | ~~**src/evaluation → src/evalkit duplication**~~ | ~~CRITICAL~~ | ~~~2000~~ | ✅ FIXED (2026-01-31) - Removed 10,700 lines |
 | ~~**src/rag_ui → src/rag/ui duplication**~~ | ~~CRITICAL~~ | ~~~300~~ | ✅ FIXED (2026-02-01) - Deleted src/rag_ui/, updated scripts |
 | ~~**Duplicate circuit breaker**~~ | ~~HIGH~~ | ~~400~~ | ✅ FIXED (2026-02-01) - Deleted services/resilience.py, using evalkit |
-| **Exception hierarchy (28 classes)** | HIGH | ~394 | `evalkit/exceptions.py` - none caught specifically |
+| ~~**Exception hierarchy (28 classes)**~~ | ~~HIGH~~ | ~~394~~ | ✅ FIXED (2026-02-01) - Reduced to 15 classes, removed 12 unused |
 | **Duplicate RAG protocols** | MEDIUM | ~154 | `rag/retriever/protocols.py` = `nl2api/rag/protocols.py` |
 | **Unused config options (~10)** | MEDIUM | ~100 | `routing_tier3_model`, `cohere_api_key`, `mcp_mode=hybrid`, etc. |
 | **NoOp telemetry classes** | LOW | ~45 | Custom when OTEL SDK provides no-ops |
@@ -436,13 +436,20 @@ sql = f"""
 
 ---
 
-### Over-Engineering: Exception Hierarchy
+### Over-Engineering: Exception Hierarchy ✅ FIXED (2026-02-01)
 
-**Location:** `src/evalkit/exceptions.py` (394 lines, 28 exception classes)
+**Location:** `src/evalkit/exceptions.py` (originally 394 lines, 28 exception classes)
 
 **Problem:** Extensive hierarchy but grep shows no code catches specific exceptions. All caught generically.
 
-**Recommendation:** Reduce to 5-10 base exceptions; use error codes for specificity.
+**Resolution:** Reduced from 28 to 15 exception classes by removing 12 unused:
+- `InvalidConfigError`, `MissingConfigError` (use `ConfigurationError`)
+- `EntityNotFoundError` (use `StorageError`)
+- `EvaluationTimeoutError`, `StageEvaluationError`, `LLMJudgeError` (use `EvaluationError`)
+- `WorkerError`, `CoordinatorError`, `MessageProcessingError` (use `DistributedError`)
+- `RetryExhaustedError`, `MetricsError`, `TracingError` (not used anywhere)
+
+Remaining hierarchy provides sufficient granularity via category exceptions + `error.code` attribute.
 
 ---
 
