@@ -64,18 +64,20 @@ class ProviderThresholds:
 
 # Tuned thresholds per provider (based on evaluation runs)
 PROVIDER_THRESHOLDS: dict[str, ProviderThresholds] = {
-    # OpenAI gpt-5-nano (48 samples, 2026-01-31):
-    # - faithfulness avg=0.17: synthesizes rather than quotes
-    # - answer_relevance avg=0.56: borderline
+    # OpenAI stack (gpt-5-nano generation + gpt-4o-mini judge, 400 samples, 2026-02-01):
+    # - context_relevance: p10=0.24, p50=0.60, avg=0.58 → threshold 0.25 gives 89% pass
+    # - faithfulness: avg=0.83, 93% pass at 0.4 threshold
+    # - answer_relevance: avg=0.78, 91% pass at 0.5 threshold
     "openai": ProviderThresholds(
         retrieval=0.5,
-        context_relevance=0.35,
-        faithfulness=0.15,  # Low: model synthesizes info
-        answer_relevance=0.45,
+        context_relevance=0.25,  # Lower than anthropic (gpt-4o-mini scores lower on context)
+        faithfulness=0.4,
+        answer_relevance=0.5,
         citation=0.6,
     ),
-    # Anthropic claude-3-5-haiku (baseline):
-    # Higher faithfulness expected due to more literal citation style
+    # Anthropic claude-3-5-haiku (baseline, 50 samples, 2026-02-01):
+    # - context_relevance: p10=0.42, avg=0.63 → 96% pass at 0.35
+    # - faithfulness: avg=0.78, 88-90% pass at 0.4
     "anthropic": ProviderThresholds(
         retrieval=0.5,
         context_relevance=0.35,

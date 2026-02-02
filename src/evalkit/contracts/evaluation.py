@@ -455,8 +455,8 @@ class LLMJudgeConfig(BaseModel):
     )
     model: str = Field(
         default="claude-3-5-haiku-20241022",
-        description="Model for semantic evaluation. Anthropic: claude-3-5-haiku-20241022, "
-        "claude-3-5-sonnet-20241022. OpenAI: gpt-4o-mini, gpt-5-mini, gpt-5-nano, gpt-4o, gpt-5.",
+        description="Model for LLM-as-judge evaluation. Anthropic: claude-3-5-haiku-20241022. "
+        "OpenAI: gpt-4o-mini (recommended - gpt-5 models don't support temperature=0).",
     )
     temperature: float = Field(
         default=0.0,

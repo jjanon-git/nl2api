@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import random
 
 from CONTRACTS import EntityResolver, SystemResponse, TestCase
@@ -608,7 +609,11 @@ Provide a clear, factual answer with citations. Use [Source N] to cite specific 
             retrieval_query = f"{company_name}: {query}" if company_name else query
 
             # Extract ticker for entity filtering (from test case metadata or input)
-            ticker = test_case.input.get("company") or test_case.input.get("ticker")
+            # Set USE_ENTITY_FILTER=0 env var to disable for baseline comparison
+            if os.environ.get("USE_ENTITY_FILTER", "1") == "0":
+                ticker = None  # Baseline: no entity filtering
+            else:
+                ticker = test_case.input.get("company") or test_case.input.get("ticker")
 
             # Step 1: Retrieve documents (with optional entity filtering)
             results = await retriever.retrieve(

@@ -77,11 +77,14 @@ class LLMJudge:
         import os
 
         provider = os.getenv("EVAL_LLM_PROVIDER", "anthropic")
-        model = os.getenv("EVAL_LLM_MODEL")
+        # EVAL_LLM_JUDGE_MODEL overrides EVAL_LLM_MODEL for judge calls
+        model = os.getenv("EVAL_LLM_JUDGE_MODEL") or os.getenv("EVAL_LLM_MODEL")
 
-        # Default model based on provider
+        # Default judge model per provider:
+        # - OpenAI: gpt-4o-mini (gpt-5 models don't support temperature=0)
+        # - Anthropic: claude-3-5-haiku (supports temperature=0)
         if model is None:
-            model = "gpt-5-nano" if provider == "openai" else "claude-3-5-haiku-20241022"
+            model = "gpt-4o-mini" if provider == "openai" else "claude-3-5-haiku-20241022"
 
         return LLMJudgeConfig(provider=provider, model=model)  # type: ignore[arg-type]
 
