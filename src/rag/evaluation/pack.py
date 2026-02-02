@@ -64,13 +64,13 @@ class ProviderThresholds:
 
 # Tuned thresholds per provider (based on evaluation runs)
 PROVIDER_THRESHOLDS: dict[str, ProviderThresholds] = {
-    # OpenAI stack (gpt-5-nano generation + gpt-4o-mini judge, 400 samples, 2026-02-01):
+    # OpenAI stack (gpt-5-nano generation + gpt-5-nano judge w/ reasoning=minimal, 400 samples, 2026-02-01):
     # - context_relevance: p10=0.24, p50=0.60, avg=0.58 → threshold 0.25 gives 89% pass
     # - faithfulness: avg=0.83, 93% pass at 0.4 threshold
     # - answer_relevance: avg=0.78, 91% pass at 0.5 threshold
     "openai": ProviderThresholds(
         retrieval=0.5,
-        context_relevance=0.25,  # Lower than anthropic (gpt-4o-mini scores lower on context)
+        context_relevance=0.25,  # Lower than anthropic (gpt-5-nano scores stricter on context)
         faithfulness=0.4,
         answer_relevance=0.5,
         citation=0.6,

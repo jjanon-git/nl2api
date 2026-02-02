@@ -250,7 +250,7 @@ config = RAGPackConfig(
     rejection_calibration_enabled=True,
 
     # LLM provider for automatic threshold tuning
-    # OpenAI stack uses lower thresholds (gpt-4o-mini scores stricter)
+    # OpenAI stack uses lower thresholds (gpt-5-nano with reasoning=minimal scores stricter)
     llm_provider="openai",  # or "anthropic"
 
     # Manual threshold overrides (used when llm_provider=None)
@@ -279,10 +279,10 @@ Different LLM judge models score differently. Evalkit auto-tunes thresholds base
 
 | Provider | Judge Model | Context Relevance | Faithfulness | Answer Relevance |
 |----------|-------------|------------------|--------------|------------------|
-| **OpenAI** | gpt-4o-mini | 0.25 | 0.40 | 0.50 |
+| **OpenAI** | gpt-5-nano | 0.25 | 0.40 | 0.50 |
 | **Anthropic** | claude-3-5-haiku | 0.35 | 0.40 | 0.50 |
 
-**Note:** Generation and judge models are separate. OpenAI uses gpt-5-nano for generation (cheap) but gpt-4o-mini for judging (supports `temperature=0` for deterministic scoring). GPT-5 models don't support `temperature=0`.
+**Note:** GPT-5 models use `reasoning_effort="minimal"` for deterministic output (instead of `temperature=0` which they don't support).
 
 Set `llm_provider` in config to auto-select appropriate thresholds.
 
@@ -776,7 +776,7 @@ shutdown_telemetry()
 | `NL2API_OPENAI_API_KEY` | OpenAI API key | None |
 | `EVAL_LLM_PROVIDER` | LLM provider for evaluation | `openai` |
 | `EVAL_LLM_MODEL` | LLM model for generation | `gpt-5-nano` |
-| `EVAL_LLM_JUDGE_MODEL` | LLM model for judge stages | `gpt-4o-mini` |
+| `EVAL_LLM_JUDGE_MODEL` | LLM model for judge stages | `gpt-5-nano` |
 
 #### RAG Configuration
 
