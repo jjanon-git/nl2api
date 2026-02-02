@@ -73,7 +73,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_worker_active) or vector(0)",
+          "expr": "sum(evalkit_eval_worker_active) or vector(0)",
           "refId": "A"
         }
       ],
@@ -135,7 +135,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_worker_tasks_processed_total{status='success'}) / (sum(nl2api_eval_worker_tasks_processed_total) + sum(nl2api_eval_worker_tasks_failed_total)) or vector(100)",
+          "expr": "100 * sum(evalkit_eval_worker_tasks_processed_total{status='success'}) / (sum(evalkit_eval_worker_tasks_processed_total) + sum(evalkit_eval_worker_tasks_failed_total)) or vector(100)",
           "refId": "A"
         }
       ],
@@ -197,7 +197,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_queue_enqueued_total) - sum(nl2api_eval_queue_acked_total) - sum(nl2api_eval_queue_dlq_total) or vector(0)",
+          "expr": "sum(evalkit_eval_queue_enqueued_total) - sum(evalkit_eval_queue_acked_total) - sum(evalkit_eval_queue_dlq_total) or vector(0)",
           "refId": "A"
         }
       ],
@@ -259,7 +259,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_queue_dlq_total) or vector(0)",
+          "expr": "sum(evalkit_eval_queue_dlq_total) or vector(0)",
           "refId": "A"
         }
       ],
@@ -383,7 +383,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(last_over_time(evalkit_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
@@ -450,7 +450,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_worker_tasks_processed_total)) or vector(0)",
+          "expr": "(sum(evalkit_eval_worker_tasks_processed_total)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -512,7 +512,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_worker_tasks_failed_total)) or vector(0)",
+          "expr": "(sum(evalkit_eval_worker_tasks_failed_total)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -566,7 +566,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.5, sum(last_over_time(nl2api_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.5, sum(last_over_time(evalkit_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
@@ -628,7 +628,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(last_over_time(evalkit_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
@@ -682,7 +682,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_queue_acked_total[5m])) * 60",
+          "expr": "sum(rate(evalkit_eval_queue_acked_total[5m])) * 60",
           "refId": "A"
         }
       ],
@@ -744,7 +744,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_queue_nacked_total{action='requeue'}[5m])) * 60",
+          "expr": "sum(rate(evalkit_eval_queue_nacked_total{action='requeue'}[5m])) * 60",
           "refId": "A"
         }
       ],
@@ -850,12 +850,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_worker_tasks_processed_total{status='success'}[5m]))",
+          "expr": "sum(rate(evalkit_eval_worker_tasks_processed_total{status='success'}[5m]))",
           "legendFormat": "Processed",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(nl2api_eval_worker_tasks_failed_total[5m]))",
+          "expr": "sum(rate(evalkit_eval_worker_tasks_failed_total[5m]))",
           "legendFormat": "Failed",
           "refId": "B"
         }
@@ -932,12 +932,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.5, sum(last_over_time(nl2api_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.5, sum(last_over_time(evalkit_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P50",
           "refId": "A"
         },
         {
-          "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(last_over_time(evalkit_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P95",
           "refId": "B"
         }
@@ -987,7 +987,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (stage) (increase(nl2api_eval_stage_failed_total[$__range])) > 0",
+          "expr": "sum by (stage) (increase(evalkit_eval_stage_failed_total[$__range])) > 0",
           "legendFormat": "{{stage}}",
           "refId": "A"
         }
@@ -1092,12 +1092,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_queue_enqueued_total) - sum(nl2api_eval_queue_acked_total) - sum(nl2api_eval_queue_dlq_total)) or vector(0)",
+          "expr": "(sum(evalkit_eval_queue_enqueued_total) - sum(evalkit_eval_queue_acked_total) - sum(evalkit_eval_queue_dlq_total)) or vector(0)",
           "legendFormat": "Pending",
           "refId": "A"
         },
         {
-          "expr": "(sum(nl2api_eval_queue_dlq_total)) or vector(0)",
+          "expr": "(sum(evalkit_eval_queue_dlq_total)) or vector(0)",
           "legendFormat": "DLQ",
           "refId": "B"
         }
@@ -1219,17 +1219,17 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_queue_enqueued_total[5m]))",
+          "expr": "sum(rate(evalkit_eval_queue_enqueued_total[5m]))",
           "legendFormat": "Enqueued",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(nl2api_eval_queue_acked_total[5m]))",
+          "expr": "sum(rate(evalkit_eval_queue_acked_total[5m]))",
           "legendFormat": "Acked",
           "refId": "B"
         },
         {
-          "expr": "sum(rate(nl2api_eval_queue_nacked_total[5m]))",
+          "expr": "sum(rate(evalkit_eval_queue_nacked_total[5m]))",
           "legendFormat": "Nacked",
           "refId": "C"
         }

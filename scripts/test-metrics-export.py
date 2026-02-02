@@ -100,9 +100,9 @@ def main():
 
     print("\n=== Verification ===")
     print("Check Prometheus at http://localhost:9090 for:")
-    print('  - nl2api_eval_tokens_total{token_type="input"}')
-    print('  - nl2api_eval_tokens_total{token_type="output"}')
-    print("  - nl2api_eval_cost_usd_total")
+    print('  - evalkit_eval_tokens_total{token_type="input"}')
+    print('  - evalkit_eval_tokens_total{token_type="output"}')
+    print("  - evalkit_eval_cost_usd_total")
     print("  - nl2api_regression_alerts_total")
     print("  - nl2api_regression_alerts_acknowledged_total")
     print("\nOr check Grafana dashboards at http://localhost:3000")

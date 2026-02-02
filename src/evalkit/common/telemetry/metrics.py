@@ -165,7 +165,7 @@ class EvalMetrics:
     - Accuracy trends over time
     """
 
-    def __init__(self, meter_name: str = "nl2api"):
+    def __init__(self, meter_name: str = "evalkit"):
         """Initialize evaluation metrics."""
         self._meter = get_meter(meter_name)
         self._enabled = is_telemetry_enabled()
@@ -499,7 +499,7 @@ class AccuracyMetrics:
     - Low confidence rate (would trigger clarification)
     """
 
-    def __init__(self, meter_name: str = "nl2api"):
+    def __init__(self, meter_name: str = "evalkit"):
         """Initialize accuracy metrics."""
         self._meter = get_meter(meter_name)
         self._enabled = is_telemetry_enabled()
@@ -667,7 +667,7 @@ class RegressionAlertMetrics:
     - Alert response times
     """
 
-    def __init__(self, meter_name: str = "nl2api"):
+    def __init__(self, meter_name: str = "evalkit"):
         """Initialize regression alert metrics."""
         self._meter = get_meter(meter_name)
         self._enabled = is_telemetry_enabled()

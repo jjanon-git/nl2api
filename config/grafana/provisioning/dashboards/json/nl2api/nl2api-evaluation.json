@@ -73,7 +73,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_worker_active) or vector(0)",
+          "expr": "sum(evalkit_eval_worker_active) or vector(0)",
           "refId": "A"
         }
       ],
@@ -135,7 +135,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_worker_tasks_processed_total{status='success'}) / (sum(nl2api_eval_worker_tasks_processed_total) + sum(nl2api_eval_worker_tasks_failed_total)) or vector(100)",
+          "expr": "100 * sum(evalkit_eval_worker_tasks_processed_total{status='success'}) / (sum(evalkit_eval_worker_tasks_processed_total) + sum(evalkit_eval_worker_tasks_failed_total)) or vector(100)",
           "refId": "A"
         }
       ],
@@ -197,7 +197,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_queue_enqueued_total) - sum(nl2api_eval_queue_acked_total) - sum(nl2api_eval_queue_dlq_total) or vector(0)",
+          "expr": "sum(evalkit_eval_queue_enqueued_total) - sum(evalkit_eval_queue_acked_total) - sum(evalkit_eval_queue_dlq_total) or vector(0)",
           "refId": "A"
         }
       ],
@@ -259,7 +259,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_queue_dlq_total) or vector(0)",
+          "expr": "sum(evalkit_eval_queue_dlq_total) or vector(0)",
           "refId": "A"
         }
       ],
@@ -383,7 +383,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_test_duration_ms_milliseconds_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(last_over_time(evalkit_eval_test_duration_ms_milliseconds_bucket[2d])) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
@@ -458,7 +458,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(100 * sum(nl2api_eval_batch_tests_passed_total{pack_name=~\"$pack_name\"}) / clamp_min(sum(nl2api_eval_batch_tests_total{pack_name=~\"$pack_name\"}), 1)) or vector(0)",
+          "expr": "(100 * sum(evalkit_eval_batch_tests_passed_total{pack_name=~\"$pack_name\"}) / clamp_min(sum(evalkit_eval_batch_tests_total{pack_name=~\"$pack_name\"}), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -512,7 +512,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_batch_tests_total{pack_name=~\"$pack_name\"})) or vector(0)",
+          "expr": "(sum(evalkit_eval_batch_tests_total{pack_name=~\"$pack_name\"})) or vector(0)",
           "refId": "A"
         }
       ],
@@ -566,7 +566,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_batch_tests_passed_total{pack_name=~\"$pack_name\"})) or vector(0)",
+          "expr": "(sum(evalkit_eval_batch_tests_passed_total{pack_name=~\"$pack_name\"})) or vector(0)",
           "refId": "A"
         }
       ],
@@ -624,7 +624,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_batch_tests_failed_total{pack_name=~\"$pack_name\"})) or vector(0)",
+          "expr": "(sum(evalkit_eval_batch_tests_failed_total{pack_name=~\"$pack_name\"})) or vector(0)",
           "refId": "A"
         }
       ],
@@ -686,7 +686,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.5, sum(last_over_time(nl2api_eval_test_score_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.5, sum(last_over_time(evalkit_eval_test_score_bucket[2d])) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
@@ -740,7 +740,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total[2d])) / 1000000) or vector(0)",
+          "expr": "(sum(last_over_time(evalkit_eval_cost_usd_total[2d])) / 1000000) or vector(0)",
           "refId": "A"
         }
       ],
@@ -846,12 +846,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_batch_tests_passed_total{pack_name=~\"$pack_name\"}[5m]))",
+          "expr": "sum(rate(evalkit_eval_batch_tests_passed_total{pack_name=~\"$pack_name\"}[5m]))",
           "legendFormat": "Passed",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(nl2api_eval_batch_tests_failed_total{pack_name=~\"$pack_name\"}[5m]))",
+          "expr": "sum(rate(evalkit_eval_batch_tests_failed_total{pack_name=~\"$pack_name\"}[5m]))",
           "legendFormat": "Failed",
           "refId": "B"
         }
@@ -927,7 +927,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum by (client_type) (last_over_time(nl2api_eval_batch_tests_passed_total[2d])) / clamp_min(sum by (client_type) (last_over_time(nl2api_eval_batch_tests_total[2d])), 1)",
+          "expr": "100 * sum by (client_type) (last_over_time(evalkit_eval_batch_tests_passed_total[2d])) / clamp_min(sum by (client_type) (last_over_time(evalkit_eval_batch_tests_total[2d])), 1)",
           "legendFormat": "{{client_type}}",
           "refId": "A"
         }
@@ -995,7 +995,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_worker_tasks_processed_total)) or vector(0)",
+          "expr": "(sum(evalkit_eval_worker_tasks_processed_total)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1057,7 +1057,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_worker_tasks_failed_total)) or vector(0)",
+          "expr": "(sum(evalkit_eval_worker_tasks_failed_total)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1111,7 +1111,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.5, sum(last_over_time(nl2api_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.5, sum(last_over_time(evalkit_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
@@ -1173,7 +1173,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(last_over_time(evalkit_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
           "refId": "A"
         }
       ],
@@ -1227,7 +1227,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_queue_acked_total[5m])) * 60",
+          "expr": "sum(rate(evalkit_eval_queue_acked_total[5m])) * 60",
           "refId": "A"
         }
       ],
@@ -1289,7 +1289,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_queue_nacked_total{action='requeue'}[5m])) * 60",
+          "expr": "sum(rate(evalkit_eval_queue_nacked_total{action='requeue'}[5m])) * 60",
           "refId": "A"
         }
       ],
@@ -1395,12 +1395,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_worker_tasks_processed_total{status='success'}[5m]))",
+          "expr": "sum(rate(evalkit_eval_worker_tasks_processed_total{status='success'}[5m]))",
           "legendFormat": "Processed",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(nl2api_eval_worker_tasks_failed_total[5m]))",
+          "expr": "sum(rate(evalkit_eval_worker_tasks_failed_total[5m]))",
           "legendFormat": "Failed",
           "refId": "B"
         }
@@ -1492,12 +1492,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_queue_enqueued_total) - sum(nl2api_eval_queue_acked_total) - sum(nl2api_eval_queue_dlq_total)) or vector(0)",
+          "expr": "(sum(evalkit_eval_queue_enqueued_total) - sum(evalkit_eval_queue_acked_total) - sum(evalkit_eval_queue_dlq_total)) or vector(0)",
           "legendFormat": "Pending",
           "refId": "A"
         },
         {
-          "expr": "(sum(nl2api_eval_queue_dlq_total)) or vector(0)",
+          "expr": "(sum(evalkit_eval_queue_dlq_total)) or vector(0)",
           "legendFormat": "DLQ",
           "refId": "B"
         }
@@ -1573,7 +1573,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (stage) (last_over_time(nl2api_eval_stage_failed_total{pack_name=~\"$pack_name\"}[2d]))",
+          "expr": "sum by (stage) (last_over_time(evalkit_eval_stage_failed_total{pack_name=~\"$pack_name\"}[2d]))",
           "legendFormat": "{{stage}}",
           "refId": "A"
         }
@@ -1649,7 +1649,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax', pack_name=~\"$pack_name\"}[2d])) / clamp_min((sum(last_over_time(nl2api_eval_stage_passed_total{stage='syntax', pack_name=~\"$pack_name\"}[2d])) or vector(0)) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='syntax', pack_name=~\"$pack_name\"}[2d])) or vector(0)), 1)",
+          "expr": "100 * sum(last_over_time(evalkit_eval_stage_passed_total{stage='syntax', pack_name=~\"$pack_name\"}[2d])) / clamp_min((sum(last_over_time(evalkit_eval_stage_passed_total{stage='syntax', pack_name=~\"$pack_name\"}[2d])) or vector(0)) + (sum(last_over_time(evalkit_eval_stage_failed_total{stage='syntax', pack_name=~\"$pack_name\"}[2d])) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -1711,7 +1711,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic', pack_name=~\"$pack_name\"}[2d])) / clamp_min((sum(last_over_time(nl2api_eval_stage_passed_total{stage='logic', pack_name=~\"$pack_name\"}[2d])) or vector(0)) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='logic', pack_name=~\"$pack_name\"}[2d])) or vector(0)), 1)",
+          "expr": "100 * sum(last_over_time(evalkit_eval_stage_passed_total{stage='logic', pack_name=~\"$pack_name\"}[2d])) / clamp_min((sum(last_over_time(evalkit_eval_stage_passed_total{stage='logic', pack_name=~\"$pack_name\"}[2d])) or vector(0)) + (sum(last_over_time(evalkit_eval_stage_failed_total{stage='logic', pack_name=~\"$pack_name\"}[2d])) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -1773,7 +1773,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution', pack_name=~\"$pack_name\"}[2d])) / clamp_min((sum(last_over_time(nl2api_eval_stage_passed_total{stage='execution', pack_name=~\"$pack_name\"}[2d])) or vector(0)) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='execution', pack_name=~\"$pack_name\"}[2d])) or vector(0)), 1)",
+          "expr": "100 * sum(last_over_time(evalkit_eval_stage_passed_total{stage='execution', pack_name=~\"$pack_name\"}[2d])) / clamp_min((sum(last_over_time(evalkit_eval_stage_passed_total{stage='execution', pack_name=~\"$pack_name\"}[2d])) or vector(0)) + (sum(last_over_time(evalkit_eval_stage_failed_total{stage='execution', pack_name=~\"$pack_name\"}[2d])) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -1835,7 +1835,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics', pack_name=~\"$pack_name\"}[2d])) / clamp_min((sum(last_over_time(nl2api_eval_stage_passed_total{stage='semantics', pack_name=~\"$pack_name\"}[2d])) or vector(0)) + (sum(last_over_time(nl2api_eval_stage_failed_total{stage='semantics', pack_name=~\"$pack_name\"}[2d])) or vector(0)), 1)",
+          "expr": "100 * sum(last_over_time(evalkit_eval_stage_passed_total{stage='semantics', pack_name=~\"$pack_name\"}[2d])) / clamp_min((sum(last_over_time(evalkit_eval_stage_passed_total{stage='semantics', pack_name=~\"$pack_name\"}[2d])) or vector(0)) + (sum(last_over_time(evalkit_eval_stage_failed_total{stage='semantics', pack_name=~\"$pack_name\"}[2d])) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -2151,17 +2151,17 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.5, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.5, sum(rate(evalkit_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P50",
           "refId": "A"
         },
         {
-          "expr": "(histogram_quantile(0.95, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(rate(evalkit_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P95",
           "refId": "B"
         },
         {
-          "expr": "(histogram_quantile(0.99, sum(rate(nl2api_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.99, sum(rate(evalkit_eval_test_duration_ms_milliseconds_bucket[$__rate_interval])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P99",
           "refId": "C"
         }
@@ -2237,7 +2237,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_batch_duration_seconds_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(last_over_time(evalkit_eval_batch_duration_seconds_bucket[2d])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P95",
           "refId": "A"
         }
@@ -2313,12 +2313,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(histogram_quantile(0.5, sum(last_over_time(nl2api_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.5, sum(last_over_time(evalkit_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P50",
           "refId": "A"
         },
         {
-          "expr": "(histogram_quantile(0.95, sum(last_over_time(nl2api_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
+          "expr": "(histogram_quantile(0.95, sum(last_over_time(evalkit_eval_worker_task_duration_ms_bucket[2d])) by (le))) >= 0 or vector(0)",
           "legendFormat": "P95",
           "refId": "B"
         }
@@ -2386,7 +2386,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_tokens_total{token_type='input'}) / clamp_min(sum(nl2api_eval_batch_tests_total), 1)) or vector(0)",
+          "expr": "(sum(evalkit_eval_tokens_total{token_type='input'}) / clamp_min(sum(evalkit_eval_batch_tests_total), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -2440,7 +2440,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_tokens_total{token_type='output'}) / clamp_min(sum(nl2api_eval_batch_tests_total), 1)) or vector(0)",
+          "expr": "(sum(evalkit_eval_tokens_total{token_type='output'}) / clamp_min(sum(evalkit_eval_batch_tests_total), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -2494,7 +2494,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total[2d])) / 1000000 / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total[2d])), 1)) or vector(0)",
+          "expr": "(sum(last_over_time(evalkit_eval_cost_usd_total[2d])) / 1000000 / clamp_min(sum(last_over_time(evalkit_eval_batch_tests_total[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -2548,7 +2548,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_tokens_total{token_type='input'})) or vector(0)",
+          "expr": "(sum(evalkit_eval_tokens_total{token_type='input'})) or vector(0)",
           "refId": "A"
         }
       ],
@@ -2602,7 +2602,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_tokens_total{token_type='output'})) or vector(0)",
+          "expr": "(sum(evalkit_eval_tokens_total{token_type='output'})) or vector(0)",
           "refId": "A"
         }
       ],
@@ -2656,7 +2656,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total[2d])) / 1000000) or vector(0)",
+          "expr": "(sum(last_over_time(evalkit_eval_cost_usd_total[2d])) / 1000000) or vector(0)",
           "refId": "A"
         }
       ],
@@ -2731,12 +2731,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_tokens_total{token_type='input'}[5m]))",
+          "expr": "sum(rate(evalkit_eval_tokens_total{token_type='input'}[5m]))",
           "legendFormat": "Input",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(nl2api_eval_tokens_total{token_type='output'}[5m]))",
+          "expr": "sum(rate(evalkit_eval_tokens_total{token_type='output'}[5m]))",
           "legendFormat": "Output",
           "refId": "B"
         }
@@ -2812,7 +2812,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_cost_usd_total[5m])) / 1000000",
+          "expr": "sum(rate(evalkit_eval_cost_usd_total[5m])) / 1000000",
           "legendFormat": "Cost/s",
           "refId": "A"
         }
@@ -2889,7 +2889,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum by (source_type) (last_over_time(nl2api_eval_batch_tests_passed_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[2d])) / clamp_min(sum by (source_type) (last_over_time(nl2api_eval_batch_tests_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[2d])), 1)",
+          "expr": "100 * sum by (source_type) (last_over_time(evalkit_eval_batch_tests_passed_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[2d])) / clamp_min(sum by (source_type) (last_over_time(evalkit_eval_batch_tests_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[2d])), 1)",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -2954,7 +2954,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (source_type) (last_over_time(nl2api_eval_batch_tests_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[2d]))",
+          "expr": "sum by (source_type) (last_over_time(evalkit_eval_batch_tests_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[2d]))",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -3030,7 +3030,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum by (source_type) (rate(nl2api_eval_batch_tests_passed_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[5m])) / clamp_min(sum by (source_type) (rate(nl2api_eval_batch_tests_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[5m])), 0.001)",
+          "expr": "100 * sum by (source_type) (rate(evalkit_eval_batch_tests_passed_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[5m])) / clamp_min(sum by (source_type) (rate(evalkit_eval_batch_tests_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[5m])), 0.001)",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -3106,7 +3106,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (source_type) (rate(nl2api_eval_batch_tests_failed_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[5m]))",
+          "expr": "sum by (source_type) (rate(evalkit_eval_batch_tests_failed_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[5m]))",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -3182,7 +3182,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (source_type) (rate(nl2api_eval_batch_tests_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[5m]))",
+          "expr": "sum by (source_type) (rate(evalkit_eval_batch_tests_total{pack_name=~\"$pack_name\", source_type=~\"$source_type\"}[5m]))",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -3213,7 +3213,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(nl2api_eval_batch_tests_total, pack_name)",
+        "definition": "label_values(evalkit_eval_batch_tests_total, pack_name)",
         "hide": 0,
         "includeAll": true,
         "label": "Pack",
@@ -3221,7 +3221,7 @@
         "name": "pack_name",
         "options": [],
         "query": {
-          "query": "label_values(nl2api_eval_batch_tests_total, pack_name)",
+          "query": "label_values(evalkit_eval_batch_tests_total, pack_name)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -3245,7 +3245,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(nl2api_eval_batch_tests_total, client_type)",
+        "definition": "label_values(evalkit_eval_batch_tests_total, client_type)",
         "hide": 0,
         "includeAll": true,
         "label": "Client Type",
@@ -3253,7 +3253,7 @@
         "name": "client_type",
         "options": [],
         "query": {
-          "query": "label_values(nl2api_eval_batch_tests_total, client_type)",
+          "query": "label_values(evalkit_eval_batch_tests_total, client_type)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -3277,7 +3277,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(nl2api_eval_batch_tests_total{client_type=~\"$client_type\"}, client_version)",
+        "definition": "label_values(evalkit_eval_batch_tests_total{client_type=~\"$client_type\"}, client_version)",
         "hide": 0,
         "includeAll": true,
         "label": "Client Version",
@@ -3285,7 +3285,7 @@
         "name": "client_version",
         "options": [],
         "query": {
-          "query": "label_values(nl2api_eval_batch_tests_total{client_type=~\"$client_type\"}, client_version)",
+          "query": "label_values(evalkit_eval_batch_tests_total{client_type=~\"$client_type\"}, client_version)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -3309,7 +3309,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(nl2api_eval_batch_tests_total, eval_mode)",
+        "definition": "label_values(evalkit_eval_batch_tests_total, eval_mode)",
         "hide": 0,
         "includeAll": true,
         "label": "Eval Mode",
@@ -3317,7 +3317,7 @@
         "name": "eval_mode",
         "options": [],
         "query": {
-          "query": "label_values(nl2api_eval_batch_tests_total, eval_mode)",
+          "query": "label_values(evalkit_eval_batch_tests_total, eval_mode)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -3341,7 +3341,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(nl2api_eval_batch_tests_total, source_type)",
+        "definition": "label_values(evalkit_eval_batch_tests_total, source_type)",
         "hide": 0,
         "includeAll": true,
         "label": "Source Type",
@@ -3349,7 +3349,7 @@
         "name": "source_type",
         "options": [],
         "query": {
-          "query": "label_values(nl2api_eval_batch_tests_total, source_type)",
+          "query": "label_values(evalkit_eval_batch_tests_total, source_type)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,

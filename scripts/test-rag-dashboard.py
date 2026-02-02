@@ -367,11 +367,11 @@ async def verify_prometheus_metrics() -> dict:
 
     prometheus_url = "http://localhost:9090"
     metrics_to_check = [
-        "nl2api_eval_batch_tests_total",
-        "nl2api_eval_batch_tests_passed_total",
-        "nl2api_eval_batch_tests_failed_total",
-        "nl2api_eval_stage_passed_total",
-        "nl2api_eval_stage_failed_total",
+        "evalkit_eval_batch_tests_total",
+        "evalkit_eval_batch_tests_passed_total",
+        "evalkit_eval_batch_tests_failed_total",
+        "evalkit_eval_stage_passed_total",
+        "evalkit_eval_stage_failed_total",
     ]
 
     results = {}

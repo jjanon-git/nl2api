@@ -62,7 +62,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_batch_tests_passed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min(sum(nl2api_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}), 1) or vector(0)",
+          "expr": "100 * sum(evalkit_eval_batch_tests_passed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min(sum(evalkit_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}), 1) or vector(0)",
           "refId": "A"
         }
       ],
@@ -106,7 +106,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)",
+          "expr": "sum(evalkit_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)",
           "refId": "A"
         }
       ],
@@ -150,7 +150,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_batch_tests_passed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)",
+          "expr": "sum(evalkit_eval_batch_tests_passed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)",
           "refId": "A"
         }
       ],
@@ -196,7 +196,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_batch_tests_failed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)",
+          "expr": "sum(evalkit_eval_batch_tests_failed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)",
           "refId": "A"
         }
       ],
@@ -242,7 +242,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_test_score_sum{pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min(sum(nl2api_eval_test_score_count{pack_name=\"rag\", source_type=~\"$source_type\"}), 1) or vector(0)",
+          "expr": "sum(evalkit_eval_test_score_sum{pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min(sum(evalkit_eval_test_score_count{pack_name=\"rag\", source_type=~\"$source_type\"}), 1) or vector(0)",
           "refId": "A"
         }
       ],
@@ -287,7 +287,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_stage_failed_total{stage=~\"source_policy|policy_compliance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)",
+          "expr": "sum(evalkit_eval_stage_failed_total{stage=~\"source_policy|policy_compliance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)",
           "refId": "A"
         }
       ],
@@ -347,7 +347,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum by (source_type) (nl2api_eval_batch_tests_passed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min(sum by (source_type) (nl2api_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}), 1)",
+          "expr": "100 * sum by (source_type) (evalkit_eval_batch_tests_passed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min(sum by (source_type) (evalkit_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}), 1)",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -399,7 +399,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (source_type) (nl2api_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"})",
+          "expr": "sum by (source_type) (evalkit_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"})",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -451,7 +451,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (source_type) (nl2api_eval_batch_tests_failed_total{pack_name=\"rag\", source_type=~\"$source_type\"})",
+          "expr": "sum by (source_type) (evalkit_eval_batch_tests_failed_total{pack_name=\"rag\", source_type=~\"$source_type\"})",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -511,7 +511,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_stage_passed_total{stage=\"retrieval\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(nl2api_eval_stage_passed_total{stage=\"retrieval\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(nl2api_eval_stage_failed_total{stage=\"retrieval\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
+          "expr": "100 * sum(evalkit_eval_stage_passed_total{stage=\"retrieval\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(evalkit_eval_stage_passed_total{stage=\"retrieval\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(evalkit_eval_stage_failed_total{stage=\"retrieval\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -557,7 +557,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_stage_passed_total{stage=\"context_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(nl2api_eval_stage_passed_total{stage=\"context_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(nl2api_eval_stage_failed_total{stage=\"context_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
+          "expr": "100 * sum(evalkit_eval_stage_passed_total{stage=\"context_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(evalkit_eval_stage_passed_total{stage=\"context_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(evalkit_eval_stage_failed_total{stage=\"context_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -603,7 +603,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_stage_passed_total{stage=\"faithfulness\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(nl2api_eval_stage_passed_total{stage=\"faithfulness\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(nl2api_eval_stage_failed_total{stage=\"faithfulness\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
+          "expr": "100 * sum(evalkit_eval_stage_passed_total{stage=\"faithfulness\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(evalkit_eval_stage_passed_total{stage=\"faithfulness\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(evalkit_eval_stage_failed_total{stage=\"faithfulness\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -649,7 +649,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_stage_passed_total{stage=\"answer_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(nl2api_eval_stage_passed_total{stage=\"answer_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(nl2api_eval_stage_failed_total{stage=\"answer_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
+          "expr": "100 * sum(evalkit_eval_stage_passed_total{stage=\"answer_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(evalkit_eval_stage_passed_total{stage=\"answer_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(evalkit_eval_stage_failed_total{stage=\"answer_relevance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -708,7 +708,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_stage_passed_total{stage=\"citation\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(nl2api_eval_stage_passed_total{stage=\"citation\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(nl2api_eval_stage_failed_total{stage=\"citation\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
+          "expr": "100 * sum(evalkit_eval_stage_passed_total{stage=\"citation\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(evalkit_eval_stage_passed_total{stage=\"citation\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(evalkit_eval_stage_failed_total{stage=\"citation\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -754,7 +754,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_stage_passed_total{stage=\"source_policy\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(nl2api_eval_stage_passed_total{stage=\"source_policy\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(nl2api_eval_stage_failed_total{stage=\"source_policy\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
+          "expr": "100 * sum(evalkit_eval_stage_passed_total{stage=\"source_policy\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(evalkit_eval_stage_passed_total{stage=\"source_policy\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(evalkit_eval_stage_failed_total{stage=\"source_policy\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -800,7 +800,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_stage_passed_total{stage=\"policy_compliance\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(nl2api_eval_stage_passed_total{stage=\"policy_compliance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(nl2api_eval_stage_failed_total{stage=\"policy_compliance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
+          "expr": "100 * sum(evalkit_eval_stage_passed_total{stage=\"policy_compliance\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(evalkit_eval_stage_passed_total{stage=\"policy_compliance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(evalkit_eval_stage_failed_total{stage=\"policy_compliance\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -846,7 +846,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(nl2api_eval_stage_passed_total{stage=\"rejection_calibration\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(nl2api_eval_stage_passed_total{stage=\"rejection_calibration\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(nl2api_eval_stage_failed_total{stage=\"rejection_calibration\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
+          "expr": "100 * sum(evalkit_eval_stage_passed_total{stage=\"rejection_calibration\", pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min((sum(evalkit_eval_stage_passed_total{stage=\"rejection_calibration\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)) + (sum(evalkit_eval_stage_failed_total{stage=\"rejection_calibration\", pack_name=\"rag\", source_type=~\"$source_type\"}) or vector(0)), 1)",
           "refId": "A"
         }
       ],
@@ -934,7 +934,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum(rate(nl2api_eval_batch_tests_passed_total{pack_name=\"rag\", source_type=~\"$source_type\"}[5m])) / clamp_min(sum(rate(nl2api_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}[5m])), 0.001) or vector(0)",
+          "expr": "100 * sum(rate(evalkit_eval_batch_tests_passed_total{pack_name=\"rag\", source_type=~\"$source_type\"}[5m])) / clamp_min(sum(rate(evalkit_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}[5m])), 0.001) or vector(0)",
           "legendFormat": "Overall Pass Rate",
           "refId": "A"
         }
@@ -1010,7 +1010,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "100 * sum by (source_type) (rate(nl2api_eval_batch_tests_passed_total{pack_name=\"rag\", source_type=~\"$source_type\"}[5m])) / clamp_min(sum by (source_type) (rate(nl2api_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}[5m])), 0.001)",
+          "expr": "100 * sum by (source_type) (rate(evalkit_eval_batch_tests_passed_total{pack_name=\"rag\", source_type=~\"$source_type\"}[5m])) / clamp_min(sum by (source_type) (rate(evalkit_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}[5m])), 0.001)",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -1061,7 +1061,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_stage_failed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) by (stage)",
+          "expr": "sum(evalkit_eval_stage_failed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) by (stage)",
           "legendFormat": "{{stage}}",
           "refId": "A"
         }
@@ -1135,7 +1135,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(nl2api_eval_stage_failed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) by (stage)",
+          "expr": "sum(evalkit_eval_stage_failed_total{pack_name=\"rag\", source_type=~\"$source_type\"}) by (stage)",
           "legendFormat": "{{stage}}",
           "refId": "A"
         }
@@ -1195,7 +1195,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total{pack_name=\"rag\", source_type=~\"$source_type\"}[2d])) / 1000000) or vector(0)",
+          "expr": "(sum(last_over_time(evalkit_eval_cost_usd_total{pack_name=\"rag\", source_type=~\"$source_type\"}[2d])) / 1000000) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1241,7 +1241,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(last_over_time(nl2api_eval_cost_usd_total{pack_name=\"rag\", source_type=~\"$source_type\"}[2d])) / 1000000 / clamp_min(sum(last_over_time(nl2api_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}[2d])), 1)) or vector(0)",
+          "expr": "(sum(last_over_time(evalkit_eval_cost_usd_total{pack_name=\"rag\", source_type=~\"$source_type\"}[2d])) / 1000000 / clamp_min(sum(last_over_time(evalkit_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}[2d])), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1285,7 +1285,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_tokens_total{token_type='input', pack_name=\"rag\", source_type=~\"$source_type\"})) or vector(0)",
+          "expr": "(sum(evalkit_eval_tokens_total{token_type='input', pack_name=\"rag\", source_type=~\"$source_type\"})) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1329,7 +1329,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_tokens_total{token_type='output', pack_name=\"rag\", source_type=~\"$source_type\"})) or vector(0)",
+          "expr": "(sum(evalkit_eval_tokens_total{token_type='output', pack_name=\"rag\", source_type=~\"$source_type\"})) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1373,7 +1373,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_tokens_total{token_type='input', pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min(sum(nl2api_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}), 1)) or vector(0)",
+          "expr": "(sum(evalkit_eval_tokens_total{token_type='input', pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min(sum(evalkit_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1417,7 +1417,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "(sum(nl2api_eval_tokens_total{token_type='output', pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min(sum(nl2api_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}), 1)) or vector(0)",
+          "expr": "(sum(evalkit_eval_tokens_total{token_type='output', pack_name=\"rag\", source_type=~\"$source_type\"}) / clamp_min(sum(evalkit_eval_batch_tests_total{pack_name=\"rag\", source_type=~\"$source_type\"}), 1)) or vector(0)",
           "refId": "A"
         }
       ],
@@ -1492,7 +1492,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_cost_usd_total{pack_name=\"rag\", source_type=~\"$source_type\"}[5m])) / 1000000",
+          "expr": "sum(rate(evalkit_eval_cost_usd_total{pack_name=\"rag\", source_type=~\"$source_type\"}[5m])) / 1000000",
           "legendFormat": "Cost/s",
           "refId": "A"
         }
@@ -1568,12 +1568,12 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum(rate(nl2api_eval_tokens_total{token_type='input', pack_name=\"rag\", source_type=~\"$source_type\"}[5m]))",
+          "expr": "sum(rate(evalkit_eval_tokens_total{token_type='input', pack_name=\"rag\", source_type=~\"$source_type\"}[5m]))",
           "legendFormat": "Input Tokens",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(nl2api_eval_tokens_total{token_type='output', pack_name=\"rag\", source_type=~\"$source_type\"}[5m]))",
+          "expr": "sum(rate(evalkit_eval_tokens_total{token_type='output', pack_name=\"rag\", source_type=~\"$source_type\"}[5m]))",
           "legendFormat": "Output Tokens",
           "refId": "B"
         }
@@ -1619,7 +1619,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (source_type) (last_over_time(nl2api_eval_cost_usd_total{pack_name=\"rag\", source_type=~\"$source_type\"}[2d])) / 1000000",
+          "expr": "sum by (source_type) (last_over_time(evalkit_eval_cost_usd_total{pack_name=\"rag\", source_type=~\"$source_type\"}[2d])) / 1000000",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -1671,7 +1671,7 @@
       "pluginVersion": "10.3.1",
       "targets": [
         {
-          "expr": "sum by (source_type) (nl2api_eval_tokens_total{pack_name=\"rag\", source_type=~\"$source_type\"})",
+          "expr": "sum by (source_type) (evalkit_eval_tokens_total{pack_name=\"rag\", source_type=~\"$source_type\"})",
           "legendFormat": "{{source_type}}",
           "refId": "A"
         }
@@ -1695,7 +1695,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(nl2api_eval_batch_tests_total{pack_name=\"rag\"}, source_type)",
+        "definition": "label_values(evalkit_eval_batch_tests_total{pack_name=\"rag\"}, source_type)",
         "hide": 0,
         "includeAll": true,
         "label": "Source Type",
@@ -1703,7 +1703,7 @@
         "name": "source_type",
         "options": [],
         "query": {
-          "query": "label_values(nl2api_eval_batch_tests_total{pack_name=\"rag\"}, source_type)",
+          "query": "label_values(evalkit_eval_batch_tests_total{pack_name=\"rag\"}, source_type)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
