@@ -223,7 +223,7 @@ If your RAG pack has stages `retrieval` and `faithfulness`, add panels like:
 ```json
 {
   "title": "Retrieval Pass Rate",
-  "expr": "100 * sum(nl2api_eval_stage_passed_total{stage='retrieval', pack_name='rag'}) / clamp_min(sum(nl2api_eval_stage_passed_total{stage='retrieval', pack_name='rag'}) + sum(nl2api_eval_stage_failed_total{stage='retrieval', pack_name='rag'}), 1)"
+  "expr": "100 * sum(evalkit_eval_stage_passed_total{stage='retrieval', pack_name='rag'}) / clamp_min(sum(evalkit_eval_stage_passed_total{stage='retrieval', pack_name='rag'}) + sum(evalkit_eval_stage_failed_total{stage='retrieval', pack_name='rag'}), 1)"
 }
 ```
 

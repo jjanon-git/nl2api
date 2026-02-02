@@ -1,4 +1,4 @@
-# OpenTelemetry Collector Configuration for NL2API
+# OpenTelemetry Collector Configuration for Evalkit
 # Receives telemetry via OTLP and exports to Jaeger (traces) and Prometheus (metrics)
 
 receivers:
@@ -18,7 +18,7 @@ processors:
   resource:
     attributes:
       - key: service.namespace
-        value: nl2api
+        value: evalkit
         action: upsert
 
   # Memory limiter to prevent OOM
@@ -38,9 +38,9 @@ exporters:
   # Prometheus scrapes this endpoint at :8889/metrics
   prometheus:
     endpoint: "0.0.0.0:8889"
-    namespace: nl2api
+    namespace: evalkit
     const_labels:
-      service: nl2api
+      service: evalkit
 
   # Debug logging (disable in production)
   debug:

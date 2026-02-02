@@ -7,7 +7,7 @@ Common issues and their solutions for the Evalkit project.
 | Issue | Solution |
 |-------|----------|
 | FastAPI returns 422 for valid JSON | Don't use `from __future__ import annotations` in FastAPI files |
-| Grafana shows no data | Check metric names have `nl2api_` prefix and `_total` suffix for counters |
+| Grafana shows no data | Check metric names have `evalkit_` prefix and `_total` suffix for counters |
 | Batch eval fails silently | Run `python scripts/load-nl2api-fixtures.py --all` first |
 | Orchestrator fails with "API key not set" | Pass router explicitly to avoid hidden NL2APIConfig dependency |
 | "Unexpected keyword argument" after refactor | Kill old server process and restart (code changes not picked up) |
@@ -18,7 +18,7 @@ Common issues and their solutions for the Evalkit project.
 
 1. **Check metric names in Prometheus**
    - Go to http://localhost:9090
-   - Search for your metric (e.g., `nl2api_eval_batch_tests_total`)
+   - Search for your metric (e.g., `evalkit_eval_batch_tests_total`)
    - Verify data exists
 
 2. **Check datasource UID**
@@ -27,9 +27,9 @@ Common issues and their solutions for the Evalkit project.
    - Common issue: dashboard has `"uid": "prometheus"` but datasource config doesn't set `uid`
 
 3. **Check metric naming**
-   - OTEL Collector adds `nl2api_` prefix (configured in `config/otel-collector-config.yaml`)
+   - OTEL Collector adds `evalkit_` prefix (configured in `config/otel-collector-config.yaml`)
    - Counters get `_total` suffix automatically
-   - Example: `eval_batch_tests_passed` → `nl2api_eval_batch_tests_passed_total`
+   - Example: `eval_batch_tests_passed` → `evalkit_eval_batch_tests_passed_total`
 
 ### Metrics Not Appearing
 

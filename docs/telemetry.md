@@ -95,8 +95,8 @@ Record metrics for:
 from src.common.telemetry import get_meter
 
 meter = get_meter(__name__)
-request_counter = meter.create_counter("nl2api.requests")
-latency_histogram = meter.create_histogram("nl2api.latency_ms")
+request_counter = meter.create_counter("evalkit.requests")
+latency_histogram = meter.create_histogram("evalkit.latency_ms")
 
 async def handle_request(self, query: str):
     start = time.time()
@@ -113,9 +113,9 @@ async def handle_request(self, query: str):
 ## Metric Naming Convention
 
 **IMPORTANT:**
-- OTEL Collector adds `nl2api_` prefix to all metrics (configured in `config/otel-collector-config.yaml`)
-- Dashboard queries must use prefixed names: `nl2api_eval_batch_tests_total`, not `eval_batch_tests_total`
-- OTEL adds `_total` suffix to counters: `eval_batch_tests_passed` becomes `nl2api_eval_batch_tests_passed_total`
+- OTEL Collector adds `evalkit_` prefix to all metrics (configured in `config/otel-collector-config.yaml`)
+- Dashboard queries must use prefixed names: `evalkit_eval_batch_tests_total`, not `eval_batch_tests_total`
+- OTEL adds `_total` suffix to counters: `eval_batch_tests_passed` becomes `evalkit_eval_batch_tests_passed_total`
 - If Grafana shows no data, check metric names match what's in Prometheus
 
 ## Grafana Datasource UID

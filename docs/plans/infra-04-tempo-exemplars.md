@@ -279,7 +279,7 @@ Enable exemplar display on histogram panels:
       "datasource": {"uid": "prometheus"},
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(nl2api_eval_test_duration_ms_bucket[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(evalkit_eval_test_duration_ms_bucket[5m])) by (le))",
           "exemplar": true
         }
       ],
@@ -372,7 +372,7 @@ Add a Tempo panel for trace search:
 
 6. **Verify exemplars**
    - Open Grafana → Explore → Prometheus
-   - Query: `nl2api_eval_test_duration_ms_bucket`
+   - Query: `evalkit_eval_test_duration_ms_bucket`
    - Toggle "Exemplars" on
    - Should see purple dots linking to traces
 

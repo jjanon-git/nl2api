@@ -1,6 +1,6 @@
 # RAG Retriever Architecture
 
-This document describes the RAG retriever implementation in the nl2api codebase.
+This document describes the RAG retriever implementation in the evalkit framework.
 
 ## RAGRetriever Protocol
 
@@ -198,8 +198,8 @@ Located in `src/rag/ui/config.py`.
 
 ```python
 class RAGUIConfig(BaseSettings):
-    # Database
-    database_url: str = "postgresql://nl2api:nl2api@localhost:5432/nl2api"
+    # Database (configure via RAG_UI_DATABASE_URL environment variable)
+    database_url: str = "postgresql://user:pass@localhost:5432/evalkit"
 
     # Retriever settings
     embedding_model: str = "all-MiniLM-L6-v2"

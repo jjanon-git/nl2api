@@ -1254,15 +1254,15 @@ class DistributedMetrics:
 
 | Panel | Query |
 |-------|-------|
-| Active Workers | `count(rate(nl2api_eval_worker_heartbeat_total[1m]) > 0)` |
-| Queue Depth | `nl2api_eval_queue_pending_tasks` |
-| DLQ Size | `nl2api_eval_queue_dlq_size` |
-| Throughput | `sum(rate(nl2api_eval_worker_tasks_processed_total[1m]))` |
-| Tasks/Worker | `sum by (worker_id) (rate(nl2api_eval_worker_tasks_processed_total[5m]))` |
-| P95 Latency | `histogram_quantile(0.95, sum by (le) (rate(nl2api_eval_worker_task_duration_ms_bucket[5m])))` |
-| Pass Rate | `sum(rate(nl2api_eval_batch_tests_passed_total[5m])) / sum(rate(nl2api_eval_batch_tests_total[5m]))` |
-| Stalled Claims | `rate(nl2api_eval_queue_claim_total[5m])` |
-| Rate Limit Wait P95 | `histogram_quantile(0.95, sum by (le) (rate(nl2api_eval_rate_limit_wait_ms_bucket[5m])))` |
+| Active Workers | `count(rate(evalkit_eval_worker_heartbeat_total[1m]) > 0)` |
+| Queue Depth | `evalkit_eval_queue_pending_tasks` |
+| DLQ Size | `evalkit_eval_queue_dlq_size` |
+| Throughput | `sum(rate(evalkit_eval_worker_tasks_processed_total[1m]))` |
+| Tasks/Worker | `sum by (worker_id) (rate(evalkit_eval_worker_tasks_processed_total[5m]))` |
+| P95 Latency | `histogram_quantile(0.95, sum by (le) (rate(evalkit_eval_worker_task_duration_ms_bucket[5m])))` |
+| Pass Rate | `sum(rate(evalkit_eval_batch_tests_passed_total[5m])) / sum(rate(evalkit_eval_batch_tests_total[5m]))` |
+| Stalled Claims | `rate(evalkit_eval_queue_claim_total[5m])` |
+| Rate Limit Wait P95 | `histogram_quantile(0.95, sum by (le) (rate(evalkit_eval_rate_limit_wait_ms_bucket[5m])))` |
 
 ### Alerting & Failure Detection
 
@@ -1298,8 +1298,8 @@ groups:
 
       - alert: AllWorkersDown
         expr: |
-          count(rate(nl2api_eval_worker_heartbeat_total[2m]) > 0) == 0
-          and on() nl2api_eval_queue_pending_tasks > 0
+          count(rate(evalkit_eval_worker_heartbeat_total[2m]) > 0) == 0
+          and on() evalkit_eval_queue_pending_tasks > 0
         for: 3m
         labels:
           severity: critical
@@ -1311,8 +1311,8 @@ groups:
 
       - alert: WorkerDown
         expr: |
-          count(rate(nl2api_eval_worker_heartbeat_total[2m]) > 0) < 2
-          and on() count(rate(nl2api_eval_worker_heartbeat_total[10m]) > 0) >= 2
+          count(rate(evalkit_eval_worker_heartbeat_total[2m]) > 0) < 2
+          and on() count(rate(evalkit_eval_worker_heartbeat_total[10m]) > 0) >= 2
         for: 5m
         labels:
           severity: critical
@@ -1347,7 +1347,7 @@ groups:
       # ═══════════════════════════════════════════════════════════
 
       - alert: QueueBacklog
-        expr: nl2api_eval_queue_pending_tasks > 1000
+        expr: evalkit_eval_queue_pending_tasks > 1000
         for: 10m
         labels:
           severity: warning
@@ -1358,7 +1358,7 @@ groups:
           action: "docker-compose up -d --scale eval-worker=8"
 
       - alert: DLQGrowing
-        expr: increase(nl2api_eval_queue_dlq_size[1h]) > 10
+        expr: increase(evalkit_eval_queue_dlq_size[1h]) > 10
         labels:
           severity: warning
         annotations:
@@ -1368,7 +1368,7 @@ groups:
           action: "Review errors, fix root cause, then: eval batch retry <batch-id>"
 
       - alert: StalledTasks
-        expr: rate(nl2api_eval_queue_claim_total[5m]) > 0.5
+        expr: rate(evalkit_eval_queue_claim_total[5m]) > 0.5
         for: 5m
         labels:
           severity: warning
@@ -1379,8 +1379,8 @@ groups:
 
       - alert: HighFailureRate
         expr: |
-          rate(nl2api_eval_worker_tasks_processed_total{status="failure"}[5m])
-          / rate(nl2api_eval_worker_tasks_processed_total[5m]) > 0.1
+          rate(evalkit_eval_worker_tasks_processed_total{status="failure"}[5m])
+          / rate(evalkit_eval_worker_tasks_processed_total[5m]) > 0.1
         for: 5m
         labels:
           severity: warning
@@ -1391,8 +1391,8 @@ groups:
 
       - alert: BatchStuck
         expr: |
-          (time() - nl2api_eval_batch_started_timestamp) > 3600
-          and nl2api_eval_batch_status == 1  # IN_PROGRESS
+          (time() - evalkit_eval_batch_started_timestamp) > 3600
+          and evalkit_eval_batch_status == 1  # IN_PROGRESS
         labels:
           severity: warning
         annotations:
@@ -1402,9 +1402,9 @@ groups:
 
       - alert: WorkerStalled
         expr: |
-          rate(nl2api_eval_worker_heartbeat_total[1m]) > 0
-          and rate(nl2api_eval_worker_tasks_processed_total[5m]) == 0
-          and on() nl2api_eval_queue_pending_tasks > 0
+          rate(evalkit_eval_worker_heartbeat_total[1m]) > 0
+          and rate(evalkit_eval_worker_tasks_processed_total[5m]) == 0
+          and on() evalkit_eval_queue_pending_tasks > 0
         for: 10m
         labels:
           severity: warning
@@ -1413,7 +1413,7 @@ groups:
           description: "Worker {{ $labels.worker_id }} may be hung"
 
       - alert: LLMAPIErrors
-        expr: rate(nl2api_llm_errors_total[5m]) > 0.1
+        expr: rate(evalkit_llm_errors_total[5m]) > 0.1
         for: 5m
         labels:
           severity: warning
@@ -1431,7 +1431,7 @@ groups:
       - alert: RateLimitSaturation
         expr: |
           histogram_quantile(0.95,
-            rate(nl2api_eval_rate_limit_wait_ms_bucket[5m])
+            rate(evalkit_eval_rate_limit_wait_ms_bucket[5m])
           ) > 5000
         for: 10m
         labels:
@@ -1442,7 +1442,7 @@ groups:
           runbook: "Consider using Batch API or upgrading Anthropic tier"
 
       - alert: BatchCompleted
-        expr: increase(nl2api_eval_distributed_batch_completed_total[1m]) > 0
+        expr: increase(evalkit_eval_distributed_batch_completed_total[1m]) > 0
         labels:
           severity: info
         annotations:
