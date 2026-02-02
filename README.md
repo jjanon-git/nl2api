@@ -33,7 +33,7 @@ Translates natural language queries into structured API calls for LSEG financial
 - **Small-to-big** hierarchical chunk retrieval (1.2M chunks, 246 companies)
 - **LLM generation** with Claude or GPT models
 - **8-stage evaluation** including faithfulness, citation accuracy, rejection calibration
-- **466+ test fixtures** for SEC filing evaluation
+- **560 test fixtures** for SEC filing evaluation
 - **30% end-to-end pass rate** (10x improvement from baseline)
 
 ---
@@ -215,7 +215,7 @@ Evaluates Retrieval-Augmented Generation systems:
 | **Rejection Calibration** | False positive/negative detection | Scored | 0.10 |
 
 ```bash
-# Run RAG evaluation (466+ test cases)
+# Run RAG evaluation (560 test cases)
 batch run --pack rag --tag rag --label my-experiment --mode generation
 ```
 
@@ -906,7 +906,7 @@ Fixture Categories:
 ├── screening/             274 cases (SCREEN expressions)
 ├── complex/             2,288 cases (multi-step queries)
 ├── routing/               270 cases (94.1% baseline with Haiku)
-└── rag/                   466 cases (SEC filings evaluation)
+└── rag/                   560 cases (SEC filings evaluation)
 ```
 
 ### Running Tests
