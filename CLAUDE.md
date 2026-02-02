@@ -73,6 +73,16 @@ No capability is complete without:
 - Baseline metrics recorded
 - Tracking over time
 
+### 6. Test Dynamic Scripts Before Background Execution
+
+Never run dynamically-created shell scripts in the background without testing:
+- **Dry-run first**: Execute with `bash -n script.sh` to check syntax
+- **Avoid complex quoting**: Nested quotes in `python -c "..."` break easily
+- **Prefer Python scripts**: For anything beyond trivial commands, write a proper `.py` file
+- **Check immediately**: `tail -f` the log for the first few seconds to catch early failures
+
+**Why:** Errors in background scripts only surface hours later when the task completes. A syntax error in a monitoring script caused a 7-hour ingestion to complete without triggering the follow-up evaluation.
+
 ---
 
 ## Self-Improvement Loop (MANDATORY)
