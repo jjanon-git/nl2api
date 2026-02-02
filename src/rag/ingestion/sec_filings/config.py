@@ -115,6 +115,10 @@ class SECFilingConfig(BaseSettings):
         default=True,
         description="Prepend document context (company, filing type, section) to each chunk",
     )
+    hierarchical_chunking: bool = Field(
+        default=True,
+        description="Use small-to-big hierarchical chunking (parent 4000 chars + child 512 chars)",
+    )
 
     # Directory paths
     data_dir: Path = Field(

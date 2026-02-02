@@ -173,8 +173,11 @@ async def process_filing(
                 sections_extracted=len(sections),
             )
 
-        # Chunk sections
-        chunks = chunker.chunk_filing(sections, filing)
+        # Chunk sections (hierarchical for small-to-big retrieval)
+        if config.hierarchical_chunking:
+            chunks = chunker.chunk_filing_hierarchical(sections, filing)
+        else:
+            chunks = chunker.chunk_filing(sections, filing)
 
         if not chunks:
             logger.warning(f"No chunks generated from filing {filing.accession_number}")
@@ -545,6 +548,18 @@ Examples:
         action="store_true",
         help="Enable verbose logging",
     )
+    parser.add_argument(
+        "--hierarchical",
+        action="store_true",
+        default=True,
+        help="Use small-to-big hierarchical chunking (default: True)",
+    )
+    parser.add_argument(
+        "--no-hierarchical",
+        dest="hierarchical",
+        action="store_false",
+        help="Use flat chunking instead of hierarchical",
+    )
 
     return parser.parse_args()
 
@@ -563,6 +578,7 @@ async def main() -> int:
         filing_types=filing_types,
         embedder_type=args.embedder,
         embedding_batch_size=args.embedding_batch_size,
+        hierarchical_chunking=args.hierarchical,
     )
     config.ensure_data_dir()
 
