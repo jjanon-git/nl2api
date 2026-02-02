@@ -1,7 +1,7 @@
-# NL2API Local Development Environment
+# Evalkit Local Development Environment
 # PostgreSQL with pgvector extension for similarity search
 # Redis for distributed caching
-# SigNoz for observability (traces, metrics, logs)
+# OTEL stack for observability (traces, metrics, logs)
 #
 # SECURITY: Copy .env.example to .env and set secure passwords before running.
 # Default values are for local development only - change for production!
@@ -9,11 +9,11 @@
 services:
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: nl2api-db
+    container_name: evalkit-db
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-nl2api}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nl2api}
-      POSTGRES_DB: ${POSTGRES_DB:-nl2api}
+      POSTGRES_USER: ${POSTGRES_USER:-evalkit}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-evalkit}
+      POSTGRES_DB: ${POSTGRES_DB:-evalkit}
     ports:
       # Bind to localhost only - remove "127.0.0.1:" to expose externally
       - "127.0.0.1:5432:5432"
@@ -24,7 +24,7 @@ services:
       # Note: pg_trgm extension (for fuzzy matching) is included in pgvector image
       - ./src/common/storage/postgres/migrations:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-nl2api} -d ${POSTGRES_DB:-nl2api}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-evalkit} -d ${POSTGRES_DB:-evalkit}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -32,7 +32,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: nl2api-redis
+    container_name: evalkit-redis
     ports:
       # Bind to localhost only - remove "127.0.0.1:" to expose externally
       - "127.0.0.1:6379:6379"
@@ -64,13 +64,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.mcp
-    container_name: nl2api-entity-mcp
+    container_name: evalkit-entity-mcp
     environment:
       ENTITY_MCP_TRANSPORT: sse
       ENTITY_MCP_HOST: "0.0.0.0"  # OK: internal to Docker network
       ENTITY_MCP_PORT: "8080"
       # Build Postgres URL from env vars
-      ENTITY_MCP_POSTGRES_URL: postgresql://${POSTGRES_USER:-nl2api}:${POSTGRES_PASSWORD:-nl2api}@postgres:5432/${POSTGRES_DB:-nl2api}
+      ENTITY_MCP_POSTGRES_URL: postgresql://${POSTGRES_USER:-evalkit}:${POSTGRES_PASSWORD:-evalkit}@postgres:5432/${POSTGRES_DB:-evalkit}
       # Redis URL - set ENTITY_MCP_REDIS_URL directly in .env if using password
       ENTITY_MCP_REDIS_URL: ${ENTITY_MCP_REDIS_URL:-redis://redis:6379/0}
       ENTITY_MCP_REDIS_ENABLED: "true"
@@ -98,11 +98,11 @@ services:
     build:
       context: .
       dockerfile: src/services/entity_resolution/Dockerfile
-    container_name: nl2api-entity-resolution
+    container_name: evalkit-entity-resolution
     environment:
       ENTITY_HOST: "0.0.0.0"
       ENTITY_PORT: "8085"
-      ENTITY_POSTGRES_URL: postgresql://${POSTGRES_USER:-nl2api}:${POSTGRES_PASSWORD:-nl2api}@postgres:5432/${POSTGRES_DB:-nl2api}
+      ENTITY_POSTGRES_URL: postgresql://${POSTGRES_USER:-evalkit}:${POSTGRES_PASSWORD:-evalkit}@postgres:5432/${POSTGRES_DB:-evalkit}
       ENTITY_REDIS_ENABLED: "false"  # Disable Redis for simpler local setup
       ENTITY_LOG_LEVEL: INFO
     ports:
@@ -123,7 +123,7 @@ services:
   # OpenTelemetry Collector - receives telemetry and routes to backends
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.96.0
-    container_name: nl2api-otel-collector
+    container_name: evalkit-otel-collector
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
       - ./config/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
@@ -141,7 +141,7 @@ services:
   # Jaeger - distributed tracing backend
   jaeger:
     image: jaegertracing/all-in-one:1.54
-    container_name: nl2api-jaeger
+    container_name: evalkit-jaeger
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     ports:
@@ -153,7 +153,7 @@ services:
   # Prometheus - metrics storage and querying
   prometheus:
     image: prom/prometheus:v2.49.1
-    container_name: nl2api-prometheus
+    container_name: evalkit-prometheus
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
@@ -170,7 +170,7 @@ services:
   # Grafana - dashboards and visualization
   grafana:
     image: grafana/grafana:10.3.1
-    container_name: nl2api-grafana
+    container_name: evalkit-grafana
     environment:
       GF_SECURITY_ADMIN_USER: ${GF_SECURITY_ADMIN_USER:-admin}
       GF_SECURITY_ADMIN_PASSWORD: ${GF_SECURITY_ADMIN_PASSWORD:-admin}
@@ -188,7 +188,7 @@ services:
 
 volumes:
   postgres_data:
-    name: nl2api_postgres_data
+    name: nl2api_postgres_data  # Keep old name to preserve data
   redis_data:
     name: nl2api_redis_data
   prometheus_data:
