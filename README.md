@@ -275,12 +275,14 @@ pack = RAGPack(config=config)
 
 ### Provider-Specific Thresholds
 
-Different LLM providers score differently. Evalkit auto-tunes thresholds:
+Different LLM judge models score differently. Evalkit auto-tunes thresholds based on the judge model used for evaluation stages (faithfulness, context_relevance, answer_relevance):
 
-| Provider | Context Relevance | Faithfulness | Answer Relevance |
-|----------|------------------|--------------|------------------|
-| **OpenAI** (gpt-4o-mini) | 0.25 | 0.40 | 0.50 |
-| **Anthropic** (Haiku) | 0.35 | 0.40 | 0.50 |
+| Provider | Judge Model | Context Relevance | Faithfulness | Answer Relevance |
+|----------|-------------|------------------|--------------|------------------|
+| **OpenAI** | gpt-4o-mini | 0.25 | 0.40 | 0.50 |
+| **Anthropic** | claude-3-5-haiku | 0.35 | 0.40 | 0.50 |
+
+**Note:** Generation and judge models are separate. OpenAI uses gpt-5-nano for generation (cheap) but gpt-4o-mini for judging (supports `temperature=0` for deterministic scoring). GPT-5 models don't support `temperature=0`.
 
 Set `llm_provider` in config to auto-select appropriate thresholds.
 
