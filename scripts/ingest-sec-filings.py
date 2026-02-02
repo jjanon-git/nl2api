@@ -391,7 +391,12 @@ async def run_ingestion(
             embedder = create_embedder(config.embedder_type)
         logger.info(f"Using {config.embedder_type} embedder ({embedder.dimension} dimensions)")
 
-        indexer = FilingRAGIndexer(pool, embedder=embedder, batch_size=config.embedding_batch_size)
+        indexer = FilingRAGIndexer(
+            pool,
+            embedder=embedder,
+            batch_size=config.embedding_batch_size,
+            embedding_workers=config.embedding_workers,
+        )
         metadata_repo = FilingMetadataRepo(pool)
 
         async with SECEdgarClient(config) as client:
@@ -527,6 +532,12 @@ Examples:
         help="Batch size for embedding API calls (default: 32, reduce if hitting rate limits)",
     )
     parser.add_argument(
+        "--embedding-workers",
+        type=int,
+        default=5,
+        help="Number of parallel embedding API calls (default: 5)",
+    )
+    parser.add_argument(
         "--resume",
         action="store_true",
         help="Resume from checkpoint if available",
@@ -578,6 +589,7 @@ async def main() -> int:
         filing_types=filing_types,
         embedder_type=args.embedder,
         embedding_batch_size=args.embedding_batch_size,
+        embedding_workers=args.embedding_workers,
         hierarchical_chunking=args.hierarchical,
     )
     config.ensure_data_dir()

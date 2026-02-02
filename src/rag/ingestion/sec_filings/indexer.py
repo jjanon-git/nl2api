@@ -27,6 +27,7 @@ class FilingRAGIndexer:
     Indexes SEC filing chunks into the RAG system.
 
     Uses the existing RAG infrastructure with bulk insert optimization.
+    Supports parallel embedding workers for faster throughput.
     """
 
     def __init__(
@@ -34,6 +35,7 @@ class FilingRAGIndexer:
         pool: "asyncpg.Pool",
         embedder: "Embedder | None" = None,
         batch_size: int = 50,
+        embedding_workers: int = 1,
     ):
         """
         Initialize filing indexer.
@@ -41,11 +43,13 @@ class FilingRAGIndexer:
         Args:
             pool: asyncpg connection pool
             embedder: Embedder for generating vectors (uses local if not provided)
-            batch_size: Batch size for embedding generation
+            batch_size: Batch size for embedding generation (chunks per API call)
+            embedding_workers: Number of parallel embedding API calls (default 1)
         """
         self._pool = pool
         self._embedder = embedder
         self._batch_size = batch_size
+        self._embedding_workers = max(1, embedding_workers)
 
     def set_embedder(self, embedder: "Embedder") -> None:
         """Set the embedder for generating embeddings."""
@@ -81,27 +85,45 @@ class FilingRAGIndexer:
 
         with tracer.start_as_current_span("sec_filing.index_chunks") as span:
             span.set_attribute("sec.chunk_count", len(chunks))
+            span.set_attribute("sec.embedding_workers", self._embedding_workers)
             if filing_accession:
                 span.set_attribute("sec.accession_number", filing_accession)
 
             embedder = await self._ensure_embedder()
             doc_ids = []
 
-            # Process in batches for embedding generation
+            # Split chunks into batches
+            batches = []
             for i in range(0, len(chunks), self._batch_size):
                 batch = chunks[i : i + self._batch_size]
-
-                # Generate embeddings for batch
                 contents = [self._build_content(chunk) for chunk in batch]
-                embeddings = await embedder.embed_batch(contents)
+                batches.append((batch, contents))
 
-                # Bulk insert batch
-                batch_ids = await self._bulk_insert_chunks(batch, contents, embeddings)
-                doc_ids.extend(batch_ids)
+            # Process batches with parallel workers
+            if self._embedding_workers > 1:
+                import asyncio
 
-                logger.debug(
-                    f"Indexed batch of {len(batch)} chunks ({i + len(batch)}/{len(chunks)})"
-                )
+                semaphore = asyncio.Semaphore(self._embedding_workers)
+
+                async def process_batch(batch_data: tuple) -> list[str]:
+                    batch, contents = batch_data
+                    async with semaphore:
+                        embeddings = await embedder.embed_batch(contents)
+                        return await self._bulk_insert_chunks(batch, contents, embeddings)
+
+                results = await asyncio.gather(*[process_batch(b) for b in batches])
+                for batch_ids in results:
+                    doc_ids.extend(batch_ids)
+            else:
+                # Sequential processing (original behavior)
+                for batch, contents in batches:
+                    embeddings = await embedder.embed_batch(contents)
+                    batch_ids = await self._bulk_insert_chunks(batch, contents, embeddings)
+                    doc_ids.extend(batch_ids)
+
+                    logger.debug(
+                        f"Indexed batch of {len(batch)} chunks ({len(doc_ids)}/{len(chunks)})"
+                    )
 
             span.set_attribute("sec.indexed_count", len(doc_ids))
             logger.info(f"Indexed {len(doc_ids)} chunks for filing {filing_accession or 'unknown'}")

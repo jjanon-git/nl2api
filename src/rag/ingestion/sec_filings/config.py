@@ -140,9 +140,15 @@ class SECFilingConfig(BaseSettings):
     )
     embedding_batch_size: int = Field(
         default=32,
-        description="Batch size for embedding generation",
+        description="Batch size for embedding generation (chunks per API call)",
         ge=1,
         le=100,
+    )
+    embedding_workers: int = Field(
+        default=5,
+        description="Number of parallel embedding API calls",
+        ge=1,
+        le=20,
     )
 
     def ensure_data_dir(self) -> Path:
