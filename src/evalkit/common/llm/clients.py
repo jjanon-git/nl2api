@@ -121,6 +121,11 @@ def create_openai_client(
             return openai.OpenAI(api_key=resolved_key, base_url=base_url)
 
 
+def _is_gpt5_model(model: str) -> bool:
+    """Check if model is a GPT-5 reasoning model (doesn't support temperature)."""
+    return model.startswith("gpt-5") or model.startswith("o1") or model.startswith("o3")
+
+
 async def openai_chat_completion(
     client: AsyncOpenAI | AsyncAzureOpenAI,
     *,
@@ -128,6 +133,7 @@ async def openai_chat_completion(
     messages: list[dict[str, Any]],
     max_tokens: int = 4096,
     temperature: float = 0.0,
+    reasoning_effort: str | None = None,
     tools: list[dict[str, Any]] | None = None,
     tool_choice: dict[str, Any] | str | None = None,
     **kwargs: Any,
@@ -138,12 +144,18 @@ async def openai_chat_completion(
     IMPORTANT: This function uses `max_completion_tokens` instead of `max_tokens`
     because gpt-5-nano and newer models require it.
 
+    For GPT-5 reasoning models:
+    - temperature is NOT supported (removed from request)
+    - reasoning_effort controls determinism: "minimal", "low", "medium", "high"
+    - Use "minimal" for deterministic judge/evaluation tasks
+
     Args:
         client: OpenAI async client
         model: Model name
         messages: Chat messages
         max_tokens: Maximum tokens for completion (passed as max_completion_tokens)
-        temperature: Sampling temperature
+        temperature: Sampling temperature (ignored for GPT-5 models)
+        reasoning_effort: Reasoning effort for GPT-5 models ("minimal", "low", "medium", "high")
         tools: Optional tools for function calling
         tool_choice: Optional tool choice specification
         **kwargs: Additional parameters passed to the API
@@ -154,10 +166,18 @@ async def openai_chat_completion(
     request_kwargs: dict[str, Any] = {
         "model": model,
         "messages": messages,
-        "max_completion_tokens": max_tokens,  # Use max_completion_tokens for gpt-5-nano
-        "temperature": temperature,
+        "max_completion_tokens": max_tokens,
         **kwargs,
     }
+
+    # GPT-5 reasoning models don't support temperature - use reasoning_effort instead
+    if _is_gpt5_model(model):
+        # Default to "minimal" for deterministic outputs (judge/eval use case)
+        effort = reasoning_effort or "minimal"
+        request_kwargs["reasoning"] = {"effort": effort}
+        # Note: temperature parameter is intentionally omitted for GPT-5 models
+    else:
+        request_kwargs["temperature"] = temperature
 
     if tools:
         request_kwargs["tools"] = tools
@@ -174,6 +194,7 @@ def openai_chat_completion_sync(
     messages: list[dict[str, Any]],
     max_tokens: int = 4096,
     temperature: float = 0.0,
+    reasoning_effort: str | None = None,
     tools: list[dict[str, Any]] | None = None,
     tool_choice: dict[str, Any] | str | None = None,
     **kwargs: Any,
@@ -184,12 +205,18 @@ def openai_chat_completion_sync(
     IMPORTANT: This function uses `max_completion_tokens` instead of `max_tokens`
     because gpt-5-nano and newer models require it.
 
+    For GPT-5 reasoning models:
+    - temperature is NOT supported (removed from request)
+    - reasoning_effort controls determinism: "minimal", "low", "medium", "high"
+    - Use "minimal" for deterministic judge/evaluation tasks
+
     Args:
         client: OpenAI sync client
         model: Model name
         messages: Chat messages
         max_tokens: Maximum tokens for completion (passed as max_completion_tokens)
-        temperature: Sampling temperature
+        temperature: Sampling temperature (ignored for GPT-5 models)
+        reasoning_effort: Reasoning effort for GPT-5 models ("minimal", "low", "medium", "high")
         tools: Optional tools for function calling
         tool_choice: Optional tool choice specification
         **kwargs: Additional parameters passed to the API
@@ -200,10 +227,18 @@ def openai_chat_completion_sync(
     request_kwargs: dict[str, Any] = {
         "model": model,
         "messages": messages,
-        "max_completion_tokens": max_tokens,  # Use max_completion_tokens for gpt-5-nano
-        "temperature": temperature,
+        "max_completion_tokens": max_tokens,
         **kwargs,
     }
+
+    # GPT-5 reasoning models don't support temperature - use reasoning_effort instead
+    if _is_gpt5_model(model):
+        # Default to "minimal" for deterministic outputs (judge/eval use case)
+        effort = reasoning_effort or "minimal"
+        request_kwargs["reasoning"] = {"effort": effort}
+        # Note: temperature parameter is intentionally omitted for GPT-5 models
+    else:
+        request_kwargs["temperature"] = temperature
 
     if tools:
         request_kwargs["tools"] = tools

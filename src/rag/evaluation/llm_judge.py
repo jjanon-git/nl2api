@@ -81,10 +81,10 @@ class LLMJudge:
         model = os.getenv("EVAL_LLM_JUDGE_MODEL") or os.getenv("EVAL_LLM_MODEL")
 
         # Default judge model per provider:
-        # - OpenAI: gpt-4o-mini (gpt-5 models don't support temperature=0)
+        # - OpenAI: gpt-5-nano with reasoning_effort="minimal" for deterministic output
         # - Anthropic: claude-3-5-haiku (supports temperature=0)
         if model is None:
-            model = "gpt-4o-mini" if provider == "openai" else "claude-3-5-haiku-20241022"
+            model = "gpt-5-nano" if provider == "openai" else "claude-3-5-haiku-20241022"
 
         return LLMJudgeConfig(provider=provider, model=model)  # type: ignore[arg-type]
 
@@ -294,7 +294,11 @@ Response:"""
         return message.content[0].text
 
     async def _call_openai(self, client: Any, prompt: str) -> str:
-        """Call OpenAI API using shared helper."""
+        """Call OpenAI API using shared helper.
+
+        For GPT-5 models, uses reasoning_effort="minimal" for deterministic output.
+        The shared helper automatically handles this based on model name.
+        """
         from src.evalkit.common.llm import openai_chat_completion
 
         response = await openai_chat_completion(
@@ -303,6 +307,7 @@ Response:"""
             messages=[{"role": "user", "content": prompt}],
             max_tokens=self.config.max_tokens,
             temperature=self.config.temperature,
+            reasoning_effort=getattr(self.config, "reasoning_effort", None) or "minimal",
         )
         return response.choices[0].message.content
 

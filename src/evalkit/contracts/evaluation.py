@@ -456,13 +456,18 @@ class LLMJudgeConfig(BaseModel):
     model: str = Field(
         default="claude-3-5-haiku-20241022",
         description="Model for LLM-as-judge evaluation. Anthropic: claude-3-5-haiku-20241022. "
-        "OpenAI: gpt-4o-mini (recommended - gpt-5 models don't support temperature=0).",
+        "OpenAI: gpt-5-nano with reasoning_effort='minimal' for deterministic output.",
     )
     temperature: float = Field(
         default=0.0,
         ge=0.0,
         le=2.0,
-        description="Sampling temperature (0 for deterministic)",
+        description="Sampling temperature (0 for deterministic). Ignored for GPT-5 models.",
+    )
+    reasoning_effort: str | None = Field(
+        default=None,
+        description="Reasoning effort for GPT-5 models: 'minimal', 'low', 'medium', 'high'. "
+        "Use 'minimal' for deterministic judge outputs. Ignored for non-GPT-5 models.",
     )
     max_tokens: int = Field(
         default=512,
