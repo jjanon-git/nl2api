@@ -220,6 +220,71 @@ When adding a new fixture generator, follow this checklist:
 7. [ ] Test file created in `tests/unit/nl2api/test_{category}_fixtures.py`
 8. [ ] **Documentation updated in `docs/evaluation-data.md`**
 
+## RAG Evaluation Testing
+
+**To properly measure RAG system performance, run the full 560-case test set.**
+
+The 400-item `sec_evaluation_set_verified.json` alone is insufficient - it only covers retrieval/generation scenarios. The additional 160 cases test policy compliance, rejection calibration, and edge cases.
+
+### RAG Test Fixture Breakdown
+
+| File | Count | Purpose |
+|------|-------|---------|
+| `sec_evaluation_set_verified.json` | 400 | Main SEC retrieval + generation |
+| `adversarial_test_set.json` | 50 | Adversarial/edge cases |
+| `should_reject_policy.json` | 30 | Policy rejection tests |
+| `sec_evaluation_set_new.json` | 20 | New unverified cases |
+| `should_answer_complete.json` | 20 | Should-answer scenarios |
+| `citation_required.json` | 10 | Citation requirement tests |
+| `quote_only_sources.json` | 10 | Quote-only policy tests |
+| `rag_test_cases.json` | 10 | Basic RAG tests |
+| `should_reject_no_context.json` | 10 | No-context rejection tests |
+| **Total** | **560** | |
+
+### Running RAG Evaluation
+
+**Prerequisites:**
+1. SEC filing data must be indexed (run `scripts/ingest-sec-filings.py` first)
+2. All RAG fixtures loaded to database
+
+```bash
+# Load all RAG fixtures (560 test cases)
+for f in tests/fixtures/rag/*.json; do
+  python scripts/load-rag-fixtures.py --fixture "$f"
+done
+
+# Run full RAG evaluation with OpenAI stack
+EVAL_LLM_PROVIDER=openai \
+EVALKIT_TELEMETRY_ENABLED=true \
+python -m src.evalkit.cli.main batch run \
+  --pack rag \
+  --tag rag \
+  --label "full-rag-eval" \
+  --mode generation \
+  --parallel-stages \
+  --concurrency 5 \
+  -v
+```
+
+### What Each Stage Measures
+
+| Stage | Measures | Threshold |
+|-------|----------|-----------|
+| `retrieval` | Recall@5 of expected chunks | 0.5 |
+| `context_relevance` | Retrieved context quality | 0.25 (OpenAI) / 0.35 (Anthropic) |
+| `faithfulness` | Response grounded in context | 0.4 |
+| `answer_relevance` | Response addresses query | 0.5 |
+| `citation` | Citation presence/accuracy | 0.6 |
+| `source_policy` | Quote-only enforcement | GATE (must pass) |
+| `policy_compliance` | Content policy violations | GATE (must pass) |
+| `rejection_calibration` | Correct rejection behavior | 0.5 |
+
+**Important:** Without the full 560 cases, you'll miss:
+- Policy rejection testing (should model refuse?)
+- Citation requirement validation
+- Edge case handling (adversarial queries)
+- Rejection calibration (false positives/negatives)
+
 ## Pre-commit Checklist
 
 1. ✅ Unit tests pass: `pytest tests/unit/ -v --tb=short -x`

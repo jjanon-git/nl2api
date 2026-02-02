@@ -36,7 +36,7 @@ load_dotenv()
 RAG_FIXTURE_PATH = Path("tests/fixtures/rag/sec_evaluation_set_verified.json")
 
 
-def convert_to_rag_format(test_case: dict) -> dict:
+def convert_to_rag_format(test_case: dict) -> dict | None:
     """
     Convert SEC evaluation test case format to RAGPack format.
 
@@ -50,6 +50,13 @@ def convert_to_rag_format(test_case: dict) -> dict:
             "answer_keywords": ["$37,127,322", ...],
             "difficulty": "easy",
             "metadata": {...}
+        }
+
+    Alternative format (citation_required.json, etc.):
+        {
+            "id": "rag-cite-001",
+            "input": {"query": "..."},
+            "expected": {"behavior": "answer", "relevant_docs": [...]}
         }
 
     Adversarial format (adversarial_test_set.json):
@@ -69,11 +76,17 @@ def convert_to_rag_format(test_case: dict) -> dict:
             "behavior": "answer" | "reject",
             "answer_keywords": [...]
         }
+
+    Returns None if test case format is invalid.
     """
+    # Handle both formats: top-level "query" or nested "input.query"
+    query = test_case.get("query") or test_case.get("input", {}).get("query")
+    if not query:
+        return None  # Skip invalid test cases
+
     # Include company context in input for retrieval enhancement
-    # The response generator can use this to prefix queries for better retrieval
     input_json = {
-        "query": test_case["query"],
+        "query": query,
     }
 
     # Add company_name from metadata to input (for retrieval context)
@@ -84,18 +97,25 @@ def convert_to_rag_format(test_case: dict) -> dict:
         # Fallback: use company ticker if company_name not available
         input_json["company"] = test_case["company"]
 
-    # Check for explicit expected.behavior (adversarial format)
+    # Check for explicit expected block (alternative format has relevant_docs inside expected)
     expected_block = test_case.get("expected", {})
     behavior = expected_block.get("behavior", "answer")  # Default to "answer"
 
+    # relevant_docs can be at top level (as relevant_chunk_ids) or in expected block
+    relevant_docs = test_case.get("relevant_chunk_ids") or expected_block.get("relevant_docs") or []
+
     expected_json = {
-        "relevant_docs": test_case.get("relevant_chunk_ids", []),
+        "relevant_docs": relevant_docs,
         "behavior": behavior,
     }
 
     # Include answer keywords for answer relevance evaluation
     if test_case.get("answer_keywords"):
         expected_json["answer_keywords"] = test_case["answer_keywords"]
+
+    # Include requires_citations from expected block
+    if expected_block.get("requires_citations"):
+        expected_json["requires_citations"] = expected_block["requires_citations"]
 
     # Include expected section for context
     if test_case.get("expected_section"):
@@ -158,6 +178,9 @@ async def load_rag_fixtures(
 
                 # Convert to RAG format
                 rag_format = convert_to_rag_format(tc)
+                if rag_format is None:
+                    errors += 1
+                    continue
 
                 # Build tags
                 tags = ["rag", "sec_filing"]
@@ -227,7 +250,7 @@ async def load_rag_fixtures(
                         updated_at = NOW()
                     """,
                     test_uuid,
-                    tc["query"],  # nl_query for backwards compat
+                    rag_format["input_json"]["query"],  # nl_query for backwards compat
                     "[]",  # Empty tool calls for RAG tests
                     json.dumps(rag_format["input_json"]),
                     json.dumps(rag_format["expected_json"]),
