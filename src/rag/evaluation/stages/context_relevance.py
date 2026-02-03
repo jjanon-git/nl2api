@@ -75,38 +75,39 @@ class ContextRelevanceStage:
             # Fall back to heuristic evaluation
             return await self._heuristic_evaluate(query, chunks, start_time)
 
-        # Evaluate each chunk (up to limit)
+        # Evaluate each chunk (up to limit) - run in parallel for performance
         chunks_to_evaluate = chunks[: self.max_chunks_to_evaluate]
-        chunk_scores: list[float] = []
-        chunk_details: list[dict[str, Any]] = []
 
-        for i, chunk in enumerate(chunks_to_evaluate):
+        async def evaluate_chunk(i: int, chunk: Any) -> tuple[float, dict[str, Any]]:
+            """Evaluate a single chunk and return (score, details)."""
             chunk_text = chunk if isinstance(chunk, str) else chunk.get("text", str(chunk))
-
             try:
                 result = await llm_judge.evaluate_relevance(
                     query=query,
                     text=chunk_text,
                     context_type="context",
                 )
-                chunk_scores.append(result.score)
-                chunk_details.append(
-                    {
-                        "chunk_index": i,
-                        "score": result.score,
-                        "reasoning": result.reasoning[:200],
-                    }
-                )
+                return result.score, {
+                    "chunk_index": i,
+                    "score": result.score,
+                    "reasoning": result.reasoning[:200],
+                }
             except Exception as e:
                 # Continue on individual chunk failure
-                chunk_details.append(
-                    {
-                        "chunk_index": i,
-                        "score": 0.5,
-                        "error": str(e),
-                    }
-                )
-                chunk_scores.append(0.5)
+                return 0.5, {
+                    "chunk_index": i,
+                    "score": 0.5,
+                    "error": str(e),
+                }
+
+        # Run all chunk evaluations in parallel
+        import asyncio
+
+        results = await asyncio.gather(
+            *[evaluate_chunk(i, chunk) for i, chunk in enumerate(chunks_to_evaluate)]
+        )
+        chunk_scores = [r[0] for r in results]
+        chunk_details = [r[1] for r in results]
 
         # Aggregate scores (weighted by position - earlier chunks matter more)
         if chunk_scores:

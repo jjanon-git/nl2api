@@ -168,6 +168,28 @@ pkill -f "entity_resolution.*8085"
 
 **Why this matters:** Unit tests with mocks can pass while real code fails (wrong imports, missing dependencies, I/O issues). Manual testing catches these gaps.
 
+## LLM API Smoke Tests
+
+**When changing LLM client code, run smoke tests against real APIs before committing.**
+
+Unit tests mock LLM calls, so API parameter errors (like wrong parameter names) won't be caught until runtime. After modifying `src/evalkit/common/llm/clients.py` or adding support for new models:
+
+```bash
+# Run LLM smoke tests (requires API keys)
+python scripts/smoke-test-llm.py
+```
+
+This verifies:
+- OpenAI gpt-5-nano with `reasoning_effort` parameter
+- OpenAI gpt-4o-mini with `temperature` parameter
+- Anthropic claude-3-5-haiku with standard parameters
+
+**When to run:**
+- After modifying LLM client factories or helpers
+- After adding support for new models
+- After upgrading OpenAI/Anthropic SDK versions
+- Before running batch evaluations with new configurations
+
 ## Dynamic Fixture-Based Testing
 
 Tests automatically scale with test data using programmatic fixture expansion.

@@ -83,11 +83,29 @@ Never run dynamically-created shell scripts in the background without testing:
 
 **Why:** Errors in background scripts only surface hours later when the task completes. A syntax error in a monitoring script caused a 7-hour ingestion to complete without triggering the follow-up evaluation.
 
+### 7. Run LLM Smoke Tests After Client Changes
+
+After modifying `src/evalkit/common/llm/clients.py` or adding new model support:
+
+```bash
+python scripts/smoke-test-llm.py
+```
+
+**Why:** Unit tests mock LLM calls, so API parameter errors (wrong names, structures) won't be caught until runtime. A `reasoning={"effort": "minimal"}` parameter (wrong format for Chat Completions API) caused all faithfulness evaluations to fail at 0.0.
+
 ---
 
 ## Self-Improvement Loop (MANDATORY)
 
-**Before marking any significant task complete, you MUST complete this reflection checklist:**
+⚠️ **STOP AND READ THIS** after any debugging session, bug fix, or unexpected failure.
+
+**EXPLICIT INVOCATION REQUIRED:** When completing a reflection, write:
+```
+🔄 Self-Improvement Checklist:
+- Root cause: [describe]
+- Why not caught: [reason]
+- Prevention: [action taken]
+```
 
 ### Post-Task Reflection Checklist
 
@@ -105,6 +123,7 @@ After fixing a bug, adding a feature, or debugging an issue, ask yourself:
 - After finding undocumented requirements
 - After manual testing reveals something unit tests missed
 - Before committing a fix
+- **After any runtime error that unit tests didn't catch**
 
 ### Examples
 
@@ -116,6 +135,8 @@ After fixing a bug, adding a feature, or debugging an issue, ask yourself:
 | FastAPI returns 422 for valid JSON | `from __future__ import annotations` breaks introspection | Add comment in affected file (code gotcha) |
 | Batch runs but results empty | Field not set in Scorecard creation | Trace data flow end-to-end before declaring done |
 | Fix applied but batch still broken | Running process started before fix | Kill old process, restart, verify NEW batch_id |
+| Shell script syntax error after hours | Nested quoting in python -c | Critical Rule #6: Test dynamic scripts |
+| LLM judge returns 0.0 for all | Wrong API parameter format | Critical Rule #7: Run LLM smoke tests |
 
 ### Where to Document
 

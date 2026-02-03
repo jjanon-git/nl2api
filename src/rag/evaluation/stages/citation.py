@@ -247,42 +247,43 @@ class CitationStage:
 
         Uses LLM to verify that cited sources support the statements.
         """
-        # Extract citation contexts (text around citations)
-        accurate_count = 0
-        total_checked = 0
+        # Extract citation contexts (text around citations) - verify in parallel
+        import asyncio
 
-        for citation in list(citations)[:5]:  # Limit to 5 checks
-            # Find context around citation
+        async def verify_citation(citation: str) -> bool | None:
+            """Verify a single citation. Returns True if accurate, False if not, None if skipped."""
             context_text = self._find_citation_context(response, citation)
             if not context_text:
-                continue
+                return None
 
-            # Get source text
             source = sources.get(citation) or sources.get(str(citation))
             if not source:
-                continue
+                return None
 
             source_text = (
                 source.get("text", str(source)) if isinstance(source, dict) else str(source)
             )
 
             try:
-                # Ask LLM if source supports the claim
                 result = await llm_judge.verify_claim(
                     claim=context_text,
                     context=source_text,
                 )
-                if result.supported:
-                    accurate_count += 1
-                total_checked += 1
+                return result.supported
             except (TimeoutError, ConnectionError) as e:
-                # Network errors - skip this citation but continue checking others
                 logger.debug(f"Skipping citation verification due to network error: {e}")
-                continue
+                return None
             except Exception as e:
-                # Log unexpected errors but don't fail the entire evaluation
                 logger.warning(f"Unexpected error verifying citation: {e}")
-                continue
+                return None
+
+        # Run all citation verifications in parallel
+        results = await asyncio.gather(*[verify_citation(c) for c in list(citations)[:5]])
+
+        # Count results (None = skipped)
+        verified = [r for r in results if r is not None]
+        accurate_count = sum(1 for r in verified if r)
+        total_checked = len(verified)
 
         return accurate_count / total_checked if total_checked > 0 else 1.0
 

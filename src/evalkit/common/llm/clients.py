@@ -144,9 +144,9 @@ async def openai_chat_completion(
     IMPORTANT: This function uses `max_completion_tokens` instead of `max_tokens`
     because gpt-5-nano and newer models require it.
 
-    For GPT-5 reasoning models:
-    - temperature is NOT supported (removed from request)
-    - reasoning_effort controls determinism: "minimal", "low", "medium", "high"
+    For GPT-5/o1/o3 reasoning models:
+    - temperature is NOT supported (use reasoning_effort instead)
+    - reasoning_effort controls reasoning depth: "minimal", "low", "medium", "high"
     - Use "minimal" for deterministic judge/evaluation tasks
 
     Args:
@@ -154,8 +154,8 @@ async def openai_chat_completion(
         model: Model name
         messages: Chat messages
         max_tokens: Maximum tokens for completion (passed as max_completion_tokens)
-        temperature: Sampling temperature (ignored for GPT-5 models)
-        reasoning_effort: Reasoning effort for GPT-5 models ("minimal", "low", "medium", "high")
+        temperature: Sampling temperature (ignored for GPT-5/o1/o3 models)
+        reasoning_effort: Reasoning depth for GPT-5/o1/o3 models (default: "minimal")
         tools: Optional tools for function calling
         tool_choice: Optional tool choice specification
         **kwargs: Additional parameters passed to the API
@@ -170,12 +170,11 @@ async def openai_chat_completion(
         **kwargs,
     }
 
-    # GPT-5 reasoning models don't support temperature - use reasoning_effort instead
+    # GPT-5/o1/o3 reasoning models use reasoning_effort instead of temperature
+    # Chat Completions API uses reasoning_effort="minimal" (not nested reasoning={})
     if _is_gpt5_model(model):
-        # Default to "minimal" for deterministic outputs (judge/eval use case)
         effort = reasoning_effort or "minimal"
-        request_kwargs["reasoning"] = {"effort": effort}
-        # Note: temperature parameter is intentionally omitted for GPT-5 models
+        request_kwargs["reasoning_effort"] = effort
     else:
         request_kwargs["temperature"] = temperature
 
@@ -231,12 +230,11 @@ def openai_chat_completion_sync(
         **kwargs,
     }
 
-    # GPT-5 reasoning models don't support temperature - use reasoning_effort instead
+    # GPT-5/o1/o3 reasoning models use reasoning_effort instead of temperature
+    # Chat Completions API uses reasoning_effort="minimal" (not nested reasoning={})
     if _is_gpt5_model(model):
-        # Default to "minimal" for deterministic outputs (judge/eval use case)
         effort = reasoning_effort or "minimal"
-        request_kwargs["reasoning"] = {"effort": effort}
-        # Note: temperature parameter is intentionally omitted for GPT-5 models
+        request_kwargs["reasoning_effort"] = effort
     else:
         request_kwargs["temperature"] = temperature
 
