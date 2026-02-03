@@ -648,14 +648,6 @@ async def _batch_run_async(
             if client_version is None:
                 client_version = llm_model
 
-        # Special handling for RAG pack - needs retrieval-based response generator
-        if pack == "rag" and response_generator is None:
-            # Default to simulated for RAG if no mode specified
-            from src.evalkit.batch.response_generators import create_rag_simulated_generator
-
-            response_generator = create_rag_simulated_generator(pass_rate=0.7)
-            console.print("[yellow]Using simulated RAG responses (pipeline test only).[/yellow]\n")
-
         # rag-retrieval pack: always uses retrieval-only mode (no LLM generation)
         if pack == "rag-retrieval" and response_generator is None:
             import os
@@ -762,11 +754,12 @@ async def _batch_run_async(
                     response_generator = create_rag_retrieval_generator(retriever)
                     console.print("[green]Using RAG retrieval with HybridRAGRetriever.[/green]\n")
             except Exception as e:
-                console.print(f"[red]Failed to initialize RAG: {e}[/red]")
-                console.print("[yellow]Falling back to simulated RAG responses.[/yellow]\n")
-                from src.evalkit.batch.response_generators import create_rag_simulated_generator
-
-                response_generator = create_rag_simulated_generator(pass_rate=0.7)
+                console.print(f"[red]Failed to initialize RAG pipeline: {e}[/red]")
+                console.print("\nCheck that:")
+                console.print("  - PostgreSQL is running (docker compose up -d)")
+                console.print("  - NL2API_OPENAI_API_KEY is set")
+                console.print("  - RAG documents are ingested")
+                raise typer.Exit(1)
 
         # Map mode to eval_mode (stored in scorecards for tracking)
         eval_mode_map = {
