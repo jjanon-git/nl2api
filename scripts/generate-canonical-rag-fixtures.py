@@ -7,7 +7,7 @@ directly FROM documents in the current database. Since questions are
 derived from specific documents, the document IDs are guaranteed correct.
 
 Usage:
-    # Generate 50 canonical test cases
+    # Generate 50 canonical test cases (uses gpt-5-nano by default)
     python scripts/generate-canonical-rag-fixtures.py --count 50
 
     # Preview without saving
@@ -15,6 +15,9 @@ Usage:
 
     # Generate for specific companies
     python scripts/generate-canonical-rag-fixtures.py --companies AAPL,MSFT,GOOGL --count 30
+
+    # Use a different model
+    python scripts/generate-canonical-rag-fixtures.py --count 50 --model gpt-4o-mini
 
 Output:
     tests/fixtures/rag/canonical_retrieval_set.json
@@ -50,11 +53,17 @@ QUESTION_GEN_PROMPT = """You are generating test questions for a RAG system that
 
 Given this excerpt from an SEC filing, generate {num_questions} specific factual question(s) that can ONLY be answered using information in this excerpt.
 
-Requirements:
-- Questions must be answerable from THIS specific text
-- Questions should ask about concrete facts, numbers, dates, or named entities
-- Avoid vague questions like "What does the company do?"
-- Include the type of question: simple_factual, temporal_comparative, or complex_analytical
+CRITICAL Requirements for unique retrievability:
+- Questions MUST include the company name (e.g., "What was Apple Inc's total revenue...")
+- Questions MUST reference specific numbers, dollar amounts, percentages, or dates from the text
+- Questions should ask about concrete facts that are UNIQUE to this document
+- The combination of company name + specific metric + time period should uniquely identify this content
+- Avoid generic questions that could apply to multiple documents
+
+Good example: "What was Tesla Inc's net income in Q3 2024 according to their 10-Q filing?"
+Bad example: "What was the company's revenue?"
+
+Include the type of question: simple_factual, temporal_comparative, or complex_analytical
 
 SEC Filing Excerpt:
 Company: {company}
@@ -68,9 +77,9 @@ Respond in JSON format:
 {{
   "questions": [
     {{
-      "question": "What was the total revenue in Q3 2023?",
+      "question": "What was [COMPANY]'s total revenue for fiscal year 2024?",
       "category": "simple_factual",
-      "answer_keywords": ["$1.2 billion", "revenue", "Q3"],
+      "answer_keywords": ["$1.2 billion", "revenue", "2024"],
       "difficulty": "easy"
     }}
   ]
@@ -98,7 +107,7 @@ async def get_sample_documents(
         param_idx = 1
 
         if companies:
-            conditions.append(f"metadata->>'company' = ANY(${param_idx}::text[])")
+            conditions.append(f"metadata->>'ticker' = ANY(${param_idx}::text[])")
             params.append(companies)
             param_idx += 1
 
@@ -122,8 +131,12 @@ async def get_sample_documents(
 
         documents = []
         for row in rows:
-            metadata = row["metadata"] or {}
-            company = metadata.get("company", "unknown")
+            metadata = row["metadata"]
+            # Handle both dict and string (asyncpg may return jsonb as string)
+            if isinstance(metadata, str):
+                metadata = json.loads(metadata) if metadata else {}
+            metadata = metadata or {}
+            company = metadata.get("ticker") or metadata.get("company", "unknown")
 
             if seen_companies.get(company, 0) >= max_per_company:
                 continue
@@ -146,6 +159,7 @@ async def get_sample_documents(
 async def generate_questions_for_document(
     doc: dict,
     num_questions: int = 1,
+    model: str = "gpt-5-nano",
 ) -> list[dict]:
     """
     Generate questions for a document using LLM.
@@ -157,10 +171,12 @@ async def generate_questions_for_document(
     metadata = doc["metadata"]
     content = doc["content"][:3000]  # Limit content length
 
+    company = metadata.get("company_name") or metadata.get("ticker") or "Unknown"
+    filing_type = metadata.get("filing_type") or metadata.get("form_type") or "10-K"
     prompt = QUESTION_GEN_PROMPT.format(
         num_questions=num_questions,
-        company=metadata.get("company", "Unknown"),
-        filing_type=metadata.get("form_type", "10-K"),
+        company=company,
+        filing_type=filing_type,
         section=metadata.get("section", "Unknown"),
         content=content,
     )
@@ -168,7 +184,7 @@ async def generate_questions_for_document(
     try:
         response = await openai_chat_completion(
             client,
-            model="gpt-4o-mini",
+            model=model,
             messages=[{"role": "user", "content": prompt}],
             max_tokens=500,
             temperature=0.7,
@@ -191,133 +207,219 @@ async def generate_questions_for_document(
         return []
 
 
-async def verify_retrieval(
-    pool: asyncpg.Pool,
+async def verify_retrieval_with_hybrid(
+    retriever,
     query: str,
     expected_doc_id: str,
-    company: str | None = None,
-) -> tuple[bool, float]:
+    ticker: str | None = None,
+) -> tuple[bool, float, int]:
     """
-    Verify that retrieval can find the expected document.
+    Verify retrieval using the actual hybrid retriever (vector + keyword).
 
-    Returns (found, score).
+    This ensures fixtures are verified with the same retrieval logic used in evaluation.
+
+    Returns (found, score, position).
     """
-    # Simple text search verification
-    async with pool.acquire() as conn:
-        sql = """
-            SELECT id,
-                   ts_rank(to_tsvector('english', content), plainto_tsquery('english', $1)) as rank
-            FROM rag_documents
-            WHERE to_tsvector('english', content) @@ plainto_tsquery('english', $1)
-        """
-        params = [query]
+    try:
+        results = await retriever.retrieve(
+            query=query,
+            document_types=None,
+            limit=10,
+            threshold=0.0,
+            use_cache=False,
+            ticker=ticker,
+        )
 
-        if company:
-            sql += " AND metadata->>'company' = $2"
-            params.append(company)
-
-        sql += " ORDER BY rank DESC LIMIT 10"
-
-        rows = await conn.fetch(sql, *params)
-
-        for i, row in enumerate(rows):
-            if str(row["id"]) == expected_doc_id:
+        for i, result in enumerate(results):
+            if str(result.id) == expected_doc_id:
                 # Found in top 10, return position-based score
-                return True, 1.0 - (i * 0.1)
+                return True, 1.0 - (i * 0.1), i + 1
 
-        return False, 0.0
+        return False, 0.0, -1
+
+    except Exception as e:
+        print(f"    Retrieval error: {e}")
+        return False, 0.0, -1
 
 
 async def generate_canonical_fixtures(
     pool: asyncpg.Pool,
     count: int = 50,
     companies: list[str] | None = None,
-    verify: bool = True,
     dry_run: bool = False,
+    model: str = "gpt-5-nano",
+    include_unverified: bool = False,
+    concurrency: int = 20,
 ) -> dict:
     """
     Generate canonical test fixtures with verified ground truth.
+
+    Verification is MANDATORY - uses the actual hybrid retriever to ensure
+    questions are retrievable. Only verified questions are included by default.
+
+    Args:
+        pool: Database connection pool
+        count: Target number of test cases (will sample more to account for failures)
+        companies: Optional list of tickers to filter by
+        dry_run: If True, don't save to file
+        model: LLM model for question generation
+        include_unverified: If True, include questions that failed verification
+                           (NOT RECOMMENDED - will cause evaluation failures)
+        concurrency: Number of documents to process concurrently (default 20)
     """
-    print(f"Sampling {count} documents...")
-    documents = await get_sample_documents(pool, count, companies)
+    from src.rag.retriever.embedders import OpenAIEmbedder
+    from src.rag.retriever.retriever import HybridRAGRetriever
+
+    # Initialize the hybrid retriever (same as used in evaluation)
+    print("Initializing hybrid retriever for verification...")
+    api_key = os.getenv("NL2API_OPENAI_API_KEY")
+    if not api_key:
+        raise RuntimeError("NL2API_OPENAI_API_KEY required for retrieval verification")
+
+    embedder = OpenAIEmbedder(api_key=api_key, model="text-embedding-3-small")
+    retriever = HybridRAGRetriever(
+        pool=pool,
+        embedding_dimension=1536,
+        vector_weight=0.7,
+        keyword_weight=0.3,
+    )
+    retriever.set_embedder(embedder)
+    print("  Retriever initialized.\n")
+
+    # Sample more documents than needed to account for verification failures
+    # ~7% verification rate observed, so need ~15x buffer
+    sample_count = int(count * 15)  # 15x buffer for ~7% verification rate
+    print(f"Sampling {sample_count} documents (target: {count} verified)...")
+    documents = await get_sample_documents(pool, sample_count, companies)
     print(f"  Found {len(documents)} documents")
 
     test_cases = []
+    verified_cases = []
     stats = {
         "total_docs": len(documents),
         "questions_generated": 0,
         "retrieval_verified": 0,
         "retrieval_failed": 0,
         "errors": 0,
+        "position_distribution": {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, "6+": 0},
     }
 
-    for i, doc in enumerate(documents):
-        print(f"\n[{i + 1}/{len(documents)}] Processing doc {doc['id'][:8]}...")
+    # Process documents in parallel batches for speed
+    batch_size = concurrency  # Number of documents to process concurrently
 
-        # Generate questions
-        questions = await generate_questions_for_document(doc, num_questions=1)
+    async def process_single_doc(doc: dict, doc_idx: int) -> dict | None:
+        """Process a single document: generate question and verify retrieval."""
+        try:
+            questions = await generate_questions_for_document(doc, num_questions=1, model=model)
+            if not questions:
+                return {"error": True, "doc_id": doc["id"]}
 
-        if not questions:
-            stats["errors"] += 1
-            continue
+            q = questions[0]
+            metadata = doc["metadata"]
+            ticker = metadata.get("ticker") or metadata.get("company")
 
-        for q in questions:
+            # Verify with hybrid retriever
+            found, score, position = await verify_retrieval_with_hybrid(
+                retriever,
+                q["question"],
+                doc["id"],
+                ticker,
+            )
+
+            return {
+                "error": False,
+                "doc": doc,
+                "question": q,
+                "ticker": ticker,
+                "found": found,
+                "score": score,
+                "position": position,
+            }
+        except Exception as e:
+            return {"error": True, "doc_id": doc["id"], "exception": str(e)}
+
+    doc_idx = 0
+    while doc_idx < len(documents) and len(verified_cases) < count:
+        # Get next batch
+        batch_end = min(doc_idx + batch_size, len(documents))
+        batch = documents[doc_idx:batch_end]
+
+        print(
+            f"\n[Batch {doc_idx + 1}-{batch_end}/{len(documents)}] Processing {len(batch)} docs in parallel..."
+        )
+
+        # Process batch in parallel
+        results = await asyncio.gather(*[process_single_doc(doc, i) for i, doc in enumerate(batch)])
+
+        # Process results
+        for result in results:
+            if result is None or result.get("error"):
+                stats["errors"] += 1
+                continue
+
             stats["questions_generated"] += 1
+            q = result["question"]
+            doc = result["doc"]
+            metadata = doc["metadata"]
 
-            # Build test case
             test_case = {
                 "id": f"canonical_{len(test_cases) + 1:03d}",
                 "query": q["question"],
                 "category": q.get("category", "simple_factual"),
-                "company": doc["metadata"].get("company"),
+                "company": result["ticker"],
                 "relevant_chunk_ids": [doc["id"]],
                 "answer_keywords": q.get("answer_keywords", []),
                 "difficulty": q.get("difficulty", "medium"),
                 "metadata": {
-                    "company_name": doc["metadata"].get("company_name"),
-                    "filing_type": doc["metadata"].get("form_type"),
-                    "section": doc["metadata"].get("section"),
+                    "company_name": metadata.get("company_name"),
+                    "filing_type": metadata.get("filing_type") or metadata.get("form_type"),
+                    "section": metadata.get("section"),
                     "source_doc_id": doc["id"],
                     "generated_at": datetime.now().isoformat(),
                     "generator": "canonical_fixture_generator",
+                    "generator_model": model,
+                    "retrieval_verified": result["found"],
+                    "retrieval_score": result["score"],
+                    "retrieval_position": result["position"],
                 },
             }
 
-            # Verify retrieval if requested
-            if verify:
-                found, score = await verify_retrieval(
-                    pool,
-                    q["question"],
-                    doc["id"],
-                    doc["metadata"].get("company"),
-                )
-                test_case["metadata"]["retrieval_verified"] = found
-                test_case["metadata"]["retrieval_score"] = score
-
-                if found:
-                    stats["retrieval_verified"] += 1
-                    print(f"  ✓ Question: {q['question'][:60]}...")
-                else:
-                    stats["retrieval_failed"] += 1
-                    print(f"  ✗ Retrieval failed: {q['question'][:60]}...")
+            if result["found"]:
+                stats["retrieval_verified"] += 1
+                pos_key = result["position"] if result["position"] <= 5 else "6+"
+                stats["position_distribution"][pos_key] += 1
+                print(f"  ✓ [pos={result['position']}] {q['question'][:55]}...")
+                verified_cases.append(test_case)
             else:
-                print(f"  ? Question: {q['question'][:60]}...")
+                stats["retrieval_failed"] += 1
 
             test_cases.append(test_case)
+
+        doc_idx = batch_end
+        print(
+            f"  Progress: {len(verified_cases)}/{count} verified ({stats['retrieval_verified']}/{stats['questions_generated']} = {stats['retrieval_verified'] * 100 // max(1, stats['questions_generated'])}%)"
+        )
+
+    # Only include verified cases (unless explicitly including unverified)
+    output_cases = test_cases if include_unverified else verified_cases
 
     # Build output
     output = {
         "_meta": {
             "name": "canonical_retrieval_evaluation",
             "capability": "rag_retrieval",
-            "description": "Canonical test cases with verified ground truth for retrieval evaluation",
-            "methodology": "Questions generated from documents, retrieval verified",
+            "description": "Canonical test cases with VERIFIED ground truth for retrieval evaluation",
+            "methodology": "Questions generated from documents, verified retrievable with hybrid retriever",
             "generated_at": datetime.now().isoformat(),
-            "total_cases": len(test_cases),
+            "total_cases": len(output_cases),
             "retrieval_verified": stats["retrieval_verified"],
-            "schema_version": "2.1",
+            "retrieval_failed": stats["retrieval_failed"],
+            "verification_rate": f"{stats['retrieval_verified'] / max(1, stats['questions_generated']) * 100:.1f}%",
+            "position_distribution": stats["position_distribution"],
+            "schema_version": "2.2",
+            "generator_model": model,
         },
-        "test_cases": test_cases,
+        "test_cases": output_cases,
     }
 
     # Save if not dry run
@@ -325,7 +427,7 @@ async def generate_canonical_fixtures(
         output_path = PROJECT_ROOT / "tests" / "fixtures" / "rag" / "canonical_retrieval_set.json"
         with open(output_path, "w") as f:
             json.dump(output, f, indent=2)
-        print(f"\nSaved to: {output_path}")
+        print(f"\nSaved {len(output_cases)} verified fixtures to: {output_path}")
 
     return stats
 
@@ -343,11 +445,12 @@ async def main(args: argparse.Namespace) -> None:
         companies = args.companies.split(",") if args.companies else None
 
         print("=" * 60)
-        print("Generating Canonical RAG Fixtures")
+        print("Generating Canonical RAG Fixtures (with retrieval verification)")
         print("=" * 60)
-        print(f"  Target count: {args.count}")
+        print(f"  Target count: {args.count} verified fixtures")
+        print(f"  Model: {args.model}")
+        print(f"  Concurrency: {args.concurrency} docs/batch")
         print(f"  Companies filter: {companies or 'all'}")
-        print(f"  Verify retrieval: {not args.skip_verify}")
         print(f"  Dry run: {args.dry_run}")
         print()
 
@@ -355,8 +458,9 @@ async def main(args: argparse.Namespace) -> None:
             pool,
             count=args.count,
             companies=companies,
-            verify=not args.skip_verify,
             dry_run=args.dry_run,
+            model=args.model,
+            concurrency=args.concurrency,
         )
 
         print("\n" + "=" * 60)
@@ -367,9 +471,15 @@ async def main(args: argparse.Namespace) -> None:
         print(f"  Retrieval failed: {stats['retrieval_failed']}")
         print(f"  Errors: {stats['errors']}")
 
-        if stats["retrieval_verified"] > 0:
+        if stats["questions_generated"] > 0:
             pct = stats["retrieval_verified"] / stats["questions_generated"] * 100
             print(f"  Verification rate: {pct:.1f}%")
+
+        if stats["retrieval_verified"] > 0:
+            print("\n  Position distribution (where in top-10 the chunk was found):")
+            for pos, count in stats["position_distribution"].items():
+                if count > 0:
+                    print(f"    Position {pos}: {count}")
 
     finally:
         await pool.close()
@@ -390,14 +500,21 @@ if __name__ == "__main__":
         help="Comma-separated list of company tickers to filter by",
     )
     parser.add_argument(
-        "--skip-verify",
-        action="store_true",
-        help="Skip retrieval verification step",
-    )
-    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Preview without saving fixtures",
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="gpt-5-nano",
+        help="OpenAI model for question generation (default: gpt-5-nano)",
+    )
+    parser.add_argument(
+        "--concurrency",
+        type=int,
+        default=20,
+        help="Number of concurrent API calls (default: 20, reduce if hitting rate limits)",
     )
 
     args = parser.parse_args()

@@ -89,13 +89,18 @@ def convert_to_rag_format(test_case: dict) -> dict | None:
         "query": query,
     }
 
-    # Add company_name from metadata to input (for retrieval context)
+    # Add company context for retrieval
+    # - company_name: full name for query augmentation
+    # - ticker: for entity filtering in retrieval
     metadata = test_case.get("metadata", {})
     if metadata.get("company_name"):
         input_json["company_name"] = metadata["company_name"]
-    elif test_case.get("company"):
-        # Fallback: use company ticker if company_name not available
-        input_json["company"] = test_case["company"]
+
+    # Add ticker for entity filtering (critical for retrieval accuracy)
+    if test_case.get("company"):
+        input_json["ticker"] = test_case["company"]  # "company" field is the ticker
+    elif metadata.get("ticker"):
+        input_json["ticker"] = metadata["ticker"]
 
     # Check for explicit expected block (alternative format has relevant_docs inside expected)
     expected_block = test_case.get("expected", {})
