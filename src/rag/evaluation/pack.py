@@ -51,6 +51,13 @@ if TYPE_CHECKING:
 tracer = get_tracer(__name__)
 
 
+def _truncate(text: str, max_length: int = 500) -> str:
+    """Truncate text for trace attributes, preserving useful prefix."""
+    if len(text) <= max_length:
+        return text
+    return text[:max_length] + f"... ({len(text) - max_length} more chars)"
+
+
 @dataclass
 class ProviderThresholds:
     """Provider-specific thresholds tuned for different LLM characteristics."""
@@ -369,16 +376,63 @@ class RAGPack:
             span.set_attribute("pack.name", self.name)
             span.set_attribute("parallel_stages", self.config.parallel_stages)
 
+            # Add input context to trace for debugging
+            query = test_case.input.get("query", "")
+            response = system_output.get("response", "")
+            retrieved_context = system_output.get("context", "")
+            span.set_attribute("input.query", _truncate(query, 500))
+            span.set_attribute("input.response_length", len(response))
+            span.set_attribute("input.context_length", len(retrieved_context))
+            # Add response/context as events to avoid huge attribute values
+            span.add_event("input", {"query": _truncate(query, 1000)})
+            span.add_event(
+                "system_output",
+                {
+                    "response": _truncate(response, 2000),
+                    "context": _truncate(retrieved_context, 2000),
+                },
+            )
+
+            # Unified stage execution with rich tracing
+            async def run_stage_with_tracing(stage: Any) -> tuple[str, StageResult]:
+                """Run a stage and record detailed trace information."""
+                with tracer.start_as_current_span(f"rag_pack.{stage.name}") as stage_span:
+                    stage_span.set_attribute("stage.is_gate", stage.is_gate)
+                    result = await stage.evaluate(test_case, system_output, context)
+
+                    # Core result attributes
+                    stage_span.set_attribute("result.passed", result.passed)
+                    stage_span.set_attribute("result.score", result.score)
+                    stage_span.set_attribute("result.duration_ms", result.duration_ms)
+
+                    # Add reason if present (useful for debugging failures)
+                    if result.reason:
+                        stage_span.set_attribute("result.reason", _truncate(result.reason, 500))
+
+                    # Add key metrics as attributes
+                    for key, value in result.metrics.items():
+                        if isinstance(value, (int, float, bool, str)):
+                            stage_span.set_attribute(f"metrics.{key}", value)
+
+                    # Add artifacts as event (may be larger)
+                    if result.artifacts:
+                        # Filter to serializable values and truncate strings
+                        safe_artifacts = {}
+                        for k, v in result.artifacts.items():
+                            if isinstance(v, (int, float, bool)):
+                                safe_artifacts[k] = v
+                            elif isinstance(v, str):
+                                safe_artifacts[k] = _truncate(v, 500)
+                        if safe_artifacts:
+                            stage_span.add_event("artifacts", safe_artifacts)
+
+                    return stage.name, result
+
             if self.config.parallel_stages:
                 # Parallel execution - better for OpenAI (token-based limits)
-                async def run_stage(stage: Any) -> tuple[str, StageResult]:
-                    with tracer.start_as_current_span(f"rag_pack.{stage.name}") as stage_span:
-                        result = await stage.evaluate(test_case, system_output, context)
-                        stage_span.set_attribute("result.passed", result.passed)
-                        stage_span.set_attribute("result.score", result.score)
-                        return stage.name, result
-
-                results = await asyncio.gather(*[run_stage(stage) for stage in self._stages])
+                results = await asyncio.gather(
+                    *[run_stage_with_tracing(stage) for stage in self._stages]
+                )
                 stage_results = dict(results)
 
                 # Check GATE results after parallel execution
@@ -391,12 +445,8 @@ class RAGPack:
             else:
                 # Sequential execution - better for Anthropic (connection-based limits)
                 for stage in self._stages:
-                    with tracer.start_as_current_span(f"rag_pack.{stage.name}") as stage_span:
-                        result = await stage.evaluate(test_case, system_output, context)
-                        stage_results[stage.name] = result
-
-                        stage_span.set_attribute("result.passed", result.passed)
-                        stage_span.set_attribute("result.score", result.score)
+                    _, result = await run_stage_with_tracing(stage)
+                    stage_results[stage.name] = result
 
                     # Check for gate failure (fail-fast in sequential mode)
                     if stage.is_gate and not result.passed:

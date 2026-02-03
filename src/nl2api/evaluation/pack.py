@@ -36,6 +36,13 @@ from src.evalkit.core.temporal import DateResolver, TemporalComparator
 tracer = get_tracer(__name__)
 
 
+def _truncate(text: str, max_length: int = 500) -> str:
+    """Truncate text for trace attributes, preserving useful prefix."""
+    if len(text) <= max_length:
+        return text
+    return text[:max_length] + f"... ({len(text) - max_length} more chars)"
+
+
 # =============================================================================
 # Stage Implementations
 # =============================================================================
@@ -571,13 +578,49 @@ class NL2APIPack:
             span.set_attribute("test_case.id", test_case.id)
             span.set_attribute("pack.name", self.name)
 
+            # Add input context to trace for debugging
+            query = test_case.nl_query or test_case.input.get("query", "")
+            raw_output = str(system_output.get("raw_output", ""))
+            span.set_attribute("input.query", _truncate(query, 500))
+            span.set_attribute("input.raw_output_length", len(raw_output))
+            span.add_event("input", {"query": _truncate(query, 1000)})
+            span.add_event(
+                "system_output",
+                {"raw_output": _truncate(raw_output, 2000)},
+            )
+
             for stage in self._stages:
                 with tracer.start_as_current_span(f"nl2api_pack.{stage.name}") as stage_span:
+                    stage_span.set_attribute("stage.is_gate", stage.is_gate)
                     result = await stage.evaluate(test_case, system_output, context)
                     stage_results[stage.name] = result
 
+                    # Core result attributes
                     stage_span.set_attribute("result.passed", result.passed)
                     stage_span.set_attribute("result.score", result.score)
+                    stage_span.set_attribute("result.duration_ms", result.duration_ms)
+
+                    # Add reason and error code if present
+                    if result.reason:
+                        stage_span.set_attribute("result.reason", _truncate(result.reason, 500))
+                    if result.error_code:
+                        stage_span.set_attribute("result.error_code", result.error_code.value)
+
+                    # Add key metrics as attributes
+                    for key, value in result.metrics.items():
+                        if isinstance(value, (int, float, bool, str)):
+                            stage_span.set_attribute(f"metrics.{key}", value)
+
+                    # Add artifacts as event
+                    if result.artifacts:
+                        safe_artifacts = {}
+                        for k, v in result.artifacts.items():
+                            if isinstance(v, (int, float, bool)):
+                                safe_artifacts[k] = v
+                            elif isinstance(v, str):
+                                safe_artifacts[k] = _truncate(v, 500)
+                        if safe_artifacts:
+                            stage_span.add_event("artifacts", safe_artifacts)
 
                 # Check for gate failure
                 if stage.is_gate and not result.passed:
