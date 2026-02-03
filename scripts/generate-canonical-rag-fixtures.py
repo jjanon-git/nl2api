@@ -200,6 +200,9 @@ async def generate_questions_for_document(
             result_text = result_text.split("```")[1].split("```")[0]
 
         result = json.loads(result_text.strip())
+        # Handle both {"questions": [...]} and direct list [...] formats
+        if isinstance(result, list):
+            return result
         return result.get("questions", [])
 
     except Exception as e:
@@ -250,6 +253,7 @@ async def generate_canonical_fixtures(
     model: str = "gpt-5-nano",
     include_unverified: bool = False,
     concurrency: int = 20,
+    restart: bool = False,
 ) -> dict:
     """
     Generate canonical test fixtures with verified ground truth.
@@ -266,9 +270,48 @@ async def generate_canonical_fixtures(
         include_unverified: If True, include questions that failed verification
                            (NOT RECOMMENDED - will cause evaluation failures)
         concurrency: Number of documents to process concurrently (default 20)
+        restart: If True, start fresh and delete existing fixtures
     """
     from src.rag.retriever.embedders import OpenAIEmbedder
     from src.rag.retriever.retriever import HybridRAGRetriever
+
+    output_path = PROJECT_ROOT / "tests" / "fixtures" / "rag" / "canonical_retrieval_set.json"
+
+    # Handle resume vs restart
+    existing_cases = []
+    used_doc_ids: set[str] = set()
+
+    if restart:
+        if output_path.exists():
+            output_path.unlink()
+            print("Deleted existing fixture file (--restart specified)")
+    elif output_path.exists():
+        # Resume from existing file
+        with open(output_path) as f:
+            existing_data = json.load(f)
+        existing_cases = [
+            c
+            for c in existing_data.get("test_cases", [])
+            if c.get("metadata", {}).get("retrieval_verified")
+        ]
+        used_doc_ids = {
+            c.get("metadata", {}).get("source_doc_id")
+            for c in existing_cases
+            if c.get("metadata", {}).get("source_doc_id")
+        }
+        print(f"Resuming: found {len(existing_cases)} existing verified fixtures")
+        print(f"  Excluding {len(used_doc_ids)} already-used document IDs")
+
+        if len(existing_cases) >= count:
+            print(f"  Already have {len(existing_cases)} >= {count} target. Nothing to do.")
+            return {
+                "total_docs": 0,
+                "questions_generated": 0,
+                "retrieval_verified": len(existing_cases),
+                "retrieval_failed": 0,
+                "errors": 0,
+                "position_distribution": {},
+            }
 
     # Initialize the hybrid retriever (same as used in evaluation)
     print("Initializing hybrid retriever for verification...")
@@ -286,19 +329,28 @@ async def generate_canonical_fixtures(
     retriever.set_embedder(embedder)
     print("  Retriever initialized.\n")
 
+    # Calculate remaining needed
+    remaining_needed = count - len(existing_cases)
+
     # Sample more documents than needed to account for verification failures
-    # ~7% verification rate observed, so need ~15x buffer
-    sample_count = int(count * 15)  # 15x buffer for ~7% verification rate
-    print(f"Sampling {sample_count} documents (target: {count} verified)...")
+    # ~10% verification rate observed, so need ~12x buffer
+    sample_count = int(remaining_needed * 12)  # 12x buffer for ~10% verification rate
+    print(f"Sampling {sample_count} documents (target: {remaining_needed} more verified)...")
     documents = await get_sample_documents(pool, sample_count, companies)
-    print(f"  Found {len(documents)} documents")
+
+    # Filter out already-used documents
+    if used_doc_ids:
+        documents = [d for d in documents if d["id"] not in used_doc_ids]
+        print(f"  After filtering used docs: {len(documents)} documents")
+    else:
+        print(f"  Found {len(documents)} documents")
 
     test_cases = []
-    verified_cases = []
+    verified_cases = list(existing_cases)  # Start with existing
     stats = {
         "total_docs": len(documents),
         "questions_generated": 0,
-        "retrieval_verified": 0,
+        "retrieval_verified": len(existing_cases),
         "retrieval_failed": 0,
         "errors": 0,
         "position_distribution": {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, "6+": 0},
@@ -452,6 +504,7 @@ async def main(args: argparse.Namespace) -> None:
         print(f"  Concurrency: {args.concurrency} docs/batch")
         print(f"  Companies filter: {companies or 'all'}")
         print(f"  Dry run: {args.dry_run}")
+        print(f"  Restart: {args.restart}")
         print()
 
         stats = await generate_canonical_fixtures(
@@ -461,6 +514,7 @@ async def main(args: argparse.Namespace) -> None:
             dry_run=args.dry_run,
             model=args.model,
             concurrency=args.concurrency,
+            restart=args.restart,
         )
 
         print("\n" + "=" * 60)
@@ -515,6 +569,11 @@ if __name__ == "__main__":
         type=int,
         default=20,
         help="Number of concurrent API calls (default: 20, reduce if hitting rate limits)",
+    )
+    parser.add_argument(
+        "--restart",
+        action="store_true",
+        help="Start fresh, deleting existing fixtures (default: resume from existing)",
     )
 
     args = parser.parse_args()
