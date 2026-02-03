@@ -152,6 +152,35 @@ When refactoring code that adds new parameters to method signatures:
 
 **Prevention**: After significant refactors, always restart long-running servers before testing.
 
+## RAG Evaluation Issues
+
+### Retrieval Stage Always Fails
+
+**Symptom:** All tests fail retrieval evaluation with "no relevant docs retrieved" even when the response is good.
+
+**Root cause:** Fixture files contain stale chunk UUIDs from a previous ingestion. When documents are re-ingested, they get new UUIDs.
+
+**Quick fix:** Clear relevant_docs to skip retrieval evaluation:
+```sql
+UPDATE test_cases
+SET expected_json = jsonb_set(expected_json, '{relevant_docs}', '[]'::jsonb)
+WHERE tags @> ARRAY['rag']
+  AND expected_json->'relevant_docs' IS NOT NULL;
+```
+
+**Proper fix:** Update fixtures with current chunk IDs:
+```bash
+python scripts/update-rag-fixture-chunk-ids.py \
+  --fixture tests/fixtures/rag/sec_evaluation_set_verified.json \
+  --dry-run  # Preview changes first
+
+# Then apply:
+python scripts/update-rag-fixture-chunk-ids.py \
+  --fixture tests/fixtures/rag/sec_evaluation_set_verified.json
+```
+
+**Prevention:** After re-ingesting documents, always run the fixture update script before evaluation.
+
 ## Entity Resolution Issues
 
 ### "Entity not found" Errors
