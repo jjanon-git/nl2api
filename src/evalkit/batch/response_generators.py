@@ -469,13 +469,15 @@ def create_rag_retrieval_generator(retriever, embedder=None):
                 # Prepend company context to query for better retrieval
                 query = f"{company_name}: {query}"
 
-            # Run retrieval
+            # Run retrieval (use ticker filter if available for entity-specific queries)
+            ticker = test_case.input.get("ticker")
             results = await retriever.retrieve(
                 query=query,
                 document_types=None,  # All types
                 limit=10,
                 threshold=0.0,  # No threshold for evaluation
                 use_cache=False,
+                ticker=ticker,
             )
 
             latency_ms = int((time.perf_counter() - start_time) * 1000)
