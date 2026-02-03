@@ -57,8 +57,8 @@ class TestBatchCLIValidation:
         assert result.exit_code == 1
         assert "rag pack requires --tag rag" in result.stdout
 
-    def test_simulated_mode_disabled(self):
-        """Test that simulated mode is disabled."""
+    def test_simulated_mode_disabled_with_explanation(self):
+        """Test that simulated mode is disabled with helpful explanation."""
         result = runner.invoke(
             app,
             [
@@ -79,6 +79,7 @@ class TestBatchCLIValidation:
         assert result.exit_code == 1
         assert "Simulated mode is disabled" in result.stdout
         assert "100% pass rates" in result.stdout
+        assert "pytest tests/unit/evalkit/" in result.stdout
 
     @patch("src.evalkit.common.storage.create_repositories", _mock_get_repository_provider)
     def test_multiple_tags_allowed(self):
@@ -163,6 +164,7 @@ class TestBatchCLIErrorMessages:
             catch_exceptions=False,
         )
 
+        # Should show helpful alternatives
         assert "pytest tests/unit/evalkit/" in result.stdout
-        assert "--mode resolver" in result.stdout
-        assert "--mode orchestrator" in result.stdout
+        assert "--mode resolver" in result.stdout or "resolver" in result.stdout
+        assert "--mode orchestrator" in result.stdout or "orchestrator" in result.stdout

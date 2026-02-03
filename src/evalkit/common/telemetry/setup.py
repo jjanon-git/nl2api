@@ -92,12 +92,9 @@ def init_telemetry(
         logger.debug("Telemetry already initialized")
         return _otel_available
 
-    # Check if telemetry is disabled via environment variable
-    telemetry_enabled = os.getenv("EVALKIT_TELEMETRY_ENABLED", "true").lower()
-    if telemetry_enabled in ("false", "0", "no", "off"):
-        logger.info("Telemetry disabled via EVALKIT_TELEMETRY_ENABLED")
-        _telemetry_initialized = True
-        return False
+    # Note: Telemetry is always enabled if OTEL libs are available.
+    # No env var disable option - we want metrics always flowing.
+    # If OTEL collector is unavailable, exporters fail gracefully.
 
     if not _otel_available:
         logger.warning("OpenTelemetry not installed, telemetry disabled")
@@ -224,25 +221,29 @@ def shutdown_telemetry() -> None:
         logger.warning(f"Error during telemetry shutdown: {e}")
 
 
-def _is_telemetry_disabled_by_env() -> bool:
-    """Check if telemetry is disabled via environment variable."""
-    telemetry_enabled = os.getenv("EVALKIT_TELEMETRY_ENABLED", "true").lower()
-    return telemetry_enabled in ("false", "0", "no", "off")
+def _ensure_initialized() -> bool:
+    """Lazily initialize telemetry if not already done."""
+    if not _telemetry_initialized and _otel_available:
+        return init_telemetry()
+    return _otel_available and _telemetry_initialized
 
 
 def get_tracer(name: str = "nl2api") -> Any:
     """
     Get a tracer for creating spans.
 
+    Lazily initializes telemetry on first call if OTEL libs are available.
+
     Args:
         name: Tracer name (typically module or component name)
 
     Returns:
-        OpenTelemetry Tracer or NoOpTracer if OTEL not available or disabled
+        OpenTelemetry Tracer or NoOpTracer if OTEL not available
     """
-    if not _otel_available or _is_telemetry_disabled_by_env():
+    if not _otel_available:
         return _NoOpTracer()
 
+    _ensure_initialized()
     return trace.get_tracer(name)
 
 
@@ -250,20 +251,25 @@ def get_meter(name: str = "nl2api") -> Any:
     """
     Get a meter for creating metrics.
 
+    Lazily initializes telemetry on first call if OTEL libs are available.
+
     Args:
         name: Meter name (typically module or component name)
 
     Returns:
-        OpenTelemetry Meter or NoOpMeter if OTEL not available or disabled
+        OpenTelemetry Meter or NoOpMeter if OTEL not available
     """
-    if not _otel_available or _is_telemetry_disabled_by_env():
+    if not _otel_available:
         return _NoOpMeter()
 
+    _ensure_initialized()
     return metrics.get_meter(name)
 
 
 def is_telemetry_enabled() -> bool:
-    """Check if telemetry is available and initialized."""
+    """Check if telemetry is available (lazily initializes if needed)."""
+    if _otel_available and not _telemetry_initialized:
+        _ensure_initialized()
     return _otel_available and _telemetry_initialized
 
 

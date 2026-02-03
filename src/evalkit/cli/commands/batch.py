@@ -101,13 +101,13 @@ def batch_run(
         typer.Option("--concurrency", "-c", help="Concurrent evaluations"),
     ] = 10,
     mode: Annotated[
-        str,
+        str | None,
         typer.Option(
             "--mode",
             "-m",
-            help="Response mode: resolver, orchestrator, routing, tool_only, simulated, or generation",
+            help="Response mode: full (RAG default), retrieval, resolver (NL2API default), orchestrator, routing, tool_only",
         ),
-    ] = "resolver",
+    ] = None,  # None = use pack-specific default
     agent: Annotated[
         str | None,
         typer.Option(
@@ -241,11 +241,85 @@ def batch_run(
         console.print(f"Available packs: {', '.join(valid_packs)}")
         raise typer.Exit(1)
 
-    valid_modes = ("resolver", "orchestrator", "simulated", "routing", "tool_only", "generation")
+    # Mode naming by pack:
+    # - RAG: "full" (retrieval + LLM answer) or "retrieval" (retrieval only)
+    # - NL2API: "resolver" (entity resolution) or "orchestrator" (full pipeline)
+    #
+    # Legacy aliases maintained for backwards compatibility:
+    # - "generation" → "full" for RAG
+    # - "resolver" → "retrieval" for RAG (with warning)
+    MODE_ALIASES = {
+        "generation": "full",  # RAG: prefer "full" over "generation"
+    }
+
+    PACK_MODE_DEFAULTS = {
+        "rag": "full",  # RAG needs LLM generation for meaningful eval
+        "rag-retrieval": "retrieval",  # Retrieval-only evaluation
+        "nl2api": "resolver",  # Entity resolution accuracy
+    }
+
+    # Resolve aliases
+    if mode in MODE_ALIASES:
+        mode = MODE_ALIASES[mode]
+
+    if mode is None:
+        mode = PACK_MODE_DEFAULTS.get(pack, "resolver")
+        console.print(f"[dim]Using default mode for {pack}: {mode}[/dim]")
+
+    # Valid modes:
+    # - full: Complete pipeline (RAG with LLM, or NL2API orchestrator)
+    # - retrieval: RAG retrieval-only (no LLM answer generation)
+    # - resolver: NL2API entity resolution
+    # - orchestrator: NL2API full pipeline
+    # - routing: NL2API router-only
+    # - tool_only: NL2API single agent
+    # - simulated: Fake responses for pipeline testing (blocked with helpful message)
+    valid_modes = (
+        "full",
+        "retrieval",
+        "resolver",
+        "orchestrator",
+        "routing",
+        "tool_only",
+        "simulated",
+    )
     if mode not in valid_modes:
         console.print(f"[red]Error:[/red] Invalid mode '{mode}'.")
-        console.print(f"Use one of: {', '.join(valid_modes)}.")
+        if pack == "rag":
+            console.print("RAG modes: full (default), retrieval")
+        else:
+            console.print("NL2API modes: resolver (default), orchestrator, routing, tool_only")
         raise typer.Exit(1)
+
+    # Simulated mode is explicitly blocked with helpful explanation
+    if mode == "simulated":
+        console.print("[red]ERROR: Simulated mode is disabled.[/red]")
+        console.print(
+            "\nSimulated mode produces 100% pass rates and is meaningless for accuracy tracking."
+        )
+        console.print("\nFor pipeline testing, use unit tests:")
+        console.print("  pytest tests/unit/evalkit/")
+        console.print("\nFor accuracy testing, use one of:")
+        console.print("  --mode full        (RAG: retrieval + LLM generation)")
+        console.print("  --mode retrieval   (RAG: retrieval only)")
+        console.print("  --mode resolver    (NL2API: entity resolution)")
+        console.print("  --mode orchestrator (NL2API: full pipeline)")
+        raise typer.Exit(1)
+
+    # Warn about mode/pack mismatches that produce misleading results
+    if pack == "rag" and mode == "resolver":
+        console.print("[yellow]WARNING: 'resolver' mode is for NL2API, not RAG.[/yellow]")
+        console.print(
+            "[yellow]Did you mean --mode retrieval (retrieval-only) or --mode full?[/yellow]"
+        )
+        console.print("[yellow]Interpreting as --mode retrieval[/yellow]\n")
+        mode = "retrieval"
+    elif pack == "rag" and mode == "retrieval":
+        console.print("[yellow]NOTE: --mode retrieval only evaluates retrieval quality.[/yellow]")
+        console.print(
+            "[yellow]LLM stages (faithfulness, answer_relevance) will receive meta-text.[/yellow]"
+        )
+        console.print("[yellow]Use --mode full for complete RAG evaluation.[/yellow]\n")
 
     if mode == "tool_only" and agent is None:
         console.print("[red]Error:[/red] --agent is required for tool_only mode.")
@@ -617,8 +691,8 @@ async def _batch_run_async(
                 console.print(f"[red]Failed to initialize RAG retrieval: {e}[/red]")
                 raise typer.Exit(1)
 
-        if pack == "rag" and mode in ("resolver", "generation"):
-            # For RAG pack with resolver/generation mode, use real retrieval
+        if pack == "rag" and mode in ("retrieval", "full"):
+            # For RAG pack: retrieval-only or full (retrieval + LLM)
             import os
 
             from dotenv import load_dotenv
@@ -651,7 +725,7 @@ async def _batch_run_async(
                 )
                 retriever.set_embedder(embedder)
 
-                if mode == "generation":
+                if mode == "full":
                     # Full RAG: retrieval + LLM generation
                     from src.evalkit.batch.response_generators import (
                         create_rag_generation_generator,
@@ -694,19 +768,19 @@ async def _batch_run_async(
 
                 response_generator = create_rag_simulated_generator(pass_rate=0.7)
 
-        # Map mode to eval_mode
+        # Map mode to eval_mode (stored in scorecards for tracking)
         eval_mode_map = {
-            "resolver": "resolver",
-            "orchestrator": "orchestrator",
-            "routing": "routing",
-            "tool_only": "tool_only",
-            "simulated": "orchestrator",  # Simulated still uses orchestrator eval mode
-            "generation": "generation",  # Full RAG with LLM generation
+            "full": "full",  # RAG: retrieval + LLM generation
+            "retrieval": "retrieval",  # RAG: retrieval-only
+            "resolver": "resolver",  # NL2API: entity resolution
+            "orchestrator": "orchestrator",  # NL2API: full pipeline
+            "routing": "routing",  # NL2API: router-only
+            "tool_only": "tool_only",  # NL2API: single agent
         }
 
         # Determine LLM provider for threshold selection (RAG pack uses provider-specific thresholds)
         rag_llm_provider: str | None = None
-        if pack == "rag" and mode == "generation":
+        if pack == "rag" and mode == "full":
             rag_llm_provider = os.getenv("EVAL_LLM_PROVIDER", "openai")
 
         # Handle distributed mode

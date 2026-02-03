@@ -18,8 +18,8 @@ python scripts/gen-enrich-rag-questions.py my_questions.txt -o tests/fixtures/ra
 # 3. Load to database
 python scripts/load-rag-fixtures.py --fixture tests/fixtures/rag/my_eval.json --clear
 
-# 4. Run evaluation
-python -m src.evalkit.cli.main batch run --pack rag --tag rag --mode generation --label my-test
+# 4. Run evaluation (--mode full is default for RAG)
+python -m src.evalkit.cli.main batch run --pack rag --tag rag --label my-test
 
 # 5. View results
 open http://localhost:3000  # Grafana → RAG Evaluation
@@ -79,6 +79,17 @@ python -m src.evalkit.cli.main batch run --pack rag --tag rag --label improved-v
 
 # Compare in Grafana - select both labels
 ```
+
+## Evaluation Modes
+
+| Mode | Command | What It Does |
+|------|---------|--------------|
+| **full** (default) | `--mode full` | Retrieval + LLM answer generation. Evaluates all stages including faithfulness, answer relevance. |
+| **retrieval** | `--mode retrieval` | Retrieval-only. No LLM calls. Only evaluates retrieval quality against ground truth. |
+
+**Always use `--mode full`** for meaningful evaluation. The `retrieval` mode only makes sense for:
+- Testing retriever changes in isolation
+- Benchmarking retrieval speed without LLM cost
 
 ## Note on Retrieval Metrics
 
