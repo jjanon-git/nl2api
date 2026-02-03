@@ -37,6 +37,38 @@ Common issues and their solutions for the Evalkit project.
 2. Check Prometheus is scraping: http://localhost:9090/targets
 3. Verify application has `EVALKIT_TELEMETRY_ENABLED=true`
 
+### Counters Show Wrong Values / Don't Accumulate
+
+**Symptom:** Grafana shows counters that reset or show only recent increments instead of cumulative totals.
+
+**Root cause:** OTEL Python SDK defaults to delta temporality for OTLP exports, but Prometheus requires cumulative temporality.
+
+**Diagnosis:**
+```bash
+# Check Prometheus metrics - counters should grow over time
+curl localhost:8889/metrics | grep evalkit_eval_batch_tests_total
+
+# If values stay small or reset, it's a temporality issue
+```
+
+**Fix:** Ensure `src/evalkit/common/telemetry/setup.py` sets cumulative temporality:
+```python
+from opentelemetry.sdk.metrics.export import AggregationTemporality
+
+preferred_temporality = {
+    metrics.Counter: AggregationTemporality.CUMULATIVE,
+    metrics.Histogram: AggregationTemporality.CUMULATIVE,
+    # ... all metric types
+}
+
+metric_exporter = OTLPMetricExporter(
+    endpoint=_config.otlp_endpoint,
+    preferred_temporality=preferred_temporality,  # Required!
+)
+```
+
+**Key insight:** OTLP defaults work for stateful collectors (like OTEL Collector with memory), but Prometheus scrapes expect cumulative values. Always configure cumulative temporality for Prometheus integration.
+
 ## Batch Evaluation Issues
 
 ### Batch Runs But Results Empty

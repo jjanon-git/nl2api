@@ -134,9 +134,34 @@ def init_telemetry(
 
         # Initialize metrics
         if _config.metrics_enabled:
+            # Import temporality preference and SDK instrument types for cumulative counters
+            # (OTLP defaults to delta which doesn't work well with Prometheus)
+            # NOTE: Must use SDK instrument classes, not API classes (opentelemetry.sdk.metrics.*)
+            from opentelemetry.sdk.metrics import (
+                Counter,
+                Histogram,
+                ObservableCounter,
+                ObservableGauge,
+                ObservableUpDownCounter,
+                UpDownCounter,
+            )
+            from opentelemetry.sdk.metrics.export import AggregationTemporality
+
+            # Use cumulative temporality for all metric types
+            # This ensures Prometheus can properly aggregate counters
+            preferred_temporality = {
+                Counter: AggregationTemporality.CUMULATIVE,
+                UpDownCounter: AggregationTemporality.CUMULATIVE,
+                Histogram: AggregationTemporality.CUMULATIVE,
+                ObservableCounter: AggregationTemporality.CUMULATIVE,
+                ObservableUpDownCounter: AggregationTemporality.CUMULATIVE,
+                ObservableGauge: AggregationTemporality.CUMULATIVE,
+            }
+
             metric_exporter = OTLPMetricExporter(
                 endpoint=_config.otlp_endpoint,
                 insecure=_config.otlp_insecure,
+                preferred_temporality=preferred_temporality,
             )
             reader = PeriodicExportingMetricReader(
                 metric_exporter,
