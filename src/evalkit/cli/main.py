@@ -17,10 +17,10 @@ from src.evalkit.cli.commands.batch import batch_app
 from src.evalkit.cli.commands.continuous import continuous_app
 from src.evalkit.cli.commands.matrix import matrix_app
 from src.evalkit.cli.commands.run import run_command
-from src.evalkit.common.telemetry import init_telemetry, shutdown_telemetry
+from src.evalkit.common.telemetry import shutdown_telemetry
 
-# Initialize OpenTelemetry at CLI startup
-init_telemetry(service_name="nl2api-evaluation")
+# Telemetry is initialized lazily in batch/run commands with pack-specific service name
+# e.g., "rag-evaluation" or "nl2api-evaluation"
 atexit.register(shutdown_telemetry)
 
 app = typer.Typer(

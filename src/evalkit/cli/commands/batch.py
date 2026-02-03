@@ -422,6 +422,12 @@ async def _batch_run_async(
     parallel_stages: bool = False,
 ) -> None:
     """Async implementation of batch run command."""
+    # Initialize telemetry with pack-specific service name BEFORE any telemetry-using imports
+    # This ensures traces appear under "rag-evaluation" or "nl2api-evaluation" in Jaeger
+    from src.evalkit.common.telemetry import init_telemetry
+
+    init_telemetry(service_name=f"{pack}-evaluation")
+
     from src.evalkit.batch import BatchRunner, BatchRunnerConfig
     from src.evalkit.batch.response_generators import (
         create_entity_resolver_generator,

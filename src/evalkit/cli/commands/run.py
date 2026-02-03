@@ -33,7 +33,9 @@ from CONTRACTS import (
     TestCaseMetadata,
     ToolCall,
 )
-from src.nl2api.evaluation import NL2APIPack
+
+# NL2APIPack imported lazily inside run_command to avoid triggering telemetry
+# init at module load time (which would use default service name)
 
 logger = logging.getLogger(__name__)
 
@@ -150,7 +152,15 @@ async def _run_async(
 
         system_response = _parse_system_response(response_data)
 
+        # Initialize telemetry with nl2api service name before importing pack
+        # (which triggers get_tracer at module load)
+        from src.evalkit.common.telemetry import init_telemetry
+
+        init_telemetry(service_name="nl2api-evaluation")
+
         # Run evaluation using NL2APIPack
+        from src.nl2api.evaluation import NL2APIPack
+
         config = EvaluationConfig()
         pack = NL2APIPack(
             execution_enabled=config.execution_stage_enabled,
