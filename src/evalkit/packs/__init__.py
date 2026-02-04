@@ -45,11 +45,19 @@ def _get_rag_retrieval_pack():
     return RAGRetrievalPack
 
 
+def _get_rag_faithfulness_pack():
+    """Lazy import RAGFaithfulnessPack to avoid circular imports."""
+    from src.rag.evaluation import RAGFaithfulnessPack
+
+    return RAGFaithfulnessPack
+
+
 # Registry of available packs (lazy loaded)
 _PACK_FACTORIES: dict[str, callable] = {
     "nl2api": _get_nl2api_pack,
     "rag": _get_rag_pack,
     "rag-retrieval": _get_rag_retrieval_pack,
+    "rag-faithfulness": _get_rag_faithfulness_pack,
 }
 
 

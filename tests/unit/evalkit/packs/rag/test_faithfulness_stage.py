@@ -276,3 +276,128 @@ class TestFaithfulnessConfiguration:
         """Empty text returns empty set."""
         assert stage._extract_ngrams("", n=3) == set()
         assert stage._extract_ngrams("ab", n=3) == set()  # Too short
+
+
+class TestFaithfulnessRefusalDetection:
+    """Tests for refusal detection via LLM judge."""
+
+    @pytest.mark.asyncio
+    async def test_refusal_detected_and_passes(self, stage, mock_llm_judge):
+        """Refusal responses should be detected and marked as faithful by LLM judge."""
+        # Mock LLM judge to return appropriate refusal result
+        mock_llm_judge.evaluate_faithfulness.return_value = JudgeResult(
+            score=1.0,
+            passed=True,
+            reasoning="Appropriate refusal: context lacks salary information",
+            raw_response="",
+            metrics={
+                "is_refusal": True,
+                "refusal_appropriate": True,
+                "evaluation_method": "refusal_detection",
+            },
+        )
+
+        context = EvalContext(config={"llm_judge": mock_llm_judge})
+        test_case = TestCase(
+            id="test-refusal-1",
+            input={"query": "What is the CEO's salary?"},
+            expected={},
+        )
+        system_output = {
+            "response": "I cannot determine the CEO's salary from these excerpts.",
+            "context": "The company operates in multiple markets.",
+        }
+
+        result = await stage.evaluate(test_case, system_output, context)
+
+        # Verify LLM judge was called with query
+        mock_llm_judge.evaluate_faithfulness.assert_called_once()
+        call_kwargs = mock_llm_judge.evaluate_faithfulness.call_args.kwargs
+        assert call_kwargs.get("query") == "What is the CEO's salary?"
+
+        assert result.passed is True
+        assert result.score == 1.0
+        assert result.metrics.get("is_refusal") is True
+
+    @pytest.mark.asyncio
+    async def test_inappropriate_refusal_fails(self, stage, mock_llm_judge):
+        """Inappropriate refusals (context has answer) should fail."""
+        mock_llm_judge.evaluate_faithfulness.return_value = JudgeResult(
+            score=0.0,
+            passed=False,
+            reasoning="Inappropriate refusal: context contains the answer",
+            raw_response="",
+            metrics={
+                "is_refusal": True,
+                "refusal_appropriate": False,
+                "evaluation_method": "refusal_detection",
+            },
+        )
+
+        context = EvalContext(config={"llm_judge": mock_llm_judge})
+        test_case = TestCase(
+            id="test-refusal-2",
+            input={"query": "What is the revenue?"},
+            expected={},
+        )
+        system_output = {
+            "response": "I cannot determine the revenue from these excerpts.",
+            "context": "The company reported revenue of $10 million in 2023.",
+        }
+
+        result = await stage.evaluate(test_case, system_output, context)
+
+        assert result.passed is False
+        assert result.score == 0.0
+        assert result.metrics.get("is_refusal") is True
+        assert result.metrics.get("refusal_appropriate") is False
+
+    @pytest.mark.asyncio
+    async def test_non_refusal_uses_claim_verification(self, stage, mock_llm_judge):
+        """Normal responses should use claim extraction/verification."""
+        mock_llm_judge.evaluate_faithfulness.return_value = JudgeResult(
+            score=0.9,
+            passed=True,
+            reasoning="All claims supported by context",
+            raw_response="",
+            metrics={
+                "num_claims": 2,
+                "supported_claims": 2,
+            },
+        )
+
+        context = EvalContext(config={"llm_judge": mock_llm_judge})
+        test_case = TestCase(
+            id="test-refusal-3",
+            input={"query": "What is 2+2?"},
+            expected={},
+        )
+        system_output = {
+            "response": "The answer is 4 according to the document.",
+            "context": "Mathematical fact: 2+2 equals 4.",
+        }
+
+        result = await stage.evaluate(test_case, system_output, context)
+
+        # Should not be marked as refusal
+        assert result.metrics.get("is_refusal") is not True
+        assert result.score == 0.9
+
+    @pytest.mark.asyncio
+    async def test_heuristic_fallback_without_llm_judge(self, stage):
+        """Without LLM judge, fallback to heuristic (no refusal detection)."""
+        test_case = TestCase(
+            id="test-refusal-4",
+            input={"query": "What is the CEO's salary?"},
+            expected={},
+        )
+        system_output = {
+            "response": "I cannot determine the CEO's salary from these excerpts.",
+            "context": "The company operates in multiple markets.",
+        }
+
+        # No LLM judge - should fall back to heuristic
+        result = await stage.evaluate(test_case, system_output, None)
+
+        # Heuristic doesn't detect refusals - just measures n-gram overlap
+        assert result.metrics.get("evaluation_method") == "heuristic"

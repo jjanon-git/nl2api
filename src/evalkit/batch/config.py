@@ -58,8 +58,8 @@ class BatchRunnerConfig(BaseModel):
 
     # Stage execution mode
     parallel_stages: bool = Field(
-        default=False,
-        description="Run stages in parallel (use True for OpenAI, False for Anthropic)",
+        default=True,
+        description="Run evaluation stages in parallel (safe with max_concurrency limiting total work)",
     )
 
     # LLM provider for threshold selection

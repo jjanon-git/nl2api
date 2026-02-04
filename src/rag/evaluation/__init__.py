@@ -15,6 +15,8 @@ Usage:
 """
 
 from src.rag.evaluation.pack import (
+    RAGFaithfulnessPack,
+    RAGFaithfulnessPackConfig,
     RAGPack,
     RAGPackConfig,
     RAGRetrievalPack,
@@ -36,6 +38,8 @@ __all__ = [
     "RAGPackConfig",
     "RAGRetrievalPack",
     "RAGRetrievalPackConfig",
+    "RAGFaithfulnessPack",
+    "RAGFaithfulnessPackConfig",
     "RetrievalStage",
     "ContextRelevanceStage",
     "FaithfulnessStage",

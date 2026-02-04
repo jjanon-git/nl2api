@@ -601,3 +601,126 @@ class RAGRetrievalPack:
             worker_id=context.worker_id,
             total_latency_ms=total_latency_ms,
         )
+
+
+@dataclass
+class RAGFaithfulnessPackConfig:
+    """Configuration for RAGFaithfulnessPack (faithfulness-only evaluation)."""
+
+    faithfulness_threshold: float = 0.4
+    llm_provider: str | None = None
+
+
+class RAGFaithfulnessPack:
+    """
+    Faithfulness-only evaluation pack for RAG systems.
+
+    Evaluates only faithfulness (groundedness) - whether the response is
+    grounded in the retrieved context. Uses LLM-based refusal detection
+    to correctly handle "I cannot determine X" responses.
+
+    Use this for fast iteration on faithfulness evaluation without running
+    all 8 stages of the full RAG pack.
+
+    Stages:
+    1. Faithfulness: Is response grounded in context? (LLM-based)
+
+    Usage:
+        pack = RAGFaithfulnessPack()
+        evaluator = Evaluator(pack=pack)
+
+        system_output = {
+            "response": "The capital of France is Paris.",
+            "context": "Paris is the capital of France.",
+        }
+
+        scorecard = await evaluator.evaluate(test_case, system_output)
+    """
+
+    DEFAULT_WEIGHTS: dict[str, float] = {
+        "faithfulness": 1.0,
+    }
+
+    def __init__(self, config: RAGFaithfulnessPackConfig | None = None, **kwargs):
+        self.config = config or RAGFaithfulnessPackConfig(**kwargs)
+
+        # Get threshold from provider-specific settings if available
+        threshold = self.config.faithfulness_threshold
+        if self.config.llm_provider and self.config.llm_provider in PROVIDER_THRESHOLDS:
+            threshold = PROVIDER_THRESHOLDS[self.config.llm_provider].faithfulness
+
+        self._stages = [
+            FaithfulnessStage(pass_threshold=threshold),
+        ]
+
+    @property
+    def name(self) -> str:
+        return "rag-faithfulness"
+
+    def get_stages(self) -> list:
+        return list(self._stages)
+
+    def get_default_weights(self) -> dict[str, float]:
+        return dict(self.DEFAULT_WEIGHTS)
+
+    def validate_test_case(self, test_case: TestCase) -> list[str]:
+        errors = []
+        if not test_case.input.get("query"):
+            errors.append("Missing input['query']")
+        return errors
+
+    def compute_overall_score(
+        self,
+        stage_results: dict[str, StageResult],
+        weights: dict[str, float] | None = None,
+    ) -> float:
+        result = stage_results.get("faithfulness")
+        if result and result.score is not None:
+            return result.score
+        return 0.0
+
+    def compute_overall_passed(self, stage_results: dict[str, StageResult]) -> bool:
+        result = stage_results.get("faithfulness")
+        return bool(result and result.passed)
+
+    async def evaluate(
+        self,
+        test_case: TestCase,
+        system_output: dict[str, Any],
+        context: EvalContext | None = None,
+    ) -> Scorecard:
+        """Run faithfulness-only evaluation pipeline."""
+        from src.evalkit.contracts import EvalContext
+
+        context = context or EvalContext()
+        start_time = time.perf_counter()
+
+        stage_results: dict[str, StageResult] = {}
+
+        with tracer.start_as_current_span("rag_faithfulness_pack.evaluate") as span:
+            span.set_attribute("test_case.id", test_case.id)
+            span.set_attribute("pack.name", self.name)
+
+            for stage in self._stages:
+                with tracer.start_as_current_span(f"rag_faithfulness.{stage.name}"):
+                    result = await stage.evaluate(test_case, system_output, context)
+                    stage_results[stage.name] = result
+
+            total_latency_ms = int((time.perf_counter() - start_time) * 1000)
+            overall_passed = self.compute_overall_passed(stage_results)
+            overall_score = self.compute_overall_score(stage_results)
+
+            span.set_attribute("result.overall_passed", overall_passed)
+            span.set_attribute("result.overall_score", overall_score)
+
+        return Scorecard(
+            test_case_id=test_case.id,
+            batch_id=context.batch_id,
+            pack_name=self.name,
+            stage_results=stage_results,
+            stage_weights=self.get_default_weights(),
+            generated_output=system_output,
+            generated_nl_response=system_output.get("response"),
+            worker_id=context.worker_id,
+            total_latency_ms=total_latency_ms,
+        )

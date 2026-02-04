@@ -200,20 +200,32 @@ Response:"""
         self,
         response: str,
         context: str,
+        query: str | None = None,
     ) -> JudgeResult:
         """
         Evaluate if response is grounded in context (faithfulness).
 
-        Uses claim extraction + verification approach from RAGAS.
+        Uses claim extraction + verification approach from RAGAS, with
+        special handling for refusal/abstention responses.
+
+        A refusal like "I cannot determine X from these excerpts" is FAITHFUL
+        when the context genuinely lacks the information. RAGAS-style evaluation
+        would incorrectly score this as 0, but appropriate refusals should score 1.0.
 
         Args:
             response: The generated response
             context: The source context
+            query: Optional query for refusal appropriateness check
 
         Returns:
             JudgeResult with faithfulness score
         """
-        # Extract claims
+        # First, check if this is a refusal response using LLM
+        refusal_result = await self._detect_refusal(response, context, query)
+        if refusal_result is not None:
+            return refusal_result
+
+        # Not a refusal - proceed with standard claim extraction + verification
         claims = await self.extract_claims(response)
 
         if not claims:
@@ -245,6 +257,96 @@ Response:"""
                 "unsupported_claims": [r.claim for r in verification_results if not r.supported],
             },
         )
+
+    async def _detect_refusal(
+        self,
+        response: str,
+        context: str,
+        query: str | None = None,
+    ) -> JudgeResult | None:
+        """
+        Detect if response is a refusal/abstention and evaluate appropriateness.
+
+        Uses LLM to understand nuanced refusal language and determine if the
+        refusal is appropriate given the context.
+
+        Returns:
+            JudgeResult if response is a refusal (score 1.0 if appropriate, 0.0 if not)
+            None if response is not a refusal (proceed with standard evaluation)
+        """
+        prompt = f"""Analyze whether this response is a refusal or abstention (e.g., "I cannot determine...", "The information is not available...", "Insufficient data...").
+
+Response:
+{response}
+
+Context available:
+{context[:2000]}{"..." if len(context) > 2000 else ""}
+
+Determine:
+1. Is this response a refusal/abstention that declines to answer due to insufficient information?
+2. If yes, is the refusal appropriate? (The context genuinely lacks the information needed to answer)
+
+A refusal is APPROPRIATE (faithful) when:
+- The context truly doesn't contain the information to answer the question
+- The model correctly identifies its limitations rather than hallucinating
+
+A refusal is INAPPROPRIATE (unfaithful) when:
+- The context DOES contain the answer but the model refused anyway
+- The model should have been able to answer from the available information
+
+Respond with JSON:
+{{
+    "is_refusal": true/false,
+    "refusal_appropriate": true/false (only if is_refusal is true),
+    "reasoning": "<explanation>"
+}}
+
+Response:"""
+
+        raw_response = await self._call_llm(prompt)
+
+        try:
+            json_match = re.search(r"\{[^{}]*\}", raw_response, re.DOTALL)
+            if json_match:
+                data = json.loads(json_match.group())
+            else:
+                data = json.loads(raw_response)
+
+            is_refusal = bool(data.get("is_refusal", False))
+            if not is_refusal:
+                return None  # Not a refusal, proceed with standard evaluation
+
+            refusal_appropriate = bool(data.get("refusal_appropriate", True))
+            reasoning = data.get("reasoning", "Refusal detected")
+
+            if refusal_appropriate:
+                return JudgeResult(
+                    score=1.0,
+                    passed=True,
+                    reasoning=f"Appropriate refusal: {reasoning}",
+                    raw_response=raw_response,
+                    metrics={
+                        "is_refusal": True,
+                        "refusal_appropriate": True,
+                        "evaluation_method": "refusal_detection",
+                    },
+                )
+            else:
+                return JudgeResult(
+                    score=0.0,
+                    passed=False,
+                    reasoning=f"Inappropriate refusal: {reasoning}",
+                    raw_response=raw_response,
+                    metrics={
+                        "is_refusal": True,
+                        "refusal_appropriate": False,
+                        "evaluation_method": "refusal_detection",
+                    },
+                )
+
+        except (json.JSONDecodeError, ValueError):
+            # Can't determine - proceed with standard evaluation
+            return None
 
     async def _evaluate_with_prompt(self, prompt: str) -> JudgeResult:
         """

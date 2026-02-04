@@ -7,9 +7,15 @@ Reference-free: uses claim extraction + verification, no ground truth needed.
 Part of the RAG Triad evaluation (also called "Groundedness").
 
 Approach:
-1. Extract atomic claims from the response
-2. Verify each claim against the context
-3. Score = supported claims / total claims
+1. LLM judge detects refusals and evaluates if they're appropriate
+2. For non-refusals: extract atomic claims from the response
+3. Verify each claim against the context
+4. Score = supported claims / total claims
+
+Note: RAGAS-style faithfulness evaluation penalizes refusals with score=0, but
+"I cannot determine X from these excerpts" is the CORRECT response when the
+context doesn't contain the answer. The LLM judge handles refusal detection
+and marks them as faithful when the context genuinely lacks the information.
 """
 
 from __future__ import annotations
@@ -75,15 +81,20 @@ class FaithfulnessStage:
             return self._skip_result("No context to verify against", start_time)
 
         # Get LLM judge from context
+        # The LLM judge handles refusal detection internally - no regex needed
         llm_judge = self._get_llm_judge(context)
         if llm_judge is None:
             return await self._heuristic_evaluate(response, retrieved_context, start_time)
 
+        # Extract query for refusal appropriateness checking
+        query = test_case.input.get("query") or test_case.input.get("question")
+
         try:
-            # Use LLM judge for full evaluation
+            # Use LLM judge for full evaluation (including refusal detection)
             result = await llm_judge.evaluate_faithfulness(
                 response=response,
                 context=retrieved_context,
+                query=query,
             )
 
             # Override LLM judge's passed with our threshold

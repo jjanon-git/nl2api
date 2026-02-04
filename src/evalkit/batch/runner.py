@@ -466,8 +466,8 @@ class BatchRunner:
                 "raw_output": response.raw_output,
                 "nl_response": response.nl_response,
             }
-        elif self.config.pack_name == "rag":
-            # RAG needs different fields - try to extract from raw_output JSON first
+        elif self.config.pack_name in ("rag", "rag-retrieval", "rag-faithfulness"):
+            # RAG packs need different fields - try to extract from raw_output JSON first
             # (used by simulated generator), then fall back to attributes
             rag_data: dict[str, Any] = {}
             try:
@@ -515,9 +515,9 @@ class BatchRunner:
             # Convert SystemResponse to pack-specific system_output dict
             system_output = self._response_to_output(response, test_case)
 
-            # Create evaluation context with LLM judge for RAG pack
+            # Create evaluation context with LLM judge for RAG packs
             llm_judge = None
-            if self.config.pack_name == "rag":
+            if self.config.pack_name in ("rag", "rag-retrieval", "rag-faithfulness"):
                 from src.rag.evaluation.llm_judge import LLMJudge
 
                 llm_judge = LLMJudge()

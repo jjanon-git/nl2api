@@ -406,9 +406,11 @@ class TestLLMJudgeWithMockedClient:
     @pytest.mark.asyncio
     async def test_evaluate_faithfulness(self, config, mock_anthropic_client):
         """Evaluate faithfulness with mocked client."""
-        # First call: extract claims
-        # Second+ calls: verify each claim
+        # First call: refusal detection (returns non-refusal)
+        # Second call: extract claims
+        # Third+ calls: verify each claim
         mock_anthropic_client.messages.create.side_effect = [
+            MagicMock(content=[MagicMock(text='{"is_refusal": false}')]),
             MagicMock(content=[MagicMock(text='["Claim 1", "Claim 2"]')]),
             MagicMock(content=[MagicMock(text='{"supported": true, "confidence": 0.9}')]),
             MagicMock(content=[MagicMock(text='{"supported": true, "confidence": 0.8}')]),
@@ -529,3 +531,146 @@ class TestLLMJudgeOpenAI:
         )
 
         assert result.score == 0.5  # Graceful degradation
+
+
+class TestRefusalDetection:
+    """Tests for LLM-based refusal detection in faithfulness evaluation."""
+
+    @pytest.mark.asyncio
+    async def test_detect_appropriate_refusal(self, config, mock_anthropic_client):
+        """Appropriate refusals should return score 1.0."""
+        mock_anthropic_client.messages.create.return_value = MagicMock(
+            content=[
+                MagicMock(
+                    text='{"is_refusal": true, "refusal_appropriate": true, "reasoning": "Context lacks salary information"}'
+                )
+            ]
+        )
+
+        judge = LLMJudge(config=config, llm_client=mock_anthropic_client)
+
+        result = await judge._detect_refusal(
+            response="I cannot determine the CEO's salary from these excerpts.",
+            context="The company operates in multiple markets.",
+            query="What is the CEO's salary?",
+        )
+
+        assert result is not None
+        assert result.score == 1.0
+        assert result.passed is True
+        assert result.metrics.get("is_refusal") is True
+        assert result.metrics.get("refusal_appropriate") is True
+
+    @pytest.mark.asyncio
+    async def test_detect_inappropriate_refusal(self, config, mock_anthropic_client):
+        """Inappropriate refusals (context has answer) should return score 0.0."""
+        mock_anthropic_client.messages.create.return_value = MagicMock(
+            content=[
+                MagicMock(
+                    text='{"is_refusal": true, "refusal_appropriate": false, "reasoning": "Context contains the revenue figure"}'
+                )
+            ]
+        )
+
+        judge = LLMJudge(config=config, llm_client=mock_anthropic_client)
+
+        result = await judge._detect_refusal(
+            response="I cannot determine the revenue from these excerpts.",
+            context="The company reported revenue of $10 million in 2023.",
+            query="What is the revenue?",
+        )
+
+        assert result is not None
+        assert result.score == 0.0
+        assert result.passed is False
+        assert result.metrics.get("is_refusal") is True
+        assert result.metrics.get("refusal_appropriate") is False
+
+    @pytest.mark.asyncio
+    async def test_non_refusal_returns_none(self, config, mock_anthropic_client):
+        """Non-refusal responses should return None (proceed with standard eval)."""
+        mock_anthropic_client.messages.create.return_value = MagicMock(
+            content=[
+                MagicMock(
+                    text='{"is_refusal": false, "reasoning": "Response provides a direct answer"}'
+                )
+            ]
+        )
+
+        judge = LLMJudge(config=config, llm_client=mock_anthropic_client)
+
+        result = await judge._detect_refusal(
+            response="The revenue was $10 million in 2023.",
+            context="The company reported revenue of $10 million in 2023.",
+            query="What is the revenue?",
+        )
+
+        assert result is None  # Should proceed with standard evaluation
+
+    @pytest.mark.asyncio
+    async def test_parse_error_returns_none(self, config, mock_anthropic_client):
+        """Parse errors should return None (fall back to standard evaluation)."""
+        mock_anthropic_client.messages.create.return_value = MagicMock(
+            content=[MagicMock(text="Not valid JSON at all")]
+        )
+
+        judge = LLMJudge(config=config, llm_client=mock_anthropic_client)
+
+        result = await judge._detect_refusal(
+            response="Some response",
+            context="Some context",
+            query="Some query",
+        )
+
+        assert result is None  # Should proceed with standard evaluation
+
+    @pytest.mark.asyncio
+    async def test_evaluate_faithfulness_with_refusal(self, config, mock_anthropic_client):
+        """Faithfulness evaluation should handle refusals via _detect_refusal."""
+        # First call is refusal detection
+        mock_anthropic_client.messages.create.return_value = MagicMock(
+            content=[
+                MagicMock(
+                    text='{"is_refusal": true, "refusal_appropriate": true, "reasoning": "Appropriate refusal"}'
+                )
+            ]
+        )
+
+        judge = LLMJudge(config=config, llm_client=mock_anthropic_client)
+
+        result = await judge.evaluate_faithfulness(
+            response="I cannot determine the answer from these excerpts.",
+            context="Unrelated context here.",
+            query="What is X?",
+        )
+
+        # Should short-circuit and return refusal result
+        assert result.score == 1.0
+        assert result.metrics.get("is_refusal") is True
+        # Should only call LLM once (for refusal detection), not for claim extraction
+        assert mock_anthropic_client.messages.create.call_count == 1
+
+    @pytest.mark.asyncio
+    async def test_evaluate_faithfulness_non_refusal_proceeds(self, config, mock_anthropic_client):
+        """Non-refusal responses should proceed with claim extraction."""
+        mock_anthropic_client.messages.create.side_effect = [
+            # First call: refusal detection returns non-refusal
+            MagicMock(content=[MagicMock(text='{"is_refusal": false}')]),
+            # Second call: extract claims
+            MagicMock(content=[MagicMock(text='["Python was created by Guido van Rossum"]')]),
+            # Third call: verify claim
+            MagicMock(content=[MagicMock(text='{"supported": true, "confidence": 0.9}')]),
+        ]
+
+        judge = LLMJudge(config=config, llm_client=mock_anthropic_client)
+
+        result = await judge.evaluate_faithfulness(
+            response="Python was created by Guido van Rossum in 1991.",
+            context="Guido van Rossum created Python in 1991.",
+            query="Who created Python?",
+        )
+
+        # Should proceed with standard evaluation
+        assert result.score == 1.0
+        assert result.metrics.get("num_claims") == 1
+        assert mock_anthropic_client.messages.create.call_count == 3  # refusal + extract + verify

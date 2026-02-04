@@ -180,9 +180,16 @@ def batch_run(
         bool,
         typer.Option(
             "--parallel-stages/--sequential-stages",
-            help="Run stages in parallel (OpenAI) or sequential (Anthropic)",
+            help="Run evaluation stages in parallel (default) or sequential",
         ),
-    ] = False,
+    ] = True,
+    reranker: Annotated[
+        str,
+        typer.Option(
+            "--reranker",
+            help="Reranker model for RAG retrieval: msmarco (default), bge-base, bge-large, bge-m3, or 'none' to disable",
+        ),
+    ] = "msmarco",
 ) -> None:
     """
     Run batch evaluation on test cases from database.
@@ -235,7 +242,7 @@ def batch_run(
     from datetime import date as date_type
 
     # Validate pack selection
-    valid_packs = ("nl2api", "rag", "rag-retrieval")
+    valid_packs = ("nl2api", "rag", "rag-retrieval", "rag-faithfulness")
     if pack not in valid_packs:
         console.print(f"[red]Error:[/red] Invalid pack '{pack}'.")
         console.print(f"Available packs: {', '.join(valid_packs)}")
@@ -389,6 +396,7 @@ def batch_run(
             redis_url=redis_url,
             resume_batch_id=resume,
             parallel_stages=parallel_stages,
+            reranker_model=reranker,
         )
     )
 
@@ -420,6 +428,7 @@ async def _batch_run_async(
     redis_url: str = "redis://localhost:6379",
     resume_batch_id: str | None = None,
     parallel_stages: bool = False,
+    reranker_model: str = "msmarco",
 ) -> None:
     """Async implementation of batch run command."""
     # Initialize telemetry with pack-specific service name BEFORE any telemetry-using imports
@@ -465,8 +474,11 @@ async def _batch_run_async(
         raise typer.Exit(code=1)
 
     # Additional pack-specific tag validation (before storage connection)
+    # All RAG-related packs use test cases tagged with "rag"
     PACK_REQUIRED_TAGS = {
-        "rag": "rag",  # RAG pack must use rag tag
+        "rag": "rag",
+        "rag-retrieval": "rag",
+        "rag-faithfulness": "rag",
     }
     if pack in PACK_REQUIRED_TAGS:
         required_tag = PACK_REQUIRED_TAGS[pack]
@@ -681,15 +693,42 @@ async def _batch_run_async(
                     keyword_weight=0.3,
                 )
                 retriever.set_embedder(embedder)
+
+                # Configure reranker if specified
+                if reranker_model and reranker_model.lower() != "none":
+                    from src.rag.retriever.reranker import create_reranker
+
+                    # Map shorthand names to full model names
+                    RERANKER_MODELS = {
+                        "msmarco": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+                        "msmarco-tiny": "cross-encoder/ms-marco-TinyBERT-L-2-v2",
+                        "msmarco-l4": "cross-encoder/ms-marco-MiniLM-L-4-v2",
+                        "msmarco-l12": "cross-encoder/ms-marco-MiniLM-L-12-v2",
+                        "bge-base": "BAAI/bge-reranker-base",
+                        "bge-large": "BAAI/bge-reranker-large",
+                        "bge-m3": "BAAI/bge-reranker-v2-m3",
+                    }
+                    model_name = RERANKER_MODELS.get(reranker_model, reranker_model)
+                    reranker = create_reranker(model_name=model_name)
+                    retriever.set_reranker(reranker)
+                    console.print(f"[cyan]Reranker: {model_name}[/cyan]")
+
                 response_generator = create_rag_retrieval_generator(retriever)
+                reranker_info = (
+                    f" (reranker: {reranker_model})" if reranker_model else " (no reranker)"
+                )
                 console.print(
-                    "[green]Using RAG retrieval-only evaluation (no LLM generation).[/green]\n"
+                    f"[green]Using RAG retrieval-only evaluation{reranker_info}.[/green]\n"
                 )
             except Exception as e:
                 console.print(f"[red]Failed to initialize RAG retrieval: {e}[/red]")
                 raise typer.Exit(1)
 
-        if pack == "rag" and mode in ("retrieval", "full"):
+        if (
+            pack in ("rag", "rag-retrieval", "rag-faithfulness")
+            and mode in ("retrieval", "full")
+            and response_generator is None
+        ):
             # For RAG pack: retrieval-only or full (retrieval + LLM)
             import os
 
@@ -722,6 +761,24 @@ async def _batch_run_async(
                     keyword_weight=0.3,
                 )
                 retriever.set_embedder(embedder)
+
+                # Configure reranker if specified
+                if reranker_model and reranker_model.lower() != "none":
+                    from src.rag.retriever.reranker import create_reranker
+
+                    RERANKER_MODELS = {
+                        "msmarco": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+                        "msmarco-tiny": "cross-encoder/ms-marco-TinyBERT-L-2-v2",
+                        "msmarco-l4": "cross-encoder/ms-marco-MiniLM-L-4-v2",
+                        "msmarco-l12": "cross-encoder/ms-marco-MiniLM-L-12-v2",
+                        "bge-base": "BAAI/bge-reranker-base",
+                        "bge-large": "BAAI/bge-reranker-large",
+                        "bge-m3": "BAAI/bge-reranker-v2-m3",
+                    }
+                    model_name = RERANKER_MODELS.get(reranker_model, reranker_model)
+                    reranker = create_reranker(model_name=model_name)
+                    retriever.set_reranker(reranker)
+                    console.print(f"[cyan]Reranker: {model_name}[/cyan]")
 
                 if mode == "full":
                     # Full RAG: retrieval + LLM generation
@@ -758,7 +815,10 @@ async def _batch_run_async(
                     )
 
                     response_generator = create_rag_retrieval_generator(retriever)
-                    console.print("[green]Using RAG retrieval with HybridRAGRetriever.[/green]\n")
+                    reranker_info = f" + {reranker_model}" if reranker_model else ""
+                    console.print(
+                        f"[green]Using RAG retrieval with HybridRAGRetriever{reranker_info}.[/green]\n"
+                    )
             except Exception as e:
                 console.print(f"[red]Failed to initialize RAG pipeline: {e}[/red]")
                 console.print("\nCheck that:")
