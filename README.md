@@ -62,6 +62,23 @@ docker compose up -d
 open http://localhost:3000  # admin/admin
 ```
 
+### Database Replication
+
+To replicate the database on another machine (avoids re-running slow ingestion scripts):
+
+```bash
+# On source machine: export and upload to GitHub Release
+python scripts/db-export.py                    # Export all tables (~2-5 GB)
+python scripts/db-export.py --tables rag       # Or just RAG data (~300-500 MB)
+python scripts/db-upload.py exports/evalkit_*.dump.gz
+
+# On target machine: download and restore
+docker compose up -d
+python scripts/db-restore.py --download data-all-20260203
+```
+
+See [docs/database-replication.md](docs/database-replication.md) for table groups and detailed workflows.
+
 ---
 
 ## Integrating with Your RAG System

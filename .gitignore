@@ -77,3 +77,4 @@ claude-code-evaluation-email.txt
 *_checkpoint.json
 .*_checkpoint.json
 results/
+exports/
