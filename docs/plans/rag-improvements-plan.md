@@ -1,6 +1,6 @@
 # RAG Improvements Implementation Plan
 
-**STATUS: COMPLETE** - All phases implemented. See `docs/plans/rag-06-improvements.md` for comprehensive results.
+**STATUS: COMPLETE** - All phases implemented. See `docs/plans/rag-00-improvements.md` for comprehensive results.
 
 ## Summary of Completed Work
 
@@ -242,10 +242,10 @@ pytest tests/unit/rag/ -v --cov=src/rag --cov-report=term-missing
 
 ## Acceptance Criteria
 
-- [x] Answer relevance pass rate > 50% ✅ **84% achieved** (see rag-06-improvements.md Section 6.7)
-- [x] Citation pass rate > 50% ✅ **87% achieved** (see rag-06-improvements.md Section 6.7)
-- [x] RAG retriever coverage > 60% ✅ **146 tests** (see rag-06-improvements.md Section 6.5)
-- [x] Small-to-big retrieval working with parent-child chunks ✅ (see rag-06-improvements.md Section 6.9)
+- [x] Answer relevance pass rate > 50% ✅ **84% achieved** (see rag-00-improvements.md Section 6.7)
+- [x] Citation pass rate > 50% ✅ **87% achieved** (see rag-00-improvements.md Section 6.7)
+- [x] RAG retriever coverage > 60% ✅ **146 tests** (see rag-00-improvements.md Section 6.5)
+- [x] Small-to-big retrieval working with parent-child chunks ✅ (see rag-00-improvements.md Section 6.9)
 - [x] All unit tests passing ✅
 - [x] Re-indexing script documented ✅ `scripts/reindex_small_to_big.py`
 - [x] End-to-end evaluation passes with improved metrics ✅ **30% overall pass rate (10x improvement)**

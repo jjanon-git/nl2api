@@ -124,7 +124,7 @@ Proposed [3-stage pipeline](https://www.genzeon.com/hybrid-retrieval-deranking-i
 
 #### Approach 1D: Implement HyDE (LOW-MEDIUM IMPACT)
 
-Already designed in rag-06-improvements.md but not implemented.
+Already designed in rag-00-improvements.md but not implemented.
 
 **How it works:**
 1. Generate hypothetical answer to query

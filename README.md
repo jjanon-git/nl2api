@@ -874,7 +874,7 @@ The RAG evaluation system has been significantly improved through systematic exp
 - 1.2M child chunks (512 chars each)
 - 246 companies indexed from SEC filings
 
-See [docs/plans/rag-06-improvements.md](docs/plans/rag-06-improvements.md) for detailed experiment results, A/B tests, and future investigation areas.
+See [docs/plans/rag-00-improvements.md](docs/plans/rag-00-improvements.md) for detailed experiment results, A/B tests, and future investigation areas.
 
 ---
 
@@ -969,7 +969,7 @@ pytest tests/accuracy/ -m tier3 -v   # Comprehensive (all)
 | [docs/accuracy-testing.md](docs/accuracy-testing.md) | Accuracy testing patterns |
 | [docs/evaluation-data.md](docs/evaluation-data.md) | Test fixture documentation |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Common issues and solutions |
-| [docs/plans/rag-06-improvements.md](docs/plans/rag-06-improvements.md) | RAG improvement journey |
+| [docs/plans/rag-00-improvements.md](docs/plans/rag-00-improvements.md) | RAG improvement journey |
 
 ---
 

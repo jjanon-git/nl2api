@@ -1,7 +1,7 @@
 # RAG Improvements Design Document
 
 **Status:** P0-P1 Complete | P2 Partially Complete
-**Last Updated:** 2026-02-01
+**Last Updated:** 2026-02-03
 
 ---
 
@@ -18,12 +18,13 @@ The RAG system has been significantly improved from its naive baseline. Here's w
 | **Entity Filtering** | Ticker-based filtering in SQL | Deployed |
 | **Hybrid Search** | 70% vector + 30% keyword | Deployed |
 
-### Key Metrics (as of 2026-01-25)
+### Key Metrics (as of 2026-02-03)
 
 | Metric | Baseline | Current | Improvement |
 |--------|----------|---------|-------------|
 | Retrieval Recall@5 | 23% | 44% | **+21% (1.9x)** |
-| Context Relevance | 15% | 86% | **+71%** |
+| Context Relevance Pass | 15% | 92% | **+77%** (with reranker) |
+| Faithfulness Pass | 72.6% | 91.3% | **+18.7%** (LLM refusal detection) |
 | End-to-End Pass Rate | 3% | 30% | **+27% (10x)** |
 
 ### Document Corpus
@@ -68,14 +69,23 @@ Adding ticker-based SQL filtering ensures queries about "Apple's revenue" don't 
 
 Biggest impact on generic queries ("free cash flow", "risk factors").
 
-### 4. Cross-Encoder Reranking Provides Marginal Improvement (+2-3%)
+### 4. Cross-Encoder Reranking Improves Context Quality (+10% pass rate)
 
-Cross-encoder reranking helped less than expected:
-- Only +2% recall when retrieval quality was poor
-- More effective when combined with good candidates from contextual chunking
-- Adds ~200-300ms latency
+A/B testing (2026-02-03) showed cross-encoder reranking significantly improves context relevance:
 
-**Lesson learned:** Reranking can't fix bad first-stage retrieval.
+| Condition | Context Relevance Pass | Exact Match | Duration |
+|-----------|------------------------|-------------|----------|
+| No Reranker | 82% | 61% | 108s |
+| MS-Marco | **92%** | **68%** | 120s |
+
+- **+10% absolute improvement** in context relevance pass rate
+- **+7% improvement** in exact chunk ID matching
+- Only +11% latency overhead (acceptable)
+- Default reranker: `ms-marco-MiniLM-L-6-v2` (90MB, CPU-friendly)
+
+Larger models (BGE-reranker-large, BGE-reranker-v2-m3) timeout on CPU with 50 candidates.
+
+**Lesson learned:** Reranking helps with good candidates; ms-marco provides best quality/speed tradeoff.
 
 ### 5. Evaluation Thresholds Matter
 
@@ -211,6 +221,8 @@ Current weights (70% vector + 30% keyword) were chosen heuristically:
 | 2026-01-25 | Tune evaluation thresholds | 30% end-to-end pass rate |
 | 2026-01-25 | Small-to-big reindex (1.2M children) | 44% Recall@5 |
 | 2026-02-01 | Entity filtering | +22% precision on filtered queries |
+| 2026-02-03 | Reranker A/B test (ms-marco vs none) | +10% context relevance pass rate |
+| 2026-02-03 | LLM-based refusal detection | 91.3% faithfulness pass rate |
 
 *55% was measured on 65% of tests due to a bug; corrected baseline is 47.5%.
 
@@ -578,6 +590,100 @@ PROVIDER_THRESHOLDS = {
 2. gpt-4o-mini is stricter on context_relevance (requires threshold tuning)
 3. Both stacks achieve 88-93% on faithfulness (the most critical stage)
 4. Provider-specific thresholds are necessary for fair comparison
+
+### 6.13 Reranker A/B Test (2026-02-03)
+
+**Date:** 2026-02-03
+**Status:** Complete
+**Experiment Plan:** [rag-11-reranker-ab-experiment.md](rag-11-reranker-ab-experiment.md)
+
+#### Hypothesis
+BGE-reranker-v2-m3 (2.3GB) would improve retrieval quality by 15-30% over ms-marco-MiniLM-L-6-v2 (90MB).
+
+#### Experimental Conditions
+
+| Variant | Reranker Model | Size | Status |
+|---------|----------------|------|--------|
+| Baseline | None | - | Completed |
+| MS-Marco | ms-marco-MiniLM-L-6-v2 | 90MB | Completed |
+| BGE-Base | BAAI/bge-reranker-base | 278MB | Completed (slow) |
+| BGE-Large | BAAI/bge-reranker-large | 567MB | Failed (timeout) |
+| BGE-M3 | BAAI/bge-reranker-v2-m3 | 2.3GB | Failed (timeout) |
+
+#### Results (100 test cases each)
+
+| Condition | Context Rel. Mean | Context Rel. Pass | Retrieval Pass | Duration |
+|-----------|-------------------|-------------------|----------------|----------|
+| No Reranker | 0.518 | 82% | 61% | 108s |
+| **MS-Marco** | **0.553** | **92%** | **68%** | 120s |
+| BGE-Base | 0.540 | 89% | 66% | 255s |
+
+#### Key Findings
+
+1. **MS-Marco is the winner:**
+   - +10% absolute improvement in context relevance pass rate (82% → 92%)
+   - +3.5% improvement in mean context relevance score
+   - Only +11% latency overhead
+
+2. **BGE models not feasible on CPU:**
+   - BGE-base works but is 2x slower with slightly worse results
+   - BGE-large and BGE-m3 timeout with 50 candidates (DB connection expires)
+   - Would require GPU or reduced candidate count
+
+3. **Ground truth insight:**
+   - Exact chunk ID matching is too strict (multiple chunks can answer same question)
+   - Context relevance (semantic quality) is the true measure of retrieval quality
+
+#### Recommendation
+**Ship ms-marco-MiniLM-L-6-v2 as the default reranker** (now implemented as `--reranker msmarco`).
+
+**Batch IDs:**
+- No Reranker: `7c39d331-34ba-4970-b630-80593763d5a4`
+- MS-Marco: `da6fd10c-288c-40ff-9604-936bf5f90314`
+- BGE-Base: `b195b5a6-7a95-414b-ae86-a67322c2cf83`
+
+### 6.14 LLM-Based Refusal Detection (2026-02-03)
+
+**Date:** 2026-02-03
+**Status:** Complete
+**Related:** Faithfulness evaluation improvements
+
+#### Problem
+Regex-based refusal detection had poor accuracy:
+- Pattern matching couldn't distinguish genuine refusals from answers containing refusal-like phrases
+- Example: "I cannot confirm the exact figure, but based on the filing..." was incorrectly flagged as refusal
+
+#### Solution
+Replaced regex patterns with LLM judge for refusal appropriateness:
+
+```python
+# Old: regex patterns
+REFUSAL_PATTERNS = [r"cannot.*provide", r"unable to.*answer", ...]
+
+# New: LLM judge
+"Is this response an appropriate refusal given the context and question?"
+```
+
+#### Results (100 test cases)
+
+| Metric | Before (Regex) | After (LLM Judge) | Improvement |
+|--------|----------------|-------------------|-------------|
+| Faithfulness Pass Rate | 72.6% | **91.3%** | **+18.7%** |
+| Refusal Detection Accuracy | ~60% | **96.5%** | **+36.5%** |
+| False Positive Refusals | High | Low | Significant |
+
+#### Key Findings
+
+1. **LLM judge dramatically improves faithfulness:**
+   - Many "failures" were false positive refusal detections
+   - LLM understands context and nuance that regex cannot
+
+2. **Cost acceptable:**
+   - Small additional LLM call per evaluation
+   - Worth it for accuracy improvement
+
+#### Implementation
+Updated `src/rag/evaluation/stages/faithfulness.py` to use LLM-based refusal detection.
 
 ---
 
