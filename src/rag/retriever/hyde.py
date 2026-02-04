@@ -38,21 +38,28 @@ class HyDEExpander:
     instead of the raw query. This helps when query vocabulary
     differs from document vocabulary.
 
-    Example:
-        Query: "What risks does Apple face?"
-        Hypothetical: "Apple faces risks including supply chain disruption,
-                      regulatory changes in key markets, and currency fluctuations..."
+    WARNING: A/B testing showed HyDE HURTS retrieval on SEC filing queries.
+    Factual queries like "What was X's revenue?" already use vocabulary
+    that matches documents well. HyDE transformations add noise.
 
-    The hypothetical answer's embedding is closer to actual SEC filing text.
+    Only consider HyDE for analytical/open-ended queries where
+    query vocabulary differs significantly from document vocabulary.
+
+    See: docs/plans/rag-12-hyde-ab-experiment.md for full results.
     """
 
-    HYDE_PROMPT = """Generate a brief, factual answer to this SEC filing question.
-Write as if quoting from an actual SEC filing (10-K, 10-Q).
-Be specific and use financial terminology. Keep it under 150 words.
+    # Default prompt - focuses on topics without fabricating numbers
+    # Tested variants: V1 (36%), V2 (45%), V3-keywords (40%) vs baseline (70%)
+    # V2 is best among HyDE variants, but all underperform baseline
+    HYDE_PROMPT = """Describe what an SEC filing section answering this question would discuss.
+Focus on TOPICS, CATEGORIES, and TERMINOLOGY - not specific numbers or dates.
+Use the vocabulary found in 10-K and 10-Q filings.
+Do NOT invent specific figures, percentages, or dollar amounts.
+Keep it under 100 words.
 
 Question: {query}
 
-Hypothetical answer from SEC filing:"""
+The relevant SEC filing section would discuss:"""
 
     def __init__(
         self,

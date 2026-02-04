@@ -210,11 +210,25 @@ If HyDE is desired in the future:
 2. Only apply HyDE to analytical queries
 3. Test on a curated analytical-query subset
 
+### Prompt Improvement Attempts
+
+Tested three prompt variants to see if better prompts could salvage HyDE:
+
+| Prompt | Strategy | Pass Rate (20 cases) |
+|--------|----------|---------------------|
+| V1 (original) | "Be specific, use financial terminology" | ~36% |
+| V2 | "Focus on TOPICS, no specific numbers" | 45% |
+| V3 | "List 5-10 key terms only" | 40% |
+| **Baseline (no HyDE)** | Direct query embedding | **70%** |
+
+**Finding:** Even with improved prompts that avoid hallucinating numbers, HyDE still significantly hurts retrieval. The problem isn't the prompt—it's that HyDE fundamentally doesn't help for factual queries.
+
 ### Lessons Learned
 
 1. **Research claims don't always transfer** - HyDE papers show improvement on general datasets, but SEC filing queries are mostly factual
 2. **Test before shipping** - The quick 10-case test already showed HyDE underperforming (30% vs 60%)
 3. **Query type matters** - Different retrieval strategies work for different query types
+4. **Prompt tuning has limits** - When the fundamental approach doesn't fit the data, no prompt will fix it
 
 ---
 
