@@ -190,6 +190,13 @@ def batch_run(
             help="Reranker model for RAG retrieval: msmarco (default), bge-base, bge-large, bge-m3, or 'none' to disable",
         ),
     ] = "msmarco",
+    hyde: Annotated[
+        bool,
+        typer.Option(
+            "--hyde/--no-hyde",
+            help="Enable HyDE (Hypothetical Document Embeddings) for query expansion",
+        ),
+    ] = False,
 ) -> None:
     """
     Run batch evaluation on test cases from database.
@@ -397,6 +404,7 @@ def batch_run(
             resume_batch_id=resume,
             parallel_stages=parallel_stages,
             reranker_model=reranker,
+            use_hyde=hyde,
         )
     )
 
@@ -429,6 +437,7 @@ async def _batch_run_async(
     resume_batch_id: str | None = None,
     parallel_stages: bool = False,
     reranker_model: str = "msmarco",
+    use_hyde: bool = False,
 ) -> None:
     """Async implementation of batch run command."""
     # Initialize telemetry with pack-specific service name BEFORE any telemetry-using imports
@@ -713,12 +722,21 @@ async def _batch_run_async(
                     retriever.set_reranker(reranker)
                     console.print(f"[cyan]Reranker: {model_name}[/cyan]")
 
+                # Configure HyDE if enabled
+                if use_hyde:
+                    from src.rag.retriever.hyde import create_hyde_expander
+
+                    hyde_expander = create_hyde_expander(provider="anthropic")
+                    retriever.set_hyde_expander(hyde_expander)
+                    console.print("[cyan]HyDE: enabled[/cyan]")
+
                 response_generator = create_rag_retrieval_generator(retriever)
                 reranker_info = (
                     f" (reranker: {reranker_model})" if reranker_model else " (no reranker)"
                 )
+                hyde_info = " + HyDE" if use_hyde else ""
                 console.print(
-                    f"[green]Using RAG retrieval-only evaluation{reranker_info}.[/green]\n"
+                    f"[green]Using RAG retrieval-only evaluation{reranker_info}{hyde_info}.[/green]\n"
                 )
             except Exception as e:
                 console.print(f"[red]Failed to initialize RAG retrieval: {e}[/red]")
@@ -779,6 +797,14 @@ async def _batch_run_async(
                     reranker = create_reranker(model_name=model_name)
                     retriever.set_reranker(reranker)
                     console.print(f"[cyan]Reranker: {model_name}[/cyan]")
+
+                # Configure HyDE if enabled
+                if use_hyde:
+                    from src.rag.retriever.hyde import create_hyde_expander
+
+                    hyde_expander = create_hyde_expander(provider="anthropic")
+                    retriever.set_hyde_expander(hyde_expander)
+                    console.print("[cyan]HyDE: enabled[/cyan]")
 
                 if mode == "full":
                     # Full RAG: retrieval + LLM generation

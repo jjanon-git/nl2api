@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     import asyncpg
 
     from src.evalkit.common.cache import RedisCache
+    from src.rag.retriever.hyde import HyDEExpander
     from src.rag.retriever.reranker import Reranker
 
 logger = logging.getLogger(__name__)
@@ -40,6 +41,7 @@ class HybridRAGRetriever:
     Features:
     - Hybrid vector + keyword search
     - Two-stage retrieval with optional cross-encoder reranking
+    - Optional HyDE (Hypothetical Document Embeddings) query expansion
     - Optional Redis caching for query results
     """
 
@@ -76,6 +78,7 @@ class HybridRAGRetriever:
         self._cache_ttl = cache_ttl_seconds
         self._reranker = reranker
         self._first_stage_limit = first_stage_limit
+        self._hyde_expander: HyDEExpander | None = None
 
     def set_embedder(self, embedder: Any) -> None:
         """Set the embedder for generating query embeddings."""
@@ -84,6 +87,10 @@ class HybridRAGRetriever:
     def set_reranker(self, reranker: Reranker) -> None:
         """Set the reranker for two-stage retrieval."""
         self._reranker = reranker
+
+    def set_hyde_expander(self, expander: HyDEExpander) -> None:
+        """Set the HyDE expander for query expansion."""
+        self._hyde_expander = expander
 
     def _make_cache_key(
         self,
@@ -187,8 +194,18 @@ class HybridRAGRetriever:
 
         span.set_attribute("rag.cache_hit", False)
 
-        # Generate query embedding and convert to PostgreSQL vector format
-        query_embedding_list = await self._embedder.embed(query)
+        # Optionally expand query using HyDE before embedding
+        text_to_embed = query
+        if self._hyde_expander:
+            hypothetical = await self._hyde_expander.expand(query)
+            text_to_embed = hypothetical
+            span.set_attribute("rag.hyde_enabled", True)
+            span.set_attribute("rag.hyde_length", len(hypothetical))
+        else:
+            span.set_attribute("rag.hyde_enabled", False)
+
+        # Generate embedding and convert to PostgreSQL vector format
+        query_embedding_list = await self._embedder.embed(text_to_embed)
         # Convert to string format for pgvector: "[1.0, 2.0, 3.0]"
         query_embedding = "[" + ",".join(str(x) for x in query_embedding_list) + "]"
 
