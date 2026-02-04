@@ -27,7 +27,12 @@ docker exec -i evalkit-db pg_restore -U nl2api -d nl2api -v --no-owner --no-acl 
 
 # 6. Clean up
 rm evalkit_rag_20260203.dump.gz.part-* evalkit_rag_20260203.dump evalkit_rag_20260203.dump.gz
+
+# 7. Load test fixtures from Git (references chunk IDs in rag_documents)
+python scripts/load-rag-fixtures.py
 ```
+
+**Note:** RAG test fixtures are stored in Git (`tests/fixtures/rag/*.json`), not the database dump. They reference chunk IDs from `rag_documents`, so restore the dump first.
 
 ## Creating a New Export
 
