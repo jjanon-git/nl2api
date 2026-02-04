@@ -1,8 +1,10 @@
 # Evalkit + NL2API Architecture & Design Contract
 
-> **Version:** 2.0.0
+> **Version:** 2.1.0
 > **Status:** Active - Evalkit Extraction Complete
-> **Last Updated:** 2026-01-25
+> **Last Updated:** 2026-02-03
+>
+> **Note:** Diagrams use Mermaid (renders on GitHub). For plain-text ASCII versions, see [architecture-ascii.md](architecture-ascii.md).
 
 ## Executive Summary
 
@@ -16,47 +18,60 @@
 
 The evaluation framework provides reusable infrastructure for ML system evaluation:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                       Evalkit Framework                          │
-├─────────────────────────────────────────────────────────────────┤
-│  src/evalkit/                                                    │
-│  ├─ contracts/       Data models (TestCase, Scorecard, etc.)    │
-│  ├─ batch/           Batch runner, checkpointing, metrics       │
-│  ├─ core/            Evaluators (AST, temporal, semantics)      │
-│  ├─ common/          Storage, telemetry, cache, resilience      │
-│  ├─ distributed/     Redis queues, worker coordination          │
-│  ├─ packs/           Pack registry (NL2API, RAG)                │
-│  └─ cli/             CLI commands (batch, continuous, matrix)   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph evalkit["src/evalkit/"]
+        contracts["contracts/<br/>Data models"]
+        batch["batch/<br/>Runner, checkpointing"]
+        core["core/<br/>Evaluators"]
+        common["common/<br/>Storage, telemetry"]
+        distributed["distributed/<br/>Redis queues"]
+        packs["packs/<br/>Pack registry"]
+        cli["cli/<br/>CLI commands"]
+    end
+
+    contracts --> batch
+    contracts --> core
+    common --> batch
+    common --> distributed
+    core --> packs
+    batch --> cli
+    packs --> cli
 ```
 
 ### 1.2 NL2API Application
 
 The NL2API system translates natural language queries into structured API calls:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                         NL2API System                            │
-├─────────────────────────────────────────────────────────────────┤
-│  NL2APIOrchestrator                                              │
-│  ├─ Query classification (route to domain agent)                │
-│  ├─ Entity resolution (Company → RIC, 2.9M entities)            │
-│  └─ Ambiguity detection → Clarification flow                    │
-├─────────────────────────────────────────────────────────────────┤
-│  Domain Agents (5 implemented)                                   │
-│  ├─ DatastreamAgent     (price, time series, calculated fields) │
-│  ├─ EstimatesAgent      (I/B/E/S forecasts, recommendations)    │
-│  ├─ FundamentalsAgent   (WC codes, TR codes, financials)        │
-│  ├─ OfficersAgent       (executives, compensation, governance)  │
-│  └─ ScreeningAgent      (SCREEN expressions, rankings)          │
-├─────────────────────────────────────────────────────────────────┤
-│  Support Components                                              │
-│  ├─ LLM Abstraction (Claude + OpenAI providers)                 │
-│  ├─ RAG Retriever (hybrid vector + keyword, pgvector)           │
-│  ├─ Conversation Manager (multi-turn, query expansion)          │
-│  └─ Entity Resolver (database-backed, 99.5% accuracy)           │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Orchestrator["NL2APIOrchestrator"]
+        classify["Query Classification"]
+        resolve["Entity Resolution<br/>2.9M entities"]
+        clarify["Ambiguity Detection"]
+    end
+
+    subgraph Agents["Domain Agents"]
+        ds["DatastreamAgent<br/>price, time series"]
+        est["EstimatesAgent<br/>I/B/E/S forecasts"]
+        fund["FundamentalsAgent<br/>WC/TR codes"]
+        off["OfficersAgent<br/>executives, governance"]
+        screen["ScreeningAgent<br/>SCREEN expressions"]
+    end
+
+    subgraph Support["Support Components"]
+        llm["LLM Abstraction<br/>Claude + OpenAI"]
+        rag["RAG Retriever<br/>hybrid search"]
+        conv["Conversation Manager<br/>multi-turn"]
+        ent["Entity Resolver<br/>99.5% accuracy"]
+    end
+
+    classify --> Agents
+    resolve --> Agents
+    clarify -.-> classify
+    Agents --> llm
+    Agents --> rag
+    Agents --> ent
 ```
 
 ### 1.3 Evaluation Platform Objectives
@@ -82,63 +97,40 @@ The NL2API system translates natural language queries into structured API calls:
 
 ## 2. Data Flow Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           MANAGEMENT PLANE (REST API)                            │
-└─────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Management["MANAGEMENT PLANE"]
+        Clients["Clients<br/>Web UI / CI/CD / Scripts"]
+        API["Management API<br/>/test-cases /test-suites<br/>/clients /runs"]
+        GoldStore[("Azure AI Search<br/>Gold Store")]
+        Queue[["Service Bus Queue"]]
+    end
 
-  ┌─────────────┐      ┌─────────────────────────────────────────────────────────┐
-  │  Clients    │─────▶│  Management API (ACA / Azure Functions)                 │
-  │  - Web UI   │      │  ┌─────────────┬──────────────┬────────────────────┐    │
-  │  - CI/CD    │      │  │ /test-cases │ /test-suites │ /target-systems    │    │
-  │  - Scripts  │      │  │ /clients    │ /runs        │                    │    │
-  └─────────────┘      │  └─────────────┴──────────────┴────────────────────┘    │
-                       └──────────┬──────────────────────────────┬───────────────┘
-                                  │                              │
-                                  ▼                              ▼
-                       ┌──────────────────┐           ┌─────────────────┐
-                       │  Azure AI Search │           │  Service Bus    │
-                       │  (Gold Store)    │           │  Queue          │
-                       │  - Test Cases    │           └────────┬────────┘
-                       │  - Test Suites   │                    │
-                       │  - Configs       │                    │
-                       └──────────────────┘                    │
-                                                               │
-┌──────────────────────────────────────────────────────────────┼──────────────────┐
-│                           EXECUTION PLANE (Workers)          │                   │
-└──────────────────────────────────────────────────────────────┼──────────────────┘
-                                                               │
-                                                               ▼
-                       ┌──────────────────┐           ┌──────────────────┐
-                       │  Azure AI Search │◀── fetch ─│  Worker (ACA)    │
-                       │  (Gold Store)    │           │  - Stateless     │
-                       └──────────────────┘           │  - Idempotent    │
-                                                      └────────┬─────────┘
-                                                               │
-                                                               ▼
-                                                      ┌─────────────────────────┐
-                                                      │  Target System (LLM)    │
-                                                      │  - GPT-4o / Claude / etc│
-                                                      │  - Tool Calling         │
-                                                      └────────┬────────────────┘
-                                                               │
-                                                               ▼
-                                                      ┌─────────────────────────┐
-                                                      │  Evaluation Pipeline    │
-                                                      │  ┌───────────────────┐  │
-                                                      │  │ Stage 1: Syntax   │  │
-                                                      │  │ Stage 2: Logic    │  │
-                                                      │  │ Stage 3: Exec     │  │
-                                                      │  │ Stage 4: Semantic │  │
-                                                      │  └───────────────────┘  │
-                                                      └───────────┬─────────────┘
-                                                                  │
-                                                                  ▼
-                                                      ┌─────────────────────────┐
-                                                      │  Azure Table Storage    │
-                                                      │  - Scorecards           │
-                                                      │  - Run Results          │
-                                                      └─────────────────────────┘
+    subgraph Execution["EXECUTION PLANE"]
+        Worker["Worker (ACA)<br/>Stateless, Idempotent"]
+        LLM["Target System<br/>GPT-4o / Claude"]
+
+        subgraph Pipeline["Evaluation Pipeline"]
+            S1["Stage 1: Syntax"]
+            S2["Stage 2: Logic"]
+            S3["Stage 3: Execution"]
+            S4["Stage 4: Semantic"]
+        end
+
+        Results[("Table Storage<br/>Scorecards")]
+    end
+
+    Clients --> API
+    API --> GoldStore
+    API --> Queue
+    Queue --> Worker
+    Worker -->|fetch| GoldStore
+    Worker --> LLM
+    LLM --> S1
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> Results
 ```
 
 ---
@@ -195,6 +187,23 @@ The pipeline follows a **waterfall with soft stops**:
 - **Hard Stop:** Stage 1 (Syntax) failure halts the pipeline
 - **Soft Continue:** Stage 2 (Logic) failures are logged but pipeline continues
 - **Rationale:** Maximize diagnostic data even on failures
+
+```mermaid
+flowchart LR
+    TC[TestCase] --> Gen[Generate Response]
+    Gen -->|raw output| S1[Stage 1<br/>Syntax]
+    S1 -->|FAIL| Stop((❌ Halt))
+    S1 -->|PASS| S2[Stage 2<br/>Logic]
+    S2 --> S3[Stage 3<br/>Execution]
+    S3 --> S4[Stage 4<br/>Semantics]
+    S4 --> SC[Scorecard]
+
+    style S1 fill:#f9f,stroke:#333
+    style S2 fill:#bbf,stroke:#333
+    style S3 fill:#fbb,stroke:#333
+    style S4 fill:#bfb,stroke:#333
+    style Stop fill:#f66,stroke:#333
+```
 
 ### 4.2 Stage Criticality
 
@@ -284,6 +293,31 @@ class Scorecard:
 ---
 
 ## 5. Distributed Architecture
+
+```mermaid
+sequenceDiagram
+    participant CLI as CLI/API
+    participant BR as BatchRunner
+    participant Repo as TestCaseRepository
+    participant Pack as EvaluationPack
+    participant LLM as LLM Provider
+    participant DB as ScorecardRepository
+
+    CLI->>BR: batch run --limit 100
+    BR->>Repo: fetch_test_cases()
+    Repo-->>BR: List[TestCase]
+
+    loop For each TestCase (concurrent)
+        BR->>Pack: evaluate(test_case)
+        Pack->>LLM: generate_response(nl_query)
+        LLM-->>Pack: raw_response
+        Pack->>Pack: Stage 1-4 evaluation
+        Pack-->>BR: Scorecard
+        BR->>DB: save(scorecard)
+    end
+
+    BR-->>CLI: BatchResult summary
+```
 
 ### 5.1 Component: Producer CLI
 
@@ -859,16 +893,19 @@ When APIs change, test cases can become stale in several ways:
 
 ### 13.2 Test Case States
 
-```
-┌──────────┐     deprecate      ┌────────────┐     archive      ┌──────────┐
-│  ACTIVE  │ ─────────────────▶ │ DEPRECATED │ ───────────────▶ │ ARCHIVED │
-└──────────┘                    └────────────┘                  └──────────┘
-     │                                │
-     │ validate                       │ revalidate
-     ▼                                ▼
-┌──────────┐                    ┌────────────┐
-│  STALE   │ ◀──── detect ───── │  (alerts)  │
-└──────────┘                    └────────────┘
+```mermaid
+stateDiagram-v2
+    [*] --> ACTIVE
+    ACTIVE --> DEPRECATED: deprecate
+    DEPRECATED --> ARCHIVED: archive
+    ACTIVE --> STALE: validate (drift detected)
+    DEPRECATED --> STALE: revalidate
+    STALE --> ACTIVE: fix & revalidate
+
+    note right of STALE
+        Triggers alerts
+        Excluded from pass/fail
+    end note
 ```
 
 | State | Description | Action |
