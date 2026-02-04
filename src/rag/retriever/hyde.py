@@ -101,9 +101,21 @@ class SimpleAnthropicClient:
     async def _get_client(self):
         """Lazy initialization of Anthropic client."""
         if self._client is None:
+            import os
+
+            from dotenv import load_dotenv
+
+            load_dotenv()  # Ensure API key is loaded
             import anthropic
 
-            self._client = anthropic.AsyncAnthropic()
+            # Support both ANTHROPIC_API_KEY and NL2API_ANTHROPIC_API_KEY
+            api_key = os.getenv("ANTHROPIC_API_KEY") or os.getenv("NL2API_ANTHROPIC_API_KEY")
+            if not api_key:
+                raise RuntimeError(
+                    "Anthropic API key required for HyDE. "
+                    "Set ANTHROPIC_API_KEY or NL2API_ANTHROPIC_API_KEY"
+                )
+            self._client = anthropic.AsyncAnthropic(api_key=api_key)
         return self._client
 
     async def generate(self, prompt: str, max_tokens: int = 200) -> str:
@@ -127,9 +139,20 @@ class SimpleOpenAIClient:
     async def _get_client(self):
         """Lazy initialization of OpenAI client."""
         if self._client is None:
+            import os
+
+            from dotenv import load_dotenv
+
+            load_dotenv()  # Ensure API key is loaded
             import openai
 
-            self._client = openai.AsyncOpenAI()
+            # Support both OPENAI_API_KEY and NL2API_OPENAI_API_KEY
+            api_key = os.getenv("OPENAI_API_KEY") or os.getenv("NL2API_OPENAI_API_KEY")
+            if not api_key:
+                raise RuntimeError(
+                    "OpenAI API key required for HyDE. Set OPENAI_API_KEY or NL2API_OPENAI_API_KEY"
+                )
+            self._client = openai.AsyncOpenAI(api_key=api_key)
         return self._client
 
     async def generate(self, prompt: str, max_tokens: int = 200) -> str:
