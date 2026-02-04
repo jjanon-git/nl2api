@@ -116,14 +116,17 @@ We haven't run the planned A/B test comparing:
 
 **Open question:** How much would domain-specific financial embeddings improve retrieval?
 
-### 2. HyDE Query Expansion Effectiveness
+### 2. HyDE Query Expansion Effectiveness ✅ INVESTIGATED
 
-HyDE (Hypothetical Document Embeddings) is implemented but not evaluated:
-- Generates hypothetical answer, embeds that instead of raw query
-- Research shows it can match fine-tuned retrievers zero-shot
-- Adds ~300-500ms latency
+**Result: HyDE DECREASES retrieval quality on SEC filing queries.**
 
-**Open question:** Which query types benefit most from HyDE?
+A/B test (Section 6.15) showed:
+- -26% absolute drop in pass rate (62% → 36%)
+- -0.16 drop in average score (0.56 → 0.40)
+
+HyDE fails because canonical test set is mostly factual queries. HyDE may help analytical queries where query ≠ answer vocabulary, but this was not tested.
+
+**Recommendation:** Do NOT use HyDE for SEC filing retrieval.
 
 ### 3. Retrieval Ceiling
 
@@ -170,7 +173,7 @@ Current weights (70% vector + 30% keyword) were chosen heuristically:
 
 | Investigation | Expected Impact | Effort | Blocking Factor |
 |--------------|-----------------|--------|-----------------|
-| HyDE for analytical queries | Unknown | Medium | Need query classification |
+| HyDE for analytical queries | **FAILED** (see 6.15) | - | Decreases quality on factual queries |
 | Hybrid weight tuning | +5-10% retrieval | Medium | Need eval infrastructure |
 | Late chunking prototype | Unknown | High | Long-context embedder needed |
 
@@ -201,7 +204,7 @@ Current weights (70% vector + 30% keyword) were chosen heuristically:
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| HyDE expander | Section 3.4 (design only) | Not implemented |
+| HyDE expander | `src/rag/retriever/hyde.py` | ✅ Implemented, NOT RECOMMENDED |
 | Financial embedder | Section 3.6 (design only) | Not implemented |
 | Late chunking | Section 3.5 (design only) | Not implemented |
 
@@ -223,6 +226,7 @@ Current weights (70% vector + 30% keyword) were chosen heuristically:
 | 2026-02-01 | Entity filtering | +22% precision on filtered queries |
 | 2026-02-03 | Reranker A/B test (ms-marco vs none) | +10% context relevance pass rate |
 | 2026-02-03 | LLM-based refusal detection | 91.3% faithfulness pass rate |
+| 2026-02-03 | HyDE A/B test | **-26% pass rate (FAILED)** |
 
 *55% was measured on 65% of tests due to a bug; corrected baseline is 47.5%.
 
@@ -685,6 +689,43 @@ REFUSAL_PATTERNS = [r"cannot.*provide", r"unable to.*answer", ...]
 #### Implementation
 Updated `src/rag/evaluation/stages/faithfulness.py` to use LLM-based refusal detection.
 
+### 6.15 HyDE A/B Test (2026-02-03)
+
+**Date:** 2026-02-03
+**Status:** Complete - NOT RECOMMENDED
+**Experiment Plan:** [rag-12-hyde-ab-experiment.md](rag-12-hyde-ab-experiment.md)
+
+#### Hypothesis
+HyDE (Hypothetical Document Embeddings) would improve retrieval by 5-10% by generating hypothetical answers and using their embeddings instead of query embeddings.
+
+#### Results (100 test cases each)
+
+| Condition | Pass Rate | Avg Score | Duration |
+|-----------|-----------|-----------|----------|
+| **No HyDE (baseline)** | **62%** | **0.56** | 201.6s |
+| **HyDE** | **36%** | **0.40** | 241.6s |
+
+#### Key Findings
+
+1. **HyDE significantly DECREASED retrieval quality:**
+   - -26% absolute drop in pass rate (62% → 36%)
+   - -0.16 drop in average score (0.56 → 0.40)
+
+2. **HyDE adds latency without benefit:**
+   - +40s for 100 cases (~20% slower)
+
+3. **Why HyDE failed:**
+   - Canonical test set is mostly factual queries ("What was X's revenue?")
+   - HyDE works for analytical queries where query ≠ answer vocabulary
+   - SEC filings are structured content that retrieves well without HyDE
+
+#### Recommendation
+**Do NOT ship HyDE as a default option.** May help for analytical queries only.
+
+**Batch IDs:**
+- Baseline: `2a29bae6-96c1-411f-9b1a-a89b90a2caf4`
+- HyDE: `84050f06-1c24-454e-8767-8c5211a6723a`
+
 ---
 
 ## Technical Reference
@@ -695,6 +736,7 @@ Updated `src/rag/evaluation/stages/faithfulness.py` to use LLM-based refusal det
 |-----------|------|
 | Hybrid Retriever | `src/rag/retriever/retriever.py` |
 | Reranker | `src/rag/retriever/reranker.py` |
+| HyDE Expander | `src/rag/retriever/hyde.py` |
 | Embedders | `src/rag/retriever/embedders.py` |
 | Document Chunker | `src/rag/ingestion/sec_filings/chunker.py` |
 | RAG Indexer | `src/rag/retriever/indexer.py` |

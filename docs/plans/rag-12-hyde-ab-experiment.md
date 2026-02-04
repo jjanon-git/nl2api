@@ -171,7 +171,50 @@ python -m src.evalkit.cli.main batch run \
 
 ## Phase 4: Results
 
-*To be filled after experiment*
+### A/B Test Results (100 cases each)
+
+| Condition | Pass Rate | Avg Score | Duration |
+|-----------|-----------|-----------|----------|
+| **No HyDE (baseline)** | **62%** | **0.56** | 201.6s |
+| **HyDE** | **36%** | **0.40** | 241.6s |
+
+**Batch IDs:**
+- Baseline (no HyDE): `2a29bae6-96c1-411f-9b1a-a89b90a2caf4`
+- HyDE variant: `84050f06-1c24-454e-8767-8c5211a6723a`
+
+### Key Findings
+
+1. **HyDE significantly DECREASED retrieval quality:**
+   - -26% absolute drop in pass rate (62% → 36%)
+   - -0.16 drop in average score (0.56 → 0.40)
+   - HyDE made retrieval WORSE, not better
+
+2. **HyDE adds latency without benefit:**
+   - +40s for 100 cases (~20% slower)
+   - LLM call for hypothetical generation adds overhead
+
+3. **Hypothesis for poor performance:**
+   - Canonical test set is mostly **factual queries** ("What was X's revenue?")
+   - HyDE works best for **analytical queries** where query ≠ answer vocabulary
+   - The hypothetical answers may introduce **noise or incorrect information**
+   - SEC filings have **structured content** that already retrieves well
+
+### Recommendation
+
+**Do NOT ship HyDE as a default or recommended option.**
+
+HyDE may still help for specific query types (analytical, open-ended), but the canonical SEC filing dataset consists mostly of factual lookups where HyDE hurts performance.
+
+If HyDE is desired in the future:
+1. Add query classification to identify analytical vs factual queries
+2. Only apply HyDE to analytical queries
+3. Test on a curated analytical-query subset
+
+### Lessons Learned
+
+1. **Research claims don't always transfer** - HyDE papers show improvement on general datasets, but SEC filing queries are mostly factual
+2. **Test before shipping** - The quick 10-case test already showed HyDE underperforming (30% vs 60%)
+3. **Query type matters** - Different retrieval strategies work for different query types
 
 ---
 
