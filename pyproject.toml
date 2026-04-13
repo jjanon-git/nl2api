@@ -23,7 +23,7 @@ dependencies = [
     "typer>=0.9.0",
     "rich>=13.0.0",
     "rapidfuzz>=3.0.0",
-    "aiohttp>=3.9.0",
+    "aiohttp>=3.13.5",
 ]
 
 [project.urls]
