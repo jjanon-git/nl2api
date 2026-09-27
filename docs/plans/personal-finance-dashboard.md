@@ -24,7 +24,8 @@ allocation matter more than transaction budgeting.
 | Fidelity (workplace) | 3 employer 401(k)s | NetBenefits |
 | Chase | Self-Directed Investing, Self-Directed retirement, checking/savings | chase.com |
 | Vanguard | 1 joint brokerage | vanguard.com |
-| Other recordkeeper | 1 employer 401(k) | *TBD — confirm which portal* |
+| Voya | 1 employer 401(k) | voya.com |
+| Goldman Sachs equity-comp platform | Spouse's Chime (CHYM) equity: shares/RSUs, possibly unvested | *name TBD* |
 | Marcus (Goldman Sachs) | Savings | marcus.com |
 
 Credit Karma problems visible today, which this design has to fix:
@@ -41,7 +42,8 @@ Credit Karma problems visible today, which this design has to fix:
 | Marcus | Supported | Supported | Low | — |
 | Fidelity retail + NetBenefits | Probably. Fidelity allows only token-based access through Akoya; MX has access, but reliability complaints are common across apps | Needs a separate access request (automatic on Growth/Custom, manual on Pay-as-you-go); **may not be available on the free Trial** | **High** | Positions/transactions CSV download |
 | Vanguard | Hit-or-miss. Vanguard dropped OFX and breaks aggregators often (already broken in CK) | Supported but flaky | **Medium–High** | Positions CSV download |
-| Other 401(k) recordkeeper | Depends on the recordkeeper | Depends | Medium | Statement PDF/CSV, or manual balance |
+| Voya 401(k) | Likely (MX lists Voya; some users hit MX login redirects) | Supported (Voya plans listed on Plaid) | Medium | Quarterly statement → manual balance |
+| Goldman equity-comp platform (CHYM) | Unlikely; stock-plan portals are rarely aggregated | Unlikely | **High** | **Model the grants directly** (see §5 Equity comp); no aggregator needed |
 
 **Takeaways**
 1. **Verify first ($1.50):** subscribe to SimpleFIN for one month and connect every
@@ -91,8 +93,8 @@ Postgres (SQLite acceptable for v0). Docker Compose.
 ### Data model
 
 - `institutions`, `connections` (provider, status, last_success_at, last_error)
-- `accounts` (type, subtype: brokerage/401k/hsa/ira/checking/savings/property/loan;
-  **one** active `source` per account; owner(s); `is_hidden`)
+- `accounts` (type, subtype: brokerage/401k/hsa/ira/checking/savings/equity_comp/property/loan;
+  **one** active `source` per account; `owner`: me / spouse / joint; `is_hidden`)
 - `balance_snapshots` (account, date, balance). This feeds net-worth history, and
   gaps render as stale rather than as zero
 - `holdings` (account, date, security, qty, value, cost basis), `securities`
@@ -102,6 +104,22 @@ Postgres (SQLite acceptable for v0). Docker Compose.
 - `entities` (household, each property); property P&L rolls only net cash flow
   into household
 - `categorization_rules`, `budgets`, `recurring`
+
+### Equity compensation (spouse's CHYM)
+
+Stock-plan portals seldom connect to aggregators, and the balance they show mixes
+vested and unvested shares. Model it from the grant documents instead:
+- `equity_grants` (owner, ticker, type RSU/ISO/NSO/ESPP/shares, grant date, total
+  units, strike, vest schedule: cliff + cadence), expanded into `vest_events`
+- `equity_lots` for shares already vested/released (qty, date, cost basis)
+- Value = vested/released shares × daily CHYM close (free price feed, e.g.
+  Finnhub/Alpha Vantage free tier). Options use intrinsic value (price − strike).
+- Net worth counts **vested only**; unvested is shown separately ("future vests",
+  with a timeline). Optional: show estimated after-tax value (RSUs are taxed at
+  vest, so released shares carry basis = FMV at vest).
+- Reconcile monthly against the platform's statement. If shares get moved to a
+  brokerage (e.g. Fidelity/Chase), they arrive through that account's feed and
+  the lot closes here.
 
 ### Ingestion rules
 - Idempotent upsert on `(source, external_id)`; pending→posted reconciliation.
@@ -116,7 +134,7 @@ Postgres (SQLite acceptable for v0). Docker Compose.
 | 0 | Mac mini prep (always-on settings, OrbStack, `tailscale serve`); SimpleFIN trial: connect all logins, record coverage in table §2; Sure spike on the mini for a week; export CK + bank history | Coverage table filled with facts; Sure reachable from phone over tailnet |
 | 1 | Repo scaffold, Compose stack on the mini, schema, SimpleFIN ingest, CSV positions import, CLI, restic backup + tested restore | All accounts present, one source each, nightly sync, zero dupes over 7 days, restore verified |
 | 2 | **Net Worth + Accounts page**: total, by account/type/owner, history, freshness badges | Replaces the CK screen above |
-| 3 | Holdings + allocation (asset class, fund look-through later) | Allocation matches Fidelity/Vanguard within 1% |
+| 3 | Holdings + allocation (asset class, fund look-through later); **equity grants + vest timeline** (CHYM) with daily price | Allocation matches Fidelity/Vanguard within 1%; vested CHYM value matches the platform statement |
 | 4 | Cash flow (Chase + Marcus + cards): categorization + review queue | ≥90% categorization accuracy (§8) |
 | 5 | Property pages (per-property P&L) | Monthly NOI + top expenses per property |
 | 6 | Alerts (stale connection, large txn), budgets, recurring | — |
@@ -195,8 +213,8 @@ SimpleFIN ~$1.25 · Plaid $0 (Trial, optional) · LLM < $0.10 · hosting $0
 
 ## 10. Open questions
 
-- Which recordkeeper runs the non-Fidelity 401(k)?
-- Joint accounts: how to show ownership (mine/spouse/joint) in net worth?
+- Name of the Goldman Sachs equity-comp platform; grant types (RSU/options/ESPP) and whether any shares have been moved to a brokerage.
+- Concentration view: CHYM exposure across all accounts (grants + any held in 401(k)/brokerage).
 - Mortgage principal: expense or equity on property pages?
 - Keep CK (or card-issuer FICO) for credit-score monitoring only.
 
@@ -206,6 +224,8 @@ SimpleFIN ~$1.25 · Plaid $0 (Trial, optional) · LLM < $0.10 · hosting $0
 - SimpleFIN institutions: https://beta-bridge.simplefin.org/search-institutions
 - Plaid billing/Trial: https://plaid.com/docs/account/billing/
 - Plaid OAuth institutions (Fidelity access): https://plaid.com/docs/link/oauth/
+- Voya on Plaid: https://fintable.io/coverage/banks/United%20States/32845_voya-retirement-serco-inc-401k-retirement-plan
+- Voya/MX redirect reports: https://community.tiller.com/t/voya-retirement-plan/31316
 - Fidelity/Akoya: https://riabiz.com/a/2023/10/19/fidelity-just-dropped-the-hammer-on-screen-scrapers-to-cheers-but-some-firms-like-plaid-are-holdouts-and-the-cfpb-may-wield-the-final-gavel
 - Sure: https://github.com/we-promise/sure
 - KevFin: https://github.com/kxl3785/KevFin
