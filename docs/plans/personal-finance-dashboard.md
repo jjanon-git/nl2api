@@ -113,8 +113,8 @@ Postgres (SQLite acceptable for v0). Docker Compose.
 
 | Phase | Deliverable | Done when |
 |---|---|---|
-| 0 | SimpleFIN trial: connect all logins, record coverage in table §2; Sure spike for a week; export CK + bank history | Coverage table filled with facts |
-| 1 | Repo scaffold, schema, SimpleFIN ingest, CSV positions import, CLI | All accounts present, one source each, nightly sync, zero dupes over 7 days |
+| 0 | Mac mini prep (always-on settings, OrbStack, `tailscale serve`); SimpleFIN trial: connect all logins, record coverage in table §2; Sure spike on the mini for a week; export CK + bank history | Coverage table filled with facts; Sure reachable from phone over tailnet |
+| 1 | Repo scaffold, Compose stack on the mini, schema, SimpleFIN ingest, CSV positions import, CLI, restic backup + tested restore | All accounts present, one source each, nightly sync, zero dupes over 7 days, restore verified |
 | 2 | **Net Worth + Accounts page**: total, by account/type/owner, history, freshness badges | Replaces the CK screen above |
 | 3 | Holdings + allocation (asset class, fund look-through later) | Allocation matches Fidelity/Vanguard within 1% |
 | 4 | Cash flow (Chase + Marcus + cards): categorization + review queue | ≥90% categorization accuracy (§8) |
@@ -127,9 +127,52 @@ Postgres (SQLite acceptable for v0). Docker Compose.
 The SimpleFIN access URL is a bearer credential to every account, so there is
 **no public endpoint**.
 
-- **Recommended:** home mini-PC/NAS + Docker Compose, reachable only via Tailscale.
-  Nightly encrypted backups (restic → B2/S3).
-- **Alternative:** Oracle free-tier ARM VM or $5 VPS, same Compose file, Tailscale only.
+### Decision: home Mac mini (already on my tailnet)
+
+```
+ phone / laptop ──(tailnet, WireGuard)──► Mac mini
+                                           ├─ tailscale serve :443 → 127.0.0.1:8080   (HTTPS, tailnet-only)
+                                           └─ Docker (OrbStack): web · api · worker · postgres
+                                                  all ports bound to 127.0.0.1 only
+```
+
+**Runtime**
+- **OrbStack** (lighter than Docker Desktop on Apple Silicon; Colima is the free
+  alternative). One `docker-compose.yml`, the same file a VPS would use later.
+- Every container binds `127.0.0.1:<port>`, never `0.0.0.0`, so nothing is
+  reachable on the home LAN.
+- **Access:** `tailscale serve --bg --https=443 http://127.0.0.1:8080` gives
+  `https://<mac-mini>.<tailnet>.ts.net` with a real cert. **Never `tailscale funnel`**
+  (Funnel makes it public). Optional: a Tailscale ACL limiting the mini's port 443
+  to my own devices.
+- **Scheduling:** the ingest worker container runs its own schedule (e.g. SimpleFIN
+  pull at 06:00, since SimpleFIN refreshes about daily). No launchd jobs to manage.
+
+**Always-on Mac settings (one time)**
+- System Settings → Energy: prevent automatic sleep, "Start up automatically after
+  a power failure", wake for network access. (`sudo pmset -a sleep 0 autorestart 1`)
+- OrbStack/Docker and Tailscale set to launch at login; containers use `restart: unless-stopped`.
+- **Tailscale variant matters:** the Mac App Store/standalone app only runs while
+  a user is logged in. Either enable auto-login for a dedicated user, or run the
+  open-source `tailscaled` system daemon so the tailnet is up before login.
+- **FileVault trade-off:** keep FileVault on, because it is the at-rest encryption
+  for the database. The catch: after a power loss the Mac waits at the unlock
+  screen and nothing runs until someone logs in. That's acceptable for a
+  dashboard: a UPS avoids most of it, and the freshness badges show the gap.
+
+**Backups**
+- Nightly `pg_dump` → `restic` (encrypted) → Backblaze B2 (~$0.10/mo at this size),
+  plus Time Machine for the host. Test a restore in Phase 1, not after a failure.
+
+**Phase 0 on the mini:** run Sure's official Docker Compose (check that arm64
+images are published; if not, OrbStack's Rosetta emulation works) behind
+`tailscale serve`, with the SimpleFIN token. Tear it down after the spike or keep
+it running as the fallback.
+
+**Later, if needed:** the same Compose file moves to an Oracle free-tier ARM VM or
+a $5 VPS, still Tailscale-only.
+
+### General
 - Secrets in `.env` (gitignored) or a secret store, never in logs.
 - **Never commit real financial data**: no exports, screenshots, account
   numbers, or names. `data/` and `exports/` are gitignored. Test fixtures are synthetic.
@@ -147,8 +190,8 @@ The SimpleFIN access URL is a bearer credential to every account, so there is
 
 ## 9. Costs (monthly)
 
-SimpleFIN ~$1.25 · Plaid $0 (Trial, optional) · LLM < $0.10 · hosting $0–5 ·
-backups < $0.50 → **~$2–7/mo**.
+SimpleFIN ~$1.25 · Plaid $0 (Trial, optional) · LLM < $0.10 · hosting $0
+(Mac mini, ~$1/mo electricity) · backups < $0.50 → **~$2–3/mo**.
 
 ## 10. Open questions
 
