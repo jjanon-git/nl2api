@@ -1,188 +1,169 @@
-# Personal Finance Dashboard ("Monarch-style") — Plan
+# finboard — Plan
 
-**Status:** Planning only. This doc lives in `nl2api` temporarily; it moves to a new
-repo (working name `finboard`) once we start building.
+**Status:** Planning. No code yet.
 
-**Goal:** Replace Credit Karma with a private, self-owned dashboard: all accounts in
-one place, automatic transaction import, good categorization, cash-flow and
-net-worth views, and per-property P&L pages. Data stays on hardware/cloud I control.
+**Goal:** Replace Credit Karma with a private, self-owned dashboard covering all
+accounts: net worth and investment balances first, then cash flow, budgets, and
+per-property P&L. Data stays on hardware/cloud I control.
 
 **Inspiration:** r/ClaudeAI "I built my own Monarch-style finance dashboard" (SharkFin):
 SimpleFIN → Actual Budget (system of record) → custom React front end, built
-page-by-page starting with Cash Flow.
+page-by-page.
 
 ---
 
-## 1. What the thread recommends (and what holds up)
+## 1. What I track today (Credit Karma, Sept 2026)
 
-| Component | Role | Notes (verified Sept 2026) |
+The portfolio is **investment-heavy**: about 95% sits in retirement and brokerage
+accounts, and cash is at Chase and Marcus. So net worth, balance history and
+allocation matter more than transaction budgeting.
+
+| Institution | Accounts | Login / portal |
 |---|---|---|
-| **SimpleFIN Bridge** | Bank aggregation | $1.50/mo or $15/yr, up to 25 institutions, US/Canada, ~daily refresh, up to 90 days history. Simple read-only HTTP API. No approval process. |
-| **Plaid** | Bank aggregation | New teams (since Apr 2026) get a free **Trial** plan: 10 production Items, then pay-as-you-go. Re-linking an institution burns an Item. Better coverage/freshness than SimpleFIN, but approval friction reported and costs grow. |
-| **Actual Budget** | Budget engine / system of record | OSS, local-first, envelope budgeting, built-in SimpleFIN sync, Node API (`@actual-app/api`). What SharkFin used as its backend. |
-| **Sure** (we-promise/sure) | Complete self-hosted app | Community fork of Maybe Finance. Rails + Postgres + Redis, Docker, AGPLv3, ~10k stars, very active. Accounts, transactions, investments, net worth, AI assistant. The "just use this" answer from the thread. |
-| **KevFin** | Complete self-hosted app | React/Vite + Express/TS + SQLite, MIT. Plaid + SimpleFIN, property valuation (Zillow APIs), Monte Carlo retirement, Docker/NAS. Closest to a codebase we could fork. |
-| Firefly III (not in thread) | Complete self-hosted app | Mature double-entry ledger, PHP. Powerful rules engine, dated UI. Mentioned for completeness. |
+| Fidelity (retail) | 2 brokerage (TOD), 2 HSA | fidelity.com |
+| Fidelity (workplace) | 3 employer 401(k)s | NetBenefits |
+| Chase | Self-Directed Investing, Self-Directed retirement, checking/savings | chase.com |
+| Vanguard | 1 joint brokerage | vanguard.com |
+| Other recordkeeper | 1 employer 401(k) | *TBD — confirm which portal* |
+| Marcus (Goldman Sachs) | Savings | marcus.com |
 
-Hosting suggestions from the thread: mini-PC/NAS at home + Tailscale; Oracle/AWS
-free tier VM; Cloudflare Workers behind Google OAuth.
+Credit Karma problems visible today, which this design has to fix:
+- **Stale duplicates:** the Vanguard account is listed twice, and one copy
+  hasn't synced in 11 months ("needs attention"). One 401(k) also appears twice.
+- **Broken connections are hidden:** the only signal is a banner.
+- **Balance-only:** it shows no holdings or allocation.
 
----
+## 2. Institution coverage by aggregator
 
-## 2. Decision: build vs. adopt
+| Institution | SimpleFIN (MX underneath) | Plaid | Risk | Fallback |
+|---|---|---|---|---|
+| Chase (bank + Self-Directed) | Supported (OAuth) | Supported (OAuth) | Low | — |
+| Marcus | Supported | Supported | Low | — |
+| Fidelity retail + NetBenefits | Probably. Fidelity allows only token-based access through Akoya; MX has access, but reliability complaints are common across apps | Needs a separate access request (automatic on Growth/Custom, manual on Pay-as-you-go); **may not be available on the free Trial** | **High** | Positions/transactions CSV download |
+| Vanguard | Hit-or-miss. Vanguard dropped OFX and breaks aggregators often (already broken in CK) | Supported but flaky | **Medium–High** | Positions CSV download |
+| Other 401(k) recordkeeper | Depends on the recordkeeper | Depends | Medium | Statement PDF/CSV, or manual balance |
 
-Three realistic paths:
+**Takeaways**
+1. **Verify first ($1.50):** subscribe to SimpleFIN for one month and connect every
+   login, before building anything. Its institution search is the source of truth.
+2. **Plaid is a backup:** about 6 logins fits the Trial's 10 Items, but Fidelity
+   (roughly half the net worth) likely needs an extra access request.
+3. **Manual import is a core feature:** for Fidelity/Vanguard/401(k)s, a monthly CSV
+   positions import is enough. Retirement accounts don't need daily transactions.
+4. **Show freshness everywhere:** every account shows "last synced", stale
+   accounts are flagged loudly, and each account has exactly one live source.
 
-| Path | Time to useful | Control / customization | Maintenance |
+## 3. Components considered
+
+| Component | Role | Notes |
+|---|---|---|
+| **SimpleFIN Bridge** | Aggregator | $15/yr, 25 institutions, ~daily refresh, 90 days history, simple read-only API, holdings in beta |
+| **Plaid** | Aggregator | Free Trial: 10 production Items (teams created after Apr 2026); Investments product included; Fidelity gated |
+| **Actual Budget** | Budget engine | OSS, local-first, envelope budgeting, SimpleFIN sync. Weak on investments |
+| **Sure** (we-promise/sure) | Complete app | Maybe Finance fork, Rails/Postgres, AGPLv3, ~10k stars, investments + net worth |
+| **KevFin** | Complete app / fork base | React + Express + SQLite, MIT, Plaid + SimpleFIN, property values, Monte Carlo retirement |
+| **Wealthfolio** | Investment tracker | Local desktop app, CSV import of holdings; relevant because the portfolio is investment-heavy |
+
+## 4. Build vs. adopt
+
+| Path | Time to useful | Fit for investment-heavy | Maintenance |
 |---|---|---|---|
-| **A. Adopt Sure** (+ SimpleFIN) | An evening | Low–medium (Rails, AGPL) | Upstream does it |
-| **B. SharkFin pattern**: SimpleFIN → Actual → custom UI | A weekend + page-by-page | High for UI, budget logic owned by Actual | Two systems to run |
-| **C. Own stack**: SimpleFIN/Plaid → our DB → our API/UI | 2–4 weekends | Full | All ours |
+| A. Sure + SimpleFIN | An evening | Good (net worth, holdings) | Upstream |
+| B. SimpleFIN → Actual → custom UI | A weekend | Poor (Actual is budgeting-first) | Two systems |
+| C. Own stack | 2–4 weekends | Tailored | All mine |
 
-**Recommendation: A as a one-week spike, then C.**
+**Decision: run A as a one-week spike, then build C if the spike shows gaps.**
+Drop B: Actual's strengths (envelopes) aren't what I need.
 
-1. **Spike (week 1):** Run Sure in Docker with a SimpleFIN token. Cost: $1.50.
-   This gets Credit Karma replaced immediately and teaches what I actually use
-   (and what annoys me) before writing code. If Sure is good enough, stop here.
-2. **Build (C) if the spike shows gaps** (property P&L, custom cash-flow views,
-   LLM categorization I can tune, FIRE projections). Keep the ingest layer
-   provider-agnostic so SimpleFIN and Plaid are interchangeable.
-
-Why not B: Actual is an excellent *budgeting* app, but using it as a backend means
-syncing through its Node API and living within its data model. Worth it only if
-I want envelope budgeting specifically. Revisit if I do.
-
----
-
-## 3. Target architecture (Path C)
+## 5. Target architecture (Path C)
 
 ```
- SimpleFIN ─┐                            ┌─ React dashboard (Vite, Recharts)
- Plaid* ────┼─► ingest worker ─► Postgres/SQLite ─► FastAPI ─┤
- CSV/OFX ───┘   (dedupe, normalize,  (accounts, txns,        └─ CLI / MCP server (ask Claude
-                 categorize)         balances, rules,             "what did the rental cost
-                     │               properties, snapshots)       me in Q3?")
-                     └─► rules engine → LLM fallback (Claude Haiku) for uncategorized
+ SimpleFIN ─┐                               ┌─ React dashboard (Vite, Recharts)
+ Plaid* ────┼─► ingest worker ─► Postgres ─► FastAPI ─┤
+ CSV/OFX ───┘   (normalize, dedupe,  (accounts, balances,   └─ MCP server / CLI
+ manual ────┘    categorize)          holdings, txns, ...)      ("how's my allocation?")
 ```
-`*` optional, only for institutions SimpleFIN doesn't cover.
+`*` optional.
 
-**Stack choice:** Python (FastAPI, SQLAlchemy/asyncpg, Pydantic) + React. Reuses
-patterns I already have here: async repositories, frozen Pydantic models, and
-evalkit for measuring categorization accuracy.
+**Stack:** Python 3.12 (FastAPI, asyncpg/SQLAlchemy, Pydantic) + React/Vite +
+Postgres (SQLite acceptable for v0). Docker Compose.
 
-### Core data model
+### Data model
 
-- `institutions`, `accounts` (type: checking/credit/loan/investment/property/manual)
-- `balances` (daily snapshot per account → net worth history)
-- `transactions` (provider id, posted/pending, amount, merchant raw/clean,
-  category, tags, `entity` e.g. *Household*, *Property: 12 Oak St*, `is_transfer`)
-- `categorization_rules` (merchant pattern → category/entity; learned from edits)
-- `entities` (household + each property; lets property pages roll up only net
-  cash flow into the main budget — SharkFin's best idea)
-- `budgets`, `recurring` (detected subscriptions/bills)
+- `institutions`, `connections` (provider, status, last_success_at, last_error)
+- `accounts` (type, subtype: brokerage/401k/hsa/ira/checking/savings/property/loan;
+  **one** active `source` per account; owner(s); `is_hidden`)
+- `balance_snapshots` (account, date, balance). This feeds net-worth history, and
+  gaps render as stale rather than as zero
+- `holdings` (account, date, security, qty, value, cost basis), `securities`
+  (ticker, name, asset class)
+- `transactions` (provider id, pending/posted, amount, merchant, category,
+  `entity`, `is_transfer`)
+- `entities` (household, each property); property P&L rolls only net cash flow
+  into household
+- `categorization_rules`, `budgets`, `recurring`
 
 ### Ingestion rules
+- Idempotent upsert on `(source, external_id)`; pending→posted reconciliation.
+- Account matching by institution + mask + type to prevent CK-style duplicates.
+- Transfer detection across own accounts (±3 days, equal amounts).
+- Categorization: user rule → merchant history → LLM (Claude Haiku) → review queue.
 
-- Idempotent upsert keyed on `(provider, provider_txn_id)`; handle pending→posted.
-- Transfer detection (matching amounts across own accounts within ±3 days) so
-  credit-card payments don't count as spending.
-- Categorization order: user rule → merchant history → LLM (with category list
-  and a few examples) → "Uncategorized" for review. Every manual correction
-  becomes a rule.
-
----
-
-## 4. MVP scope and phases
-
-Thread advice worth taking: **make one page excellent, then expand.**
+## 6. Phases (reprioritized for investment-heavy profile)
 
 | Phase | Deliverable | Done when |
 |---|---|---|
-| 0 | Sure spike + SimpleFIN account; export Credit Karma / bank CSVs for history | I've used it for a week and listed gaps |
-| 1 | New repo, schema, SimpleFIN ingest + CSV import, CLI to list txns | All accounts sync nightly, no duplicates over 7 days |
-| 2 | Categorization (rules + LLM) + review queue | ≥90% correct on labeled set (see §6) |
-| 3 | **Cash Flow page** (income vs spend by month, by category, drill-down) | Replaces what I checked in Credit Karma |
-| 4 | Net worth over time, accounts page | Daily snapshots graphing correctly |
-| 5 | Property pages (per-property P&L; only net flows into household) | Each property shows monthly NOI + top expenses |
-| 6 | Budgets, recurring/subscriptions, alerts (email/push on big or odd txns) | — |
-| 7 | Nice-to-haves: investments/allocation, FIRE projection, MCP server for Q&A | — |
+| 0 | SimpleFIN trial: connect all logins, record coverage in table §2; Sure spike for a week; export CK + bank history | Coverage table filled with facts |
+| 1 | Repo scaffold, schema, SimpleFIN ingest, CSV positions import, CLI | All accounts present, one source each, nightly sync, zero dupes over 7 days |
+| 2 | **Net Worth + Accounts page**: total, by account/type/owner, history, freshness badges | Replaces the CK screen above |
+| 3 | Holdings + allocation (asset class, fund look-through later) | Allocation matches Fidelity/Vanguard within 1% |
+| 4 | Cash flow (Chase + Marcus + cards): categorization + review queue | ≥90% categorization accuracy (§8) |
+| 5 | Property pages (per-property P&L) | Monthly NOI + top expenses per property |
+| 6 | Alerts (stale connection, large txn), budgets, recurring | — |
+| 7 | FIRE / retirement projection, MCP server for Q&A | — |
 
----
+## 7. Hosting and security
 
-## 5. Hosting and security
+The SimpleFIN access URL is a bearer credential to every account, so there is
+**no public endpoint**.
 
-Financial data + a SimpleFIN access URL (a bearer credential to all my accounts)
-means **no public endpoint by default**.
+- **Recommended:** home mini-PC/NAS + Docker Compose, reachable only via Tailscale.
+  Nightly encrypted backups (restic → B2/S3).
+- **Alternative:** Oracle free-tier ARM VM or $5 VPS, same Compose file, Tailscale only.
+- Secrets in `.env` (gitignored) or a secret store, never in logs.
+- **Never commit real financial data**: no exports, screenshots, account
+  numbers, or names. `data/` and `exports/` are gitignored. Test fixtures are synthetic.
+- LLM calls send only merchant, amount, and date. Option: local model via Ollama.
+- App-level auth even behind Tailscale.
 
-**Recommended:** small always-on box at home (used mini-PC ~$75–150, or existing
-NAS) running Docker Compose, reachable only via **Tailscale**. Nightly encrypted
-backup (restic → Backblaze B2 / S3, pennies/month).
+## 8. Evaluation
 
-**Cloud alternative:** Oracle Cloud free-tier ARM VM (or a $5 VPS) with the same
-Compose file, Tailscale-only access. Cloudflare Workers + D1 + Access (Google
-login) also works but forces a TS/Workers rewrite; not worth it for one user.
+- **Ingest:** duplicate rate = 0; every account's latest balance within $1 of the
+  institution site on a spot-check; stale-account detection covered by tests.
+- **Categorization:** ~300 hand-labeled transactions (kept local, not in git) plus
+  a synthetic fixture set in git. Accuracy by category; baseline rules-only vs.
+  rules+LLM; re-run on every rule/prompt change.
+- **Allocation:** matches each institution's own allocation view within 1%.
 
-Security checklist:
-- SimpleFIN/Plaid secrets in env/secret store, never in repo or logs.
-- DB at rest encryption (disk-level) + encrypted backups.
-- LLM categorization sends only merchant string, amount, date — no account numbers.
-  (Option: local model via Ollama for fully offline.)
-- App auth even behind Tailscale (single user, passkey or OAuth).
+## 9. Costs (monthly)
 
----
+SimpleFIN ~$1.25 · Plaid $0 (Trial, optional) · LLM < $0.10 · hosting $0–5 ·
+backups < $0.50 → **~$2–7/mo**.
 
-## 6. Evaluation (per repo rule: every capability needs evaluation)
+## 10. Open questions
 
-- **Categorization:** hand-label ~300 of my own transactions → fixture set.
-  Metric: accuracy by category + % needing review. Baseline rules-only vs.
-  rules+LLM. Re-run on every prompt/rule change (evalkit pack or simple pytest).
-- **Ingest correctness:** duplicate rate, transfer-detection precision/recall on
-  a labeled month, balance reconciliation (sum of txns vs. reported balance).
-
----
-
-## 7. Costs (monthly, steady state)
-
-| Item | Cost |
-|---|---|
-| SimpleFIN | $1.25–1.50 |
-| Plaid (optional, ≤10 items on Trial) | $0 → ~$0.30/account after |
-| LLM categorization (Haiku, ~300 txns/mo) | < $0.10 |
-| Hosting | $0 (home box/free tier) to ~$5 VPS |
-| Backups | < $0.50 |
-| **Total** | **~$2–7/mo** (+ one-time mini-PC if needed) |
-
----
-
-## 8. Risks / open questions
-
-- **Institution coverage:** check each of my banks/cards on SimpleFIN before
-  committing; Plaid as fallback.
-- **History:** SimpleFIN gives ~90 days; older history needs CSV exports now
-  (grab from Credit Karma and each bank before leaving).
-- **Credit score:** Credit Karma's score monitoring isn't replaced by any of this —
-  keep the free CK account (or card-issuer FICO) just for that.
-- **Maintenance creep:** Path C is a hobby project forever. The Sure spike is the
-  guard against building something I don't need.
-- Open: do I want envelope budgeting (→ reconsider Actual) or just tracking + cash flow?
-- Open: which properties/entities, and should mortgage principal count as expense
-  or equity?
-
----
-
-## 9. Next steps
-
-1. Sign up for SimpleFIN; verify every institution connects.
-2. `docker compose up` Sure locally with the SimpleFIN token; use it for a week.
-3. Export all available history from Credit Karma and banks (CSV/OFX).
-4. Create new repo `finboard` (private), move this doc to `docs/PLAN.md`, add
-   `BACKLOG.md` with the phases above.
-5. Start Phase 1.
+- Which recordkeeper runs the non-Fidelity 401(k)?
+- Joint accounts: how to show ownership (mine/spouse/joint) in net worth?
+- Mortgage principal: expense or equity on property pages?
+- Keep CK (or card-issuer FICO) for credit-score monitoring only.
 
 ## Sources
 
-- Reddit thread (SharkFin) — r/ClaudeAI, Sept 2026
 - SimpleFIN + Actual: https://actualbudget.org/docs/advanced/bank-sync/simplefin/
-- Plaid free Trial plan: https://plaid.com/docs/account/billing/
-- Sure: https://github.com/we-promise/sure · https://docs.sure.am/
+- SimpleFIN institutions: https://beta-bridge.simplefin.org/search-institutions
+- Plaid billing/Trial: https://plaid.com/docs/account/billing/
+- Plaid OAuth institutions (Fidelity access): https://plaid.com/docs/link/oauth/
+- Fidelity/Akoya: https://riabiz.com/a/2023/10/19/fidelity-just-dropped-the-hammer-on-screen-scrapers-to-cheers-but-some-firms-like-plaid-are-holdouts-and-the-cfpb-may-wield-the-final-gavel
+- Sure: https://github.com/we-promise/sure
 - KevFin: https://github.com/kxl3785/KevFin
+- Wealthfolio SimpleFIN discussion: https://github.com/afadil/wealthfolio/issues/197
